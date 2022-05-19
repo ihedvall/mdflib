@@ -348,8 +348,8 @@ void Mdf3Writer::IncrementNofSamples(uint64_t record_id) const {
 }
 
 void Mdf3Writer::SetLastPosition(std::FILE *file) {
-#if (MSVC)
-  _fseeki64(&file, 0, SEEK_END);
+#if (_MSC_VER)
+  _fseeki64(file, 0, SEEK_END);
 #else
   fseeko64(file, 0, SEEK_END);
 #endif

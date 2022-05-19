@@ -77,7 +77,7 @@ target_include_directories(mdf PUBLIC
         )
 target_include_directories(mdf PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(mdf PRIVATE ${utillib_SOURCE_DIR}/include)
-
+target_compile_definitions(util PRIVATE XML_STATIC)
 set(MDF_PUBLIC_HEADERS
         include/mdf/iattachment.h
         include/mdf/ichannel.h

@@ -45,16 +45,16 @@ void SetFilePosition(std::FILE *file, std::fpos_t position) {
 }
 
 void SetFirstFilePosition(std::FILE *file) {
-#if (MSVC)
-  _fseeki64(&file, 0, SEEK_SET);
+#if (_MSC_VER)
+  _fseeki64(file, 0, SEEK_SET);
 #else
   fseeko64(file, 0, SEEK_SET);
 #endif
 }
 
 size_t StepFilePosition(std::FILE *file, size_t steps) {
-#if (MSVC)
-  _fseeki64(&file, static_cast<int64_t>(steps) , SEEK_CUR);
+#if (_MSC_VER)
+  _fseeki64(file, static_cast<int64_t>(steps) , SEEK_CUR);
 #else
   fseeko64(file, static_cast<int64_t>(steps), SEEK_CUR);
 #endif
@@ -321,8 +321,8 @@ size_t IBlock::Update(std::FILE *file) {
 }
 
 void IBlock::SetLastFilePosition(std::FILE *file) const {
-#if (MSVC)
-  _fseeki64(&file, 0, SEEK_END);
+#if (_MSC_VER)
+  _fseeki64(file, 0, SEEK_END);
 #else
   fseeko64(file, 0, SEEK_END);
 #endif

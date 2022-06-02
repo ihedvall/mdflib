@@ -39,6 +39,13 @@ size_t CopyDataToFile(const mdf::detail::DataListBlock::BlockList& block_list,
 
 namespace mdf::detail {
 
+IChannelGroup* Dg4Block::CreateChannelGroup() {
+  auto cg4 = std::make_unique<Cg4Block>();
+  cg4->Init(*this);
+  AddCg4(cg4);
+  return cg_list_.empty() ? nullptr : cg_list_.back().get();
+}
+
 const IBlock *Dg4Block::Find(fpos_t index) const {
   for (const auto& cg : cg_list_) {
     if (!cg) {
@@ -77,6 +84,24 @@ size_t Dg4Block::Read(std::FILE *file) {
 
   ReadMdComment(file, kIndexMd);
   ReadBlockList(file, kIndexData);
+  return bytes;
+}
+
+size_t Dg4Block::Write(std::FILE *file) {
+  const bool update = FilePosition() > 0; // True if already written to file
+  if (update) {
+    return block_size_;
+  }
+  block_type_ = "##DG";
+  block_size_ = 24 + (4*8) + 8;
+  link_list_.resize(4,0);
+
+  auto bytes = IBlock::Write(file);
+  bytes += WriteNumber(file, rec_id_size_);
+  bytes += WriteBytes(file, 7);
+  UpdateBlockSize(file, bytes);
+  WriteLink4List(file,cg_list_,kIndexCg,0);
+  WriteMdComment(file, kIndexMd);
   return bytes;
 }
 
@@ -245,5 +270,62 @@ std::vector<IChannelGroup *> Dg4Block::ChannelGroups() const {
   }
   return list;
 }
+
+void Dg4Block::AddCg4(std::unique_ptr<Cg4Block> &cg4) {
+  cg4->Init(*this);
+  cg4->RecordId(0);
+  cg_list_.push_back(std::move(cg4));
+  if (cg_list_.size() < 2) {
+    rec_id_size_ = 0;
+  } else if (cg_list_.size() < 0x100) {
+    rec_id_size_ = 1;
+  } else if (cg_list_.size() < 0x10000) {
+    rec_id_size_ = 2;
+  } else if (cg_list_.size() < 0x100000000) {
+    rec_id_size_ = 4;
+  } else {
+    rec_id_size_ = 8;
+  }
+
+  uint64_t id4 = cg_list_.size() < 2 ? 0 : 1;
+  for (auto& group : cg_list_) {
+      if (group) {
+        group->RecordId(id4++);
+      }
+  }
+}
+
+int64_t Dg4Block::Index() const {
+  return FilePosition();
+}
+
+IMetaData *Dg4Block::MetaData() {
+  CreateMd4Block();
+  return dynamic_cast<IMetaData *>(md_comment_.get());
+}
+
+const IMetaData *Dg4Block::MetaData() const {
+  return !md_comment_ ? nullptr : dynamic_cast<IMetaData *>(md_comment_.get());
+}
+
+void Dg4Block::Description(const std::string &desc) {
+  auto* md4 = MetaData();
+  if (md4 != nullptr) {
+    md4->StringProperty("TX", desc);
+  }
+}
+std::string Dg4Block::Description() const {
+  const auto* md4 = MetaData();
+  return md4 == nullptr ? std::string() : md4->StringProperty("TX");
+}
+
+void Dg4Block::RecordIdSize(uint8_t id_size) {
+  rec_id_size_= id_size;
+}
+
+uint8_t Dg4Block::RecordIdSize() const {
+  return rec_id_size_;
+}
+
 
 }

@@ -13,6 +13,7 @@ class IChannelGroup {
  public:
   [[nodiscard]] virtual int64_t Index() const = 0;
 
+  virtual void RecordId(uint64_t record_id) = 0;
   [[nodiscard]] virtual uint64_t RecordId() const = 0;
 
   virtual void Name(const std::string& name) = 0;

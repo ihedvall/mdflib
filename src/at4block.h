@@ -18,25 +18,26 @@ constexpr uint16_t kUsingMd5 = 0x04;
 }
 class At4Block : public IBlock, public IAttachment {
  public:
-  [[nodiscard]] std::string FileName() const override {
-    return filename_;
-  }
+  void FileName(const std::string& filename) override;
+  [[nodiscard]] const std::string& FileName() const override;
 
-  [[nodiscard]] std::string FileType() const override {
-    return file_type_;
-  }
+  void FileType(const std::string& file_type) override;
+  [[nodiscard]] const std::string& FileType() const override;
 
-  [[nodiscard]] bool IsEmbedded() const override {
-    return flags_ & At4Flags::kEmbeddedData;
-  }
+  void CreatorIndex(uint16_t creator) override;
+  [[nodiscard]] uint16_t CreatorIndex() const override;
 
-  [[nodiscard]] bool IsCompressed() const override {
-    return flags_ & At4Flags::kCompressedData;
-  }
+  void IsEmbedded(bool embed) override;
+  [[nodiscard]] bool IsEmbedded() const override;
+
+  void IsCompressed(bool compress) override;
+  [[nodiscard]] bool IsCompressed() const override;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
   size_t Read(std::FILE *file) override;
   void ReadData(std::FILE *file, const std::string& dest_file) const;
+  size_t Write(std::FILE *file) override;
+  std::optional<std::string> Md5() override;
 
  private:
 
@@ -47,7 +48,7 @@ class At4Block : public IBlock, public IAttachment {
   uint64_t original_size_ = 0;
   uint64_t nof_bytes_ = 0;
 
-  fpos_t data_position_ = 0; ///< Stores the file position of the data BLOB
+  fpos_t data_position_ = 0; ///< File position of the data BLOB
   std::string filename_;
   std::string file_type_;
 

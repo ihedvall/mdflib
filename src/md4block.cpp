@@ -4,10 +4,13 @@
  */
 #include "util/ixmlfile.h"
 #include "md4block.h"
+
+using namespace util::xml;
+
 namespace {
 
-void MakeConstantList(const util::xml::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  util::xml::IXmlNode::ChildList constant_list;
+void MakeConstantList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  IXmlNode::ChildList constant_list;
   root.GetChildList(constant_list);
   if (constant_list.empty()) {
     return;
@@ -20,8 +23,8 @@ void MakeConstantList(const util::xml::IXmlNode &root, mdf::detail::BlockPropert
   }
 }
 
-void MakePhysicalDimension(const util::xml::IXmlNode &pd, mdf::detail::BlockPropertyList &dest) {
-  util::xml::IXmlNode::ChildList list;
+void MakePhysicalDimension(const IXmlNode &pd, mdf::detail::BlockPropertyList &dest) {
+  IXmlNode::ChildList list;
   pd.GetChildList(list);
 
   const auto name = pd.Attribute<std::string>("ID");
@@ -52,8 +55,8 @@ void MakePhysicalDimension(const util::xml::IXmlNode &pd, mdf::detail::BlockProp
   dest.emplace_back(label, name, desc.str());
 }
 
-void MakePhysicalDimensionList(const util::xml::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  util::xml::IXmlNode::ChildList list;
+void MakePhysicalDimensionList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -65,8 +68,8 @@ void MakePhysicalDimensionList(const util::xml::IXmlNode &root, mdf::detail::Blo
   }
 }
 
-void MakeUnitGroup(const util::xml::IXmlNode &pd, mdf::detail::BlockPropertyList &dest) {
-  util::xml::IXmlNode::ChildList list;
+void MakeUnitGroup(const IXmlNode &pd, mdf::detail::BlockPropertyList &dest) {
+  IXmlNode::ChildList list;
   pd.GetChildList(list);
 
   std::string name;
@@ -91,8 +94,8 @@ void MakeUnitGroup(const util::xml::IXmlNode &pd, mdf::detail::BlockPropertyList
   dest.emplace_back("Unit Group", name, desc.str());
 }
 
-void MakeUnitGroupList(const util::xml::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  util::xml::IXmlNode::ChildList list;
+void MakeUnitGroupList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -104,8 +107,8 @@ void MakeUnitGroupList(const util::xml::IXmlNode &root, mdf::detail::BlockProper
   }
 }
 
-void MakeUnit(const util::xml::IXmlNode &unit, mdf::detail::BlockPropertyList &dest) {
-  util::xml::IXmlNode::ChildList list;
+void MakeUnit(const IXmlNode &unit, mdf::detail::BlockPropertyList &dest) {
+  IXmlNode::ChildList list;
   unit.GetChildList(list);
 
   std::ostringstream desc;
@@ -147,8 +150,8 @@ void MakeUnit(const util::xml::IXmlNode &unit, mdf::detail::BlockPropertyList &d
   dest.emplace_back(name, display_name, d.str());
 }
 
-void MakeUnitList(const util::xml::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  util::xml::IXmlNode::ChildList list;
+void MakeUnitList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -160,8 +163,8 @@ void MakeUnitList(const util::xml::IXmlNode &root, mdf::detail::BlockPropertyLis
   }
 }
 
-void MakeUnitSpecList(const util::xml::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  util::xml::IXmlNode::ChildList list;
+void MakeUnitSpecList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -177,7 +180,7 @@ void MakeUnitSpecList(const util::xml::IXmlNode &root, mdf::detail::BlockPropert
   }
 }
 
- void MakeCommonProperty(const util::xml::IXmlNode &e, mdf::detail::BlockPropertyList &dest) {
+ void MakeCommonProperty(const IXmlNode &e, mdf::detail::BlockPropertyList &dest) {
    const auto name = e.Attribute<std::string>("name");
    const auto desc = e.Attribute<std::string>("desc");
    auto unit = e.Attribute<std::string>("unit");
@@ -195,8 +198,8 @@ void MakeUnitSpecList(const util::xml::IXmlNode &root, mdf::detail::BlockPropert
    dest.emplace_back(label.str(), value, desc);
  }
 
-void MakeTreePropertyList(const util::xml::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  util::xml::IXmlNode::ChildList list;
+void MakeTreePropertyList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -217,8 +220,8 @@ void MakeTreePropertyList(const util::xml::IXmlNode &root, mdf::detail::BlockPro
   }
 }
 
- void MakeCommonPropertyList(const util::xml::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  util::xml::IXmlNode::ChildList list;
+ void MakeCommonPropertyList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -242,11 +245,30 @@ void MakeTreePropertyList(const util::xml::IXmlNode &root, mdf::detail::BlockPro
 }
 
 namespace mdf::detail {
+
+Md4Block::Md4Block(const std::string &text) {
+  const bool xml = !text.empty() && text[0] == '<';
+  if (xml) {
+    block_type_ = "##MD";
+  } else {
+    block_type_ = "##TX";
+  }
+  text_ = text;
+}
+
+void Md4Block::TxComment(const std::string &tx_comment) {
+  auto xml = CreateXmlFile();
+  std::ostringstream root_name;
+  root_name << BlockType() << "comment";
+  auto& root = xml->RootName(root_name.str());
+  StringProperty("TX", tx_comment);
+}
+
 std::string Md4Block::TxComment() const {
   if (IsTxtBlock()) {
     return Tx4Block::TxComment();
   }
-  auto xml = util::xml::CreateXmlFile();
+  auto xml = CreateXmlFile();
   bool parse = xml->ParseString(text_);
   return parse ? FixCommentToLine(xml->Property<std::string>("TX"), 40) : "";
 }
@@ -257,14 +279,14 @@ void Md4Block::GetBlockProperty(BlockPropertyList &dest) const {
     return Tx4Block::GetBlockProperty(dest);
   }
     // Parse out the XML data
-  auto xml = util::xml::CreateXmlFile();
+  auto xml = CreateXmlFile();
   const bool parse = xml->ParseString(Text());
   if (!parse) {
     return Tx4Block::GetBlockProperty(dest);
   }
 
   // Check if the XML only include a TX tag. Then its treated as a normal text block.
-  util::xml::IXmlNode::ChildList root_list;
+  IXmlNode::ChildList root_list;
   xml->GetChildList(root_list);
   if (root_list.size() <= 1) {
     if (!TxComment().empty()) {
@@ -363,7 +385,7 @@ void Md4Block::GetBlockProperty(BlockPropertyList &dest) const {
 
   const auto* names = xml->GetNode("names");
   if (names != nullptr) {
-    util::xml::IXmlNode::ChildList name_list;
+    IXmlNode::ChildList name_list;
     names->GetChildList(name_list);
     if (!name_list.empty()) {
       dest.emplace_back("","","", BlockItemType::BlankItem);
@@ -422,14 +444,13 @@ void Md4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-Md4Block::Md4Block(const std::string &text) {
-  const bool xml = !text.empty() && text[0] == '<';
-  if (xml) {
-    block_type_ = "##MD";
-  } else {
-    block_type_ = "##TX";
-  }
+void Md4Block::XmlSnippet(const std::string &text) {
   text_ = text;
 }
+
+const std::string &Md4Block::XmlSnippet() const {
+  return text_;
+}
+
 
 }

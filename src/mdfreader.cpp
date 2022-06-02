@@ -207,11 +207,9 @@ MdfReader::MdfReader(const std::string &filename)
       util::string::IEquals(id_block->FileId(), "UnFinMF", 7)) {
     if (id_block->Version() >= 400) {
       instance_ = std::make_unique<detail::Mdf4File>(std::move(id_block));
-      instance_->Name(ShortName());
       instance_->FileName(filename_);
     } else {
       instance_ = std::make_unique<detail::Mdf3File>(std::move(id_block));
-      instance_->Name(ShortName());
       instance_->FileName(filename_);
     }
     if (!instance_) {

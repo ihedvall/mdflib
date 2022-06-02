@@ -60,7 +60,7 @@ class Cn4Block : public DataListBlock , public IChannel {
   [[nodiscard]] const Si4Block* Si() const {
     return si_block_.get();
   }
-
+  void AddCc4(std::unique_ptr<Cc4Block>& cc4);
   [[nodiscard]] const Cc4Block* Cc() const {
     return cc_block_.get();
   }

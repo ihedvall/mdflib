@@ -536,4 +536,8 @@ void Cn4Block::Init(const IBlock &id_block) {
   cg_block_ = dynamic_cast<const Cg4Block*>(&id_block);
 }
 
+void Cn4Block::AddCc4(std::unique_ptr<Cc4Block> &cc4) {
+  cc_block_ = std::move(cc4);
+}
+
 } // namespace mdf::detail

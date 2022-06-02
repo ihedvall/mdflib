@@ -56,6 +56,23 @@ size_t Tx4Block::Read(std::FILE *file) {
   return bytes;
 }
 
+size_t Tx4Block::Write(std::FILE *file) {
+  const bool update = FilePosition() > 0;
+  if (update) {
+    return block_size_;
+  }
+  const bool is_xml = !text_.empty() && text_[0] == '<';
+  block_type_ = is_xml ? "##MD" :"##TX";
+  block_size_ = 24 + text_.size() + 1;
+  link_list_.clear();
+
+  auto bytes = IBlock::Write(file);
+  bytes += WriteStr(file, text_, text_.size());
+  bytes += WriteBytes(file, 1);
+  UpdateBlockSize(file, bytes);
+  return bytes;
+}
+
 std::string Tx4Block::Text() const {
   std::string temp = text_;
   util::string::Trim(temp);

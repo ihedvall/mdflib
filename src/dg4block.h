@@ -16,16 +16,16 @@ class Dg4Block : public DataListBlock, public IDataGroup {
  public:
   using Cg4List = std::vector<std::unique_ptr<Cg4Block>>;
 
-  [[nodiscard]] int64_t Index() const override {
-    return FilePosition();
-  }
+  [[nodiscard]] int64_t Index() const override;
 
-  [[nodiscard]] std::string Description() const override {
-    return MdText();
-  }
+  void Description(const std::string& desc) override;
+
+  [[nodiscard]] std::string Description() const override;
 
   [[nodiscard]] std::vector<IChannelGroup*> ChannelGroups() const override;
+  [[nodiscard]] IChannelGroup* CreateChannelGroup() override;
 
+  void AddCg4(std::unique_ptr<Cg4Block>& cg4);
   [[nodiscard]] const Cg4List& Cg4() const {
     return cg_list_;
   }
@@ -37,6 +37,11 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   void ReadCgList(std::FILE* file);
 
   void ReadData(std::FILE* file) const;
+  IMetaData *MetaData() override;
+  const IMetaData *MetaData() const override;
+  void RecordIdSize(uint8_t id_size) override;
+  uint8_t RecordIdSize() const override;
+  size_t Write(std::FILE *file) override;
  private:
   uint8_t rec_id_size_ = 0;
   /* 7 byte reserved */

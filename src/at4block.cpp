@@ -8,6 +8,11 @@
 #include "at4block.h"
 #include "util/zlibutil.h"
 #include "util/cryptoutil.h"
+#include "util/logstream.h"
+
+using namespace std::filesystem;
+using namespace util::log;
+using namespace util::zlib;
 
 namespace {
 
@@ -43,7 +48,45 @@ bool CopyBytes(std::FILE* source, std::FILE* dest, uint64_t nof_bytes) {
   return true;
 }
 
-} // namespace
+std::string ConvertMd5Buffer(const std::vector<uint8_t>& buffer) {
+  std::ostringstream temp;
+  for (auto byte : buffer ) {
+    temp << std::uppercase <<  std::setfill('0')
+         << std::setw(2) << std::hex << static_cast<uint16_t>(byte);
+  }
+  return temp.str();
+}
+
+bool FileToBuffer(const std::string& filename, ByteArray& dest) {
+  try {
+    path fullname(filename);
+    const auto size = file_size(fullname);
+    if (size > 0) {
+      dest.resize(size, 0);
+      std::FILE* file = nullptr;
+      fopen_s(&file, filename.c_str(), "rb");
+      if (file != nullptr) {
+        const auto nof_bytes = fread(dest.data(), 1, size, file);
+        if (nof_bytes < size) {
+          dest.resize(nof_bytes);
+        }
+      } else {
+        LOG_ERROR() << "Failed to open file. File: " << filename;
+        dest.clear();
+        return false;
+      }
+    } else {
+      dest.clear();
+    }
+
+  } catch (const std::exception& err) {
+    LOG_ERROR() << "File error when reading file to byte array. Error: " << err.what() << ", File: " << filename;
+    return false;
+  }
+  return true;
+}
+
+ } // namespace
 
 namespace mdf::detail {
 
@@ -103,6 +146,71 @@ size_t At4Block::Read(std::FILE *file) {
   return bytes;
 }
 
+size_t At4Block::Write(std::FILE *file) {
+  const bool update = FilePosition() > 0;
+  if (update) {
+    return block_size_;
+  }
+  ByteArray data_buffer;
+  try {
+   path filename(filename_);
+   if (!std::filesystem::exists(filename)) {
+     LOG_ERROR() << "Attachment File doesn't exist. File: " << filename_;
+     return 0;
+   }
+
+   const auto md5 = util::crypto::CreateMd5FileChecksum(filename_, md5_);
+   if (md5) {
+     flags_ |= At4Flags::kUsingMd5;
+   }
+
+   original_size_ = file_size(filename);
+   if (IsEmbedded() && IsCompressed()) {
+     const bool compress = Deflate(filename_, data_buffer);
+     if (!compress) {
+       LOG_ERROR() << "Compress failure. File: " << filename;
+       return 0;
+     }
+   } else if (IsEmbedded()) {
+     const auto buffer = FileToBuffer(filename_, data_buffer);
+     if (!buffer) {
+       LOG_ERROR() << "File to buffer failure. File: " << filename;
+       return 0;
+     }
+   }
+
+  } catch (const std::exception& err) {
+    LOG_ERROR() << "Attachment File error. Error: " << err.what() << ", File: " << filename_;
+    return 0;
+  }
+
+  nof_bytes_ = data_buffer.size();
+
+  block_type_ = "##AT";
+  block_size_ = 24 + (4*8) + 2 + 2 + 4 + 16 + 8 + 8 + nof_bytes_;
+  link_list_.resize(4,0);
+  auto bytes = IBlock::Write(file);
+  bytes += WriteNumber(file, flags_);
+  bytes += WriteNumber(file, creator_index_);
+  bytes += WriteBytes(file, 4);
+  if (md5_.size() == 16) {
+    bytes += WriteByte(file, md5_);
+  } else {
+    bytes += WriteBytes(file, 16);
+  }
+  bytes += WriteNumber(file, original_size_);
+  bytes += WriteNumber(file, nof_bytes_);
+  data_position_ = FilePosition();
+  if (nof_bytes_ > 0) {
+    bytes += WriteByte(file, data_buffer);
+  }
+  UpdateBlockSize(file,bytes);
+  WriteTx4(file, kIndexFilename, filename_);
+  WriteTx4(file, kIndexType, file_type_);
+  WriteMdComment(file, kIndexMd);
+  return bytes;
+}
+
 void At4Block::ReadData(std::FILE *file, const std::string &dest_file) const {
   if (file == nullptr || data_position_ <= 0) {
     throw std::invalid_argument("File is not opened or data position not read");
@@ -134,6 +242,53 @@ void At4Block::ReadData(std::FILE *file, const std::string &dest_file) const {
       throw std::runtime_error("Mismatching MD5 checksums");
     }
   }
+}
+
+void At4Block::IsEmbedded(bool embed) {
+  if (embed) {
+    flags_ |= At4Flags::kEmbeddedData;
+  } else {
+    flags_ &= ~At4Flags::kEmbeddedData;
+  }
+}
+void At4Block::FileName(const std::string &filename) {
+  filename_ = filename;
+}
+const std::string &At4Block::FileName() const {
+  return filename_;
+}
+void At4Block::FileType(const std::string &file_type) {
+  file_type_ = file_type;
+}
+const std::string &At4Block::FileType() const {
+  return file_type_;
+}
+bool At4Block::IsEmbedded() const {
+  return flags_ & At4Flags::kEmbeddedData;
+}
+void At4Block::IsCompressed(bool compress) {
+  if (compress) {
+    flags_ |= At4Flags::kCompressedData;
+  } else {
+    flags_ &= ~At4Flags::kCompressedData;
+  }
+}
+bool At4Block::IsCompressed() const {
+  return flags_ & At4Flags::kCompressedData;
+}
+
+std::optional<std::string> At4Block::Md5() {
+  if ((flags_ & At4Flags::kUsingMd5) == 0) {
+    return {};
+  }
+  return ConvertMd5Buffer(md5_);
+}
+
+void At4Block::CreatorIndex(uint16_t creator) {
+  creator_index_ = creator;
+}
+uint16_t At4Block::CreatorIndex() const {
+  return creator_index_;
 }
 
 }

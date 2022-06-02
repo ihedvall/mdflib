@@ -4,6 +4,7 @@
  */
 #include <string>
 #include <ios>
+#include <sstream>
 
 #ifdef WIN32
 #include <windows.h>
@@ -66,6 +67,7 @@ size_t IdBlock::Read(std::FILE *file) {
   bytes += ReadNumber(file, custom_flags_);
   return bytes;
 }
+
 size_t IdBlock::Write(std::FILE *file) {
   // Check if it has been written. Update is not supported in ID
   if (FilePosition() == 0) {
@@ -125,7 +127,54 @@ void IdBlock::SetDefaultMdf3Values() {
   custom_flags_ = 0;
 }
 
+void IdBlock::MinorVersion(int minor) {
 
+  int major = format_identifier_.empty() ? 4 : std::stoi(format_identifier_.substr(0,1));
+  if (minor <= 0) {
+      minor = 0;
+  } else if (minor < 10) {
+    minor *= 10;
+  } else if ( minor >= 100) {
+    minor %= 100;
+  }
+
+  std::ostringstream temp;
+  temp << major << ".";
+  if (minor <= 0) {
+    temp << "00";
+  } else {
+    temp << minor;
+  }
+  format_identifier_ = temp.str();
+  version_ = 100 * major + minor;
+}
+
+void IdBlock::IsFinalized(bool finalized, std::FILE *file, uint16_t standard_flags, uint16_t custom_flags) {
+  if (finalized) {
+    file_identifier_ = "MDF     ";
+    standard_flags_ = 0;
+    custom_flags_ = 0;
+  } else {
+    file_identifier_ = "UnFinMF ";
+    standard_flags_ = standard_flags;
+    custom_flags_ = custom_flags;
+  }
+
+  // Check if the file also needs update
+  if (file != nullptr && FilePosition() == 0) {
+    SetFirstFilePosition(file);
+    WriteStr(file, file_identifier_, 8);
+    SetFilePosition(file, 60);
+    WriteNumber(file, standard_flags_);
+    WriteNumber(file, custom_flags_);
+  }
+}
+
+bool IdBlock::IsFinalized(uint16_t &standard_flags, uint16_t &custom_flags) const {
+  standard_flags = standard_flags_;
+  custom_flags = custom_flags_;
+  return !(!file_identifier_.empty() && file_identifier_[0] == 'U');
+}
 
 }
 

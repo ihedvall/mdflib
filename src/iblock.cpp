@@ -81,8 +81,18 @@ std::size_t ReadByte(std::FILE *file, std::vector<uint8_t> &dest, const size_t s
   std::fread(dest.data(), 1, size, file);
   return size;
 }
+
 std::size_t WriteByte(std::FILE *file, const std::vector<uint8_t> &source) {
   return std::fwrite(source.data(), 1, source.size(), file);
+}
+
+std::size_t WriteBytes(std::FILE *file, size_t nof_bytes) {
+  size_t bytes = 0;
+  if (nof_bytes > 0) {
+    const std::vector<uint8_t> empty_list(nof_bytes, 0);
+    bytes = WriteByte(file, empty_list);
+  }
+  return bytes;
 }
 
 size_t ReadStr(std::FILE *file, std::string &dest, const size_t size) {
@@ -199,6 +209,22 @@ void IBlock::ReadMdComment(std::FILE *file, size_t index_md) {
   }
 }
 
+void IBlock::WriteMdComment(std::FILE *file, size_t index_md) {
+  if (md_comment_ && Link(index_md) == 0) {
+    md_comment_->Write(file);
+    UpdateLink(file, index_md, md_comment_->FilePosition());
+  }
+}
+
+void IBlock::WriteTx4(std::FILE *file, size_t index_tx, const std::string& text) {
+  if (!text.empty() && Link(index_tx) == 0) {
+    Tx4Block tx4(text);
+    tx4.Init(*this);
+    tx4.Write(file);
+    UpdateLink(file, index_tx, tx4.FilePosition());
+  }
+}
+
 std::string IBlock::ReadTx3(std::FILE *file, size_t index_tx) const {
   if (Link(index_tx) > 0) {
     SetFilePosition(file, Link(index_tx));
@@ -259,7 +285,7 @@ void IBlock::GetBlockProperty(BlockPropertyList &dest) const {
 
 std::string IBlock::MdText() const {
   if (!md_comment_) {
-    return std::string();
+    return {};
   }
   const auto* tx = dynamic_cast<const Tx4Block*>(md_comment_.get());
   return tx == nullptr ? std::string() : tx->Text();
@@ -273,39 +299,25 @@ size_t IBlock::Write(std::FILE *file) {
   file_position_ = GetFilePosition(file);
 
   size_t bytes = 0;
-  switch (block_type_.size()) {
-    case 4: {
-      bytes += WriteStr(file,block_type_,4);
-      const std::vector<uint8_t> reserved(4, 0);
-      bytes += WriteByte(file, reserved);
-      bytes += WriteNumber(file, block_length_);
-      uint64_t link_count = link_list_.size();
-      bytes += WriteNumber(file, link_count);
-      for (auto link : link_list_) {
-        bytes += WriteNumber(file, link);
-      }
-      break;
+  if (IsMdf4()) {
+    bytes += WriteStr(file,block_type_,4);
+    const std::vector<uint8_t> reserved(4, 0);
+    bytes += WriteByte(file, reserved);
+    bytes += WriteNumber(file, block_length_);
+    uint64_t link_count = link_list_.size();
+    bytes += WriteNumber(file, link_count);
+    for (auto link : link_list_) {
+      bytes += WriteNumber(file, link);
     }
-
-    case 2: { // MDF3 block
-      bytes += WriteStr(file, block_type_,2);
-      bytes += WriteNumber(file, block_size_);
-      link_count_ = link_list_.size();
-      for (auto link : link_list_) {
-        const auto link32 = static_cast<uint32_t>(link);
-        bytes += WriteNumber(file, link32);
-      }
-      break;
-    }
-
-    case 0:
-    default: {
-      std::ostringstream error;
-      error << "Invalid block type. Type: " << block_type_;
-      throw std::runtime_error(error.str());
+  } else {
+    bytes += WriteStr(file, block_type_,2);
+    bytes += WriteNumber(file, block_size_);
+    link_count_ = link_list_.size();
+    for (auto link : link_list_) {
+      const auto link32 = static_cast<uint32_t>(link);
+      bytes += WriteNumber(file, link32);
     }
   }
-
   return bytes;
 }
 
@@ -373,7 +385,7 @@ void IBlock::UpdateLink(std::FILE *file, size_t link_index, int64_t link) {
     throw std::runtime_error("index is out of bounds" );
   }
   if (link == link_list_[link_index]) {
-    return;
+    return; // No need to update the link
   }
 
   auto pos = FilePosition();
@@ -381,16 +393,33 @@ void IBlock::UpdateLink(std::FILE *file, size_t link_index, int64_t link) {
     throw std::runtime_error("Invalid file position");
   }
   if (IsMdf4()) {
-    pos += 8 + (link_index * 8);
+    pos += 24 + static_cast<int64_t>(link_index * 8);
     SetFilePosition(file, pos);
     WriteNumber(file, link);
   } else {
-    pos += 4 + (link_index * 4);
-    uint32_t link32 = static_cast<uint32_t>(link);
+    pos += 4 + static_cast<int64_t>(link_index * 4);
+    const auto link32 = static_cast<uint32_t>(link);
     SetFilePosition(file, pos);
     WriteNumber(file, link32);
   }
   link_list_[link_index] = link;
 }
+
+void IBlock::CreateMd4Block() {
+  auto md4 = std::make_unique<Md4Block>();
+  md4->TxComment(""); // Also sets the right root name
+
+  if (!md_comment_ || md_comment_->BlockType() == "TX") {
+    md_comment_ =  std::move(md4);
+  }
+}
+
+std::string IBlock::BlockType() const {
+  if (block_type_.size() == 4) {
+    return block_type_.substr(2);
+  }
+  return block_type_;
+}
+
 
 }

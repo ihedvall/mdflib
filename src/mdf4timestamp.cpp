@@ -44,4 +44,39 @@ size_t Mdf4Timestamp::Read(std::FILE *file) {
   bytes += ReadNumber(file, flags_);
   return bytes;
 }
+
+size_t Mdf4Timestamp::Write(std::FILE *file) {
+  if (file_position_ <= 0) {
+    file_position_ = GetFilePosition(file);
+  } else {
+    SetFilePosition(file, file_position_);
+  }
+  auto bytes = WriteNumber(file, time_);
+  bytes += WriteNumber(file, tz_offset_);
+  bytes += WriteNumber(file, dst_offset_);
+  bytes += WriteNumber(file, flags_);
+  return bytes;
+}
+
+uint64_t Mdf4Timestamp::NsSince1970() const {
+  if (flags_ & TimestampFlag::kLocalTimestamp) {
+    // Do not know how to convert but use PC local time
+    const uint64_t ns = time_ % 1'000'000'000;
+    const auto local_time = static_cast<time_t>(time_ / 1'000'000'000);
+    auto temp = *std::gmtime(&local_time);
+    temp.tm_isdst = -1;
+    const auto utc = std::mktime(&temp);
+    uint64_t time = utc;
+    time *= 1'000'000'000;
+    time += ns;
+    return time;
+  }
+  return time_;
+}
+void Mdf4Timestamp::NsSince1970(uint64_t utc) {
+  time_ = utc;
+  tz_offset_ = 0;
+  dst_offset_ = 0;
+  flags_ = 0;
+}
 }

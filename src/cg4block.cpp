@@ -63,9 +63,7 @@ uint64_t Cg4Block::NofSamples() const {
 void Cg4Block::NofSamples(uint64_t nof_samples) {
   nof_samples_ = nof_samples;
 }
-uint64_t Cg4Block::RecordId() const {
-  return record_id_;
-}
+
 const IChannel *Cg4Block::GetXChannel(const IChannel &reference) const {
   const auto* cn4 = dynamic_cast<const Cn4Block*>(&reference);
   if (cn4 == nullptr) {
@@ -249,5 +247,16 @@ std::vector<IChannel *> Cg4Block::Channels() const {
    return channel_list;
 }
 
+uint64_t Cg4Block::RecordId() const {
+  return record_id_;
+}
+
+void Cg4Block::RecordId(uint64_t record_id) {
+  record_id_ = record_id;
+}
+
+void Cg4Block::AddCn4(std::unique_ptr<Cn4Block> &cn4) {
+  cn_list_.push_back(std::move(cn4));
+}
 
 }

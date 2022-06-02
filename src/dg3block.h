@@ -19,9 +19,8 @@ class Dg3Block : public DataListBlock, public IDataGroup {
   using Cg3List = std::vector<std::unique_ptr<Cg3Block>>;
 
   [[nodiscard]] int64_t Index() const override;
-  [[nodiscard]] std::string Description() const override;
   [[nodiscard]] std::vector<IChannelGroup*> ChannelGroups() const override;
-
+  [[nodiscard]] IChannelGroup* CreateChannelGroup() override;
 
   void AddCg3(std::unique_ptr<Cg3Block>& cg3);
   [[nodiscard]] const Cg3List& Cg3() const;

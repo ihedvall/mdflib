@@ -13,21 +13,28 @@ namespace mdf::detail {
 
 class Mdf3File : public MdfFile {
  public:
-  explicit Mdf3File();
+  Mdf3File();
   explicit Mdf3File(std::unique_ptr<IdBlock> id_block);
   ~Mdf3File() override = default;
 
   void Attachments(AttachmentList& dest) const override;
   void DataGroups(DataGroupList& dest ) const override;
   [[nodiscard]] std::string Version() const override;
+  void MinorVersion(int minor) override;
+
+  void ProgramId(const std::string& program_id) override;
   [[nodiscard]] std::string ProgramId() const override;
+
   [[nodiscard]] IHeader* Header() const override;
 
-  [[nodiscard]] IDataGroup* CreateDataGroup();
+  [[nodiscard]] IDataGroup* CreateDataGroup() override;
 
   [[nodiscard]] const IBlock* Find(fpos_t id) const;
 
   [[nodiscard]] bool IsMdf4() const override;
+  void IsFinalized(bool finalized,std::FILE* file,
+                   uint16_t standard_flags, uint16_t custom_flags) override;
+  [[nodiscard]] bool IsFinalized(uint16_t& standard_flags, uint16_t& custom_flags) const override;
 
   void ReadHeader(std::FILE *file) override;
   void ReadMeasurementInfo(std::FILE *file) override;
@@ -36,7 +43,7 @@ class Mdf3File : public MdfFile {
   [[nodiscard]] const IdBlock &Id() const;
   [[nodiscard]] const Hd3Block &Hd() const;
 
-  bool Write(std::FILE* file);
+  bool Write(std::FILE* file) override;
 
   Mdf3File(const Mdf3File &) = delete;
   Mdf3File(Mdf3File &&) = delete;

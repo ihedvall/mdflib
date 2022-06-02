@@ -115,7 +115,7 @@ TEST_F(TestRead, IdBlock) //NOLINT
 
 }
 
-TEST_F(TestRead, Benchmark) {
+TEST_F(TestRead, DISABLED_Benchmark) {
   {
     MdfReader oRead("K:/test/mdf/net/testfiles/test.mf4");
     const auto start = std::chrono::steady_clock::now();

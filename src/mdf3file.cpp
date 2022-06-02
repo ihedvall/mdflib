@@ -138,8 +138,36 @@ std::string Mdf3File::Version() const {
   return !id_block_ ? "" : id_block_->VersionString();
 }
 
+void Mdf3File::ProgramId(const std::string &program_id) {
+  if (id_block_) {
+    id_block_->ProgramId(program_id);
+  }
+}
+
 std::string Mdf3File::ProgramId() const {
   return !id_block_ ? "" : id_block_->ProgramId();
+}
+
+void Mdf3File::MinorVersion(int minor) {
+  if (id_block_) {
+    id_block_->MinorVersion(minor);
+  }
+}
+void Mdf3File::IsFinalized(bool finalized, std::FILE *file, uint16_t standard_flags, uint16_t custom_flags) {
+  if (id_block_) {
+    id_block_->IsFinalized(finalized, file, standard_flags, custom_flags);
+  }
+}
+
+bool Mdf3File::IsFinalized(uint16_t &standard_flags, uint16_t &custom_flags) const {
+  bool finalized = true;
+  if (id_block_) {
+    finalized = id_block_->IsFinalized(standard_flags, custom_flags);
+  } else {
+    standard_flags = 0;
+    custom_flags = 0;
+  }
+  return finalized;
 }
 
 }

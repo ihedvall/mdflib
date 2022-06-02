@@ -66,10 +66,10 @@ add_library(mdf STATIC
         src/channelobserver.h src/channelobserver.cpp
         include/mdf/ichannelobserver.h src/ichannelobserver.cpp
         include/mdf/ichannelconversion.h src/ichannelconversion.cpp
-        include/mdf/mdf3writer.h src/mdf3writer.cpp
+        src/mdf3writer.h src/mdf3writer.cpp
         src/dt3block.cpp src/dt3block.h
         include/mdf/iheader.h
-        include/mdf/samplerecord.h src/iheader.cpp)
+        include/mdf/samplerecord.h src/iheader.cpp src/mdf4writer.cpp src/mdf4writer.h src/mdfwriter.cpp include/mdf/mdfwriter.h src/mdffactory.cpp include/mdf/mdffactory.h src/ifilehistory.cpp include/mdf/ifilehistory.h src/imetadata.cpp include/mdf/imetadata.h src/etag.cpp include/mdf/etag.h)
 
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>

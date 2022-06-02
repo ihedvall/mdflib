@@ -29,6 +29,7 @@ size_t StepFilePosition(std::FILE* file, size_t steps);
 [[nodiscard]] std::string ReadBlockType(std::FILE* file);
 std::size_t ReadByte(std::FILE *file, std::vector<uint8_t> &dest, size_t size);
 std::size_t WriteByte(std::FILE *file, const std::vector<uint8_t>& source);
+std::size_t WriteBytes(std::FILE *file, size_t nof_bytes);
 
 std::size_t ReadStr(std::FILE *file, std::string &dest, size_t size);
 std::size_t WriteStr(std::FILE *file, const std::string &source, size_t size);
@@ -74,12 +75,7 @@ class IBlock {
 
   void SetLastFilePosition(std::FILE* file) const;
 
-  [[nodiscard]] std::string BlockType() const {
-    if (block_type_.size() == 4) {
-      return block_type_.substr(2);
-    }
-    return block_type_;
-  }
+  [[nodiscard]] std::string BlockType() const;
 
   [[nodiscard]] uint64_t BlockLength() const {
     return block_size_ + block_length_;
@@ -117,7 +113,7 @@ class IBlock {
    * The MDF3 has big or little endian byte order while MDF4 always uses little endian byte order.
    */
   uint16_t byte_order_ = 0; ///< Default set to Intel (little) byte order.
-  uint16_t version_ = 410;  ///< Default set to 4.1.
+  uint16_t version_ = 420;  ///< Default set to 4.2.
 
   fpos_t file_position_ = 0;       ///< 64-bit file position.
   std::string block_type_;         ///< MDF header. MDF3 has 2 characters. MDF4 has 4 characters.
@@ -137,15 +133,19 @@ class IBlock {
   size_t ReadHeader4(std::FILE *file); ///< Read in MDF4 header and links.
 
   void ReadMdComment(std::FILE *file, size_t index_md);
+  void WriteMdComment(std::FILE* file, size_t index_md);
+
   std::string ReadTx3(std::FILE *file, size_t index_tx) const;
   std::string ReadTx4(std::FILE *file, size_t index_tx) const;
+  void WriteTx4(std::FILE *file, size_t index_tx, const std::string& text);
+
   std::size_t ReadBool(std::FILE *file, bool &dest) const;
   std::size_t WriteBool(std::FILE* file, bool value) const;
 
   [[nodiscard]] std::string MdText() const;
 
   void UpdateBlockSize(std::FILE* file, size_t bytes);
-
+  void CreateMd4Block(); ///< Helper function that creates an MD4 block to this block
 
   template<typename T>
   std::size_t ReadNumber(std::FILE *file, T &dest) const {
@@ -187,6 +187,45 @@ class IBlock {
     }
     return sizeof(T);
   }
+
+/** \brief Writes a list of blocks to the file.
+ *
+ * Helper function that writes a list of MDF4 blocks onto a file.
+ * @tparam T Block type
+ * @param file File stream pointer.
+ * @param block_list List of blocks.
+ * @param link_index Link index to the first block.
+ * @param update_option 0 = Do not update already written block, 1 = Update only last block, 2 = Update all blocks
+ */
+template<typename T>
+void WriteLink4List(std::FILE* file, std::vector<std::unique_ptr<T>> &block_list, size_t link_index, size_t update_option) {
+  for (size_t index = 0; index < block_list.size(); ++index) {
+    auto &block = block_list[index];
+    const bool last_block = index + 1 >= block_list.size();
+    if (!block) {
+      continue;
+    }
+    bool need_update = block->FilePosition() <= 0 || update_option == 2;
+    if (block->FilePosition() > 0 && last_block && update_option == 1) {
+      need_update = true;
+    }
+
+    if (!need_update) {
+      continue;
+    }
+    block->Write(file);
+    if (index == 0) {
+      UpdateLink(file, link_index, block->FilePosition());
+    } else {
+      auto &prev = block_list[index - 1];
+      if (prev) {
+        prev->UpdateLink(file, 0, block->FilePosition());
+      }
+    }
+  }
+}
+
 };
+
 
 }

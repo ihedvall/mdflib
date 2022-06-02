@@ -28,4 +28,43 @@ int64_t IHeader::RecorderIndex() const {
   return 0;
 }
 
+
+
+void IHeader::StartAngle(double angle) {
+}
+
+std::optional<double> IHeader::StartAngle() const {
+  return {};
+}
+
+void IHeader::StartDistance(double distance) {
+}
+
+std::optional<double>  IHeader::StartDistance() const {
+  return {};
+}
+
+IMetaData *IHeader::MetaData() {
+  return nullptr;
+}
+
+const IMetaData *IHeader::MetaData() const {
+  return nullptr;
+}
+
+IAttachment *IHeader::CreateAttachment() {
+  return nullptr;
+}
+
+std::vector<IAttachment *> IHeader::Attachments() const {
+  return {};
+}
+
+IFileHistory *IHeader::CreateFileHistory() {
+  return nullptr;
+}
+
+std::vector<IFileHistory *> IHeader::FileHistories() const {
+  return {};
+}
 } // end namespace

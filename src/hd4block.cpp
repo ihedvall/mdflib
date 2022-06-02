@@ -41,10 +41,15 @@ void SetCommonProperty(mdf::detail::Hd4Block& block, const std::string &key, con
     xml_file->ParseString(md4->Text());
   }
   auto& root = xml_file->RootName("HDcomment");
+  auto& tx_node = root.AddUniqueNode("TX"); // Must be first in XML ???
   auto& common = root.AddUniqueNode("common_properties");
-  auto& key_node = root.AddUniqueNode("e", "name", key);
+  auto& key_node = common.AddUniqueNode("e", "name", key);
   if (typeid(T) == typeid(int64_t)) {
     key_node.SetAttribute<std::string>("type", "integer");
+  } else if( typeid(T) == typeid(float) || typeid(T) == typeid(double)) {
+      key_node.SetAttribute<std::string>("type", "float");
+  } else if( typeid(T) == typeid(bool)) {
+    key_node.SetAttribute<std::string>("type", "boolean");
   } else if (typeid(T) == typeid(std::string)) {
     key_node.SetAttribute<std::string>("type", "string");
   }
@@ -321,26 +326,124 @@ uint64_t Hd4Block::StartTime() const {
   return timestamp_.NsSince1970();
 }
 
-void Hd4Block::MetaData(const std::string &meta_data) {
-  Md4(meta_data);
+IMetaData* Hd4Block::MetaData() {
+  CreateMd4Block();
+  return dynamic_cast<IMetaData*>(md_comment_.get());
 }
 
-std::string Hd4Block::MetaData() const {
-  const auto* md4 = Md4();
-  return md4 == nullptr ?  std::string() : md4->Text();
+const IMetaData* Hd4Block::MetaData() const {
+  return md_comment_ ? dynamic_cast<IMetaData*>(md_comment_.get()) : nullptr;
 }
 
 IDataGroup *Hd4Block::LastDataGroup() const {
   return dg_list_.empty() ? nullptr : dg_list_.back().get();
 }
 
-std::vector<IDataGroup *> Hd4Block::DataGroups() const {
-  std::vector<IDataGroup *> list;
-  std::ranges::for_each(dg_list_, [&] (const auto& dg) { list.push_back(dg.get());  });
+IAttachment *Hd4Block::CreateAttachment() {
+  auto at4 = std::make_unique<At4Block>();
+  at4->Init(*this);
+  AddAt4(at4);
+  return at_list_.empty() ? nullptr : at_list_.back().get();
+}
+
+std::vector<IAttachment *> Hd4Block::Attachments() const {
+  std::vector<IAttachment *> list;
+  std::ranges::transform(at_list_, std::back_inserter(list), [] (const auto& at4) { return at4.get(); });
   return list;
 }
 
+IFileHistory *Hd4Block::CreateFileHistory() {
+  auto fh4 = std::make_unique<Fh4Block>();
+  AddFh4(fh4);
+  return fh_list_.empty() ? nullptr : fh_list_.back().get();
+}
 
+std::vector<IFileHistory *> Hd4Block::FileHistories() const {
+  std::vector<IFileHistory *> list;
+  std::ranges::transform(fh_list_, std::back_inserter(list), [] (const auto& fh4) { return fh4.get(); });
+  return list;
+}
+
+std::vector<IDataGroup *> Hd4Block::DataGroups() const {
+  std::vector<IDataGroup *> list;
+  std::ranges::transform(dg_list_, std::back_inserter(list), [] (const auto& dg) { return dg.get(); });
+  return list;
+}
+
+void Hd4Block::AddDg4(std::unique_ptr<Dg4Block> &dg4) {
+  if (dg4) {
+    dg4->Init(*this);
+    dg_list_.push_back(std::move(dg4));
+  }
+}
+
+void Hd4Block::AddAt4(std::unique_ptr<At4Block> &at4) {
+  if (at4) {
+    at4->Init(*this);
+    at_list_.push_back(std::move(at4));
+  }
+}
+
+void Hd4Block::AddFh4(std::unique_ptr<Fh4Block> &fh4) {
+  if (fh4) {
+    fh4->Init(*this);
+    fh_list_.push_back(std::move(fh4));
+  }
+}
+
+void Hd4Block::StartAngle(double angle) {
+  flags_ |= Hd4Flags::kStartAngleValid;
+  start_angle_ = angle;
+}
+
+std::optional<double> Hd4Block::StartAngle() const {
+  if ((flags_ & Hd4Flags::kStartAngleValid) != 0) {
+    return {start_angle_};
+  }
+  return {};
+}
+
+void Hd4Block::StartDistance(double distance) {
+  flags_ |= Hd4Flags::kStartDistanceValid;
+  start_distance_ = distance;
+}
+
+std::optional<double> Hd4Block::StartDistance() const {
+  if ((flags_ & Hd4Flags::kStartDistanceValid) != 0) {
+    return {start_distance_};
+  }
+  return {};
+}
+
+size_t Hd4Block::Write(std::FILE *file) {
+  const bool update = FilePosition() > 0; // Write or update the values inside the block
+  if (!update) {
+    block_type_ = "##HD";
+    block_size_ = 24 + (6*8) + 8 + 4 + 4 + 1 + 1 + 1 + 1 + 8 + 8;
+    link_list_.resize(6,0);
+  }
+
+  auto bytes = update ? IBlock::Update(file) : IBlock::Write(file);
+
+  // These values may change after the initial write
+  bytes += timestamp_.Write(file);
+  bytes += WriteNumber(file, time_class_);
+  bytes += WriteNumber(file, flags_);
+  bytes += WriteBytes(file,1);
+  bytes += WriteNumber(file, start_angle_);
+  bytes += WriteNumber(file, start_distance_);
+
+  if (!update) {
+    UpdateBlockSize(file, bytes);
+  }
+  WriteLink4List(file, dg_list_, kIndexDg,1); // Always rewrite last DG block
+  WriteLink4List(file, fh_list_, kIndexFh,0);
+  WriteLink4List(file, ch_list_, kIndexCh,0);
+  WriteLink4List(file, at_list_, kIndexAt,0);
+  WriteLink4List(file, ev_list_, kIndexEv,0);
+  WriteMdComment(file, kIndexMd);
+  return bytes;
+}
 
 
 

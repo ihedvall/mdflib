@@ -39,8 +39,6 @@ class Hd3Block : public IBlock, public IHeader {
   void StartTime(uint64_t ns_since_1970) override;
   [[nodiscard]] uint64_t StartTime() const override;
 
-  void MetaData(const std::string &meta_data) override;
-  [[nodiscard]] std::string MetaData() const override;
   [[nodiscard]] std::vector<IDataGroup *> DataGroups() const override;
   [[nodiscard]] IDataGroup *LastDataGroup() const override;
 

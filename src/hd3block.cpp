@@ -287,16 +287,6 @@ uint64_t Hd3Block::StartTime() const {
   return local_timestamp_ - (util::time::TimeZoneOffset() * 1'000'000'000LL);
 }
 
-void Hd3Block::MetaData(const std::string &meta_data) {
-  // Create a PR block with data
-  pr_block_ = std::make_unique<Pr3Block>(meta_data);
-  pr_block_->Init(*this);
-}
-
-std::string Hd3Block::MetaData() const {
-  return !pr_block_ ? std::string() : pr_block_->Text();
-}
-
 IDataGroup *Hd3Block::LastDataGroup() const {
   return dg_list_.empty() ? nullptr : dg_list_.back().get();
 }

@@ -152,10 +152,6 @@ int64_t Dg3Block::Index() const {
   return FilePosition();
 }
 
-std::string Dg3Block::Description() const {
-  return {};
-}
-
 std::vector<IChannelGroup *> Dg3Block::ChannelGroups() const {
   std::vector<IChannelGroup*> list;
   for (const auto& cg3 : cg_list_) {
@@ -164,6 +160,13 @@ std::vector<IChannelGroup *> Dg3Block::ChannelGroups() const {
     }
   }
   return list;
+}
+
+IChannelGroup *Dg3Block::CreateChannelGroup() {
+  auto cg3 = std::make_unique<detail::Cg3Block>();
+  cg3->Init(*this);
+  AddCg3(cg3);
+  return cg_list_.empty() ? nullptr : cg_list_.back().get();
 }
 
 void Dg3Block::ReadData(std::FILE *file) const {
@@ -223,5 +226,7 @@ const Cg3Block *Dg3Block::FindCgRecordId(const uint64_t record_id) const {
   }
   return nullptr;
 }
+
+
 
 } // end namespace mdf::detail

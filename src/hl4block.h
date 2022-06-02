@@ -5,6 +5,7 @@
 #pragma once
 #include "datalistblock.h"
 namespace mdf::detail {
+
 class Hl4Block : public DataListBlock {
  public:
   void GetBlockProperty(BlockPropertyList& dest) const override;
@@ -14,4 +15,5 @@ class Hl4Block : public DataListBlock {
   uint8_t type_ = 0;
   /* 5 byte reserved */
 };
+
 }

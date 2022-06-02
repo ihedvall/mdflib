@@ -20,9 +20,11 @@ void IDataGroup::DetachSampleObserver(const ISampleObserver* observer) const {
     }
   }
 }
+
 void IDataGroup::DetachAllSampleObservers() const {
   observer_list.clear();
 }
+
 void IDataGroup::NotifySampleObservers(size_t sample, uint64_t record_id, const std::vector<uint8_t> &record) const {
   for (auto* observer : observer_list) {
     if (observer != nullptr) {
@@ -33,6 +35,28 @@ void IDataGroup::NotifySampleObservers(size_t sample, uint64_t record_id, const 
 
 void IDataGroup::ResetSample() const {
   std::ranges::for_each(ChannelGroups(), [](const auto *cg) {cg->ResetSample(); });
+}
+
+IMetaData *IDataGroup::MetaData() {
+  return nullptr;
+}
+
+const IMetaData *IDataGroup::MetaData() const {
+  return nullptr;
+}
+
+void IDataGroup::Description(const std::string &) {
+}
+
+std::string IDataGroup::Description() const {
+  return {};
+}
+
+void IDataGroup::RecordIdSize(uint8_t id_size) {
+}
+
+uint8_t IDataGroup::RecordIdSize() const {
+  return 0;
 }
 
 } // namespace mdf

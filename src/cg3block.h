@@ -25,7 +25,8 @@ class Cg3Block : public IBlock , public IChannelGroup {
 
   [[nodiscard]] uint64_t NofSamples() const override;
   void NofSamples(uint64_t nof_samples) override;
-  void RecordId(uint64_t record_id);
+
+  void RecordId(uint64_t record_id) override;
   [[nodiscard]] uint64_t RecordId() const override;
 
   [[nodiscard]] std::vector<IChannel *> Channels() const override;
@@ -43,6 +44,7 @@ class Cg3Block : public IBlock , public IChannelGroup {
     return size_of_data_record_;
   }
 
+  void AddCn3(std::unique_ptr<Cn3Block>& cn3);
   const Cn3List& Cn3() const {
     return cn_list_;
   }
@@ -51,7 +53,7 @@ class Cg3Block : public IBlock , public IChannelGroup {
     return sr_list_;
   }
 
-  void AddCn3(std::unique_ptr<Cn3Block>& cn3);
+
 
   [[nodiscard]] std::vector<uint8_t>& SampleBuffer() const {
     return sample_buffer_;

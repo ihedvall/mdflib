@@ -6,7 +6,7 @@ project(TestMdf
         DESCRIPTION "Google unit tests for the mdf library"
         LANGUAGES CXX)
 
-add_executable(test_mdf test_conversion.cpp testread.cpp testread.h testwrite.cpp testwrite.h)
+add_executable(test_mdf test_conversion.cpp testread.cpp testread.h testwrite.cpp testwrite.h testmdffile.cpp testmetadata.cpp)
 
 target_include_directories(test_mdf PRIVATE
         ../include

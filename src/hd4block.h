@@ -67,14 +67,29 @@ class Hd4Block : public IBlock, public IHeader {
   void StartTime(uint64_t ns_since_1970) override;
   [[nodiscard]] uint64_t StartTime() const override;
 
-  void MetaData(const std::string &meta_data) override;
-  [[nodiscard]] std::string MetaData() const override;
+  [[nodiscard]] IMetaData* MetaData() override;
+  [[nodiscard]] const IMetaData* MetaData() const override;
+
+  [[nodiscard]] IAttachment* CreateAttachment() override;
+  [[nodiscard]] std::vector<IAttachment *> Attachments() const override;
+
+  [[nodiscard]] IFileHistory* CreateFileHistory() override;
+  [[nodiscard]] std::vector<IFileHistory *> FileHistories() const override;
+
   [[nodiscard]] std::vector<IDataGroup *> DataGroups() const override;
+
   [[nodiscard]] IDataGroup *LastDataGroup() const override;
+
+  void StartAngle(double angle) override;
+  [[nodiscard]] std::optional<double> StartAngle() const override;
+  void StartDistance(double distance) override;
+  [[nodiscard]] std::optional<double>  StartDistance() const override;
+
+  void AddDg4(std::unique_ptr<Dg4Block>& dg4);
   [[nodiscard]] const Dg4List &Dg4() const {
     return dg_list_;
   }
-
+  void AddFh4(std::unique_ptr<Fh4Block>& fh4);
   [[nodiscard]] const Fh4List &Fh4() const {
     return fh_list_;
   }
@@ -83,6 +98,7 @@ class Hd4Block : public IBlock, public IHeader {
     return ch_list_;
   }
 
+  void AddAt4(std::unique_ptr<At4Block>& at4);
   [[nodiscard]] const At4List &At4() const {
     return at_list_;
   }
@@ -95,6 +111,8 @@ class Hd4Block : public IBlock, public IHeader {
   void GetBlockProperty(BlockPropertyList &dest) const override;
 
   size_t Read(std::FILE *file) override;
+  size_t Write(std::FILE* file) override;
+
   void ReadMeasurementInfo(std::FILE *file);
   void ReadEverythingButData(std::FILE *file);
 

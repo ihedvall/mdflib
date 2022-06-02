@@ -29,6 +29,7 @@ class Cg4Block : public IBlock, public IChannelGroup {
   void GetBlockProperty(BlockPropertyList& dest) const override;
   const IBlock* Find(fpos_t index) const override;
 
+  void AddCn4(std::unique_ptr<Cn4Block>& cn3);
   [[nodiscard]] const Cn4List& Cn4() const {
     return cn_list_;
   }
@@ -47,7 +48,10 @@ class Cg4Block : public IBlock, public IChannelGroup {
 
   [[nodiscard]] uint64_t NofSamples() const override;
   void NofSamples(uint64_t nof_samples) override;
+
   [[nodiscard]] uint64_t RecordId() const override;
+  void RecordId(uint64_t record_id) override;
+
   [[nodiscard]] std::vector<IChannel *> Channels() const override;
   [[nodiscard]] const IChannel* GetXChannel(const IChannel& reference) const override;
 
@@ -63,6 +67,7 @@ class Cg4Block : public IBlock, public IChannelGroup {
   std::vector<uint8_t>& SampleBuffer() const {
     return sample_buffer_;
   }
+
  private:
   uint64_t record_id_ = 0;
   uint64_t nof_samples_ = 0;

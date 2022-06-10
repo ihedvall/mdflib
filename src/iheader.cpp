@@ -67,4 +67,21 @@ IFileHistory *IHeader::CreateFileHistory() {
 std::vector<IFileHistory *> IHeader::FileHistories() const {
   return {};
 }
+
+IEvent *IHeader::CreateEvent() {
+  return nullptr;
+}
+
+std::vector<IEvent *> IHeader::Events() const {
+  return {};
+}
+
+IChannelHierarchy *IHeader::CreateChannelHierarchy() {
+  return nullptr;
+}
+
+std::vector<IChannelHierarchy *> IHeader::ChannelHierarchies() const {
+  return {};
+}
+
 } // end namespace

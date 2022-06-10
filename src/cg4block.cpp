@@ -16,6 +16,8 @@ constexpr size_t kIndexName = 2;
 constexpr size_t kIndexSi = 3;
 constexpr size_t kIndexSr = 4;
 constexpr size_t kIndexMd = 5;
+constexpr size_t kIndexMaster = 6;
+
 
 
 std::string MakeFlagString(uint16_t flag) {
@@ -156,30 +158,44 @@ size_t Cg4Block::Read(std::FILE *file) {
   return bytes;
 }
 
-void Cg4Block::ReadCnList(std::FILE *file) {
-  if (cn_list_.empty() && Link(kIndexCn) > 0) {
-    for (auto link = Link(kIndexCn); link > 0; /* No ++ here*/) {
-      std::unique_ptr<Cn4Block> cn = std::make_unique<Cn4Block>();
-      cn->Init(*this);
-      SetFilePosition(file, link);
-      cn->Read(file);
-      link = cn->Link(kIndexNext);
-      cn_list_.push_back(std::move(cn));
-    }
+size_t Cg4Block::Write(std::FILE *file) {
+  const bool update = FilePosition() > 0; // True if already written to file
+  if (update) {
+    return block_length_;
   }
+  const auto master = (flags_ & CgFlag::RemoteMaster) != 0;
+  block_type_ = "##CG";
+  block_length_ = 24 + (6*8) + 8 + 8 + 2 + 2 + 4 + 4 + 4;
+  if (master) {
+    block_length_ += 8; // Add one more link for master
+  }
+  link_list_.resize(master ? 7 : 6,0);
+
+  WriteLink4List(file,cn_list_,kIndexCn,0);
+  WriteTx4(file, kIndexName, acquisition_name_);
+  WriteBlock4(file, si_block_, kIndexSi);
+  WriteLink4List(file,sr_list_,kIndexSr,0);
+  WriteMdComment(file, kIndexMd);
+  // ToDo: Remote master handling
+
+  auto bytes = IBlock::Write(file);
+  bytes += WriteNumber(file, record_id_);
+  bytes += WriteNumber(file, nof_samples_);
+  bytes += WriteNumber(file, flags_);
+  bytes += WriteNumber(file, path_separator_);
+  bytes += WriteBytes(file, 4);
+  bytes += WriteNumber(file, nof_data_bytes_);
+  bytes += WriteNumber(file, nof_invalid_bytes_);
+  UpdateBlockSize(file, bytes);
+  return bytes;
+}
+
+void Cg4Block::ReadCnList(std::FILE *file) {
+  ReadLink4List(file, cn_list_, kIndexCn);
 }
 
 void Cg4Block::ReadSrList(std::FILE *file) {
-  if (sr_list_.empty() && Link(kIndexSr) > 0) {
-    for (auto link = Link(kIndexSr); link > 0; /* No ++ here*/) {
-      std::unique_ptr<Sr4Block> sr = std::make_unique<Sr4Block>();
-      sr->Init(*this);
-      SetFilePosition(file, link);
-      sr->Read(file);
-      link = sr->Link(kIndexNext);
-      sr_list_.push_back(std::move(sr));
-    }
-  }
+  ReadLink4List(file, sr_list_, kIndexSr);
 }
 
 const IBlock *Cg4Block::Find(fpos_t index) const {
@@ -214,7 +230,7 @@ const IBlock *Cg4Block::Find(fpos_t index) const {
 
 size_t Cg4Block::ReadDataRecord(std::FILE *file, const IDataGroup& notifier) const {
   size_t count = 0;
-  if (flags_ & Cg4Flags::Vlsd) {
+  if (flags_ & CgFlag::VlsdChannel) {
     // This is normally used for string and the CG block only include one signal
     uint32_t length = 0;
     count += ReadNumber(file, length);
@@ -257,6 +273,33 @@ void Cg4Block::RecordId(uint64_t record_id) {
 
 void Cg4Block::AddCn4(std::unique_ptr<Cn4Block> &cn4) {
   cn_list_.push_back(std::move(cn4));
+}
+
+uint16_t Cg4Block::Flags() {
+  return flags_;
+}
+
+void Cg4Block::Flags(uint16_t flags) {
+  flags_ = flags;
+}
+
+char16_t Cg4Block::PathSeparator() {
+  return path_separator_;
+}
+
+void Cg4Block::PathSeparator(char16_t path_separator) {
+  path_separator_ = path_separator;
+}
+
+ISourceInformation *Cg4Block::CreateSourceInformation() {
+  auto si4 = std::make_unique<Si4Block>();
+  si4->Init(*this);
+  si_block_ = std::move(si4);
+  return si_block_.get();
+}
+
+const ISourceInformation *Cg4Block::SourceInformation() const {
+  return si_block_ ? si_block_.get() : nullptr;
 }
 
 }

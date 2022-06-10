@@ -36,14 +36,6 @@ int64_t Cc3Block::Index() const {
   return FilePosition();
 }
 
-std::string Cc3Block::Name() const {
-  return {};
-}
-
-std::string Cc3Block::Description() const {
-  return {};
-}
-
 bool Cc3Block::IsUnitValid() const {
   return true;
 }

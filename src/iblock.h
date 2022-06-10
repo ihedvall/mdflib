@@ -14,6 +14,7 @@
 #include <boost/endian/buffers.hpp>
 
 #include "blockproperty.h"
+#include "mdf/imetadata.h"
 
 namespace mdf::detail {
 
@@ -58,8 +59,20 @@ std::string ToString(const T& value)
   }
   return temp.str();
 }
+
 std::string ToMd5String(const std::vector<uint8_t>& md5);
 
+/** \brief Support function for opening an MDF file.
+ *
+ * Support function that opens an MDF file. This may fail if
+ * both a writer and a reader tries to use the file at the
+ * same time.
+ * @param file Reference to a file stream pointer.
+ * @param filename Full path to file.
+ * @param mode Open mode.
+ * @return True if the file was opened.
+ */
+bool OpenMdfFile(std::FILE* &file, const std::string& filename, const std::string& mode);
 
 class IBlock {
  public:
@@ -144,6 +157,9 @@ class IBlock {
 
   [[nodiscard]] std::string MdText() const;
 
+  [[nodiscard]] virtual IMetaData *MetaData();
+  [[nodiscard]] virtual const IMetaData *MetaData() const;
+
   void UpdateBlockSize(std::FILE* file, size_t bytes);
   void CreateMd4Block(); ///< Helper function that creates an MD4 block to this block
 
@@ -188,17 +204,61 @@ class IBlock {
     return sizeof(T);
   }
 
-/** \brief Writes a list of blocks to the file.
+  /** \brief Reads in a list of blocks from the file.
  *
- * Helper function that writes a list of MDF4 blocks onto a file.
+ * Helper function that reads a list of MDF4 blocks from a file.
  * @tparam T Block type
  * @param file File stream pointer.
  * @param block_list List of blocks.
  * @param link_index Link index to the first block.
- * @param update_option 0 = Do not update already written block, 1 = Update only last block, 2 = Update all blocks
  */
+  template<typename T>
+  void ReadLink4List(std::FILE* file, std::vector<std::unique_ptr<T>> &block_list, size_t link_index);
+
+  /** \brief Writes a list of blocks to the file.
+   *
+   * Helper function that writes a list of MDF4 blocks onto a file.
+   * @tparam T Block type
+   * @param file File stream pointer.
+   * @param block_list List of blocks.
+   * @param link_index Link index to the first block.
+   * @param update_option 0 = Do not update already written block, 1 = Update only last block, 2 = Update all blocks
+   */
+  template<typename T>
+  void WriteLink4List(std::FILE* file, std::vector<std::unique_ptr<T>> &block_list, size_t link_index, size_t update_option);
+
+  template<typename T>
+  void WriteBlock4(std::FILE* file, std::unique_ptr<T> &block, size_t link_index);
+
+};
+
 template<typename T>
-void WriteLink4List(std::FILE* file, std::vector<std::unique_ptr<T>> &block_list, size_t link_index, size_t update_option) {
+void IBlock::ReadLink4List(std::FILE *file, std::vector<std::unique_ptr<T>> &block_list, size_t link_index) {
+  if (block_list.empty() && (Link(link_index) > 0))
+    for (auto link = Link(link_index); link > 0; /* No ++ here*/) {
+      auto block = std::make_unique<T>();
+      block->Init(*this);
+      SetFilePosition(file, link);
+      block->Read(file);
+      link = block->Link(0);
+      block_list.emplace_back(std::move(block));
+    };
+}
+
+template<typename T>
+void IBlock::WriteBlock4(std::FILE *file, std::unique_ptr<T> &block, size_t link_index) {
+  if (!block || block->FilePosition() > 0) {
+    return;
+  }
+  block->Write(file);
+  UpdateLink(file, link_index, block->FilePosition());
+}
+
+template<typename T>
+void IBlock::WriteLink4List(std::FILE *file,
+                            std::vector<std::unique_ptr<T>> &block_list,
+                            size_t link_index,
+                            size_t update_option) {
   for (size_t index = 0; index < block_list.size(); ++index) {
     auto &block = block_list[index];
     const bool last_block = index + 1 >= block_list.size();
@@ -224,8 +284,5 @@ void WriteLink4List(std::FILE* file, std::vector<std::unique_ptr<T>> &block_list
     }
   }
 }
-
-};
-
 
 }

@@ -24,6 +24,14 @@ enum class ChannelType : uint8_t {
   VirtualData = 6
 };
 
+enum class ChannelSyncType : uint8_t {
+  None = 0,
+  Time = 1,
+  Angle = 2,
+  Distance = 3,
+  Index = 4
+};
+
 enum class ChannelDataType : uint8_t {
   UnsignedIntegerLe = 0,
   UnsignedIntegerBe = 1,
@@ -39,8 +47,28 @@ enum class ChannelDataType : uint8_t {
   MimeSample = 11,
   MimeStream = 12,
   CanOpenDate = 13,
-  CanOpenTime = 14
+  CanOpenTime = 14,
+  ComplexLe = 15,
+  ComplexBE = 16
 };
+
+namespace CnFlag {
+  constexpr uint32_t AllValuesInvalid = 0x0001;
+  constexpr uint32_t InvalidValid = 0x0002;
+  constexpr uint32_t PrecisionValid = 0x0004;
+  constexpr uint32_t RangeValid = 0x0008;
+  constexpr uint32_t LimitValid = 0x0010;
+  constexpr uint32_t ExtendedLimitValid = 0x0020;
+  constexpr uint32_t Discrete = 0x0040;
+  constexpr uint32_t Calibration = 0x0080;
+  constexpr uint32_t Calculated = 0x0100;
+  constexpr uint32_t Virtual = 0x0200;
+  constexpr uint32_t BusEvent = 0x0400;
+  constexpr uint32_t StrictlyMonotonous = 0x0800;
+  constexpr uint32_t DefaultX = 0x1000;
+  constexpr uint32_t EventSignal = 0x2000;
+  constexpr uint32_t VlsdDataStream = 0x4000;
+}
 
 class IChannel {
 
@@ -58,10 +86,14 @@ class IChannel {
 
   virtual void Unit(const std::string& unit) = 0;
   [[nodiscard]] virtual std::string Unit() const = 0;
+
   [[nodiscard]] virtual bool IsUnitValid() const = 0;
 
   virtual void Type(ChannelType type) = 0;
   [[nodiscard]] virtual ChannelType Type() const = 0;
+
+  virtual void Sync(ChannelSyncType type);
+  [[nodiscard]] virtual ChannelSyncType Sync() const;
 
   virtual void DataType(ChannelDataType type) = 0;
   [[nodiscard]] virtual ChannelDataType DataType() const = 0;
@@ -71,6 +103,15 @@ class IChannel {
 
   [[nodiscard]] virtual uint8_t Decimals() const = 0;
   [[nodiscard]] virtual bool IsDecimalUsed() const = 0;
+
+  virtual void Range(double min, double max);
+  [[nodiscard]] virtual std::optional<std::pair<double, double>> Range() const;
+
+  virtual void Limit(double min, double max);
+  [[nodiscard]] virtual std::optional<std::pair<double, double>> Limit() const;
+
+  virtual void ExtLimit(double min, double max);
+  [[nodiscard]] virtual std::optional<std::pair<double, double>> ExtLimit() const;
 
   virtual void SamplingRate(double sampling_rate) = 0;
   [[nodiscard]] virtual double SamplingRate() const = 0;

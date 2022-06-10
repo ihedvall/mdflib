@@ -6,6 +6,9 @@
 #include <string>
 #include "datalistblock.h"
 #include "mdf/ichannel.h"
+#include "mdf/iattachment.h"
+#include "mdf/ichannelhierarchy.h"
+
 #include "si4block.h"
 #include "cc4block.h"
 #include "md4block.h"
@@ -15,6 +18,7 @@ class Cg4Block;
 
 class Cn4Block : public DataListBlock , public IChannel {
  public:
+  Cn4Block();
   [[nodiscard]] int64_t Index() const override;
 
   void Name(const std::string &name) override;
@@ -51,6 +55,8 @@ class Cn4Block : public DataListBlock , public IChannel {
   void GetBlockProperty(BlockPropertyList& dest) const override;
   [[nodiscard]] const IBlock* Find(fpos_t index) const override;
   size_t Read(std::FILE *file) override;
+  size_t Write(std::FILE *file) override;
+
   void Init(const IBlock &id_block) override;
 
   [[nodiscard]] const IBlock* Cx() const {
@@ -76,10 +82,18 @@ class Cn4Block : public DataListBlock , public IChannel {
   [[nodiscard]] int64_t DataLink() const;
   [[nodiscard]] std::vector<int64_t> AtLinkList() const;
   [[nodiscard]] std::vector<int64_t> XAxisLinkList() const;
+  void Sync(ChannelSyncType type) override;
+  ChannelSyncType Sync() const override;
+  void Range(double min, double max) override;
+  std::optional<std::pair<double, double>> Range() const override;
+  void Limit(double min, double max) override;
+  std::optional<std::pair<double, double>> Limit() const override;
+  void ExtLimit(double min, double max) override;
+  std::optional<std::pair<double, double>> ExtLimit() const override;
  protected:
-  size_t BitCount() const; ///< Returns number of bits in value.
-  size_t BitOffset() const; ///< Returns bit offset (0..7).
-  size_t ByteOffset() const; ///< Returns byte offset in record.
+  size_t BitCount() const override; ///< Returns number of bits in value.
+  size_t BitOffset() const override; ///< Returns bit offset (0..7).
+  size_t ByteOffset() const override; ///< Returns byte offset in record.
   bool GetTextValue(const std::vector<uint8_t> &record_buffer, std::string &dest) const override;
   std::vector<uint8_t> &SampleBuffer() const override;
  private:
@@ -106,6 +120,8 @@ class Cn4Block : public DataListBlock , public IChannel {
   std::unique_ptr<Cc4Block> cc_block_;
   std::unique_ptr<Md4Block> unit_;
   std::unique_ptr<IBlock> cx_block_;
+  std::vector<const IAttachment*> attachment_list_;
+  ElementLink default_x_;
 
   mutable std::vector<uint8_t> data_list_;
   const Cg4Block* cg_block_ = nullptr;

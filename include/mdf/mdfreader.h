@@ -91,8 +91,13 @@ void CreateChannelObserverForChannelGroup(const IDataGroup& data_group,
   bool ReadMeasurementInfo(); ///< Reads everything but not CG and raw data.
   bool ReadEverythingButData(); ///< Reads all blocks but not raw data.
 
-  /// \brief Saves the attached data into a destination file.
-  bool ReadAttachmentData(const IAttachment& attachment, const std::string& dest_file);
+  /** \brief Saves the attached data into a destination file.
+   *
+   * @param attachment
+   * @param dest_file
+   * @return
+   */
+  bool ExportAttachmentData(const IAttachment& attachment, const std::string& dest_file);
 
   bool ReadData(const IDataGroup& data_group); ///< Reads the sample data. See sample observer.
 

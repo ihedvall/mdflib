@@ -25,17 +25,15 @@ struct TextRangeConversion {
 
 class Cc3Block : public IBlock, public IChannelConversion {
  public:
-  [[nodiscard]] virtual int64_t Index() const override;
-  [[nodiscard]] std::string Name() const override;
-  [[nodiscard]] std::string Description() const override;
-  void Unit(const std::string &unit) override;
-  void Type(ConversionType type) override;
-  [[nodiscard]] std::string Unit() const override;
-  [[nodiscard]] bool IsUnitValid() const override;
+  [[nodiscard]] int64_t Index() const override;
 
+  void Unit(const std::string &unit) override;
+  [[nodiscard]] std::string Unit() const override;
+
+  void Type(ConversionType type) override;
   [[nodiscard]] ConversionType Type() const override;
 
-
+  [[nodiscard]] bool IsUnitValid() const override;
   [[nodiscard]] bool IsDecimalUsed() const override;
 
   [[nodiscard]] uint8_t Decimals() const override;

@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <limits>
+#include <variant>
 #include "iblock.h"
 #include "mdf/ichannelconversion.h"
 #include "md4block.h"
@@ -15,48 +16,53 @@ namespace mdf::detail {
 
  class Cc4Block : public IBlock, public IChannelConversion {
  public:
-  using RefList = std::vector<std::unique_ptr<IBlock>>;
+   using RefList = std::vector<std::unique_ptr<IBlock>>;
+   using ParameterList = std::vector<std::variant<uint64_t, double>>;
 
-  [[nodiscard]] virtual int64_t Index() const {
-    return FilePosition();
-  };
+   Cc4Block();
 
-  [[nodiscard]] std::string Name() const override {
-    return name_;
-  }
+   [[nodiscard]] int64_t Index() const override;;
+   void Name(const std::string &name) override;
+
+   [[nodiscard]] std::string Name() const override;
+
    void Unit(const std::string &unit) override;
    [[nodiscard]] std::string Unit() const override;
 
-  [[nodiscard]] std::string Description() const override {
-     return Comment();
-  }
+   void Description(const std::string &desc) override;
+   [[nodiscard]] std::string Description() const override;
+
    void Type(ConversionType type) override;
-   [[nodiscard]] ConversionType Type() const override {
-     return static_cast<ConversionType>(type_);
-  }
+   [[nodiscard]] ConversionType Type() const override;
 
-  [[nodiscard]] bool IsUnitValid() const override;
-  [[nodiscard]] bool IsDecimalUsed() const override {
-     return flags_ & 0x01;
-  }
+   void Decimals(uint8_t decimals) override;
+   [[nodiscard]] uint8_t Decimals() const override;
 
-  [[nodiscard]] uint8_t Decimals() const override {
-    auto max = static_cast<uint8_t>( channel_data_type_ == 4 ?
-                                     std::numeric_limits<float>::max_digits10 :
-                                     std::numeric_limits<double>::max_digits10);
-    return std::min(precision_, max);
-  }
+   [[nodiscard]] bool IsUnitValid() const override;
+   [[nodiscard]] bool IsDecimalUsed() const override;
+
+   [[nodiscard]] IChannelConversion *CreateInverse() override;
+   [[nodiscard]] const IChannelConversion *Inverse() const override;
+
+   void Range(double min, double max) override;
+   [[nodiscard]] std::optional<std::pair<double, double>> Range() const override;
+
+   void Flags(uint16_t flags) override;
+   [[nodiscard]] uint16_t Flags() const override;
 
   [[nodiscard]] const Cc4Block* Cc() const {
     return cc_block_.get();
   }
+
   [[nodiscard]] const RefList& References() const {
     return ref_list_;
   }
 
   [[nodiscard]] const IBlock* Find(fpos_t index) const override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
+
   size_t Read(std::FILE *file) override;
+  size_t Write(std::FILE *file) override;
 
  protected:
   bool ConvertValueToText(double channel_value, std::string& eng_value) const override;
@@ -76,10 +82,8 @@ namespace mdf::detail {
   std::unique_ptr<Cc4Block> cc_block_; ///< Inverse conversion block
   std::unique_ptr<Md4Block> unit_;
   RefList ref_list_;
-
-
-
 };
+
 }
 
 

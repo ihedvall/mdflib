@@ -105,6 +105,20 @@ std::string IMetaData::StringProperty(const std::string &tag) const {
   return value;
 }
 
+void IMetaData::FloatProperty(const std::string &tag, double value) {
+  auto xml = CreateXmlFile();
+  xml->ParseString(XmlSnippet());
+  xml->SetProperty(tag, value);
+  XmlSnippet(xml->WriteString(true));
+}
+
+double IMetaData::FloatProperty(const std::string &tag) const {
+  auto xml = CreateXmlFile();
+  xml->ParseString(XmlSnippet());
+  auto value = xml->Property<double>(tag);
+  return value;
+}
+
 void IMetaData::CommonProperty(const ETag &e_tag) {
   auto xml = CreateXmlFile();
   xml->ParseString(XmlSnippet());

@@ -69,7 +69,7 @@ add_library(mdf STATIC
         src/mdf3writer.h src/mdf3writer.cpp
         src/dt3block.cpp src/dt3block.h
         include/mdf/iheader.h
-        include/mdf/samplerecord.h src/iheader.cpp src/mdf4writer.cpp src/mdf4writer.h src/mdfwriter.cpp include/mdf/mdfwriter.h src/mdffactory.cpp include/mdf/mdffactory.h src/ifilehistory.cpp include/mdf/ifilehistory.h src/imetadata.cpp include/mdf/imetadata.h src/etag.cpp include/mdf/etag.h)
+        include/mdf/samplerecord.h src/iheader.cpp src/mdf4writer.cpp src/mdf4writer.h src/mdfwriter.cpp include/mdf/mdfwriter.h src/mdffactory.cpp include/mdf/mdffactory.h src/ifilehistory.cpp include/mdf/ifilehistory.h src/imetadata.cpp include/mdf/imetadata.h src/etag.cpp include/mdf/etag.h src/ievent.cpp include/mdf/ievent.h src/ichannelhierarchy.cpp include/mdf/ichannelhierarchy.h src/isourceinformation.cpp include/mdf/isourceinformation.h src/ichannelarray.cpp include/mdf/ichannelarray.h)
 
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>

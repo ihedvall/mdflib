@@ -5,6 +5,8 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <optional>
+#include <sstream>
 #include "util/stringutil.h"
 
 namespace mdf {
@@ -29,6 +31,12 @@ enum class ConversionType : uint8_t {
   DateConversion = 33,
   TimeConversion = 34
 };
+
+namespace CcFlag {
+  constexpr uint16_t PrecisionValid = 0x0001;
+  constexpr uint16_t RangeValid = 0x0002;
+  constexpr uint16_t StatusString = 0x0002;
+}
 
 class IChannelConversion {
  protected:
@@ -57,8 +65,11 @@ class IChannelConversion {
  public:
   [[nodiscard]] virtual int64_t Index() const = 0;
 
-  [[nodiscard]] virtual std::string Name() const = 0;
-  [[nodiscard]] virtual std::string Description() const = 0;
+  virtual void Name(const std::string& name);
+  [[nodiscard]] virtual std::string Name() const;
+
+  virtual void Description(const std::string& desc);
+  [[nodiscard]] virtual std::string Description() const;
 
   virtual void Unit(const std::string& unit) = 0;
   [[nodiscard]] virtual std::string Unit() const = 0;
@@ -68,7 +79,17 @@ class IChannelConversion {
   [[nodiscard]] virtual ConversionType Type() const = 0;
 
   [[nodiscard]] virtual bool IsDecimalUsed() const = 0;
+  [[nodiscard]] virtual void Decimals(uint8_t decimals);
   [[nodiscard]] virtual uint8_t Decimals() const = 0;
+
+  [[nodiscard]] virtual IChannelConversion* CreateInverse();
+  [[nodiscard]] virtual const IChannelConversion* Inverse() const;
+
+  virtual void Range(double min, double max);
+  [[nodiscard]] virtual std::optional<std::pair<double, double>> Range() const;
+
+  virtual void Flags(uint16_t flags);
+  [[nodiscard]] virtual uint16_t Flags() const;
 
   void Parameter(size_t index, double parameter);
 

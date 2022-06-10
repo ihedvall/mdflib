@@ -84,4 +84,95 @@ size_t Si4Block::Read(std::FILE *file) {
   return bytes;
 }
 
+size_t Si4Block::Write(std::FILE *file) {
+  const bool update = FilePosition() > 0; // True if already written to file
+  if (update) {
+    return block_length_;
+  }
+
+  block_type_ = "##SI";
+  block_length_ = 24 + (3*8) + 1 + 1 + 1 + 5;
+  link_list_.resize(3,0);
+  WriteTx4(file, kIndexName, name_);
+  WriteTx4(file, kIndexPath, path_);
+  WriteMdComment(file, kIndexMd);
+
+  auto bytes = IBlock::Write(file);
+  bytes += WriteNumber(file, type_);
+  bytes += WriteNumber(file, bus_type_);
+  bytes += WriteNumber(file, flags_);
+  bytes += WriteBytes(file, 5);
+  UpdateBlockSize(file, bytes);
+  return bytes;
+}
+
+int64_t Si4Block::Index() const {
+  return FilePosition();
+}
+
+void Si4Block::Name(const std::string &name) {
+  name_ = name;
+}
+
+const std::string &Si4Block::Name() const {
+  return name_;
+}
+
+void Si4Block::Path(const std::string &path) {
+  path_ = path;
+}
+
+const std::string &Si4Block::Path() const {
+  return path_;
+}
+
+void Si4Block::Description(const std::string &desc) {
+  auto* metadata = MetaData();
+  if (metadata != nullptr) {
+    metadata->StringProperty("TX", desc);
+  }
+}
+
+std::string Si4Block::Description() const {
+  const auto* metadata = MetaData();
+  return metadata != nullptr ? metadata->StringProperty("TX") : std::string();
+}
+
+void Si4Block::Type(SourceType type) {
+  type_ = static_cast<uint8_t>(type);
+}
+
+SourceType Si4Block::Type() const {
+  return static_cast<SourceType>(type_);
+}
+
+void Si4Block::Bus(BusType type) {
+  bus_type_ = static_cast<uint8_t>(type);
+}
+
+BusType Si4Block::Bus() const {
+  return static_cast<BusType>(bus_type_);
+}
+
+void Si4Block::Flags(uint8_t flags) {
+  flags_ = flags;
+}
+
+uint8_t Si4Block::Flags() const {
+  return flags_;
+}
+
+IMetaData *Si4Block::MetaData() {
+  CreateMd4Block();
+  return dynamic_cast<IMetaData *>(md_comment_.get());
+}
+
+const IMetaData *Si4Block::MetaData() const {
+  return !md_comment_ ? nullptr : dynamic_cast<IMetaData *>(md_comment_.get());
+}
+
+
+
+
+
 }

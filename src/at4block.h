@@ -18,6 +18,8 @@ constexpr uint16_t kUsingMd5 = 0x04;
 }
 class At4Block : public IBlock, public IAttachment {
  public:
+  At4Block();
+
   void FileName(const std::string& filename) override;
   [[nodiscard]] const std::string& FileName() const override;
 
@@ -35,9 +37,12 @@ class At4Block : public IBlock, public IAttachment {
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
   size_t Read(std::FILE *file) override;
+
   void ReadData(std::FILE *file, const std::string& dest_file) const;
+
   size_t Write(std::FILE *file) override;
-  std::optional<std::string> Md5() override;
+  [[nodiscard]] std::optional<std::string> Md5() const override;
+  [[nodiscard]] int64_t Index() const override;
 
  private:
 

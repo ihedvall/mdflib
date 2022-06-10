@@ -236,49 +236,7 @@ std::string MdfReader::ShortName() const {
 }
 
 bool MdfReader::Open() {
-  if (file_ != nullptr) {
-    Close();
-  }
-
-  for (size_t ii = 0; ii < 6000; ++ii) {
-    auto open = fopen_s(&file_, filename_.c_str(), "rb");
-    switch (open) {
-      case EEXIST:
-      case EACCES:
-        if (file_ != nullptr) {
-          fclose(file_);
-          file_ = nullptr;
-        }
-        std::this_thread::sleep_for(10ms);
-        break;
-
-      case ENOENT:
-        if (file_ != nullptr) {
-          fclose(file_);
-          file_ = nullptr;
-        }
-        LOG_ERROR() << "File doesn't exist. File: " << filename_;
-        return false;
-
-      default:
-        if (open != 0) {
-          if (file_ != nullptr) {
-            fclose(file_);
-            file_ = nullptr;
-          }
-          LOG_ERROR() << "Failed to open the file. File: " << filename_
-                      << ". Error: " << strerror(open) << " (" << open << ")";
-          return false;
-        }
-        ii = 6000;
-        break;
-    }
-  }
-  if (file_ == nullptr) {
-    LOG_ERROR() << "Failed to open the file due to lock timeout (5 s). File: " << filename_;
-  }
-  return file_ != nullptr;
-
+  return detail::OpenMdfFile(file_,filename_, "rb");
 }
 
 void MdfReader::Close() {
@@ -364,7 +322,7 @@ bool MdfReader::ReadEverythingButData() {
   return no_error;
 }
 
-bool MdfReader::ReadAttachmentData(const IAttachment &attachment, const std::string &dest_file) {
+bool MdfReader::ExportAttachmentData(const IAttachment &attachment, const std::string &dest_file) {
   if (!instance_) {
     LOG_ERROR() << "No instance created. File: " << filename_;
     return false;

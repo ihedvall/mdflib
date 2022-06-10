@@ -7,6 +7,27 @@
 #include "mdf/ichannelconversion.h"
 
 namespace mdf {
+IChannelConversion* IChannelConversion::CreateInverse() {
+  return nullptr;
+}
+
+const IChannelConversion* IChannelConversion::Inverse() const {
+  return nullptr;
+}
+
+void IChannelConversion::Flags(uint16_t flags) {
+}
+
+uint16_t IChannelConversion::Flags() const {
+  return 0;
+}
+
+void IChannelConversion::Range(double min, double max) {
+}
+
+std::optional<std::pair<double, double>> IChannelConversion::Range() const {
+  return {};
+}
 
 void IChannelConversion::ChannelDataType(uint8_t channel_data_type) {
   channel_data_type_ = channel_data_type;
@@ -25,9 +46,10 @@ bool IChannelConversion::ConvertLinear(double channel_value, double& eng_value) 
     return false;
   }
   if (value_list_.size() == 1) {
-    return value_list_[0]; // Constant value
+    eng_value = value_list_[0]; // Constant value
+  } else {
+    eng_value = value_list_[0] + (value_list_[1] * channel_value);
   }
-  eng_value = value_list_[0] + (value_list_[1]* channel_value);
   return true;
 }
 
@@ -273,6 +295,23 @@ void IChannelConversion::Parameter(size_t index, double parameter) {
   value_list_[index] = parameter;
 }
 
+void IChannelConversion::Name(const std::string &name) {
+
+}
+
+std::string IChannelConversion::Name() const {
+  return {};
+}
+
+void IChannelConversion::Description(const std::string& desc) {
+}
+
+std::string IChannelConversion::Description() const {
+  return {};
+}
+
+void IChannelConversion::Decimals(uint8_t decimals) {
+}
 
 } // end namespace mdf
 

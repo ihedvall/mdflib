@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 #include "ch4block.h"
+#include "hd4block.h"
 namespace {
 
 constexpr size_t kIndexCh = 1;
@@ -13,6 +14,10 @@ constexpr size_t kIndexNext = 0;
 }
 
 namespace mdf::detail {
+Ch4Block::Ch4Block() {
+  block_type_ = "##CH";
+}
+
 void Ch4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
 
@@ -38,33 +43,53 @@ void Ch4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Ch4Block::Read(std::FILE *file) {
+size_t Ch4Block::Read(std::FILE *file) { //NOLINT
   size_t bytes = ReadHeader4(file);
   bytes += ReadNumber(file, nof_elements_);
   bytes += ReadNumber(file, type_);
+
+  std::vector<uint8_t> reserved;
+  bytes += ReadByte(file,reserved,3);
+
   name_ = ReadTx4(file,kIndexTx);
   ReadMdComment(file,kIndexMd);
-  if (ch_list_.empty() && Link(kIndexCh) > 0) {
-    for (auto link = Link(kIndexCh); link > 0; /* No ++ here*/) {
-      auto ch = std::make_unique<Ch4Block>();
-      ch->Init(*this);
-      SetFilePosition(file, link);
-      ch->Read(file);
-      link = ch->Link(kIndexNext);
-      ch_list_.emplace_back(std::move(ch));
-    }
-  }
-  ref_list.clear();
-  for (uint32_t ii = 0; ii < nof_elements_; ++ii) {
-    size_t index = kIndexElement + (3 * ii);
-    ref_list.push_back(Link(index));
-    ref_list.push_back(Link(index + 1));
-    ref_list.push_back(Link(index + 2));
-  }
+  ReadLink4List(file, ch_list_, kIndexCh);
   return bytes;
 }
 
-const IBlock *Ch4Block::Find(fpos_t index) const {
+size_t Ch4Block::Write(std::FILE *file) { // NOLINT
+  const auto update = FilePosition() > 0;
+  if (update) {
+    WriteLink4List(file, ch_list_, kIndexCh, 0);
+    return block_length_;
+  }
+  nof_elements_ = element_list_.size();
+  block_type_ = "##CH";
+  block_length_ = 24 + ((4 + (nof_elements_*3)) * 8) + 8 + 1 + 3;
+  link_list_.resize(4 + (nof_elements_*3), 0);
+
+  for (size_t index_n = 0; index_n < nof_elements_; ++index_n) {
+    const auto index = 4 + (index_n * 3);
+    const auto& element = element_list_[index_n];
+    link_list_[index] = element.data_group != nullptr ? element.data_group->Index() : 0;
+    link_list_[index + 1] = element.channel_group != nullptr ? element.channel_group->Index() : 0;
+    link_list_[index +2] = element.channel != nullptr ? element.channel->Index() : 0;
+  }
+  WriteTx4(file,kIndexTx, name_);
+  WriteMdComment(file,kIndexMd);
+  WriteLink4List(file, ch_list_, kIndexCh, 0);
+
+  size_t bytes = IBlock::Write(file);
+  bytes += WriteNumber(file, nof_elements_);
+  bytes += WriteNumber(file, type_);
+  bytes += WriteBytes(file, 3);
+  UpdateBlockSize(file, bytes);
+
+
+  return bytes;
+
+}
+const IBlock *Ch4Block::Find(fpos_t index) const { //NOLINT
   for (const auto& ch : ch_list_) {
     if (!ch) {
       continue;
@@ -77,4 +102,82 @@ const IBlock *Ch4Block::Find(fpos_t index) const {
   return IBlock::Find(index);
 }
 
+int64_t Ch4Block::Index() const {
+  return FilePosition();
 }
+
+const std::string &Ch4Block::Name() const {
+  return name_;
+}
+
+void Ch4Block::Name(const std::string &name) {
+  name_ = name;
+}
+
+void Ch4Block::Type(ChType type) {
+  type_ = static_cast<uint8_t>(type);
+}
+
+ChType Ch4Block::Type() const {
+  return static_cast<ChType>(type_);
+}
+
+IMetaData *Ch4Block::MetaData() {
+  CreateMd4Block();
+  return dynamic_cast<IMetaData *>(md_comment_.get());
+}
+
+const IMetaData *Ch4Block::MetaData() const {
+  return !md_comment_ ? nullptr : dynamic_cast<IMetaData *>(md_comment_.get());
+}
+
+void Ch4Block::AddElementLink(const ElementLink &element) {
+  element_list_.push_back(element);
+}
+
+const std::vector<ElementLink> &Ch4Block::ElementLinks() const {
+  return element_list_;
+}
+
+void Ch4Block::FindReferencedBlocks(const Hd4Block &hd4) { // NOLINT
+  element_list_.clear();
+  for (uint32_t index_n = 0; index_n < nof_elements_; ++index_n ) {
+    const auto index = 5 + (index_n * 3);
+    if (index < link_list_.size()) {
+      const auto* block1 = hd4.Find(Link(index));
+      const auto* block2 = hd4.Find(Link(index + 1));
+      const auto* block3 = hd4.Find(Link(index + 2));
+      ElementLink element;
+      if (block1 != nullptr) {
+        element.data_group = dynamic_cast<const IDataGroup*>(block1);
+      }
+      if (block2 != nullptr) {
+        element.channel_group = dynamic_cast<const IChannelGroup*>(block2);
+      }
+      if (block3 != nullptr) {
+        element.channel = dynamic_cast<const IChannel*>(block3);
+      }
+      element_list_.emplace_back(element);
+    }
+  }
+  for (auto& ch4 : ch_list_) {
+    if (ch4) {
+      ch4->FindReferencedBlocks(hd4);
+    }
+  }
+}
+
+IChannelHierarchy *Ch4Block::CreateChannelHierarchy() {
+  auto ch4 = std::make_unique<Ch4Block>();
+  ch4->Init(*this);
+  ch_list_.push_back(std::move(ch4));
+  return ch_list_.empty() ? nullptr : ch_list_.back().get();
+}
+
+std::vector<IChannelHierarchy *> Ch4Block::ChannelHierarchies() const {
+  std::vector<IChannelHierarchy *> list;
+  std::ranges::transform(ch_list_, std::back_inserter(list), [] (const auto& ch4) { return ch4.get(); });
+  return list;
+}
+
+} // end namespace mdf

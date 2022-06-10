@@ -11,6 +11,7 @@
 #include <chrono>
 #include <util/logstream.h>
 #include "mdf/mdfwriter.h"
+#include "iblock.h"
 
 
 using namespace std::filesystem;
@@ -55,10 +56,10 @@ bool MdfWriter::Init(const std::string& filename) {
   }
   std::FILE* file = nullptr;
   try {
-    if (std::filesystem::exists(filename)) {
+    if (std::filesystem::exists(filename_)) {
       // Read in existing file so we can append to it
 
-      const auto open = fopen_s(&file,filename.c_str(), "rb");
+      detail::OpenMdfFile(file,filename_, "rb");
       if (file != nullptr) {
         mdf_file_->ReadEverythingButData(file);
         std::fclose(file);
@@ -66,8 +67,7 @@ bool MdfWriter::Init(const std::string& filename) {
         LOG_DEBUG() << "Reading existing file. File: " << filename_;
         init = true;
       } else {
-        LOG_ERROR() << "Failed to open the existing MDF file. Error: " << StrErrNo(open)
-                    << ". File: " << filename_;
+        LOG_ERROR() << "Failed to open the existing MDF file. File: " << filename_;
         write_state_ = WriteState::Create;
       }
     } else {
@@ -97,13 +97,11 @@ bool MdfWriter::InitMeasurement() {
     return false;
   }
 
-  // 1: Save ID, HD, DG, CG and CN blocks to the file.
+  // 1: Save ID, HD, DG, AT, CG and CN blocks to the file.
   std::FILE* file = nullptr;
-  auto open = fopen_s(&file, filename_.c_str(),
-                      write_state_ == WriteState::Create ? "wb" : "r+b"); // Note: Existing file will be lost
+  detail::OpenMdfFile(file, filename_, write_state_ == WriteState::Create ? "wb" : "r+b");
   if (file == nullptr) {
-    LOG_ERROR() << "Failed to open the file for writing. Error: " << std::strerror(errno)
-                << ", File: " << filename_;
+    LOG_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
 
@@ -159,10 +157,9 @@ bool MdfWriter::FinalizeMeasurement() {
   }
 
   std::FILE* file = nullptr;
-  const auto open = fopen_s(&file, filename_.c_str(), "r+b");
+  detail::OpenMdfFile(file, filename_, "r+b");
   if (file == nullptr) {
-    LOG_ERROR() << "Failed to open the file for writing. Error: " << StrErrNo(open)
-                << ", File: " << filename_;
+    LOG_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
   const bool write = mdf_file_ && mdf_file_->Write(file);

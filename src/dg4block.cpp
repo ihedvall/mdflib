@@ -17,7 +17,7 @@ constexpr size_t kIndexNext = 0;
 
 ///< Helper function that recursively copies all data bytes to a
 /// destination file.
-size_t CopyDataToFile(const mdf::detail::DataListBlock::BlockList& block_list,
+size_t CopyDataToFile(const mdf::detail::DataListBlock::BlockList& block_list,  //NOLINT
                       std::FILE* from_file, std::FILE* to_file) {
   size_t count = 0;
   for (const auto& block : block_list) {
@@ -39,6 +39,9 @@ size_t CopyDataToFile(const mdf::detail::DataListBlock::BlockList& block_list,
 
 namespace mdf::detail {
 
+Dg4Block::Dg4Block() {
+  block_type_ = "##DG";
+}
 IChannelGroup* Dg4Block::CreateChannelGroup() {
   auto cg4 = std::make_unique<Cg4Block>();
   cg4->Init(*this);
@@ -90,32 +93,27 @@ size_t Dg4Block::Read(std::FILE *file) {
 size_t Dg4Block::Write(std::FILE *file) {
   const bool update = FilePosition() > 0; // True if already written to file
   if (update) {
-    return block_size_;
+    return block_length_;
   }
   block_type_ = "##DG";
-  block_size_ = 24 + (4*8) + 8;
+  block_length_ = 24 + (4*8) + 8;
   link_list_.resize(4,0);
+
+  WriteLink4List(file,cg_list_,kIndexCg,0);
+  WriteMdComment(file, kIndexMd);
 
   auto bytes = IBlock::Write(file);
   bytes += WriteNumber(file, rec_id_size_);
   bytes += WriteBytes(file, 7);
   UpdateBlockSize(file, bytes);
-  WriteLink4List(file,cg_list_,kIndexCg,0);
-  WriteMdComment(file, kIndexMd);
   return bytes;
+}
+size_t Dg4Block::DataSize() const {
+  return DataListBlock::DataSize();
 }
 
 void Dg4Block::ReadCgList(std::FILE* file) {
-  if (cg_list_.empty() && Link(kIndexCg) > 0) {
-    for (auto link = Link(kIndexCg); link > 0; /* No ++ here*/) {
-      auto cg = std::make_unique<Cg4Block>();
-      cg->Init(*this);
-      SetFilePosition(file, link);
-      cg->Read(file);
-      link = cg->Link(kIndexNext);
-      cg_list_.emplace_back(std::move(cg));
-    }
-  }
+  ReadLink4List(file, cg_list_, kIndexCg);
 }
 
 void Dg4Block::ReadData(std::FILE *file) const {
@@ -326,6 +324,7 @@ void Dg4Block::RecordIdSize(uint8_t id_size) {
 uint8_t Dg4Block::RecordIdSize() const {
   return rec_id_size_;
 }
+
 
 
 }

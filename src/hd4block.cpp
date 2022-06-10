@@ -61,7 +61,15 @@ void SetCommonProperty(mdf::detail::Hd4Block& block, const std::string &key, con
 
 namespace mdf::detail {
 
+Hd4Block::Hd4Block() {
+  block_type_ = "##HD";
+}
+
 const IBlock *Hd4Block::Find(fpos_t index) const {
+  if (index <= 0) {
+    return nullptr;
+  }
+
   for (const auto& dg : dg_list_) {
     if (!dg) {
       continue;
@@ -164,69 +172,20 @@ size_t Hd4Block::Read(std::FILE *file) {
   bytes += ReadNumber(file, start_angle_);
   bytes += ReadNumber(file, start_distance_);
 
+  ReadLink4List(file, fh_list_, kIndexFh);
   ReadMdComment(file, kIndexMd);
 
   return bytes;
 }
 
 void Hd4Block::ReadMeasurementInfo(std::FILE *file) {
-    // We assume that the ID and HD block have been read (see ReadHeader)
-  if (dg_list_.empty() && Link(kIndexDg) > 0) {
-    for (auto link = Link(kIndexDg); link > 0; /* No ++ here*/) {
-      auto dg = std::make_unique<Dg4Block>();
-      dg->Init(*this);
-      SetFilePosition(file, link);
-      dg->Read(file);
-      dg->ReadCgList(file);
-      link = dg->Link(kIndexNext);
-      dg_list_.emplace_back(std::move(dg));
-    }
+  // We assume that the ID and HD block have been read (see ReadHeader)
+  // Special handling of DG blocks.
+  ReadLink4List(file,dg_list_, kIndexDg);
+  for (auto& dg4 : dg_list_) {
+    dg4->ReadCgList(file);
   }
-
-  if (fh_list_.empty() && Link(kIndexFh) > 0) {
-    for (auto link = Link(kIndexFh); link > 0; /* No ++ here*/) {
-      auto fh = std::make_unique<Fh4Block>();
-      fh->Init(*this);
-      SetFilePosition(file, link);
-      fh->Read(file);
-      link = fh->Link(kIndexNext);
-      fh_list_.emplace_back(std::move(fh));
-    }
-  }
-
-  if (ch_list_.empty() && Link(kIndexCh) > 0) {
-    for (auto link = Link(kIndexCh); link > 0; /* No ++ here*/) {
-      auto ch = std::make_unique<Ch4Block>();
-      ch->Init(*this);
-      SetFilePosition(file, link);
-      ch->Read(file);
-      link = ch->Link(kIndexNext);
-      ch_list_.emplace_back(std::move(ch));
-    }
-  }
-
-  if (at_list_.empty() && Link(kIndexAt) > 0) {
-    for (auto link = Link(kIndexAt); link > 0; /* No ++ here*/) {
-      auto at = std::make_unique<At4Block>();
-      at->Init(*this);
-      SetFilePosition(file, link);
-      at->Read(file);
-      link = at->Link(kIndexNext);
-      at_list_.emplace_back(std::move(at));
-    }
-  }
-
-  if (ev_list_.empty() && Link(kIndexEv) > 0) {
-    for (auto link = Link(kIndexEv); link > 0; /* No ++ here*/) {
-      auto ev = std::make_unique<Ev4Block>();
-      ev->Init(*this);
-      SetFilePosition(file, link);
-      ev->Read(file);
-      link = ev->Link(kIndexNext);
-      ev_list_.emplace_back(std::move(ev));
-    }
-  }
-
+  ReadLink4List(file,at_list_, kIndexAt);
 }
 
 void Hd4Block::ReadEverythingButData(std::FILE *file) {
@@ -239,6 +198,16 @@ void Hd4Block::ReadEverythingButData(std::FILE *file) {
       cg->ReadCnList(file);
       cg->ReadSrList(file);
     }
+  }
+  // Must read in all channels before creating CH block that references the CN blocks
+  ReadLink4List(file,ch_list_, kIndexCh);
+  ReadLink4List(file,ev_list_, kIndexEv);
+  // Need to scan through the event and hierarchy blocks to find the referenced blocks
+  for (auto& ch4 : ch_list_) {
+    ch4->FindReferencedBlocks(*this);
+  }
+  for (auto& ev4 : ev_list_) {
+    ev4->FindReferencedBlocks(*this);
   }
 }
 
@@ -364,6 +333,39 @@ std::vector<IFileHistory *> Hd4Block::FileHistories() const {
   return list;
 }
 
+IEvent *Hd4Block::CreateEvent() {
+  auto ev4 = std::make_unique<Ev4Block>();
+  ev4->Init(*this);
+  ev_list_.push_back(std::move(ev4));
+  return ev_list_.empty() ? nullptr : ev_list_.back().get();
+}
+
+std::vector<IEvent *> Hd4Block::Events() const {
+  std::vector<IEvent *> list;
+  std::ranges::transform(ev_list_, std::back_inserter(list), [] (const auto& ev4) { return ev4.get(); });
+  return list;
+}
+
+IChannelHierarchy *Hd4Block::CreateChannelHierarchy() {
+  auto ch4 = std::make_unique<Ch4Block>();
+  ch4->Init(*this);
+  ch_list_.push_back(std::move(ch4));
+  return ch_list_.empty() ? nullptr : ch_list_.back().get();
+}
+
+std::vector<IChannelHierarchy *> Hd4Block::ChannelHierarchies() const {
+  std::vector<IChannelHierarchy *> list;
+  std::ranges::transform(ch_list_, std::back_inserter(list), [] (const auto& ch4) { return ch4.get(); });
+  return list;
+}
+
+IDataGroup *Hd4Block::CreateDataGroup() {
+  auto dg4 = std::make_unique<Dg4Block>();
+  dg4->Init(*this);
+  dg_list_.push_back(std::move(dg4));
+  return dg_list_.empty() ? nullptr : dg_list_.back().get();
+}
+
 std::vector<IDataGroup *> Hd4Block::DataGroups() const {
   std::vector<IDataGroup *> list;
   std::ranges::transform(dg_list_, std::back_inserter(list), [] (const auto& dg) { return dg.get(); });
@@ -419,10 +421,9 @@ size_t Hd4Block::Write(std::FILE *file) {
   const bool update = FilePosition() > 0; // Write or update the values inside the block
   if (!update) {
     block_type_ = "##HD";
-    block_size_ = 24 + (6*8) + 8 + 4 + 4 + 1 + 1 + 1 + 1 + 8 + 8;
+    block_length_ = 24 + (6*8) + 8 + 4 + 4 + 1 + 1 + 1 + 1 + 8 + 8;
     link_list_.resize(6,0);
   }
-
   auto bytes = update ? IBlock::Update(file) : IBlock::Write(file);
 
   // These values may change after the initial write
@@ -436,15 +437,15 @@ size_t Hd4Block::Write(std::FILE *file) {
   if (!update) {
     UpdateBlockSize(file, bytes);
   }
-  WriteLink4List(file, dg_list_, kIndexDg,1); // Always rewrite last DG block
   WriteLink4List(file, fh_list_, kIndexFh,0);
-  WriteLink4List(file, ch_list_, kIndexCh,0);
-  WriteLink4List(file, at_list_, kIndexAt,0);
-  WriteLink4List(file, ev_list_, kIndexEv,0);
   WriteMdComment(file, kIndexMd);
+  WriteLink4List(file, at_list_, kIndexAt,0);
+  WriteLink4List(file, dg_list_, kIndexDg,1); // Always rewrite last DG block
+  WriteLink4List(file, ch_list_, kIndexCh,0);
+  WriteLink4List(file, ev_list_, kIndexEv,0);
+
   return bytes;
 }
-
 
 
 }

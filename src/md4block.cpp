@@ -258,10 +258,9 @@ Md4Block::Md4Block(const std::string &text) {
 
 void Md4Block::TxComment(const std::string &tx_comment) {
   auto xml = CreateXmlFile();
-  std::ostringstream root_name;
-  root_name << BlockType() << "comment";
-  auto& root = xml->RootName(root_name.str());
+  xml->ParseString(XmlSnippet());
   StringProperty("TX", tx_comment);
+  XmlSnippet(xml->WriteString(true));
 }
 
 std::string Md4Block::TxComment() const {

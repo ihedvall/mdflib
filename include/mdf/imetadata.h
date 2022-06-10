@@ -47,6 +47,20 @@ class IMetaData {
    */
   [[nodiscard]] std::string StringProperty(const std::string& tag) const;
 
+  /** \brief Sets a float property in the block.
+   *
+   * @param tag Tag name.
+   * @param value Tag value.
+   */
+  void FloatProperty(const std::string& tag, double value);
+
+  /** \brief Returns a specific tag value.
+   *
+   * @param tag Tag name.
+   * @return  Tag value.
+   */
+  [[nodiscard]] double FloatProperty(const std::string& tag) const;
+
   /** \brief Sets a common property.
    *
    * @param e_tag Property to set.

@@ -2,6 +2,7 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+#include "hd4block.h"
 #include "ev4block.h"
 
 namespace {
@@ -74,6 +75,11 @@ std::string MakeFlagString(uint8_t flag) {
 }
 
 namespace mdf::detail {
+
+Ev4Block::Ev4Block() {
+  block_type_ = "##EV";
+}
+
 void Ev4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
 
@@ -123,8 +129,210 @@ size_t Ev4Block::Read(std::FILE *file) {
   bytes += ReadNumber(file, creator_index_);
   bytes += ReadNumber(file, sync_base_value_);
   bytes += ReadNumber(file, sync_factor_);
+
   name_ = ReadTx4(file,kIndexName);
+  const size_t group_index = 5 + length_m_ + length_n_;
+  if (group_index < link_list_.size()) {
+    group_name_ = ReadTx4(file, group_index);
+  }
+
   ReadMdComment(file,kIndexMd);
   return bytes;
 }
+size_t Ev4Block::Write(std::FILE *file) {
+  const bool update = FilePosition() > 0; // Write or update the values inside the block
+  if (update) {
+    return block_length_;
+  }
+  length_m_ = scope_list_.size();
+  length_n_ = attachment_list_.size();
+
+  const auto group = !group_name_.empty();
+  if (group) {
+    flags_ |= 0x02;
+  }
+  block_type_ = "##EV";
+  block_length_ = 24 + ((5 + length_m_ + length_n_)*8) + 5 + 3 + 4 + 2 + 2 + 8 + 8;
+  if (group) {
+    block_size_ += 8;
+  }
+  link_list_.resize(5 + length_m_ + length_n_ + (group ? 1 : 0),0);
+  link_list_[kIndexParent] = parent_event_ != nullptr ? parent_event_->Index() : 0;
+  link_list_[kIndexRange] = range_event_ != nullptr ? range_event_->Index() : 0;
+  for (size_t index_m = 0; index_m < length_m_; ++index_m) {
+    const auto index = 5 + index_m;
+    const auto* block = reinterpret_cast<const IBlock*>(scope_list_[index_m]);
+    link_list_[index] = block != nullptr ? block->FilePosition() : 0;
+  }
+  for (size_t index_n = 0; index_n < length_n_; ++index_n) {
+    const auto index = 5 + length_m_ + index_n;
+    const auto* block = attachment_list_[index_n];
+    link_list_[index] = block != nullptr ? block->Index() : 0;
+  }
+  WriteTx4(file, kIndexName, name_);
+  if (group) {
+    WriteTx4(file, link_list_.size() - 1, group_name_);
+  }
+  WriteMdComment(file, kIndexMd);
+
+  auto bytes = IBlock::Write(file);
+  bytes += WriteNumber(file, type_);
+  bytes += WriteNumber(file, sync_type_);
+  bytes += WriteNumber(file, range_type_);
+  bytes += WriteNumber(file, cause_);
+  bytes += WriteNumber(file, flags_);
+  bytes += WriteBytes(file, 3);
+  bytes += WriteNumber(file, length_m_);
+  bytes += WriteNumber(file, length_n_);
+  bytes += WriteNumber(file, creator_index_);
+  bytes += WriteNumber(file, sync_base_value_);
+  bytes += WriteNumber(file, sync_factor_);
+  UpdateBlockSize(file, bytes);
+
+  return bytes;
+}
+
+int64_t Ev4Block::Index() const {
+  return FilePosition();
+}
+
+void Ev4Block::Name(const std::string &name) {
+  name_ = name;
+}
+
+const std::string &Ev4Block::Name() const {
+  return name_;
+}
+
+void Ev4Block::GroupName(const std::string &group_name) {
+  group_name_ = group_name;
+}
+
+const std::string &Ev4Block::GroupName() const {
+  return group_name_;
+}
+
+void Ev4Block::Type(EventType event_type) {
+  type_ = static_cast<uint8_t>(event_type);
+}
+
+EventType Ev4Block::Type() const {
+  return static_cast<EventType>(type_);
+}
+
+void Ev4Block::Sync(SyncType sync_type) {
+  sync_type_ = static_cast<uint8_t>(sync_type);
+}
+
+SyncType Ev4Block::Sync() const {
+  return static_cast<SyncType>(sync_type_);
+}
+
+void Ev4Block::Range(RangeType range_type) {
+  range_type_ = static_cast<uint8_t>(range_type);
+}
+
+RangeType Ev4Block::Range() const {
+  return static_cast<RangeType>(range_type_);
+}
+
+void Ev4Block::Cause(EventCause cause) {
+  cause_ = static_cast<uint8_t>(cause);
+}
+
+EventCause Ev4Block::Cause() const {
+  return static_cast<EventCause>(cause_);
+}
+
+void Ev4Block::CreatorIndex(size_t index) {
+  creator_index_ = index;
+}
+
+size_t Ev4Block::CreatorIndex() const {
+  return creator_index_;
+}
+
+void Ev4Block::SyncValue(int64_t value) {
+ sync_base_value_ = value;
+}
+
+int64_t Ev4Block::SyncValue() const {
+  return sync_base_value_;
+}
+
+void Ev4Block::SyncFactor(double factor) {
+  sync_factor_ = factor;
+}
+
+double Ev4Block::SyncFactor() const {
+  return sync_factor_;
+}
+
+void Ev4Block::ParentEvent(const IEvent *parent) {
+  parent_event_ = parent;
+}
+
+const IEvent *Ev4Block::ParentEvent() const {
+  return parent_event_;
+}
+
+void Ev4Block::RangeEvent(const IEvent *range_event) {
+  range_event_ = range_event;
+}
+
+const IEvent *Ev4Block::RangeEvent() const {
+  return range_event_;
+}
+
+void Ev4Block::AddScope(const void *scope) {
+ if (scope != nullptr) {
+   scope_list_.push_back(scope);
+ }
+}
+
+const std::vector<const void *> &Ev4Block::Scopes() const {
+  return scope_list_;
+}
+
+void Ev4Block::AddAttachment(const IAttachment *attachment) {
+  if (attachment != nullptr) {
+    attachment_list_.push_back(attachment);
+  }
+}
+
+const std::vector<const IAttachment *> &Ev4Block::Attachments() const {
+  return attachment_list_;
+}
+
+IMetaData *Ev4Block::MetaData() {
+  CreateMd4Block();
+  return dynamic_cast<IMetaData *>(md_comment_.get());
+}
+
+const IMetaData *Ev4Block::MetaData() const {
+  return !md_comment_ ? nullptr : dynamic_cast<IMetaData *>(md_comment_.get());
+}
+
+void Ev4Block::FindReferencedBlocks(const Hd4Block &hd4) {
+  parent_event_ = dynamic_cast<const Ev4Block*>(hd4.Find(Link(kIndexParent)));
+  range_event_ = dynamic_cast<const Ev4Block*>(hd4.Find(Link(kIndexRange)));
+  scope_list_.clear();
+  for (size_t index_m = 0; index_m < length_m_; ++index_m ) {
+    const auto index = 5 + index_m;
+    if (index < link_list_.size()) {
+      scope_list_.push_back(hd4.Find(Link(index)));
+    }
+  }
+
+  attachment_list_.clear();
+  for (size_t index_n = 0; index_n < length_n_; ++index_n ) {
+    const auto index = 5 + length_m_ + index_n;
+    if (index < link_list_.size()) {
+      attachment_list_.push_back(dynamic_cast<const At4Block*>(hd4.Find(Link(index))));
+    }
+  }
+}
+
+
+
 }

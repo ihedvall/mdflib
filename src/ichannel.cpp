@@ -783,6 +783,32 @@ void IChannel::SetChannelValue(const std::vector<uint8_t>& value, bool valid) {
   }
 }
 
+void IChannel::Sync(ChannelSyncType type) {
+}
 
+ChannelSyncType IChannel::Sync() const {
+  return ChannelSyncType::None;
+}
+
+void IChannel::Range(double min, double max) {
+}
+
+std::optional<std::pair<double, double>> IChannel::Range() const {
+  return {};
+}
+
+void IChannel::Limit(double min, double max) {
+}
+
+std::optional<std::pair<double, double>> IChannel::Limit() const {
+  return {};
+}
+
+void IChannel::ExtLimit(double min, double max) {
+}
+
+std::optional<std::pair<double, double>> IChannel::ExtLimit() const {
+  return {};
+}
 
 } // end namespace mdf

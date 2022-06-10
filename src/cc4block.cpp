@@ -49,6 +49,26 @@ std::string MakeFlagString(uint16_t flag) {
 
 namespace mdf::detail {
 
+Cc4Block::Cc4Block() {
+  block_type_ = "##CC";
+}
+
+int64_t Cc4Block::Index() const {
+  return FilePosition();
+}
+
+void Cc4Block::Name(const std::string &name) {
+  name_ = name;
+}
+
+std::string Cc4Block::Name() const {
+  return name_;
+}
+
+void Cc4Block::Unit(const std::string &unit) {
+  unit_ = std::make_unique<Md4Block>(unit);
+}
+
 std::string Cc4Block::Unit() const {
   if (!unit_) {
     return {};
@@ -59,16 +79,72 @@ std::string Cc4Block::Unit() const {
   return unit_->TxComment();
 }
 
-bool Cc4Block::IsUnitValid() const {
-  return Link(kIndexUnit) != 0;
+void Cc4Block::Description(const std::string &desc) {
+  auto* metadata = MetaData();
+  if (metadata != nullptr) {
+    metadata->StringProperty("TX", desc);
+  }
 }
 
-void Cc4Block::Unit(const std::string &unit) {
-  unit_ = std::make_unique<Md4Block>(unit);
+std::string Cc4Block::Description() const {
+  return Comment();
 }
 
 void Cc4Block::Type(ConversionType type) {
   type_ = static_cast<uint8_t>(type);
+}
+
+ConversionType Cc4Block::Type() const {
+  return static_cast<ConversionType>(type_);
+}
+
+void Cc4Block::Decimals(uint8_t decimals) {
+  precision_ = decimals;
+}
+
+uint8_t Cc4Block::Decimals() const {
+  auto max = static_cast<uint8_t>( channel_data_type_ == 4 ?
+                                   std::numeric_limits<float>::max_digits10 :
+                                   std::numeric_limits<double>::max_digits10);
+  return std::min(precision_, max);
+}
+
+bool Cc4Block::IsUnitValid() const {
+  return Link(kIndexUnit) != 0;
+}
+
+bool Cc4Block::IsDecimalUsed() const {
+  return (flags_ & CcFlag::PrecisionValid ) != 0;
+}
+
+void Cc4Block::Range(double min, double max) {
+  flags_ |= CcFlag::RangeValid;
+  range_min_ = min;
+  range_max_ = max;
+}
+
+std::optional<std::pair<double, double>> Cc4Block::Range() const {
+  return (flags_ & CcFlag::RangeValid) != 0 ?
+      std::optional(std::pair(range_min_, range_max_)): std::optional<std::pair<double, double>>();
+}
+
+uint16_t Cc4Block::Flags() const {
+  return flags_;
+}
+void Cc4Block::Flags(uint16_t flags) {
+  flags_ = flags;
+}
+
+
+IChannelConversion *Cc4Block::CreateInverse() {
+  auto cc4 = std::make_unique<Cc4Block>();
+  cc4->Init(*this);
+  cc_block_ = std::move(cc4);
+  return cc_block_.get();
+}
+
+const IChannelConversion *Cc4Block::Inverse() const {
+  return cc_block_ ? cc_block_.get() : nullptr;
 }
 
 void Cc4Block::GetBlockProperty(BlockPropertyList &dest) const {
@@ -121,7 +197,7 @@ void Cc4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Cc4Block::Read(std::FILE *file) {
+size_t Cc4Block::Read(std::FILE *file) { // NOLINT
   size_t bytes = ReadHeader4(file);
   bytes += ReadNumber(file, type_);
   bytes += ReadNumber(file, precision_);
@@ -182,7 +258,45 @@ size_t Cc4Block::Read(std::FILE *file) {
   return bytes;
 }
 
-const IBlock *Cc4Block::Find(fpos_t index) const {
+size_t Cc4Block::Write(std::FILE *file) { // NOLINT
+  const bool update = FilePosition() > 0; // True if already written to file
+  if (update) {
+    return block_length_;
+  }
+
+  nof_references_ = ref_list_.size();
+  nof_values_ = value_list_.size();
+
+  block_type_ = "##CC";
+  block_length_ = 24 + (4*8) + (nof_references_ * 8) + 1 + 1 + 2 + 2 + 2 + 8 + 8 + (8*nof_values_);
+  link_list_.resize(4 + nof_references_,0);
+  WriteTx4(file, kIndexName, name_);
+  WriteBlock4(file, unit_, kIndexUnit);
+  WriteMdComment(file, kIndexMd);
+  WriteBlock4(file, cc_block_, kIndexInverse);
+  for (uint16_t index_m = 0; index_m < nof_references_; ++index_m) {
+    const auto index = 4 + index_m;
+    const auto* block = ref_list_[index_m].get();
+    link_list_[index] = block != nullptr ? block->FilePosition() : 0;
+  }
+
+  auto bytes = IBlock::Write(file);
+  bytes += WriteNumber(file, type_);
+  bytes += WriteNumber(file, precision_);
+  bytes += WriteNumber(file, flags_);
+  bytes += WriteNumber(file, nof_references_);
+  bytes += WriteNumber(file, nof_values_);
+  bytes += WriteNumber(file, range_min_);
+  bytes += WriteNumber(file, range_max_);
+  for (uint16_t index_n = 0; index_n < nof_values_; ++index_n) {
+    bytes += WriteNumber(file, value_list_[index_n]);
+    // ToDo: Fix variant check if uint64_t or double
+  }
+  UpdateBlockSize(file, bytes);
+  return bytes;
+}
+
+const IBlock *Cc4Block::Find(fpos_t index) const { // NOLINT
   if (cc_block_) {
     const auto* p = cc_block_->Find(index);
     if (p != nullptr) {
@@ -369,5 +483,6 @@ bool Cc4Block::ConvertTextToTranslation(const std::string &channel_value, std::s
 
   return true;
 }
+
 
 }

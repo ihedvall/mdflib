@@ -36,10 +36,18 @@ void TestWrite::SetUpTestSuite() {
   log_config.BaseName(kLogFile.data());
   log_config.Type(util::log::LogType::LogToFile);
   log_config.CreateDefaultLogger();
+
+  LOG_DEBUG() << "Created the log file";
   try {
     std::error_code err;
     remove_all(kTestDir, err);
     create_directories(kTestDir);
+    for (size_t log = 0; log < 60'000; ++log) {
+      if (exists(log_config.GetLogFile())) {
+        break;
+      }
+      std::this_thread::sleep_for(1ms);
+    }
   } catch (const std::exception& error) {
     LOG_ERROR() << "Failed to create directories. Error: " << error.what();
     kSkipTest = true;
@@ -264,13 +272,13 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
   writer->StartMeasurement(TimeStampToNs());
   for (size_t sample = 0; sample < 100; ++sample) {
     auto cn_list = cg3->Channels();
-    cn_list[0]->SetChannelValue(0.01 * sample);
+    cn_list[0]->SetChannelValue(0.01 * static_cast<double>(sample));
     cn_list[1]->SetChannelValue(sample);
     cn_list[2]->SetChannelValue(sample);
     cn_list[3]->SetChannelValue(-sample);
     cn_list[4]->SetChannelValue(-sample);
-    cn_list[5]->SetChannelValue(11.1 * sample);
-    cn_list[6]->SetChannelValue(11.1 * sample);
+    cn_list[5]->SetChannelValue(11.1 * static_cast<double>(sample));
+    cn_list[6]->SetChannelValue(11.1 * static_cast<double>(sample));
 
     cn_list[7]->SetChannelValue(std::to_string(sample));
     std::vector<uint8_t> temp(5,0);
@@ -289,7 +297,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
 
 }
 
-TEST_F(TestWrite,Mdf4WriteHD) {
+TEST_F(TestWrite,Mdf4WriteHD) { //NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -358,6 +366,228 @@ TEST_F(TestWrite,Mdf4WriteHD) {
 
 }
 
+TEST_F(TestWrite,Mdf4WriteFH) { //NOLINT
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("fd4.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* header = writer->Header();
+  ASSERT_TRUE(header != nullptr);
+  header->Author("Ingemar Hedvall");
+
+  auto time_stamp = TimeStampToNs();
+  auto* history = header->CreateFileHistory();
+  ASSERT_TRUE(history != nullptr);
+  EXPECT_EQ(history->Index(), 0);
+  history->Time(time_stamp);
+  history->Description("Initial stuff");
+  history->ToolName("Unit Test");
+  history->ToolVendor("ACME");
+  history->ToolVersion("2.3");
+  history->UserName("Ducky");
+
+  EXPECT_FALSE(history->Description().empty());
+
+  writer->InitMeasurement();
+  writer->FinalizeMeasurement();
+
+  EXPECT_GT(header->Index(), 0);
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadHeader());
+  const auto* file1 = reader.GetFile();
+  ASSERT_TRUE(file1 != nullptr);
+
+  const auto* header1 = file1->Header();
+  ASSERT_TRUE(header1 != nullptr);
+  EXPECT_GT(header1->Index(), 0);
+
+  const auto fh_list = header1->FileHistories();
+  ASSERT_EQ(fh_list.size(), 1);
+
+  const auto* history1 = fh_list[0];
+  ASSERT_TRUE(history1 != nullptr);
+  EXPECT_EQ(history->Time(), history1->Time());
+  EXPECT_EQ(history->Description(), history1->Description());
+  EXPECT_EQ(history->ToolName(), history1->ToolName());
+  EXPECT_EQ(history->ToolVendor(), history1->ToolVendor());
+  EXPECT_EQ(history->ToolVersion(), history1->ToolVersion());
+  EXPECT_EQ(history->UserName(), history1->UserName());
+}
+
+
+TEST_F(TestWrite,Mdf4WriteAT) { //NOLINT
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("at4.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* header = writer->Header();
+  ASSERT_TRUE(header != nullptr);
+
+  const auto &log_config = LogConfig::Instance();
+  const auto log_file = log_config.GetLogFile();
+
+  for (size_t count = 0; count < 3; ++count) {
+    auto *attachment = header->CreateAttachment();
+    ASSERT_TRUE(attachment != nullptr);
+    EXPECT_EQ(attachment->Index(), 0);
+    attachment->CreatorIndex(count);
+    EXPECT_EQ(attachment->CreatorIndex(), count);
+
+    attachment->IsEmbedded(count > 0);
+    attachment->IsCompressed(count > 1);
+    attachment->FileName(log_file);
+    attachment->FileType("text/plain");
+    const auto md5 = attachment->Md5();
+    EXPECT_FALSE(md5.has_value());
+  }
+
+  writer->InitMeasurement();
+  writer->FinalizeMeasurement();
+
+  EXPECT_GT(header->Index(), 0);
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadMeasurementInfo());
+  const auto* file1 = reader.GetFile();
+  ASSERT_TRUE(file1 != nullptr);
+
+  const auto* header1 = file1->Header();
+  ASSERT_TRUE(header1 != nullptr);
+  EXPECT_GT(header1->Index(), 0);
+
+  const auto at_list = header1->Attachments();
+  ASSERT_EQ(at_list.size(), 3);
+
+  for (size_t count1 = 0; count1 < at_list.size(); ++count1) {
+    const auto* attachment = at_list[count1];
+    ASSERT_TRUE(attachment != nullptr);
+    EXPECT_EQ(attachment->CreatorIndex(), count1);
+    EXPECT_EQ(attachment->IsEmbedded(), count1 > 0);
+    EXPECT_EQ(attachment->IsCompressed(), count1 > 1);
+    EXPECT_EQ(attachment->FileName(),log_file);
+    EXPECT_STREQ(attachment->FileType().c_str(),"text/plain");
+    EXPECT_TRUE(attachment->Md5().has_value());
+    EXPECT_EQ(attachment->Md5().value().size(), 32);
+
+  }
+
+}
+
+TEST_F(TestWrite,Mdf4WriteEV) { //NOLINT
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("ev4.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* header = writer->Header();
+  ASSERT_TRUE(header != nullptr);
+
+  auto* history = header->CreateFileHistory();
+  ASSERT_TRUE(history != nullptr);
+  history->Description("Created");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto *event = header->CreateEvent();
+  ASSERT_TRUE(event != nullptr);
+  EXPECT_EQ(event->Index(), 0);
+  event->GroupName("Olle");
+  event->Description("Olle Event");
+  EXPECT_STREQ(event->Description().c_str(), "Olle Event");
+
+  writer->InitMeasurement();
+  writer->FinalizeMeasurement();
+
+  EXPECT_GT(header->Index(), 0);
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  ASSERT_TRUE(file1 != nullptr);
+
+  const auto* header1 = file1->Header();
+  ASSERT_TRUE(header1 != nullptr);
+  EXPECT_GT(header1->Index(), 0);
+
+  const auto ev_list = header1->Events();
+  ASSERT_EQ(ev_list.size(), 1);
+
+
+}
+
+TEST_F(TestWrite,Mdf4WriteDG) { //NOLINT
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("dg4.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* header = writer->Header();
+  ASSERT_TRUE(header != nullptr);
+
+  auto* history = header->CreateFileHistory();
+  ASSERT_TRUE(history != nullptr);
+  history->Description("Created");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto *data_group = header->CreateDataGroup();
+  ASSERT_TRUE(data_group != nullptr);
+  EXPECT_EQ(data_group->Index(), 0);
+  data_group->Description("Olle Meas");
+  EXPECT_STREQ(data_group->Description().c_str(), "Olle Meas");
+
+  auto* channel_group = data_group->CreateChannelGroup();
+  ASSERT_TRUE(channel_group != nullptr);
+  EXPECT_EQ(channel_group->Index(), 0);
+
+  channel_group->Name("Groupie");
+  EXPECT_STREQ(channel_group->Name().c_str(), "Groupie");
+  channel_group->Description("Groupie desc");
+  EXPECT_STREQ(channel_group->Description().c_str(), "Groupie desc");
+
+  writer->InitMeasurement();
+  writer->FinalizeMeasurement();
+
+  EXPECT_GT(header->Index(), 0);
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  ASSERT_TRUE(file1 != nullptr);
+
+  const auto* header1 = file1->Header();
+  ASSERT_TRUE(header1 != nullptr);
+  EXPECT_GT(header1->Index(), 0);
+
+  const auto dg_list = header1->DataGroups();
+  ASSERT_EQ(dg_list.size(), 1);
+
+  const auto cg_list = dg_list[0]->ChannelGroups();
+  ASSERT_EQ(cg_list.size(), 1);
+}
 
 
 } // end namespace mdf::test

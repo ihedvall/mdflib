@@ -24,6 +24,7 @@ class IDataGroup {
 
   [[nodiscard]] virtual std::vector<IChannelGroup*> ChannelGroups() const = 0;
   [[nodiscard]] virtual IChannelGroup* CreateChannelGroup() = 0;
+
   [[nodiscard]] virtual IMetaData* MetaData();
   [[nodiscard]] virtual const IMetaData* MetaData() const;
 

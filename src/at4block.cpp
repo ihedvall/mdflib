@@ -89,6 +89,9 @@ bool FileToBuffer(const std::string& filename, ByteArray& dest) {
  } // namespace
 
 namespace mdf::detail {
+At4Block::At4Block() {
+  block_type_ = "##AT";
+}
 
 void At4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
@@ -187,8 +190,13 @@ size_t At4Block::Write(std::FILE *file) {
   nof_bytes_ = data_buffer.size();
 
   block_type_ = "##AT";
-  block_size_ = 24 + (4*8) + 2 + 2 + 4 + 16 + 8 + 8 + nof_bytes_;
+  block_length_ = 24 + (4*8) + 2 + 2 + 4 + 16 + 8 + 8 + nof_bytes_;
   link_list_.resize(4,0);
+
+  WriteTx4(file, kIndexFilename, filename_);
+  WriteTx4(file, kIndexType, file_type_);
+  WriteMdComment(file, kIndexMd);
+
   auto bytes = IBlock::Write(file);
   bytes += WriteNumber(file, flags_);
   bytes += WriteNumber(file, creator_index_);
@@ -205,9 +213,7 @@ size_t At4Block::Write(std::FILE *file) {
     bytes += WriteByte(file, data_buffer);
   }
   UpdateBlockSize(file,bytes);
-  WriteTx4(file, kIndexFilename, filename_);
-  WriteTx4(file, kIndexType, file_type_);
-  WriteMdComment(file, kIndexMd);
+
   return bytes;
 }
 
@@ -277,7 +283,7 @@ bool At4Block::IsCompressed() const {
   return flags_ & At4Flags::kCompressedData;
 }
 
-std::optional<std::string> At4Block::Md5() {
+std::optional<std::string> At4Block::Md5() const {
   if ((flags_ & At4Flags::kUsingMd5) == 0) {
     return {};
   }
@@ -290,5 +296,10 @@ void At4Block::CreatorIndex(uint16_t creator) {
 uint16_t At4Block::CreatorIndex() const {
   return creator_index_;
 }
+
+int64_t At4Block::Index() const {
+  return FilePosition();
+}
+
 
 }

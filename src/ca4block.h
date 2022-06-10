@@ -4,35 +4,27 @@
  */
 #pragma once
 #include "iblock.h"
+#include "mdf/ichannelarray.h"
 namespace mdf::detail {
-namespace Ca4Flags {
-constexpr uint32_t kDynamicSize = 0x01;
-constexpr uint32_t kInputQuantity = 0x02;
-constexpr uint32_t kOutputQuantity = 0x04;
-constexpr uint32_t kComparisonQuantity = 0x08;
-constexpr uint32_t kAxis = 0x10;
-constexpr uint32_t kFixedAxis = 0x20;
-constexpr uint32_t kInverseLayout = 0x40;
-constexpr uint32_t kLeftOpenInterval = 0x80;
-}
 
-enum class Ca4Type : uint8_t {
-  Array = 0,
-  ScalingAxis = 1,
-  LookUp = 2,
-  IntervalAxis = 3,
-  ClassificationResult = 4
-};
-
-enum class Ca4Storage : uint8_t {
-  kCnTemplate = 0,
-  kCgTemplate = 1,
-  kDgTemplate = 2
-};
-class Ca4Block : public IBlock {
+class Ca4Block : public IBlock , public IChannelArray {
  public:
+  Ca4Block();
+
+  [[nodiscard]] int64_t Index() const override;
+
+  void Type(ArrayType type) override;
+  [[nodiscard]] ArrayType Type() const override;
+
+  void Storage(ArrayStorage storage) override;
+  [[nodiscard]] ArrayStorage Storage() const override;
+
+  void Flags(uint32_t flags) override;
+  [[nodiscard]] uint32_t Flags() const override;
+
   void GetBlockProperty(BlockPropertyList& dest) const override;
   size_t Read(std::FILE *file) override;
+
  private:
   uint8_t type_ = 0;
   uint8_t storage_ = 0;

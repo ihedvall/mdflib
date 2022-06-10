@@ -31,28 +31,28 @@ std::string MakeStorageString(uint8_t storage) {
 
 std::string MakeFlagString(uint16_t flag) {
   std::ostringstream s;
-  if (flag & mdf::detail::Ca4Flags::kDynamicSize) {
+  if (flag & mdf::CaFlag::DynamicSize) {
     s << "Dynamic";
   }
-  if (flag & mdf::detail::Ca4Flags::kInputQuantity) {
+  if (flag & mdf::CaFlag::InputQuantity) {
     s << (s.str().empty() ? "Input" : ",Input");
   }
-  if (flag & mdf::detail::Ca4Flags::kOutputQuantity) {
+  if (flag & mdf::CaFlag::OutputQuantity) {
     s << (s.str().empty() ? "Output" : ",Output");
   }
-  if (flag & mdf::detail::Ca4Flags::kComparisonQuantity) {
+  if (flag & mdf::CaFlag::ComparisonQuantity) {
     s << (s.str().empty() ? "Comparison" : ",Comparison");
   }
-  if (flag & mdf::detail::Ca4Flags::kAxis) {
+  if (flag & mdf::CaFlag::Axis) {
     s << (s.str().empty() ? "Axis" : ",Axis");
   }
-  if (flag & mdf::detail::Ca4Flags::kFixedAxis) {
+  if (flag & mdf::CaFlag::FixedAxis) {
     s << (s.str().empty() ? "Fixed" : ",Fixed");
   }
-  if (flag & mdf::detail::Ca4Flags::kInverseLayout) {
+  if (flag & mdf::CaFlag::InverseLayout) {
     s << (s.str().empty() ? "Inverse" : ",Inverse");
   }
-  if (flag & mdf::detail::Ca4Flags::kLeftOpenInterval) {
+  if (flag & mdf::CaFlag::LeftOpenInterval) {
     s << (s.str().empty() ? "Left-Open" : ",Left-Open");
   }
 
@@ -92,7 +92,7 @@ size_t Ca4Block::Read(std::FILE *file) {
     dim_size_list_.push_back(size);
   }
   axis_value_list_.clear();
-  if (flags_ & Ca4Flags::kFixedAxis) {
+  if (flags_ & CaFlag::FixedAxis) {
     for (uint16_t dd = 0; dd < dimension_; ++dd) {
       uint64_t size = dim_size_list_[dd];
       for (uint64_t ss = 0; ss < size; ++ss) {
@@ -107,4 +107,36 @@ size_t Ca4Block::Read(std::FILE *file) {
   // TODO(ihedvall): Figure out how the cycle count actually works
   return bytes;
 }
+int64_t Ca4Block::Index() const {
+  return FilePosition();
+}
+
+void Ca4Block::Type(ArrayType type) {
+  type_ = static_cast<uint8_t>(type);
+}
+
+ArrayType Ca4Block::Type() const {
+  return static_cast<ArrayType>(type_);
+}
+
+void Ca4Block::Storage(ArrayStorage storage) {
+  storage_ = static_cast<uint8_t>(storage);
+}
+
+ArrayStorage Ca4Block::Storage() const {
+  return static_cast<ArrayStorage>(storage_);
+}
+
+void Ca4Block::Flags(uint32_t flags) {
+  flags_ = flags;
+}
+
+uint32_t Ca4Block::Flags() const {
+  return flags_;
+}
+
+Ca4Block::Ca4Block() {
+  block_type_ = "##CA";
+}
+
 }

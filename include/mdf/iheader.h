@@ -14,6 +14,8 @@
 #include "mdf/iattachment.h"
 #include "mdf/imetadata.h"
 #include "mdf/ifilehistory.h"
+#include "mdf/ievent.h"
+#include "mdf/ichannelhierarchy.h"
 
 namespace mdf {
 
@@ -204,9 +206,44 @@ class IHeader {
   /** \brief Returns a list of file history blocks.
    *
    * Returns a list of file history blocks in the measurement file.
-   * @return
+   * @return List of event interface pointers.
    */
   [[nodiscard]] virtual std::vector<IFileHistory*> FileHistories() const;
+
+  /** \brief Creates a new event block.
+   *
+   * Creates a new event (EV) block.
+   * @return An event interface pointer.
+   */
+  [[nodiscard]] virtual IEvent* CreateEvent();
+
+  /** \brief Returns a list events.
+   *
+   * Returns a list of event blocks in the measurement file.
+   * @return List of event interface pointers.
+   */
+  [[nodiscard]] virtual std::vector<IEvent*> Events() const;
+
+  /** \brief Creates a new channel hierarchy block.
+   *
+   * Creates a new channel hierarchy (CH) block.
+   * @return Returns a channel hierarchy interface pointer.
+   */
+  [[nodiscard]] virtual IChannelHierarchy* CreateChannelHierarchy();
+
+  /** \brief Returns a list of channel hierarchy blocks.
+   *
+   * Returns a list of channel hierarchy blocks in the measurement file.
+   * @return List of interface pointers.
+   */
+  [[nodiscard]] virtual std::vector<IChannelHierarchy*> ChannelHierarchies() const;
+
+  /** \brief Creates a new data group block.
+   *
+   * Creates a new data group (DG) block.
+   * @return Returns a data group interface pointer.
+   */
+  [[nodiscard]] virtual IDataGroup* CreateDataGroup() = 0;
 
   /** \brief Returns a list of measurements.
    *

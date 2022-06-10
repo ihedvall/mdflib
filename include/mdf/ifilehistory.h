@@ -22,6 +22,7 @@ namespace mdf {
  * be a new history block appended.
  */
 class IFileHistory {
+ public:
   /** \brief Returns the file position.
    *
    * Returns the file position of the block. This index is updated when

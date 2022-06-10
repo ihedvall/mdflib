@@ -109,14 +109,7 @@ const IBlock *Mdf3File::Find(fpos_t id) const {
 }
 
 IDataGroup *Mdf3File::CreateDataGroup() {
-  IDataGroup* dg = nullptr;
-  if (hd_block_) {
-    auto dg3 = std::make_unique<Dg3Block>();
-    dg3->Init(*hd_block_);
-    dg = dg3.get();
-    hd_block_->AddDg3(dg3);
-  }
-  return dg;
+  return hd_block_ ? hd_block_->CreateDataGroup() : nullptr;
 }
 
 bool Mdf3File::Write(std::FILE* file) {

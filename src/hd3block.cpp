@@ -287,6 +287,13 @@ uint64_t Hd3Block::StartTime() const {
   return local_timestamp_ - (util::time::TimeZoneOffset() * 1'000'000'000LL);
 }
 
+IDataGroup *Hd3Block::CreateDataGroup() {
+  auto dg3 = std::make_unique<Dg3Block>();
+  dg3->Init(*this);
+  dg_list_.push_back(std::move(dg3));
+  return dg_list_.empty() ? nullptr : dg_list_.back().get();
+}
+
 IDataGroup *Hd3Block::LastDataGroup() const {
   return dg_list_.empty() ? nullptr : dg_list_.back().get();
 }

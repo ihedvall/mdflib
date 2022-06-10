@@ -15,12 +15,6 @@
 
 namespace mdf::detail {
 
-namespace Cg4Flags {
-constexpr uint16_t Vlsd = 0x0001;
-constexpr uint16_t BusEvent = 0x0002;
-constexpr uint16_t PlainBusEvent = 0x0004;
-}
-
 class Cg4Block : public IBlock, public IChannelGroup {
  public:
   using Cn4List = std::vector<std::unique_ptr<Cn4Block>>;
@@ -52,6 +46,12 @@ class Cg4Block : public IBlock, public IChannelGroup {
   [[nodiscard]] uint64_t RecordId() const override;
   void RecordId(uint64_t record_id) override;
 
+  uint16_t Flags() override;
+  void Flags(uint16_t flags) override;
+
+  char16_t PathSeparator() override;
+  void PathSeparator(char16_t path_separator) override;
+
   [[nodiscard]] std::vector<IChannel *> Channels() const override;
   [[nodiscard]] const IChannel* GetXChannel(const IChannel& reference) const override;
 
@@ -67,12 +67,15 @@ class Cg4Block : public IBlock, public IChannelGroup {
   std::vector<uint8_t>& SampleBuffer() const {
     return sample_buffer_;
   }
+  size_t Write(std::FILE *file) override;
+  ISourceInformation *CreateSourceInformation() override;
+  const ISourceInformation *SourceInformation() const override;
 
  private:
   uint64_t record_id_ = 0;
   uint64_t nof_samples_ = 0;
   uint16_t flags_ = 0;
-  uint16_t path_separator_ = 0;
+  uint16_t path_separator_ = u'/';
   /* 4 byte reserved */
   uint32_t nof_data_bytes_ = 0;
   uint32_t nof_invalid_bytes_ = 0;

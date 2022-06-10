@@ -15,11 +15,11 @@ namespace mdf::detail {
 class Dg4Block : public DataListBlock, public IDataGroup {
  public:
   using Cg4List = std::vector<std::unique_ptr<Cg4Block>>;
+  Dg4Block();
 
   [[nodiscard]] int64_t Index() const override;
 
   void Description(const std::string& desc) override;
-
   [[nodiscard]] std::string Description() const override;
 
   [[nodiscard]] std::vector<IChannelGroup*> ChannelGroups() const override;
@@ -42,6 +42,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   void RecordIdSize(uint8_t id_size) override;
   uint8_t RecordIdSize() const override;
   size_t Write(std::FILE *file) override;
+  size_t DataSize() const override;
  private:
   uint8_t rec_id_size_ = 0;
   /* 7 byte reserved */

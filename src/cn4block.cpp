@@ -144,6 +144,10 @@ size_t CopyDataToBuffer( const mdf::detail::IBlock* data, std::FILE* from_file,
 
 namespace mdf::detail {
 
+Cn4Block::Cn4Block() {
+  block_type_ = "##CN";
+}
+
 int64_t Cn4Block::DataLink() const {
   return Link(kIndexData);
 }
@@ -339,6 +343,66 @@ size_t Cn4Block::Read(std::FILE *file) {
   }
   ReadMdComment(file,kIndexMd);
 
+  return bytes;
+}
+
+size_t Cn4Block::Write(std::FILE *file) {
+  const bool update = FilePosition() > 0; // True if already written to file
+  if (update) {
+    return block_length_;
+  }
+  nof_attachments_ = attachment_list_.size();
+  const auto default_x = (flags_ & CnFlag::DefaultX) != 0;
+
+  block_type_ = "##CN";
+  block_length_ = 24 + (8*8);
+  block_length_ += nof_attachments_ * 8;
+  if (default_x) {
+    block_length_ += 3*8;
+  }
+  block_length_ += 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 1 + 1 + 2 + (6*8);
+  link_list_.resize(8 + nof_attachments_ + (default_x ? 1 : 0),0);
+  WriteBlock4(file, cx_block_, kIndexCx);
+  WriteTx4(file, kIndexName, name_);
+  WriteBlock4(file, si_block_, kIndexSi);
+  WriteBlock4(file, cc_block_, kIndexCc);
+  // ToDo: Signal data needs to be fixed
+  WriteBlock4(file, unit_, kIndexUnit);
+  WriteMdComment(file,  kIndexMd);
+  for (size_t index_at = 0; index_at <attachment_list_.size(); ++index_at) {
+    const auto index = 8 + index_at;
+    const auto* at4 = attachment_list_[index_at];
+    link_list_[index] =at4 != nullptr ? at4->Index() : 0;
+  }
+  if (default_x) {
+    const auto index = 8 + nof_attachments_;
+    const auto* dg4 = default_x_.data_group;
+    const auto* cg4 = default_x_.channel_group;
+    const auto* cn4 = default_x_.channel;
+    link_list_[index] = dg4 != nullptr ? dg4->Index() : 0;
+    link_list_[index] = cg4 != nullptr ? cg4->Index() : 0;
+    link_list_[index] = cn4 != nullptr ? cn4->Index() : 0;
+  }
+
+  auto bytes = IBlock::Write(file);
+  bytes += WriteNumber(file, type_);
+  bytes += WriteNumber(file, sync_type_);
+  bytes += WriteNumber(file, data_type_);
+  bytes += WriteNumber(file, bit_offset_);
+  bytes += WriteNumber(file, byte_offset_);
+  bytes += WriteNumber(file, bit_count_);
+  bytes += WriteNumber(file, flags_);
+  bytes += WriteNumber(file, invalid_bit_pos_);
+  bytes += WriteNumber(file, precision_);;
+  bytes += WriteBytes(file, 1);
+  bytes += WriteNumber(file, nof_attachments_);
+  bytes += WriteNumber(file, range_min_);
+  bytes += WriteNumber(file, range_max_);
+  bytes += WriteNumber(file, limit_min_);
+  bytes += WriteNumber(file, limit_max_);
+  bytes += WriteNumber(file, limit_ext_min_);
+  bytes += WriteNumber(file, limit_ext_max_);
+  UpdateBlockSize(file, bytes);
   return bytes;
 }
 
@@ -539,5 +603,47 @@ void Cn4Block::Init(const IBlock &id_block) {
 void Cn4Block::AddCc4(std::unique_ptr<Cc4Block> &cc4) {
   cc_block_ = std::move(cc4);
 }
+
+void Cn4Block::Sync(ChannelSyncType type) {
+  sync_type_ = static_cast<uint8_t>(type);
+}
+
+ChannelSyncType Cn4Block::Sync() const {
+  return static_cast<ChannelSyncType>(sync_type_);
+}
+
+void Cn4Block::Range(double min, double max) {
+  range_min_ = min;
+  range_max_ = max;
+  flags_ |= CnFlag::RangeValid;
+}
+
+std::optional<std::pair<double, double>> Cn4Block::Range() const {
+  return (flags_ & CnFlag::RangeValid) != 0 ?
+      std::optional(std::pair(range_min_, range_max_)) : IChannel::Range();
+}
+
+void Cn4Block::Limit(double min, double max) {
+  limit_min_ = min;
+  limit_max_ = max;
+  flags_ |= CnFlag::LimitValid;
+}
+
+std::optional<std::pair<double, double>> Cn4Block::Limit() const {
+  return (flags_ & CnFlag::LimitValid) != 0 ?
+         std::optional(std::pair(limit_min_, limit_max_)) : IChannel::Limit();
+}
+
+void Cn4Block::ExtLimit(double min, double max) {
+  limit_ext_min_ = min;
+  limit_ext_max_ = max;
+  flags_ |= CnFlag::ExtendedLimitValid;
+}
+
+std::optional<std::pair<double, double>> Cn4Block::ExtLimit() const {
+  return (flags_ & CnFlag::ExtendedLimitValid) != 0 ?
+         std::optional(std::pair(limit_ext_min_, limit_ext_max_)) : IChannel::Limit();
+}
+
 
 } // namespace mdf::detail

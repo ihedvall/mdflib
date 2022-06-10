@@ -25,7 +25,7 @@ class Mdf4Timestamp : public IBlock {
   void NsSince1970(uint64_t utc);
 
  private:
-  uint64_t time_ = 0;      ///< Time in nanoseconds since 1970 also known as UNIX time
+  uint64_t time_ = util::time::TimeStampToNs();      ///< Time in nanoseconds since 1970 also known as UNIX time
   int16_t tz_offset_ = 0;  ///< Time zone offsets in minutes. Best practice is to always use UTC.
   int16_t dst_offset_ = 0; ///< DST offset in minutes. Best practice is to always use UTC.
   uint8_t flags_ = 0;

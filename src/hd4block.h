@@ -38,6 +38,8 @@ class Hd4Block : public IBlock, public IHeader {
   using At4List = std::vector<std::unique_ptr<At4Block>>;
   using Ev4List = std::vector<std::unique_ptr<Ev4Block>>;
 
+  Hd4Block();
+
   [[nodiscard]] int64_t Index() const override;
 
   void Author(const std::string &author) override;
@@ -115,6 +117,13 @@ class Hd4Block : public IBlock, public IHeader {
 
   void ReadMeasurementInfo(std::FILE *file);
   void ReadEverythingButData(std::FILE *file);
+
+  [[nodiscard]] IEvent *CreateEvent() override;
+  [[nodiscard]] std::vector<IEvent *> Events() const override;
+
+  [[nodiscard]] IChannelHierarchy *CreateChannelHierarchy() override;
+  [[nodiscard]] std::vector<IChannelHierarchy *> ChannelHierarchies() const override;
+  IDataGroup *CreateDataGroup() override;
 
  private:
   Mdf4Timestamp timestamp_;

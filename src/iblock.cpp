@@ -5,11 +5,17 @@
 #include <string>
 #include <sstream>
 #include <ios>
+#include <thread>
+#include <chrono>
 #include <boost/algorithm/string.hpp>
-
+#include <util/ixmlfile.h>
+#include <util/logstream.h>
 #include "iblock.h"
 #include "md4block.h"
 #include "tx3block.h"
+
+using namespace std::chrono_literals;
+using namespace util::log;
 
 namespace mdf::detail {
 
@@ -138,7 +144,52 @@ std::string ToMd5String(const std::vector<uint8_t>& md5)
   return temp.str();
 }
 
+bool OpenMdfFile(FILE *&file, const std::string &filename, const std::string &mode) {
+  if (file != nullptr) {
+    fclose(file);
+    file = nullptr;
+  }
 
+  for (size_t ii = 0; ii < 6'000; ++ii) {
+    const auto open = fopen_s(&file, filename.c_str(), mode.c_str());
+    switch (open) {
+      case EEXIST:
+      case EACCES:
+        if (file != nullptr) {
+          fclose(file);
+          file = nullptr;
+        }
+        std::this_thread::sleep_for(10ms);
+        break;
+
+      case ENOENT:
+        if (file != nullptr) {
+          fclose(file);
+          file = nullptr;
+        }
+        LOG_ERROR() << "File doesn't exist. File: " << filename;
+        return false;
+
+      default:
+        if (open != 0) {
+          if (file != nullptr) {
+            fclose(file);
+            file = nullptr;
+          }
+          LOG_ERROR() << "Failed to open the file. File: " << filename
+                      << ". Error: " << strerror(open) << " (" << open << ")";
+          return false;
+        }
+        ii = 6000;
+        break;
+    }
+  }
+  if (file == nullptr) {
+    LOG_ERROR() << "Failed to open the file due to lock timeout (5 s). File: " << filename;
+  }
+  return file != nullptr;
+
+}
 
 bool IBlock::IsBigEndian() const {
   return byte_order_ != 0;
@@ -389,29 +440,46 @@ void IBlock::UpdateLink(std::FILE *file, size_t link_index, int64_t link) {
   }
 
   auto pos = FilePosition();
-  if (pos <= 0) {
-    throw std::runtime_error("Invalid file position");
-  }
-  if (IsMdf4()) {
-    pos += 24 + static_cast<int64_t>(link_index * 8);
-    SetFilePosition(file, pos);
-    WriteNumber(file, link);
-  } else {
-    pos += 4 + static_cast<int64_t>(link_index * 4);
-    const auto link32 = static_cast<uint32_t>(link);
-    SetFilePosition(file, pos);
-    WriteNumber(file, link32);
+
+  // If the block not yet is written, the link will be written later
+  if (pos > 0) {
+    if (IsMdf4()) {
+      pos += 24 + static_cast<int64_t>(link_index * 8);
+      SetFilePosition(file, pos);
+      WriteNumber(file, link);
+    } else {
+      pos += 4 + static_cast<int64_t>(link_index * 4);
+      const auto link32 = static_cast<uint32_t>(link);
+      SetFilePosition(file, pos);
+      WriteNumber(file, link32);
+    }
   }
   link_list_[link_index] = link;
 }
 
 void IBlock::CreateMd4Block() {
-  auto md4 = std::make_unique<Md4Block>();
-  md4->TxComment(""); // Also sets the right root name
-
-  if (!md_comment_ || md_comment_->BlockType() == "TX") {
-    md_comment_ =  std::move(md4);
+  const auto* const_me = this;
+  const auto* metadata = const_me->MetaData();
+  if (metadata != nullptr) {
+    // Already done
+    return;
   }
+    // Create an MD block and optional copy the text if it was a TX block
+  auto md4 = std::make_unique<Md4Block>();
+
+  std::ostringstream root_name;
+  root_name << BlockType() << "comment";
+
+  auto xml = util::xml::CreateXmlFile();
+  auto& root = xml->RootName(root_name.str());
+
+  if (md_comment_ ) {
+    const auto* tx4 = dynamic_cast<const Tx4Block*> (md_comment_.get());
+    xml->SetProperty("TX", tx4 != nullptr ? tx4->Text() : std::string());
+  }
+
+  md4->XmlSnippet(xml->WriteString(true));
+  md_comment_ =  std::move(md4);
 }
 
 std::string IBlock::BlockType() const {
@@ -421,5 +489,13 @@ std::string IBlock::BlockType() const {
   return block_type_;
 }
 
+IMetaData *IBlock::MetaData() {
+  CreateMd4Block();
+  return dynamic_cast<IMetaData *>(md_comment_.get());
+}
+
+const IMetaData *IBlock::MetaData() const {
+  return !md_comment_ ? nullptr : dynamic_cast<const IMetaData *>(md_comment_.get());
+}
 
 }

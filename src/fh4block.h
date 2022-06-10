@@ -10,6 +10,7 @@
 namespace mdf::detail {
 class Fh4Block : public IBlock, public IFileHistory {
  public:
+  Fh4Block();
   [[nodiscard]] int64_t Index() const override;
   void Time(uint64_t ns_since_1970) override;
   [[nodiscard]] uint64_t Time() const override;

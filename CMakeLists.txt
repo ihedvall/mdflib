@@ -6,13 +6,23 @@ project(mdflib
         DESCRIPTION "Interface against MDF 3/4 files"
         LANGUAGES CXX)
 
+option(BUILD_SHARED_LIBS "Static libraries are preferred" OFF)
+option(BUILD_STATIC_LIBS "Static libraries are normally used" ON)
+option(BUILD_DOC "If doxygen is installed, then build documentation in Release mode" ON)
+
+if (NOT COMP_DIR)
+    set(COMP_DIR "k:")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_DEBUG_POSTFIX d)
+
 include("script/boost.cmake")
 include("script/utillib.cmake")
 include("script/zlib.cmake")
 include("script/expat.cmake")
 include("script/openssl.cmake")
+include("script/wxwidgets.cmake")
 include("script/googletest.cmake")
 include("script/doxygen.cmake")
 
@@ -68,8 +78,18 @@ add_library(mdf STATIC
         include/mdf/ichannelconversion.h src/ichannelconversion.cpp
         src/mdf3writer.h src/mdf3writer.cpp
         src/dt3block.cpp src/dt3block.h
-        include/mdf/iheader.h
-        include/mdf/samplerecord.h src/iheader.cpp src/mdf4writer.cpp src/mdf4writer.h src/mdfwriter.cpp include/mdf/mdfwriter.h src/mdffactory.cpp include/mdf/mdffactory.h src/ifilehistory.cpp include/mdf/ifilehistory.h src/imetadata.cpp include/mdf/imetadata.h src/etag.cpp include/mdf/etag.h src/ievent.cpp include/mdf/ievent.h src/ichannelhierarchy.cpp include/mdf/ichannelhierarchy.h src/isourceinformation.cpp include/mdf/isourceinformation.h src/ichannelarray.cpp include/mdf/ichannelarray.h)
+        src/iheader.cpp include/mdf/iheader.h
+        include/mdf/samplerecord.h
+        src/mdf4writer.cpp src/mdf4writer.h
+        src/mdfwriter.cpp include/mdf/mdfwriter.h
+        src/mdffactory.cpp include/mdf/mdffactory.h
+        src/ifilehistory.cpp include/mdf/ifilehistory.h
+        src/imetadata.cpp include/mdf/imetadata.h
+        src/etag.cpp include/mdf/etag.h
+        src/ievent.cpp include/mdf/ievent.h
+        src/ichannelhierarchy.cpp include/mdf/ichannelhierarchy.h
+        src/isourceinformation.cpp include/mdf/isourceinformation.h
+        src/ichannelarray.cpp include/mdf/ichannelarray.h)
 
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>
@@ -101,14 +121,22 @@ install(TARGETS mdf
         RUNTIME DESTINATION mdf/bin
         PUBLIC_HEADER DESTINATION mdf/include/mdf)
 
+if (wxWidgets_FOUND )
+    add_subdirectory(mdfviewer)
+endif()
+
 if (GTEST_FOUND)
     enable_testing()
     add_subdirectory(test)
 endif()
 
 if (DOXYGEN_FOUND AND (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") )
-    set(DOXYGEN_RECURSIVE YES)
+    set(DOXYGEN_RECURSIVE NO)
+    set(DOXYGEN_REPEAT_BRIEF NO)
+    set(DOXYGEN_PROJECT_NAME "MDFLib")
+    set(DOXYGEN_HTML_EXTRA_STYLESHEET doxygen/utillib.css)
+    set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/manual)
     doxygen_add_docs( doc_libmdf ALL
-            include/mdf
+            include/mdf doxygen
             COMMENT "MDF Library generating API documentation with Doxygen")
 endif()

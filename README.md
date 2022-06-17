@@ -5,14 +5,21 @@
 The MDF Library implements an interface against ASAM Measurement Data Files (MDF). 
 It supports reading and writing of MDF files version 3 and 4. 
 
+Release 1.0 of the project support reading of MDF files up to version 4.1 and some 4.2 version features. 
+Writing is supported for version 3. Version 4 is under development but is currently on low priority as 
+it is not required of other projects.
+
 The project is under development and support up to MDF version 4.1. Working on support for version 4.2 and
 writing of MDF 4 files. 
 
 The main project is a C++ static library and its dependent applications.
-- **MDF Viewer**. Simple GUI application that list the contents of an MDF file. Currently, in report_server repository.
-- **MDF .NET (C++/CLI) Assembly**. Basic reading and writing of MDF files for .NET friends. Under development.
+- **MDF Viewer**. Simple GUI application that list the contents of an MDF file. 
+- **MDF .NET (C++/CLI) Assembly**. Basic reading and writing of MDF files for .NET friends. On hold.
 - **MDF gRPC Server**. Microservice for reading and writing of MDF files. Under development.
-- **MDF Python Library**. Basic reading and writing for Python friends. Under development.
+- **MDF Python Library**. Basic reading and writing for Python friends. On hold.
+
+Note that external projects currently only need reading support. This means that the writing support
+is on low priority. Please let me know if write support is required.
 
 ## Building
 

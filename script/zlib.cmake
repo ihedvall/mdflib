@@ -3,7 +3,7 @@
 if (NOT ZLIB_FOUND)
     SET(ZLIB_USE_STATIC_LIBS ON)
     if (NOT ZLIB_ROOT)
-        set(ZLIB_ROOT "k:/zlib/master")
+        set(ZLIB_ROOT ${COMP_DIR}/zlib/master)
     endif()
 
     find_package(ZLIB)

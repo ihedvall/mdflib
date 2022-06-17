@@ -45,6 +45,14 @@ https://www.zlib.net/zlib_license.html
 
 https://opensource.org/licenses/Zlib
 
+### WxWidgets
+
+Cross-platform GUI library.
+
+License: wxWindows Library License
+
+https://www.wxwidgets.org/about/licence/
+
 ## Build Applications
 
 ### Doxygen

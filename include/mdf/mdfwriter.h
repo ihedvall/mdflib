@@ -39,8 +39,8 @@ class MdfWriter {
 
   /** \brief Returns the MDF file interface.
    *
-   * Returns the MDF file interface. The user may change the file version and the not
-   * finalize status of the file. By default is the MDF 4.1 or 3.2 version of the file
+   * Returns the MDF file interface. The user may change the file version and the
+   * finalize status of the file. By default is the MDF 4.2 or 3.2 version of the file
    * used.
    * @return Pointer to the MDF file interface.
    */

@@ -8,8 +8,8 @@
 #include <wx/splitter.h>
 #include <wx/treectrl.h>
 #include <wx/listctrl.h>
-#include "../../mdflib/src/mdf3file.h"
-#include "../../mdflib/src/mdf4file.h"
+#include "mdf3file.h"
+#include "mdf4file.h"
 
 namespace mdf::viewer {
 class ChildFrame : public wxDocMDIChildFrame {

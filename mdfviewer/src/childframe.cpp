@@ -6,8 +6,8 @@
 #include <wx/sizer.h>
 #include "childframe.h"
 #include "mdfdocument.h"
-#include "../../mdflib/src/hl4block.h"
-#include "../../mdflib/src/dl4block.h"
+#include "hl4block.h"
+#include "dl4block.h"
 #include "windowid.h"
 
 namespace {

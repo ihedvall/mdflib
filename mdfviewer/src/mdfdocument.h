@@ -8,9 +8,9 @@
 #include <wx/docview.h>
 #include "mdf/mdfreader.h"
 #include "mdf/mdffile.h"
-#include "../../mdflib/src/iblock.h"
-#include "../../mdflib/src/mdf3file.h"
-#include "../../mdflib/src/mdf4file.h"
+#include "iblock.h"
+#include "mdf3file.h"
+#include "mdf4file.h"
 
 namespace mdf::viewer {
 

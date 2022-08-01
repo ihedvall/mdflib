@@ -43,4 +43,76 @@ double IEvent::PostTrig() const {
   return metadata != nullptr ? metadata->FloatProperty("post_trigger_interval") : 0.0;
 }
 
+std::string IEvent::TypeToString() const {
+  switch (Type()) {
+    case EventType::RecordingPeriod: return "Recording";
+    case EventType::RecordingInterrupt: return "Recording Interrupt";
+    case EventType::AcquisitionInterrupt: return "Acquisition Interrupt";
+    case EventType::StartRecording: return "Start Recording";
+    case EventType::StopRecording: return "Stop Recording";
+    case EventType::Trigger: return "Trigger";
+    case EventType::Marker: return "Marker";
+    default:
+      break;
+  }
+  return {};
+}
+
+std::string IEvent::ValueToString() const {
+  const double value = static_cast<double>(SyncValue()) * SyncFactor();
+  std::string unit;
+  switch (Sync()) {
+    case SyncType::SyncTime:
+      unit = "s";
+      break;
+
+    case SyncType::SyncAngle:
+      unit = "rad";
+      break;
+
+    case SyncType::SyncDistance:
+      unit = "m";
+      break;
+
+    case SyncType::SyncIndex:
+      unit = "#";
+      break;
+
+    default:
+      break;
+  }
+  std::ostringstream temp;
+  temp << value;
+  if (!unit.empty()) {
+    temp << " " << unit;
+  }
+  return temp.str();
+}
+
+std::string IEvent::RangeToString() const {
+  switch (Range()) {
+    case RangeType::RangePoint: return "Point";
+    case RangeType::RangeStart: return "Start";
+    case RangeType::RangeEnd: return "End";
+    default:
+      break;
+  }
+
+  return {};
+}
+
+std::string IEvent::CauseToString() const {
+  switch (Cause()) {
+    case EventCause::CauseOther:  return "Other";
+    case EventCause::CauseError:  return "Error";
+    case EventCause::CauseTool:   return "Tool";
+    case EventCause::CauseScript: return "Script";
+    case EventCause::CauseUser:   return "User";
+    default:
+      break;
+  }
+
+  return {};
+}
+
 } // mdf

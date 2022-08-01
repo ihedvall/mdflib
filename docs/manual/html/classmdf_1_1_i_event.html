@@ -98,6 +98,9 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Type</b> (<a 
 <tr class="memitem:af8213b86212163cf7dd867089f1021cf"><td class="memItemLeft" align="right" valign="top"><a id="af8213b86212163cf7dd867089f1021cf" name="af8213b86212163cf7dd867089f1021cf"></a>
 virtual <a class="el" href="namespacemdf.html#adce2cd261c2306ee601dfaeb929b6fdb">EventType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>Type</b> () const =0</td></tr>
 <tr class="separator:af8213b86212163cf7dd867089f1021cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad59efaa2ba4620267669c68c84c23bda"><td class="memItemLeft" align="right" valign="top"><a id="ad59efaa2ba4620267669c68c84c23bda" name="ad59efaa2ba4620267669c68c84c23bda"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>TypeToString</b> () const</td></tr>
+<tr class="separator:ad59efaa2ba4620267669c68c84c23bda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb8a6f62754060669e3484c2d569e125"><td class="memItemLeft" align="right" valign="top"><a id="adb8a6f62754060669e3484c2d569e125" name="adb8a6f62754060669e3484c2d569e125"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Sync</b> (<a class="el" href="namespacemdf.html#a8c225042124d87094e5197dea6785cfb">SyncType</a> sync_type)=0</td></tr>
 <tr class="separator:adb8a6f62754060669e3484c2d569e125"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -110,12 +113,18 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Range</b> (<a
 <tr class="memitem:aaf58dde49f3a8f53f2e23b2f728a5708"><td class="memItemLeft" align="right" valign="top"><a id="aaf58dde49f3a8f53f2e23b2f728a5708" name="aaf58dde49f3a8f53f2e23b2f728a5708"></a>
 virtual <a class="el" href="namespacemdf.html#a46a3858892c319db499ddac17cd55712">RangeType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>Range</b> () const =0</td></tr>
 <tr class="separator:aaf58dde49f3a8f53f2e23b2f728a5708"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7331e33d18c338706047bfe0e8a24b13"><td class="memItemLeft" align="right" valign="top"><a id="a7331e33d18c338706047bfe0e8a24b13" name="a7331e33d18c338706047bfe0e8a24b13"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>RangeToString</b> () const</td></tr>
+<tr class="separator:a7331e33d18c338706047bfe0e8a24b13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3123a7f403d12007d5e693c084d7acc9"><td class="memItemLeft" align="right" valign="top"><a id="a3123a7f403d12007d5e693c084d7acc9" name="a3123a7f403d12007d5e693c084d7acc9"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Cause</b> (<a class="el" href="namespacemdf.html#ac5d4d013ca4e4f7e6ba01731d6524ab9">EventCause</a> cause)=0</td></tr>
 <tr class="separator:a3123a7f403d12007d5e693c084d7acc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa97059b3a00c46dc5169ed62ec10cc8c"><td class="memItemLeft" align="right" valign="top"><a id="aa97059b3a00c46dc5169ed62ec10cc8c" name="aa97059b3a00c46dc5169ed62ec10cc8c"></a>
 virtual <a class="el" href="namespacemdf.html#ac5d4d013ca4e4f7e6ba01731d6524ab9">EventCause</a>&#160;</td><td class="memItemRight" valign="bottom"><b>Cause</b> () const =0</td></tr>
 <tr class="separator:aa97059b3a00c46dc5169ed62ec10cc8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac23d4b3dbea83cf32487e3f0991f63b7"><td class="memItemLeft" align="right" valign="top"><a id="ac23d4b3dbea83cf32487e3f0991f63b7" name="ac23d4b3dbea83cf32487e3f0991f63b7"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>CauseToString</b> () const</td></tr>
+<tr class="separator:ac23d4b3dbea83cf32487e3f0991f63b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4e4db32b60e9f655f33a087c9a84ff2"><td class="memItemLeft" align="right" valign="top"><a id="ad4e4db32b60e9f655f33a087c9a84ff2" name="ad4e4db32b60e9f655f33a087c9a84ff2"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>CreatorIndex</b> (size_t index)=0</td></tr>
 <tr class="separator:ad4e4db32b60e9f655f33a087c9a84ff2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -134,6 +143,9 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>SyncFactor</b
 <tr class="memitem:a6ddadf88ff88d6bde1db062dd604e149"><td class="memItemLeft" align="right" valign="top"><a id="a6ddadf88ff88d6bde1db062dd604e149" name="a6ddadf88ff88d6bde1db062dd604e149"></a>
 virtual double&#160;</td><td class="memItemRight" valign="bottom"><b>SyncFactor</b> () const =0</td></tr>
 <tr class="separator:a6ddadf88ff88d6bde1db062dd604e149"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aefad1fc487b4ac76e14a4aa48dd11bca"><td class="memItemLeft" align="right" valign="top"><a id="aefad1fc487b4ac76e14a4aa48dd11bca" name="aefad1fc487b4ac76e14a4aa48dd11bca"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>ValueToString</b> () const</td></tr>
+<tr class="separator:aefad1fc487b4ac76e14a4aa48dd11bca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92ad00a772fdffb313ac335e10ad7c7e"><td class="memItemLeft" align="right" valign="top"><a id="a92ad00a772fdffb313ac335e10ad7c7e" name="a92ad00a772fdffb313ac335e10ad7c7e"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>ParentEvent</b> (const <a class="el" href="classmdf_1_1_i_event.html">IEvent</a> *parent)=0</td></tr>
 <tr class="separator:a92ad00a772fdffb313ac335e10ad7c7e"><td class="memSeparator" colspan="2">&#160;</td></tr>

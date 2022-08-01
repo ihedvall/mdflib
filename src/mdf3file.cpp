@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <cstdio>
 #include "mdf3file.h"
+#include "util/logstream.h"
 
 using namespace util::log;
 
@@ -121,9 +122,12 @@ bool Mdf3File::Write(std::FILE* file) {
     LOG_ERROR() << "No ID or HD block defined. Invalid use of function.";
     return false;
   }
-
-  id_block_->Write(file);
-  hd_block_->Write(file);
+  try {
+    id_block_->Write(file);
+    hd_block_->Write(file);
+  } catch (const std::exception& err) {
+    LOG_ERROR() << "Failed to write MDF3 file. Error: " << err.what();
+  }
   return true;
 }
 

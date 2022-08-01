@@ -22,7 +22,7 @@ namespace {
 
 std::string StrErrNo(errno_t error) {
   std::string err_str(200,'\0');
-  const auto err_no = strerror_s(err_str.data(), err_str.size(), error);
+  strerror_s(err_str.data(), err_str.size(), error);
   return err_str;
 }
 

@@ -13,7 +13,6 @@ Mdf4File::Mdf4File()
     : id_block_(std::make_unique<IdBlock>()),
       hd_block_(std::make_unique<Hd4Block>())
 {
-  // id_block_->SetDefaultMdf3Values();
   hd_block_->Init(*id_block_);
 }
 
@@ -134,11 +133,12 @@ IAttachment *Mdf4File::CreateAttachment() {
     auto at4 = std::make_unique<At4Block>();
     at4->Init(*hd_block_);
     hd_block_->AddAt4(at4);
-    const auto at_list = hd_block_->Attachments();
-    attachment = at_list.empty() ? nullptr : at_list.back();
+    const auto& at_list = hd_block_->At4();
+    attachment = at_list.empty() ? nullptr : at_list.back().get();
   }
   return attachment;
 }
+
 IDataGroup *Mdf4File::CreateDataGroup() {
   IDataGroup* dg = nullptr;
   if (hd_block_) {
@@ -160,8 +160,13 @@ bool Mdf4File::Write(std::FILE* file) {
     return false;
   }
 
-  id_block_->Write(file);
-  hd_block_->Write(file);
+  try {
+    id_block_->Write(file);
+    hd_block_->Write(file);
+  } catch(const std::exception& err) {
+    LOG_ERROR() << "Failed to write the MDF4 file. Error: " << err.what();
+    return false;
+  }
   return true;
 }
 

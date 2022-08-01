@@ -82,7 +82,7 @@ TEST(TestMdf, Mdf3File) { // NOLINT
   EXPECT_FALSE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 1);
   EXPECT_EQ(custom_flags, 2);
-  mdf->IsFinalized(true);
+  mdf->IsFinalized(true,nullptr,0,0);
   EXPECT_TRUE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 0);
   EXPECT_EQ(custom_flags, 0);
@@ -158,7 +158,7 @@ TEST(TestMdf, Mdf4File) { //NOLINT
   EXPECT_FALSE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 1);
   EXPECT_EQ(custom_flags, 2);
-  mdf->IsFinalized(true);
+  mdf->IsFinalized(true,nullptr,0,0);
   EXPECT_TRUE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 0);
   EXPECT_EQ(custom_flags, 0);

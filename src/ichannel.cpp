@@ -4,16 +4,11 @@
  */
 
 #include <string>
-#define BOOST_NO_AUTO_PTR
-#include <boost/endian/conversion.hpp>
 #include <boost/endian/buffers.hpp>
 #include <boost/locale.hpp>
-
-
 #include "mdf/ichannel.h"
-#include "iblock.h"
-#include "datablock.h"
-#include "datalistblock.h"
+#include "util/stringutil.h"
+#include "half.hpp"
 
 namespace {
 
@@ -243,6 +238,12 @@ int64_t ConvertSignedBe(const std::vector<uint8_t>& data_buffer)
 
 double ConvertFloatBe(const std::vector<uint8_t>& data_buffer) {
   switch (data_buffer.size()) {
+    case 2: {
+      boost::endian::endian_buffer<boost::endian::order::big, half_float::half, 16, boost::endian::align::no> data {};
+      memcpy(data.data(), data_buffer.data(), 2);
+      return data.value();
+    }
+
     case 4: {
       boost::endian::big_float32_buf_t data;
       memcpy(data.data(), data_buffer.data(), 4);
@@ -261,6 +262,12 @@ double ConvertFloatBe(const std::vector<uint8_t>& data_buffer) {
 
 double ConvertFloatLe(const std::vector<uint8_t>& data_buffer) {
   switch (data_buffer.size()) {
+    case 2: {
+      boost::endian::endian_buffer<boost::endian::order::little, half_float::half, 16, boost::endian::align::no> data {};
+      memcpy(data.data(), data_buffer.data(), 2);
+      return data.value();
+    }
+
     case 4: {
       boost::endian::little_float32_buf_t data;
       memcpy(data.data(), data_buffer.data(), 4);
@@ -424,7 +431,6 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
     case ChannelDataType::StringUTF16Le: {
       std::wostringstream s;
       for (size_t ii = offset; (ii + 2) <= record_buffer.size(); ii += 2) {
-        auto* d = record_buffer.data() + ii;
         boost::endian::little_uint16_buf_t data;
         memcpy(data.data(), record_buffer.data() + ii, 2);
         if (data.value() == 0) {
@@ -478,14 +484,14 @@ bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer, std:
 bool IChannel::GetCanOpenDate(const std::vector<uint8_t> &record_buffer, uint64_t &dest) const {
   std::vector<uint8_t> date_array(7,0);
   memcpy(date_array.data(), record_buffer.data() + ByteOffset(), date_array.size());
-  dest = util::time::CanOpenDateArrayToNs(date_array);
+  dest = MdfHelper::CanOpenDateArrayToNs(date_array);
   return true;
 }
 
 bool IChannel::GetCanOpenTime(const std::vector<uint8_t> &record_buffer, uint64_t &dest) const {
   std::vector<uint8_t> time_array(6,0);
   memcpy(time_array.data(), record_buffer.data() + ByteOffset(), time_array.size());
-  dest = util::time::CanOpenTimeArrayToNs(time_array);
+  dest = MdfHelper::CanOpenTimeArrayToNs(time_array);
   return true;
 }
 
@@ -709,6 +715,165 @@ void IChannel::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
   } else {
     memcpy(buffer.data() + ByteOffset(),value.data(), bytes);
   }
+}
+
+template<>
+bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::vector<uint8_t> &dest) const {
+  bool valid = false;
+  switch (DataType()) {
+    case ChannelDataType::UnsignedIntegerLe:
+    case ChannelDataType::UnsignedIntegerBe: {
+      uint64_t value = 0;
+      valid = GetUnsignedValue(record_buffer, value);
+      dest.resize(1);
+      dest[0] = static_cast<uint8_t>(value);
+      break;
+    }
+
+    case ChannelDataType::SignedIntegerLe:
+    case ChannelDataType::SignedIntegerBe: {
+      int64_t value = 0;
+      valid = GetSignedValue(record_buffer, value);
+      dest.resize(1);
+      dest[0] = static_cast<uint8_t>(value);
+      break;
+    }
+
+    case ChannelDataType::FloatLe:
+    case ChannelDataType::FloatBe: {
+      double value = 0;
+      valid = GetFloatValue(record_buffer, value);
+      dest.resize(1);
+      dest[0] = static_cast<uint8_t>(value);
+      break;
+    }
+
+    case ChannelDataType::StringUTF16Le:
+    case ChannelDataType::StringUTF16Be:
+    case ChannelDataType::StringUTF8:
+    case ChannelDataType::StringAscii: {
+      std::string text;
+      valid = GetTextValue(record_buffer, text);
+      dest.resize(text.size());
+      memcpy(dest.data(), text.data(), text.size());
+      break;
+    }
+
+    case ChannelDataType::MimeStream:
+    case ChannelDataType::MimeSample:
+    case ChannelDataType::ByteArray: {
+      valid = GetByteArrayValue(record_buffer, dest);
+      break;
+    }
+
+    case ChannelDataType::CanOpenDate: {
+      uint64_t ms_since_1970 = 0;
+      valid = GetCanOpenDate(record_buffer, ms_since_1970);
+      dest.resize(1);
+      dest[0] = static_cast<uint8_t>(ms_since_1970);
+      break;
+    }
+
+    case ChannelDataType::CanOpenTime: {
+      uint64_t ms_since_1970 = 0;
+      valid = GetCanOpenTime(record_buffer, ms_since_1970);
+      dest.resize(1);
+      dest[0] = static_cast<uint8_t>(ms_since_1970);
+      break;
+    }
+
+    default: break;
+  }
+  return valid;
+}
+
+template<>
+bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::string &dest) const {
+  bool valid = false;
+  switch (DataType()) {
+    case ChannelDataType::UnsignedIntegerLe:
+    case ChannelDataType::UnsignedIntegerBe: {
+      uint64_t value = 0;
+      valid = GetUnsignedValue(record_buffer, value);
+      std::ostringstream s;
+      s << value;
+      dest = s.str();
+      break;
+    }
+
+    case ChannelDataType::SignedIntegerLe:
+    case ChannelDataType::SignedIntegerBe: {
+      int64_t value = 0;
+      valid = GetSignedValue(record_buffer, value);
+      dest = std::to_string(value);
+      break;
+    }
+    case ChannelDataType::FloatLe:
+    case ChannelDataType::FloatBe: {
+      double value = 0;
+      valid = GetFloatValue(record_buffer, value);
+      dest = IsDecimalUsed() ? util::string::FormatDouble(value, Decimals()) : std::to_string(value);
+      break;
+    }
+
+    case ChannelDataType::StringUTF16Le:
+    case ChannelDataType::StringUTF16Be:
+    case ChannelDataType::StringUTF8:
+    case ChannelDataType::StringAscii: {
+      valid = GetTextValue(record_buffer, dest);
+      break;
+    }
+
+    case ChannelDataType::MimeStream:
+    case ChannelDataType::MimeSample:
+    case ChannelDataType::ByteArray: {
+      std::vector<uint8_t> list;
+      valid = GetByteArrayValue(record_buffer, list);
+      std::ostringstream s;
+      for (const auto byte: list) {
+        s << std::setfill('0') << std::setw(2)
+          << std::hex << std::uppercase
+          << static_cast<uint16_t>(byte);
+      }
+      dest = s.str();
+      break;
+    }
+
+    case ChannelDataType::CanOpenDate: {
+      uint64_t ms_since_1970 = 0;
+      valid = GetCanOpenDate(record_buffer, ms_since_1970);
+
+      const auto ms = ms_since_1970 % 1000;
+      const auto time = static_cast<time_t>(ms_since_1970 / 1000);
+      struct tm bt{};
+      localtime_s(&bt, &time);
+
+      std::ostringstream text;
+      text << std::put_time(&bt, "%Y-%m-%d %H:%M:%S")
+           << '.' << std::setfill('0') << std::setw(3) << ms;
+      dest = text.str();
+      break;
+    }
+
+    case ChannelDataType::CanOpenTime: {
+      uint64_t ms_since_1970 = 0;
+      valid = GetCanOpenTime(record_buffer, ms_since_1970);
+
+      const auto ms = ms_since_1970 % 1000;
+      const auto time = static_cast<time_t>(ms_since_1970 / 1000);
+      struct tm bt{};
+      localtime_s(&bt, &time);
+
+      std::ostringstream text;
+      text << std::put_time(&bt, "%Y-%m-%d %H:%M:%S")
+           << '.' << std::setfill('0') << std::setw(3) << ms;
+      dest = text.str();
+      break;
+    }
+
+    default: break;
+  }
+  return valid;
 }
 
 template<>

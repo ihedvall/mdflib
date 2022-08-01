@@ -34,19 +34,19 @@ class MdfDocument : public wxDocument {
     grand_parent_id_ = grand_parent_id;
   }
 
-  fpos_t GetSelectedBlockId() const {
+  [[nodiscard]] fpos_t GetSelectedBlockId() const {
     return selected_id_;
   }
 
-  fpos_t GetParentBlockId() const {
+  [[nodiscard]] fpos_t GetParentBlockId() const {
     return parent_id_;
   }
 
-  fpos_t GetGrandParentBlockId() const {
+  [[nodiscard]] fpos_t GetGrandParentBlockId() const {
     return grand_parent_id_;
   }
 
-  const mdf::detail::IBlock* GetBlock(fpos_t id) const; ///< Returns a block pointer by block index.
+  [[nodiscard]] const mdf::detail::IBlock* GetBlock(fpos_t id) const; ///< Returns a block pointer by block index.
 
  private:
   std::unique_ptr<mdf::MdfReader> reader_;

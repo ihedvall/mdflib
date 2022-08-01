@@ -25,6 +25,9 @@ class Ch4Block : public IBlock, public IChannelHierarchy {
   void Type(ChType type) override;
   [[nodiscard]] ChType Type() const override;
 
+  [[nodiscard]] std::string Description() const override;
+  void Description(const std::string &desc) override;
+
   IMetaData *MetaData() override;
   [[nodiscard]] const IMetaData *MetaData() const override;
 

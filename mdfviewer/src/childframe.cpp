@@ -39,7 +39,12 @@ constexpr int TREE_DL = 22;
 constexpr int TREE_DZ = 23;
 constexpr int TREE_HL = 24;
 
-
+// Fake file positions which select a list of blocks
+constexpr fpos_t kHistoryPosition = -100;
+constexpr fpos_t kMeasurementPosition = -200;
+constexpr fpos_t kAttachmentPosition = -300;
+constexpr fpos_t kEventPosition = -400;
+constexpr fpos_t kHierarchyPosition = -500;
 
 class BlockAddress : public wxTreeItemData {
  public:
@@ -73,7 +78,7 @@ fpos_t GetBlockId(const wxTreeCtrl& list, const wxTreeItemId& item) {
   return data != nullptr ? data->FilePosition() : -1;
 }
 
-wxTreeItemId FindId(const wxTreeCtrl& list, const wxTreeItemId &root, fpos_t id) {
+wxTreeItemId FindId(const wxTreeCtrl& list, const wxTreeItemId &root, fpos_t id) { //NOLINT
    for (auto item = root; item.IsOk(); item = list.GetNextSibling(item)) {
     if (GetBlockId(list, item) == id) {
       return item;
@@ -96,7 +101,7 @@ namespace mdf::viewer {
 
 wxBEGIN_EVENT_TABLE(ChildFrame, wxDocMDIChildFrame) // NOLINT(cert-err58-cpp)
         EVT_TREE_SEL_CHANGED(kIdLeftTree,ChildFrame::OnTreeSelected)
-        EVT_LIST_ITEM_ACTIVATED(kIdRightList, ChildFrame::OnListItemActivated)
+        EVT_LIST_ITEM_ACTIVATED(kIdPropertyList, ChildFrame::OnListItemActivated)
         EVT_TREE_ITEM_RIGHT_CLICK(kIdLeftTree, ChildFrame::OnTreeRightClick)
 wxEND_EVENT_TABLE()
 
@@ -115,19 +120,61 @@ ChildFrame::ChildFrame(wxDocument *doc,
   splitter_ = new wxSplitterWindow(main_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D | wxCLIP_CHILDREN);
 
   left_ = new wxTreeCtrl(splitter_,kIdLeftTree);
-  right_ = new wxListView(splitter_, kIdRightList, wxDefaultPosition, wxDefaultSize,
-                          wxLC_REPORT | wxLC_SINGLE_SEL);
-  right_->AppendColumn("Property", wxLIST_FORMAT_LEFT, 150);
-  right_->AppendColumn("Value", wxLIST_FORMAT_LEFT, 200);
-  right_->AppendColumn("Description", wxLIST_FORMAT_LEFT, 400);
+  property_view_ = new wxListView(splitter_, kIdPropertyList, wxDefaultPosition, wxDefaultSize,
+                                  wxLC_REPORT | wxLC_SINGLE_SEL);
+  property_view_->AppendColumn("Property", wxLIST_FORMAT_LEFT, 150);
+  property_view_->AppendColumn("Value", wxLIST_FORMAT_LEFT, 200);
+  property_view_->AppendColumn("Description", wxLIST_FORMAT_LEFT, 200);
 
-  splitter_->SplitVertically(left_, right_,600);
+
+  history_view_ = new wxListView(splitter_, kIdHistoryList, wxDefaultPosition, wxDefaultSize,
+                                 wxLC_REPORT | wxLC_SINGLE_SEL);
+  history_view_->AppendColumn("Time", wxLIST_FORMAT_LEFT, 150);
+  history_view_->AppendColumn("User", wxLIST_FORMAT_LEFT, 100);
+  history_view_->AppendColumn("Description", wxLIST_FORMAT_LEFT, 100);
+  history_view_->AppendColumn("Tool ID", wxLIST_FORMAT_LEFT, 100);
+  history_view_->AppendColumn("Tool Vendor", wxLIST_FORMAT_LEFT, 100);
+  history_view_->AppendColumn("Tool Version", wxLIST_FORMAT_LEFT, 100);
+  history_view_->Hide();
+
+  measurement_view_ = new wxListView(splitter_, kIdMeasurementList, wxDefaultPosition, wxDefaultSize,
+                                 wxLC_REPORT | wxLC_SINGLE_SEL);
+  measurement_view_->AppendColumn("Order", wxLIST_FORMAT_LEFT, 50);
+  measurement_view_->AppendColumn("Description", wxLIST_FORMAT_LEFT, 250);
+  measurement_view_->AppendColumn("Sub-Measurements", wxLIST_FORMAT_LEFT, 100);
+  measurement_view_->Hide();
+
+  event_view_ = new wxListView(splitter_, kIdEventList, wxDefaultPosition, wxDefaultSize,
+                                     wxLC_REPORT | wxLC_SINGLE_SEL);
+  event_view_->AppendColumn("Name", wxLIST_FORMAT_LEFT, 150);
+  event_view_->AppendColumn("Type", wxLIST_FORMAT_LEFT, 75);
+  event_view_->AppendColumn("Value", wxLIST_FORMAT_LEFT, 75);
+  event_view_->AppendColumn("Description", wxLIST_FORMAT_LEFT, 200);
+  event_view_->AppendColumn("Range", wxLIST_FORMAT_LEFT, 75);
+  event_view_->AppendColumn("Cause", wxLIST_FORMAT_LEFT, 75);
+  event_view_->Hide();
+
+  attachment_view_ = new wxListView(splitter_, kIdAttachmentList, wxDefaultPosition, wxDefaultSize,
+                               wxLC_REPORT | wxLC_SINGLE_SEL);
+  attachment_view_->AppendColumn("Name", wxLIST_FORMAT_LEFT, 150);
+  attachment_view_->AppendColumn("Embedded", wxLIST_FORMAT_LEFT, 100);
+  attachment_view_->AppendColumn("Type", wxLIST_FORMAT_LEFT, 150);
+  attachment_view_->AppendColumn("Path", wxLIST_FORMAT_LEFT, 300);
+  attachment_view_->Hide();
+
+  hierarchy_view_ = new wxListView(splitter_, kIdHierarchyList, wxDefaultPosition, wxDefaultSize,
+                                    wxLC_REPORT | wxLC_SINGLE_SEL);
+  hierarchy_view_->AppendColumn("Name", wxLIST_FORMAT_LEFT, 150);
+  hierarchy_view_->AppendColumn("Type", wxLIST_FORMAT_LEFT, 200);
+  hierarchy_view_->Hide();
+
+  splitter_->SplitVertically(left_, property_view_, 400);
 
   image_list_.Add(wxBitmap("TREE_LIST", wxBITMAP_TYPE_BMP_RESOURCE));
   left_->SetImageList(&image_list_);
 
   auto* main_sizer = new wxBoxSizer(wxVERTICAL);
-  main_sizer->Add(splitter_, 1 , wxALIGN_LEFT | wxALL |wxEXPAND,0);
+  main_sizer->Add(splitter_, 1 , wxALL | wxGROW,0);
   main_panel->SetSizerAndFit(main_sizer);
 }
 
@@ -228,13 +275,14 @@ void ChildFrame::RedrawHistory(const detail::Hd4Block &hd, const wxTreeItemId &r
   if (hd.Fh4().empty()) {
     return;
   }
-  auto fh_root = left_->AppendItem(root, "History", TREE_FH_ROOT,TREE_FH_ROOT);
+  auto fh_root = left_->AppendItem(root, "History", TREE_FH_ROOT,TREE_FH_ROOT,
+                                   new BlockAddress(kHistoryPosition));
   for (const auto& fh4 : hd.Fh4()) {
     if (!fh4) {
       continue;
     }
-    left_->AppendItem(fh_root, CreateBlockText(*fh4),
-                    TREE_FH, -1, new BlockAddress(fh4->FilePosition()));
+    left_->AppendItem(fh_root, CreateBlockText(*fh4), TREE_FH, TREE_FH,
+                      new BlockAddress(fh4->FilePosition()));
   }
 }
 
@@ -242,7 +290,8 @@ void ChildFrame::RedrawMeasurement(const detail::Hd4Block &hd, const wxTreeItemI
   if (hd.Dg4().empty()) {
     return;
   }
-  auto dg_root = left_->AppendItem(root, "Measurement", TREE_DG_ROOT, TREE_DG_ROOT);
+  auto dg_root = left_->AppendItem(root, "Measurement", TREE_DG_ROOT, TREE_DG_ROOT,
+                                   new BlockAddress(kMeasurementPosition));
   for (const auto& dg4 : hd.Dg4()) {
     if (!dg4) {
       continue;
@@ -255,7 +304,8 @@ void ChildFrame::RedrawMeasurement(const detail::Hd3Block &hd, const wxTreeItemI
   if (hd.Dg3().empty()) {
     return;
   }
-  auto dg_root = left_->AppendItem(root, "Measurement", TREE_DG_ROOT, TREE_DG_ROOT);
+  auto dg_root = left_->AppendItem(root, "Measurement", TREE_DG_ROOT, TREE_DG_ROOT,
+                                   new BlockAddress(kMeasurementPosition));
   for (const auto& dg3 : hd.Dg3()) {
     if (!dg3) {
       continue;
@@ -267,7 +317,8 @@ void ChildFrame::RedrawHierarchy(const detail::Hd4Block &hd, const wxTreeItemId 
   if (hd.Ch4().empty()) {
     return;
   }
-  auto ch_root = left_->AppendItem(root, "Channel Hierarchy", TREE_CH_ROOT, TREE_CH_ROOT);
+  auto ch_root = left_->AppendItem(root, "Channel Hierarchy", TREE_CH_ROOT, TREE_CH_ROOT,
+                                   new BlockAddress(kHierarchyPosition));
   for (const auto& ch4 : hd.Ch4()) {
     if (!ch4) {
       continue;
@@ -280,7 +331,8 @@ void ChildFrame::RedrawAttachment(const detail::Hd4Block &hd, const wxTreeItemId
   if (hd.At4().empty()) {
     return;
   }
-  auto at_root = left_->AppendItem(root, "Attachment", TREE_AT_ROOT, TREE_AT_ROOT);
+  auto at_root = left_->AppendItem(root, "Attachment", TREE_AT_ROOT, TREE_AT_ROOT,
+                                   new BlockAddress(kAttachmentPosition));
   for (const auto &at4: hd.At4()) {
     if (!at4) {
       continue;
@@ -303,7 +355,8 @@ void ChildFrame::RedrawEvent(const detail::Hd4Block &hd, const wxTreeItemId &roo
   if (hd.Ev4().empty()) {
     return;
   }
-  auto ev_root = left_->AppendItem(root, "Event", TREE_EV_ROOT, TREE_EV_ROOT);
+  auto ev_root = left_->AppendItem(root, "Event", TREE_EV_ROOT, TREE_EV_ROOT,
+                                   new BlockAddress(kEventPosition));
   for (const auto& ev4 : hd.Ev4()) {
     if (!ev4) {
       continue;
@@ -702,14 +755,72 @@ void ChildFrame::RedrawChBlock(const detail::Ch4Block &ch, const wxTreeItemId &r
 
 
 void ChildFrame::OnTreeSelected(wxTreeEvent& event) {
-  auto selected_item = event.GetItem();
-  auto selected_id = GetBlockId(left_,selected_item);
+  const auto selected_item = event.GetItem();
+  const auto selected_id = GetBlockId(left_,selected_item);
 
-  auto* doc = wxDynamicCast(GetDocument(),MdfDocument ); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+  auto* doc = GetDoc();
   if (doc == nullptr) {
     return;
   }
 
+    // Check which list
+  auto* current_window = splitter_->GetWindow2();
+  switch (selected_id) {
+    case kHistoryPosition:
+      if (current_window != history_view_) {
+        current_window->Hide();
+        splitter_->ReplaceWindow(current_window, history_view_);
+        history_view_->Show();
+        RedrawHistoryView();
+      }
+      return;
+
+    case kMeasurementPosition:
+      if (current_window != measurement_view_) {
+        current_window->Hide();
+        splitter_->ReplaceWindow(current_window, measurement_view_);
+        measurement_view_->Show();
+        RedrawMeasurementView();
+      }
+      return;
+
+    case kEventPosition:
+      if (current_window != event_view_) {
+        current_window->Hide();
+        splitter_->ReplaceWindow(current_window, event_view_);
+        event_view_->Show();
+        RedrawEventView();
+      }
+      return;
+
+    case kAttachmentPosition:
+      if (current_window != attachment_view_) {
+        current_window->Hide();
+        splitter_->ReplaceWindow(current_window, attachment_view_);
+        attachment_view_->Show();
+        RedrawAttachmentView();
+      }
+      return;
+
+    case kHierarchyPosition:
+      if (current_window != hierarchy_view_) {
+        current_window->Hide();
+        splitter_->ReplaceWindow(current_window, hierarchy_view_);
+        hierarchy_view_->Show();
+        RedrawHierarchyView();
+      }
+      return;
+
+    default:
+      // Default is the property view
+      break;
+  }
+
+  if (current_window != property_view_) {
+    current_window->Hide();
+    splitter_->ReplaceWindow(current_window, property_view_);
+    property_view_->Show();
+  }
   if (selected_id == doc->GetSelectedBlockId()) {
     return;
   }
@@ -740,6 +851,10 @@ void ChildFrame::OnTreeRightClick(wxTreeEvent& event) {
 }
 
 void ChildFrame::OnListItemActivated(wxListEvent& event) {
+  if (splitter_->GetWindow2() != property_view_) {
+    return;
+  }
+
   auto index = event.GetIndex();
   if (index < 0) {
     return;
@@ -838,35 +953,20 @@ void ChildFrame::OnListItemActivated(wxListEvent& event) {
 }
 
 void ChildFrame::RedrawListView() {
-  right_->DeleteAllItems();
+  property_view_->DeleteAllItems();
   property_list_.clear();
 
-  auto* doc = wxDynamicCast(GetDocument(),MdfDocument ); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+  if (splitter_->GetWindow2() != property_view_) {
+    return;
+  }
+
+  auto* doc = GetDoc();
   if (doc == nullptr) {
     return;
   }
 
   auto id = doc->GetSelectedBlockId();
-
-  const auto* file = doc->GetFile();
-
-  if (file == nullptr || id < 0) {
-    return;
-  }
-
-  const mdf::detail::IBlock* block = nullptr;
-  if (file->IsMdf4()) {
-    const auto* file4 = dynamic_cast<const mdf::detail::Mdf4File*>(file);
-    if (file4 != nullptr) {
-      block = file4->Find(id);
-    }
-  } else {
-    const auto* file3 = dynamic_cast<const mdf::detail::Mdf3File*>(file);
-    if (file3 != nullptr) {
-      block = file3->Find(id);
-    }
-  }
-
+  const auto* block = doc->GetBlock(id);
   if (block == nullptr) {
     return;
   }
@@ -878,46 +978,242 @@ void ChildFrame::RedrawListView() {
     switch (prop.Type()) {
       case mdf::detail::BlockItemType::HeaderItem:
       {
-        auto index = right_->InsertItem(line,wxString::FromUTF8(prop.Label()));
-        auto font = right_->GetItemFont(index);
+        auto index = property_view_->InsertItem(line, wxString::FromUTF8(prop.Label()));
+        auto font = property_view_->GetItemFont(index);
         font.MakeItalic();
-        right_->SetItemFont(index, font);
+        property_view_->SetItemFont(index, font);
       }
       break;
 
       case mdf::detail::BlockItemType::LinkItem:
       {
-        auto index = right_->InsertItem(line,wxString::FromUTF8(prop.Label()));
+        auto index = property_view_->InsertItem(line, wxString::FromUTF8(prop.Label()));
         if (prop.Link() > 0) {
-          right_->SetItem(index, 1, wxString::FromUTF8(prop.Value()));
+          property_view_->SetItem(index, 1, wxString::FromUTF8(prop.Value()));
         }
-        right_->SetItem(index, 2, wxString::FromUTF8(prop.Description()));
+        property_view_->SetItem(index, 2, wxString::FromUTF8(prop.Description()));
       }
       break;
 
       case mdf::detail::BlockItemType::BlankItem:
       {
-        auto index = right_->InsertItem(line,"");
-        right_->SetItem(index, 1, "");
-        right_->SetItem(index, 2, "");
+        auto index = property_view_->InsertItem(line, "");
+        property_view_->SetItem(index, 1, "");
+        property_view_->SetItem(index, 2, "");
       }
         break;
 
       default:
       {
-        auto index = right_->InsertItem(line,wxString::FromUTF8(prop.Label()));
-        right_->SetItem(index, 1, wxString::FromUTF8(prop.Value()));
-        right_->SetItem(index, 2, wxString::FromUTF8(prop.Description()));
+        auto index = property_view_->InsertItem(line, wxString::FromUTF8(prop.Label()));
+        property_view_->SetItem(index, 1, wxString::FromUTF8(prop.Value()));
+        property_view_->SetItem(index, 2, wxString::FromUTF8(prop.Description()));
       }
       break;
 
     }
     ++line;
   }
+}
+
+void ChildFrame::RedrawHistoryView() {
+  history_view_->DeleteAllItems();
+
+  if (splitter_->GetWindow2() != history_view_) {
+    return;
+  }
+
+  auto* doc = GetDoc();
+  if (doc == nullptr) {
+    return;
+  }
+  const auto* mdf_file = doc->GetFile();
+  if (mdf_file == nullptr) {
+    return;
+  }
+
+  const auto* header = mdf_file->Header();
+  if (header == nullptr) {
+    return;
+  }
+
+  const auto history_list = header->FileHistories();
 
 
+  long line = 0;
+  for (const auto* history : history_list) {
+    if (history == nullptr) {
+      continue;
+    }
+    std::ostringstream date_time;
+    date_time << util::time::NsToLocalDate(history->Time()) << " "
+              << util::time::NsToLocalTime(history->Time(), 0);
+    const auto index = history_view_->InsertItem(line, wxString::FromUTF8(date_time.str()));
+    history_view_->SetItem(index, 1, wxString::FromUTF8(history->UserName()));
+    history_view_->SetItem(index, 2, wxString::FromUTF8(history->Description()));
+    history_view_->SetItem(index, 3, wxString::FromUTF8(history->ToolName()));
+    history_view_->SetItem(index, 4, wxString::FromUTF8(history->ToolVendor()));
+    history_view_->SetItem(index, 5, wxString::FromUTF8(history->ToolVersion()));
+    ++line;
+  }
+}
+
+void ChildFrame::RedrawMeasurementView() {
+  measurement_view_->DeleteAllItems();
+
+  if (splitter_->GetWindow2() != measurement_view_) {
+    return;
+  }
+
+  auto* doc = GetDoc();
+  if (doc == nullptr) {
+    return;
+  }
+  const auto* mdf_file = doc->GetFile();
+  if (mdf_file == nullptr) {
+    return;
+  }
+
+  const auto* header = mdf_file->Header();
+  if (header == nullptr) {
+    return;
+  }
+
+  const auto measurement_list = header->DataGroups();
 
 
+  long line = 0;
+  for (const auto* meas : measurement_list) {
+    if (meas == nullptr) {
+      continue;
+    }
+    const auto index = measurement_view_->InsertItem(line, std::to_string(line + 1));
+    measurement_view_->SetItem(index, 1, wxString::FromUTF8(meas->Description()));
+    measurement_view_->SetItem(index, 2, std::to_string(meas->ChannelGroups().size()));
+    ++line;
+  }
+}
+
+void ChildFrame::RedrawEventView() {
+  event_view_->DeleteAllItems();
+
+  if (splitter_->GetWindow2() != event_view_) {
+    return;
+  }
+
+  auto* doc = GetDoc();
+  if (doc == nullptr) {
+    return;
+  }
+  const auto* mdf_file = doc->GetFile();
+  if (mdf_file == nullptr) {
+    return;
+  }
+
+  const auto* header = mdf_file->Header();
+  if (header == nullptr) {
+    return;
+  }
+
+  const auto event_list = header->Events();
+
+
+  long line = 0;
+  for (const auto* event : event_list) {
+    if (event == nullptr) {
+      continue;
+    }
+    const auto index = event_view_->InsertItem(line, wxString::FromUTF8(event->Name()));
+    event_view_->SetItem(index, 1, event->TypeToString());
+    event_view_->SetItem(index, 2, event->ValueToString());
+    event_view_->SetItem(index, 3, wxString::FromUTF8(event->Description()));
+    event_view_->SetItem(index, 4, event->RangeToString());
+    event_view_->SetItem(index, 5, event->CauseToString());
+    ++line;
+  }
+}
+
+void ChildFrame::RedrawAttachmentView() {
+  attachment_view_->DeleteAllItems();
+
+  if (splitter_->GetWindow2() != attachment_view_) {
+    return;
+  }
+
+  auto* doc = GetDoc();
+  if (doc == nullptr) {
+    return;
+  }
+  const auto* mdf_file = doc->GetFile();
+  if (mdf_file == nullptr) {
+    return;
+  }
+
+  const auto* header = mdf_file->Header();
+  if (header == nullptr) {
+    return;
+  }
+
+  const auto attachment_list = header->Attachments();
+
+
+  long line = 0;
+  for (const auto* attachment : attachment_list) {
+    if (attachment == nullptr) {
+      continue;
+    }
+    std::string name;
+    std::string path;
+    try {
+      std::filesystem::path fullname(attachment->FileName());
+      name = fullname.filename().string();
+      path = fullname.parent_path().string();
+    } catch (const std::exception& ) {
+
+    }
+    const auto index = attachment_view_->InsertItem(line, wxString::FromUTF8(name));
+    attachment_view_->SetItem(index, 1, attachment->IsEmbedded() ? "Yes" : "");
+    attachment_view_->SetItem(index, 2, wxString::FromUTF8(attachment->FileType()));
+    attachment_view_->SetItem(index, 3, wxString::FromUTF8(path));
+    ++line;
+  }
+}
+
+void ChildFrame::RedrawHierarchyView() {
+  hierarchy_view_->DeleteAllItems();
+
+  if (splitter_->GetWindow2() != hierarchy_view_) {
+    return;
+  }
+
+  auto* doc = GetDoc();
+  if (doc == nullptr) {
+    return;
+  }
+  const auto* mdf_file = doc->GetFile();
+  if (mdf_file == nullptr) {
+    return;
+  }
+
+  const auto* header = mdf_file->Header();
+  if (header == nullptr) {
+    return;
+  }
+
+  const auto hierarchy_list = header->ChannelHierarchies();
+  long line = 0;
+  for (const auto* hierarchy : hierarchy_list) {
+    if (hierarchy == nullptr) {
+      continue;
+    }
+    const auto index = hierarchy_view_->InsertItem(line, wxString::FromUTF8(hierarchy->Name()));
+    hierarchy_view_->SetItem(index, 1, hierarchy->TypeToString());
+    ++line;
+  }
+}
+
+MdfDocument *ChildFrame::GetDoc() {
+  return wxDynamicCast(GetDocument(),MdfDocument ); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
 }
 
 }

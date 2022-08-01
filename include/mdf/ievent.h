@@ -56,15 +56,18 @@ class IEvent {
 
   virtual void Type(EventType event_type) = 0;
   [[nodiscard]] virtual EventType Type() const = 0;
+  [[nodiscard]] std::string TypeToString() const;
 
   virtual void Sync(SyncType sync_type) = 0;
   [[nodiscard]] virtual SyncType Sync() const = 0;
 
   virtual void Range(RangeType range_type) = 0;
   [[nodiscard]] virtual RangeType Range() const = 0;
+  [[nodiscard]] std::string RangeToString() const;
 
   virtual void Cause(EventCause cause) = 0;
   [[nodiscard]] virtual EventCause Cause() const = 0;
+  [[nodiscard]] std::string CauseToString() const;
 
   virtual void CreatorIndex(size_t index) = 0;
   [[nodiscard]] virtual size_t CreatorIndex() const = 0;
@@ -74,6 +77,7 @@ class IEvent {
 
   virtual void SyncFactor(double factor) = 0;
   [[nodiscard]] virtual double SyncFactor() const = 0;
+  [[nosdicard]] std::string ValueToString() const;
 
   virtual void ParentEvent(const IEvent* parent ) = 0;
   [[nodiscard]] virtual const IEvent* ParentEvent() const = 0;
@@ -110,6 +114,8 @@ class IEvent {
   void PostTrig(double post_trig);
 
   [[nodiscard]] double PostTrig() const;
+
+
 };
 
 } // mdf

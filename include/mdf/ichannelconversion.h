@@ -8,7 +8,6 @@
 #include <optional>
 #include <sstream>
 #include "util/stringutil.h"
-
 namespace mdf {
 
 enum class ConversionType : uint8_t {

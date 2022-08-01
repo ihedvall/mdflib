@@ -4,7 +4,7 @@
 if (NOT EXPAT_FOUND)
     set(EXPAT_USE_STATIC_LIBS ON)
     if (NOT EXPAT_ROOT)
-        set(EXPAT_ROOT ${COMP_DIR}//expat/master)
+        set(EXPAT_ROOT ${COMP_DIR}/expat/master)
     endif()
 
     find_package(EXPAT)

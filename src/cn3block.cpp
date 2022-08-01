@@ -4,6 +4,7 @@
  */
 #include "cn3block.h"
 #include "cg3block.h"
+#include "util/stringutil.h"
 namespace {
 constexpr size_t kIndexNext = 0;
 constexpr size_t kIndexCc = 1;

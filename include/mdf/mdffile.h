@@ -204,8 +204,7 @@ class MdfFile {
    */
   void FileName(const std::string& filename);
 
-  virtual void IsFinalized(bool finalized,std::FILE* file = nullptr,
-                           uint16_t standard_flags = 0, uint16_t custom_flags = 0) = 0;
+  virtual void IsFinalized(bool finalized,std::FILE* file, uint16_t standard_flags, uint16_t custom_flags) = 0;
   [[nodiscard]] virtual bool IsFinalized(uint16_t& standard_flags, uint16_t& custom_flags) const = 0;
 
  protected:

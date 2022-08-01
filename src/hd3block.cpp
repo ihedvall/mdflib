@@ -4,7 +4,7 @@
  */
 #include <vector>
 #include <algorithm>
-#include <util/timestamp.h>
+#include <mdf/mdfhelper.h>
 #include "hd3block.h"
 #include "pr3block.h"
 
@@ -275,16 +275,16 @@ std::string Hd3Block::Description() const {
 }
 
 void Hd3Block::StartTime(uint64_t ns_since_1970) {
-  date_ = util::time::NanoSecToDDMMYYYY(ns_since_1970);
-  time_ = util::time::NanoSecToHHMMSS(ns_since_1970);
-  local_timestamp_ =  util::time::NanoSecToLocal(ns_since_1970);
-  dst_offset_ = static_cast<int16_t>(util::time::TimeZoneOffset() / 3600);
+  date_ = MdfHelper::NanoSecToDDMMYYYY(ns_since_1970);
+  time_ = MdfHelper::NanoSecToHHMMSS(ns_since_1970);
+  local_timestamp_ =  MdfHelper::NanoSecToLocal(ns_since_1970);
+  dst_offset_ = static_cast<int16_t>(MdfHelper::TimeZoneOffset() / 3600);
   time_quality_ = 0;
   timer_id_ = "Local PC Reference Time";
 }
 
 uint64_t Hd3Block::StartTime() const {
-  return local_timestamp_ - (util::time::TimeZoneOffset() * 1'000'000'000LL);
+  return local_timestamp_ - (MdfHelper::TimeZoneOffset() * 1'000'000'000LL);
 }
 
 IDataGroup *Hd3Block::CreateDataGroup() {

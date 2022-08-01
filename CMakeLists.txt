@@ -6,13 +6,11 @@ project(mdflib
         DESCRIPTION "Interface against MDF 3/4 files"
         LANGUAGES CXX)
 
-option(BUILD_SHARED_LIBS "Static libraries are preferred" OFF)
-option(BUILD_STATIC_LIBS "Static libraries are normally used" ON)
-option(BUILD_DOC "If doxygen is installed, then build documentation in Release mode" ON)
-
-if (NOT COMP_DIR)
-    set(COMP_DIR "k:")
-endif()
+option(BUILD_SHARED_LIBS "Static libraries are preferred." OFF)
+option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." ON)
+option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." ON)
+option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." ON)
+set(COMP_DIR "k:" CACHE PATH "Components root directory. Components like Boost, wxWidgets.")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_DEBUG_POSTFIX d)
@@ -89,7 +87,8 @@ add_library(mdf STATIC
         src/ievent.cpp include/mdf/ievent.h
         src/ichannelhierarchy.cpp include/mdf/ichannelhierarchy.h
         src/isourceinformation.cpp include/mdf/isourceinformation.h
-        src/ichannelarray.cpp include/mdf/ichannelarray.h)
+        src/ichannelarray.cpp include/mdf/ichannelarray.h
+        src/mdfhelper.cpp include/mdf/mdfhelper.h src/dv4block.cpp src/dv4block.h src/di4block.cpp src/di4block.h src/rv4block.cpp src/rv4block.h src/ri4block.cpp src/ri4block.h src/ld4block.cpp src/ld4block.h)
 
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>
@@ -121,16 +120,16 @@ install(TARGETS mdf
         RUNTIME DESTINATION mdf/bin
         PUBLIC_HEADER DESTINATION mdf/include/mdf)
 
-if (wxWidgets_FOUND )
+if (wxWidgets_FOUND AND MDF_BUILD_TOOL)
     add_subdirectory(mdfviewer)
 endif()
 
-if (GTEST_FOUND)
+if (GTEST_FOUND AND MDF_BUILD_TEST)
     enable_testing()
     add_subdirectory(test)
 endif()
 
-if (DOXYGEN_FOUND AND (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") )
+if (DOXYGEN_FOUND AND (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC )
     set(DOXYGEN_RECURSIVE NO)
     set(DOXYGEN_REPEAT_BRIEF NO)
     set(DOXYGEN_PROJECT_NAME "MDFLib")

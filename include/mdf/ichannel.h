@@ -8,9 +8,8 @@
 #include <vector>
 #include <cstring>
 #include <iomanip>
-#include "util/stringutil.h"
-#include "util/timestamp.h"
 #include "mdf/ichannelconversion.h"
+#include "mdf/mdfhelper.h"
 
 namespace mdf {
 
@@ -128,228 +127,7 @@ class IChannel {
   }
 
   template<typename T>
-  bool GetChannelValue(const std::vector<uint8_t> &record_buffer, T &dest) const {
-    bool valid = false;
-    switch (DataType()) {
-      case ChannelDataType::UnsignedIntegerLe:
-      case ChannelDataType::UnsignedIntegerBe: {
-        uint64_t value = 0;
-        valid = GetUnsignedValue(record_buffer, value);
-        dest = static_cast<T>(value);
-        break;
-      }
-
-      case ChannelDataType::SignedIntegerLe:
-      case ChannelDataType::SignedIntegerBe: {
-        int64_t value = 0;
-        valid = GetSignedValue(record_buffer, value);
-        dest = static_cast<T>(value);
-        break;
-      }
-      case ChannelDataType::FloatLe:
-      case ChannelDataType::FloatBe: {
-        double value = 0;
-        valid = GetFloatValue(record_buffer, value);
-        dest = static_cast<T>(value);
-        break;
-      }
-
-      case ChannelDataType::StringUTF16Le:
-      case ChannelDataType::StringUTF16Be:
-      case ChannelDataType::StringUTF8:
-      case ChannelDataType::StringAscii: {
-        std::string text;
-        valid = GetTextValue(record_buffer, text);
-        std::istringstream data(text);
-        data >> dest;
-        break;
-      }
-
-      case ChannelDataType::MimeStream:
-      case ChannelDataType::MimeSample:
-      case ChannelDataType::ByteArray: {
-        std::vector<uint8_t> list;
-        valid = GetByteArrayValue(record_buffer, list);
-        dest = list.empty() ? T{} : list[0];
-        break;
-      }
-
-      case ChannelDataType::CanOpenDate: {
-        uint64_t ms_since_1970 = 0;
-        valid = GetCanOpenDate(record_buffer, ms_since_1970);
-        dest = static_cast<T>(ms_since_1970);
-        break;
-      }
-
-      case ChannelDataType::CanOpenTime: {
-        uint64_t ms_since_1970 = 0;
-        valid = GetCanOpenTime(record_buffer, ms_since_1970);
-        dest = static_cast<T>(ms_since_1970);
-        break;
-      }
-      default: break;
-    }
-    return valid;
-  };
-
-  template<typename T = std::string>
-  bool GetChannelValue(const std::vector<uint8_t> &record_buffer, std::string &dest) const {
-    bool valid = false;
-    switch (DataType()) {
-      case ChannelDataType::UnsignedIntegerLe:
-      case ChannelDataType::UnsignedIntegerBe: {
-        uint64_t value = 0;
-        valid = GetUnsignedValue(record_buffer, value);
-        std::ostringstream s;
-        s << value;
-        dest = s.str();
-        break;
-      }
-
-      case ChannelDataType::SignedIntegerLe:
-      case ChannelDataType::SignedIntegerBe: {
-        int64_t value = 0;
-        valid = GetSignedValue(record_buffer, value);
-        dest = std::to_string(value);
-        break;
-      }
-      case ChannelDataType::FloatLe:
-      case ChannelDataType::FloatBe: {
-        double value = 0;
-        valid = GetFloatValue(record_buffer, value);
-        dest = IsDecimalUsed() ? util::string::FormatDouble(value, Decimals()) : std::to_string(value);
-        break;
-      }
-
-      case ChannelDataType::StringUTF16Le:
-      case ChannelDataType::StringUTF16Be:
-      case ChannelDataType::StringUTF8:
-      case ChannelDataType::StringAscii: {
-        valid = GetTextValue(record_buffer, dest);
-        break;
-      }
-
-      case ChannelDataType::MimeStream:
-      case ChannelDataType::MimeSample:
-      case ChannelDataType::ByteArray: {
-        std::vector<uint8_t> list;
-        valid = GetByteArrayValue(record_buffer, list);
-        std::ostringstream s;
-        for (const auto byte: list) {
-          s << std::setfill('0') << std::setw(2)
-            << std::hex << std::uppercase
-            << static_cast<uint16_t>(byte);
-        }
-        dest = s.str();
-        break;
-      }
-
-      case ChannelDataType::CanOpenDate: {
-        uint64_t ms_since_1970 = 0;
-        valid = GetCanOpenDate(record_buffer, ms_since_1970);
-
-        const auto ms = ms_since_1970 % 1000;
-        const auto time = static_cast<time_t>(ms_since_1970 / 1000);
-        struct tm bt{};
-        localtime_s(&bt, &time);
-
-        std::ostringstream text;
-        text << std::put_time(&bt, "%Y-%m-%d %H:%M:%S")
-             << '.' << std::setfill('0') << std::setw(3) << ms;
-        dest = text.str();
-        break;
-      }
-
-      case ChannelDataType::CanOpenTime: {
-        uint64_t ms_since_1970 = 0;
-        valid = GetCanOpenTime(record_buffer, ms_since_1970);
-
-        const auto ms = ms_since_1970 % 1000;
-        const auto time = static_cast<time_t>(ms_since_1970 / 1000);
-        struct tm bt{};
-        localtime_s(&bt, &time);
-
-        std::ostringstream text;
-        text << std::put_time(&bt, "%Y-%m-%d %H:%M:%S")
-             << '.' << std::setfill('0') << std::setw(3) << ms;
-        dest = text.str();
-        break;
-      }
-
-      default: break;
-    }
-    return valid;
-  };
-
-  template<typename T = std::vector<uint8_t>>
-  bool GetChannelValue(const std::vector<uint8_t> &record_buffer, std::vector<uint8_t> &dest) const {
-    bool valid = false;
-    switch (DataType()) {
-      case ChannelDataType::UnsignedIntegerLe:
-      case ChannelDataType::UnsignedIntegerBe: {
-        uint64_t value = 0;
-        valid = GetUnsignedValue(record_buffer, value);
-        dest.resize(1);
-        dest[0] = static_cast<uint8_t>(value);
-        break;
-      }
-
-      case ChannelDataType::SignedIntegerLe:
-      case ChannelDataType::SignedIntegerBe: {
-        int64_t value = 0;
-        valid = GetSignedValue(record_buffer, value);
-        dest.resize(1);
-        dest[0] = static_cast<uint8_t>(value);
-        break;
-      }
-
-      case ChannelDataType::FloatLe:
-      case ChannelDataType::FloatBe: {
-        double value = 0;
-        valid = GetFloatValue(record_buffer, value);
-        dest.resize(1);
-        dest[0] = static_cast<uint8_t>(value);
-        break;
-      }
-
-      case ChannelDataType::StringUTF16Le:
-      case ChannelDataType::StringUTF16Be:
-      case ChannelDataType::StringUTF8:
-      case ChannelDataType::StringAscii: {
-        std::string text;
-        valid = GetTextValue(record_buffer, text);
-        dest.resize(text.size());
-        memcpy(dest.data(), text.data(), text.size());
-        break;
-      }
-
-      case ChannelDataType::MimeStream:
-      case ChannelDataType::MimeSample:
-      case ChannelDataType::ByteArray: {
-        valid = GetByteArrayValue(record_buffer, dest);
-        break;
-      }
-
-      case ChannelDataType::CanOpenDate: {
-        uint64_t ms_since_1970 = 0;
-        valid = GetCanOpenDate(record_buffer, ms_since_1970);
-        dest.resize(1);
-        dest[0] = static_cast<uint8_t>(ms_since_1970);
-        break;
-      }
-
-      case ChannelDataType::CanOpenTime: {
-        uint64_t ms_since_1970 = 0;
-        valid = GetCanOpenTime(record_buffer, ms_since_1970);
-        dest.resize(1);
-        dest[0] = static_cast<uint8_t>(ms_since_1970);
-        break;
-      }
-
-      default: break;
-    }
-    return valid;
-  };
+  bool GetChannelValue(const std::vector<uint8_t> &record_buffer, T &dest) const;
 
   template<typename T>
   void SetChannelValue(const T& value, bool valid = true) {
@@ -387,10 +165,10 @@ class IChannel {
       case ChannelDataType::ByteArray:
         if (typeid(T) == typeid(uint64_t)) {
           if (DataBytes() == 7) {
-            auto date_array = util::time::NsToCanOpenDateArray(static_cast<uint64_t>(value));
+            auto date_array = MdfHelper::NsToCanOpenDateArray(static_cast<uint64_t>(value));
             SetByteArray(date_array,valid);
           } else if (DataBytes() == 6) {
-            auto time_array = util::time::NsToCanOpenTimeArray(static_cast<uint64_t>(value));
+            auto time_array = MdfHelper::NsToCanOpenTimeArray(static_cast<uint64_t>(value));
             SetByteArray(time_array,valid);
           }
         } else {
@@ -400,7 +178,7 @@ class IChannel {
 
       case ChannelDataType::CanOpenDate:
         if (typeid(T) == typeid(uint64_t) && DataBytes() == 7) {
-          const auto date_array = util::time::NsToCanOpenDateArray(static_cast<uint64_t>(value));
+          const auto date_array = MdfHelper::NsToCanOpenDateArray(static_cast<uint64_t>(value));
           SetByteArray(date_array,valid);
         } else {
           SetValid(false);
@@ -409,7 +187,7 @@ class IChannel {
 
       case ChannelDataType::CanOpenTime:
         if (typeid(T) == typeid(uint64_t) && DataBytes() == 6) {
-          const auto time_array = util::time::NsToCanOpenTimeArray(static_cast<uint64_t>(value));
+          const auto time_array = MdfHelper::NsToCanOpenTimeArray(static_cast<uint64_t>(value));
           SetByteArray(time_array,valid);
         } else {
           SetValid(false);
@@ -460,5 +238,77 @@ class IChannel {
   void SetByteArray(const std::vector<uint8_t>& value, bool valid);
   std::vector<uint8_t> NsToDateArray(uint64_t ns_since_1970) const;
 };
+
+template<typename T>
+bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, T &dest) const {
+  bool valid = false;
+  switch (DataType()) {
+    case ChannelDataType::UnsignedIntegerLe:
+    case ChannelDataType::UnsignedIntegerBe: {
+      uint64_t value = 0;
+      valid = GetUnsignedValue(record_buffer, value);
+      dest = static_cast<T>(value);
+      break;
+    }
+
+    case ChannelDataType::SignedIntegerLe:
+    case ChannelDataType::SignedIntegerBe: {
+      int64_t value = 0;
+      valid = GetSignedValue(record_buffer, value);
+      dest = static_cast<T>(value);
+      break;
+    }
+    case ChannelDataType::FloatLe:
+    case ChannelDataType::FloatBe: {
+      double value = 0;
+      valid = GetFloatValue(record_buffer, value);
+      dest = static_cast<T>(value);
+      break;
+    }
+
+    case ChannelDataType::StringUTF16Le:
+    case ChannelDataType::StringUTF16Be:
+    case ChannelDataType::StringUTF8:
+    case ChannelDataType::StringAscii: {
+      std::string text;
+      valid = GetTextValue(record_buffer, text);
+      std::istringstream data(text);
+      data >> dest;
+      break;
+    }
+
+    case ChannelDataType::MimeStream:
+    case ChannelDataType::MimeSample:
+    case ChannelDataType::ByteArray: {
+      std::vector<uint8_t> list;
+      valid = GetByteArrayValue(record_buffer, list);
+      dest = list.empty() ? T{} : list[0];
+      break;
+    }
+
+    case ChannelDataType::CanOpenDate: {
+      uint64_t ms_since_1970 = 0;
+      valid = GetCanOpenDate(record_buffer, ms_since_1970);
+      dest = static_cast<T>(ms_since_1970);
+      break;
+    }
+
+    case ChannelDataType::CanOpenTime: {
+      uint64_t ms_since_1970 = 0;
+      valid = GetCanOpenTime(record_buffer, ms_since_1970);
+      dest = static_cast<T>(ms_since_1970);
+      break;
+    }
+    default: break;
+  }
+  return valid;
+}
+
+template<>
+bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::vector<uint8_t> &dest) const;
+
+template<>
+bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::string &dest) const;
+
 
 }

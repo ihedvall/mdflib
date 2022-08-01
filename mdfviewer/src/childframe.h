@@ -10,6 +10,7 @@
 #include <wx/listctrl.h>
 #include "mdf3file.h"
 #include "mdf4file.h"
+#include "mdfdocument.h"
 
 namespace mdf::viewer {
 class ChildFrame : public wxDocMDIChildFrame {
@@ -21,10 +22,18 @@ class ChildFrame : public wxDocMDIChildFrame {
             const wxString& title);
   ChildFrame() = default;
 
- void Update() override;
+  void Update() override;
+ protected:
+  [[nodiscard]] MdfDocument* GetDoc();
+
  private:
   wxTreeCtrl* left_ = nullptr;
-  wxListView* right_ = nullptr;
+  wxListView* property_view_ = nullptr;
+  wxListView* history_view_ = nullptr;
+  wxListView* measurement_view_ = nullptr;
+  wxListView* event_view_ = nullptr;
+  wxListView* attachment_view_ = nullptr;
+  wxListView* hierarchy_view_ = nullptr;
 
   wxSplitterWindow* splitter_ = nullptr;
   wxImageList image_list_;
@@ -67,6 +76,11 @@ class ChildFrame : public wxDocMDIChildFrame {
   void RedrawChBlock(const mdf::detail::Ch4Block& ch, const wxTreeItemId& root);
 
   void RedrawListView();
+  void RedrawHistoryView();
+  void RedrawMeasurementView();
+  void RedrawEventView();
+  void RedrawAttachmentView();
+  void RedrawHierarchyView();
 
   void OnTreeSelected(wxTreeEvent& event);
   void OnTreeRightClick(wxTreeEvent& event);

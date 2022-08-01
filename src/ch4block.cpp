@@ -122,6 +122,14 @@ ChType Ch4Block::Type() const {
   return static_cast<ChType>(type_);
 }
 
+void Ch4Block::Description(const std::string &description) {
+  md_comment_ = std::make_unique<Md4Block>(description);
+}
+
+std::string Ch4Block::Description() const {
+  return MdText();
+}
+
 IMetaData *Ch4Block::MetaData() {
   CreateMd4Block();
   return dynamic_cast<IMetaData *>(md_comment_.get());

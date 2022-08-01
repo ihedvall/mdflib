@@ -144,7 +144,7 @@ TEST_F(TestWrite,Mdf3WriteTest1) {
   writer->StartMeasurement(TimeStampToNs());
   for (size_t sample = 0; sample < 100; ++sample) {
     auto cn_list = cg3->Channels();
-    double value = 0.01 * sample;
+    double value = 0.01 * static_cast<double>(sample);
     std::ranges::for_each(cn_list, [&](auto *channel) { channel->SetChannelValue(value, true); });
     writer->SaveSample(*cg3, TimeStampToNs());
     sleep_for(10ms);

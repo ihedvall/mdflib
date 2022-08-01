@@ -5,6 +5,8 @@
 #include <limits>
 #include "cc3block.h"
 #include "tx3block.h"
+#include "util/stringutil.h"
+
 namespace {
 
 std::string MakeConversionTypeString(uint16_t type) {

@@ -6,15 +6,15 @@
 #include "datablock.h"
 
 namespace mdf::detail {
+
 class Rd4Block : public DataBlock {
  public:
   size_t Read(std::FILE *file) override;
  protected:
-  size_t DataSize() const override;
- private:
-
+  [[nodiscard]] size_t DataSize() const override;
 };
-}
+
+} // namespace
 
 
 

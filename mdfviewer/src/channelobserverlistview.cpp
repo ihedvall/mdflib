@@ -23,10 +23,10 @@ wxString ChannelObserverListView::OnGetItemText(long item, long column) const {
   if (item < 0 || !observer_list_) {
     return "?";
   }
-  size_t sample = static_cast<size_t>(item);
+  auto sample = static_cast<size_t>(item);
   std::ostringstream s;
   if (column > 0) {
-    size_t index = static_cast<size_t>(column - 1);
+    auto index = static_cast<size_t>(column - 1);
     if (index < observer_list_->size()) {
       const auto& observer = observer_list_->at(index);
 

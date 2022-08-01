@@ -4,9 +4,7 @@
  */
 #include <cstdio>
 #include <string>
-
 #include <util/zlibutil.h>
-
 #include "dz4block.h"
 
 namespace {

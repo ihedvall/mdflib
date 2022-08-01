@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <boost/process.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/locale.hpp>
 
 #include <wx/wx.h>
 #include <wx/docview.h>
@@ -38,6 +39,11 @@ bool MdfViewer::OnInit() {
   if (!wxApp::OnInit()) {
     return false;
   }
+
+  // Setup correct localization when formatting date and times
+  boost::locale::generator gen;
+  std::locale::global(gen(""));
+
     // Setup system basic configuration
   SetVendorDisplayName("Measurement Data Reporting Server");
   SetVendorName("ReportServer");

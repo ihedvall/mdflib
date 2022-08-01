@@ -7,7 +7,9 @@
 #include <vector>
 #include "mdf/isampleobserver.h"
 #include "mdf/ichannel.h"
-#include "util/logstream.h"
+#include "util/stringutil.h"
+#include "util/timestamp.h"
+
 
 namespace mdf {
 

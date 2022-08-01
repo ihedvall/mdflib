@@ -38,6 +38,10 @@ class IChannelHierarchy {
 
   virtual void Type(ChType type) = 0;
   [[nodiscard]] virtual ChType Type() const = 0;
+  [[nodiscard]] std::string TypeToString() const;
+
+  virtual void Description(const std::string& description) = 0;
+  [[nodiscard]] virtual std::string Description() const = 0;
 
   /** \brief Returns an interface against an MD4 block
  *

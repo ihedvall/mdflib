@@ -4,7 +4,7 @@
  */
 #include <cstdio>
 #include <string>
-#include <util/zlibutil.h>
+#include <mdf/zlibutil.h>
 #include "dz4block.h"
 
 namespace {
@@ -55,17 +55,17 @@ size_t Dz4Block::CopyDataToFile(std::FILE *from_file, std::FILE *to_file) const 
   size_t count = 0;
   switch (static_cast<Dz4ZipType>(type_)) {
     case Dz4ZipType::Deflate: {
-      const bool inflate = util::zlib::Inflate(from_file, to_file, data_length_);
+      const bool inflate = Inflate(from_file, to_file, data_length_);
       count = inflate ? orig_data_length_ : 0;
       break;
     }
 
     case Dz4ZipType::TransposeAndDeflate: {
-        util::zlib::ByteArray temp(data_length_, 0);
+        ByteArray temp(data_length_, 0);
         fread(temp.data(),1, temp.size(), from_file);
-        util::zlib::ByteArray out(orig_data_length_, 0);
-        const bool inflate = util::zlib::Inflate(temp, out);
-        util::zlib::InvTranspose(out, parameter_);
+        ByteArray out(orig_data_length_, 0);
+        const bool inflate = Inflate(temp, out);
+        InvTranspose(out, parameter_);
         fwrite(out.data(),1, out.size(), to_file);
         count = inflate ? orig_data_length_ : 0;
         break;
@@ -86,11 +86,11 @@ size_t Dz4Block::CopyDataToBuffer(std::FILE *from_file, std::vector<uint8_t> &bu
   size_t count = 0;
   switch (static_cast<Dz4ZipType>(type_)) {
     case Dz4ZipType::Deflate: {
-      util::zlib::ByteArray temp(data_length_, 0);
+      ByteArray temp(data_length_, 0);
       fread(temp.data(),1, temp.size(), from_file);
 
-      util::zlib::ByteArray out(orig_data_length_, 0);
-      util::zlib::Inflate(temp,out);
+      ByteArray out(orig_data_length_, 0);
+      Inflate(temp,out);
       count =  orig_data_length_;
       memcpy(buffer.data() + buffer_index,out.data(),count );
       buffer_index += count;
@@ -98,12 +98,12 @@ size_t Dz4Block::CopyDataToBuffer(std::FILE *from_file, std::vector<uint8_t> &bu
     }
 
     case Dz4ZipType::TransposeAndDeflate: {
-      util::zlib::ByteArray temp(data_length_, 0);
+     ByteArray temp(data_length_, 0);
       fread(temp.data(),1, temp.size(), from_file);
 
-      util::zlib::ByteArray out(orig_data_length_, 0);
-      util::zlib::Inflate(temp, out);
-      util::zlib::InvTranspose(out, parameter_);
+      ByteArray out(orig_data_length_, 0);
+      Inflate(temp, out);
+      InvTranspose(out, parameter_);
 
       count =  orig_data_length_;
       memcpy(buffer.data() + buffer_index,out.data(),count );

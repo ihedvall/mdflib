@@ -19,22 +19,6 @@ SPDX-License-Identifier: MIT
 
 https://github.com/libexpat/libexpat/blob/master/expat/COPYING
 
-### Iconv
-
-Unicode converter (inherited boost dependency)
-
-SPDX-License-Identifier: LGPL-3.0-or-later
-
-https://www.gnu.org/licenses/lgpl-3.0-standalone.html
-
-### OpenSSL
-
-Cryptography and SSL/TLS toolkit.
-
-SPDX-License-Identifier: OpenSSL
-
-https://www.openssl.org/source/license.html
-
 ### ZLIB
 
 Compression library.

@@ -146,6 +146,10 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>ChannelObserverPtr</
 <tr class="memitem:abfb69c65cc7804403fc688da91817835"><td class="memItemLeft" align="right" valign="top"><a id="abfb69c65cc7804403fc688da91817835" name="abfb69c65cc7804403fc688da91817835"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>ChannelObserverList</b> = std::vector&lt; ChannelObserverPtr &gt;</td></tr>
 <tr class="separator:abfb69c65cc7804403fc688da91817835"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24bf31d8f3157e2358f9fac15dd38c78"><td class="memItemLeft" align="right" valign="top"><a id="a24bf31d8f3157e2358f9fac15dd38c78" name="a24bf31d8f3157e2358f9fac15dd38c78"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>ByteArray</b> = std::vector&lt; uint8_t &gt;</td></tr>
+<tr class="memdesc:a24bf31d8f3157e2358f9fac15dd38c78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines a dynamic byte array. <br /></td></tr>
+<tr class="separator:a24bf31d8f3157e2358f9fac15dd38c78"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -319,6 +323,12 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a1173d96d8ea953eb45c110ac550ce628"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemdf.html#a1173d96d8ea953eb45c110ac550ce628">CreateMd5FileString</a> (const std::string &amp;file)</td></tr>
+<tr class="memdesc:a1173d96d8ea953eb45c110ac550ce628"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generates an MD5 file checksum (32 character) string.  <a href="namespacemdf.html#a1173d96d8ea953eb45c110ac550ce628">More...</a><br /></td></tr>
+<tr class="separator:a1173d96d8ea953eb45c110ac550ce628"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb78ebb2c6a5a61f14d37a05b7afd20a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemdf.html#aeb78ebb2c6a5a61f14d37a05b7afd20a">CreateMd5FileChecksum</a> (const std::string &amp;file, std::vector&lt; uint8_t &gt; &amp;md5)</td></tr>
+<tr class="memdesc:aeb78ebb2c6a5a61f14d37a05b7afd20a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a file hash byte array according to MD5.  <a href="namespacemdf.html#aeb78ebb2c6a5a61f14d37a05b7afd20a">More...</a><br /></td></tr>
+<tr class="separator:aeb78ebb2c6a5a61f14d37a05b7afd20a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a36bdce80788796d1ee3482bfe48c3f96"><td class="memItemLeft" align="right" valign="top"><a id="a36bdce80788796d1ee3482bfe48c3f96" name="a36bdce80788796d1ee3482bfe48c3f96"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsMdfFile</b> (const std::string &amp;filename)</td></tr>
 <tr class="memdesc:a36bdce80788796d1ee3482bfe48c3f96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the file is an MDF file. <br /></td></tr>
@@ -332,6 +342,39 @@ ChannelObserverPtr&#160;</td><td class="memItemRight" valign="bottom"><b>CreateC
 <tr class="memitem:a7d36a3f5f140f8be0a7d4bebc9be7eeb"><td class="memItemLeft" align="right" valign="top"><a id="a7d36a3f5f140f8be0a7d4bebc9be7eeb" name="a7d36a3f5f140f8be0a7d4bebc9be7eeb"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>CreateChannelObserverForChannelGroup</b> (const <a class="el" href="classmdf_1_1_i_data_group.html">IDataGroup</a> &amp;data_group, const <a class="el" href="classmdf_1_1_i_channel_group.html">IChannelGroup</a> &amp;group, ChannelObserverList &amp;dest)</td></tr>
 <tr class="separator:a7d36a3f5f140f8be0a7d4bebc9be7eeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad071f40993f8c69d4faf24378fdc731"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemdf.html#aad071f40993f8c69d4faf24378fdc731">Deflate</a> (std::FILE *in, std::FILE *out)</td></tr>
+<tr class="memdesc:aad071f40993f8c69d4faf24378fdc731"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compress file to file.  <a href="namespacemdf.html#aad071f40993f8c69d4faf24378fdc731">More...</a><br /></td></tr>
+<tr class="separator:aad071f40993f8c69d4faf24378fdc731"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadc429ba87b1a6757c12e4d8bf3c3583"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemdf.html#aadc429ba87b1a6757c12e4d8bf3c3583">Deflate</a> (const <a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;buf_in, <a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;buf_out)</td></tr>
+<tr class="memdesc:aadc429ba87b1a6757c12e4d8bf3c3583"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compress array to array.  <a href="namespacemdf.html#aadc429ba87b1a6757c12e4d8bf3c3583">More...</a><br /></td></tr>
+<tr class="separator:aadc429ba87b1a6757c12e4d8bf3c3583"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2204306496d6be8d0755d78c6b2f3f8a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemdf.html#a2204306496d6be8d0755d78c6b2f3f8a">Deflate</a> (const std::string &amp;filename, <a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;buf_out)</td></tr>
+<tr class="memdesc:a2204306496d6be8d0755d78c6b2f3f8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compress array to array.  <a href="namespacemdf.html#a2204306496d6be8d0755d78c6b2f3f8a">More...</a><br /></td></tr>
+<tr class="separator:a2204306496d6be8d0755d78c6b2f3f8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d68d0de49ecec2f114dbfa84445f0e0"><td class="memItemLeft" align="right" valign="top"><a id="a0d68d0de49ecec2f114dbfa84445f0e0" name="a0d68d0de49ecec2f114dbfa84445f0e0"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>Inflate</b> (std::FILE *in, std::FILE *out)</td></tr>
+<tr class="memdesc:a0d68d0de49ecec2f114dbfa84445f0e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decompress file to file. <br /></td></tr>
+<tr class="separator:a0d68d0de49ecec2f114dbfa84445f0e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fb9cd270f5eb188adb9e3da05638f75"><td class="memItemLeft" align="right" valign="top"><a id="a5fb9cd270f5eb188adb9e3da05638f75" name="a5fb9cd270f5eb188adb9e3da05638f75"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>Inflate</b> (std::FILE *in, std::FILE *out, uint64_t nof_bytes)</td></tr>
+<tr class="memdesc:a5fb9cd270f5eb188adb9e3da05638f75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decompress part of file to file. <br /></td></tr>
+<tr class="separator:a5fb9cd270f5eb188adb9e3da05638f75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ac44ea44a6225ec667cf46eba2f8293"><td class="memItemLeft" align="right" valign="top"><a id="a8ac44ea44a6225ec667cf46eba2f8293" name="a8ac44ea44a6225ec667cf46eba2f8293"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>Inflate</b> (const <a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;in, <a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;out)</td></tr>
+<tr class="memdesc:a8ac44ea44a6225ec667cf46eba2f8293"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decompress array to array. <br /></td></tr>
+<tr class="separator:a8ac44ea44a6225ec667cf46eba2f8293"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca89e1bde497bbab2f230a4b58e5c857"><td class="memItemLeft" align="right" valign="top"><a id="aca89e1bde497bbab2f230a4b58e5c857" name="aca89e1bde497bbab2f230a4b58e5c857"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>Inflate</b> (const <a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;in, std::FILE *out)</td></tr>
+<tr class="memdesc:aca89e1bde497bbab2f230a4b58e5c857"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decompress array to file. <br /></td></tr>
+<tr class="separator:aca89e1bde497bbab2f230a4b58e5c857"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8888854dace05f8886586643a4e566cd"><td class="memItemLeft" align="right" valign="top"><a id="a8888854dace05f8886586643a4e566cd" name="a8888854dace05f8886586643a4e566cd"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>Transpose</b> (<a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;data, size_t record_size)</td></tr>
+<tr class="memdesc:a8888854dace05f8886586643a4e566cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transpose of an array. <br /></td></tr>
+<tr class="separator:a8888854dace05f8886586643a4e566cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6dcedb9a891a56428a5390e5cc4b5b57"><td class="memItemLeft" align="right" valign="top"><a id="a6dcedb9a891a56428a5390e5cc4b5b57" name="a6dcedb9a891a56428a5390e5cc4b5b57"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>InvTranspose</b> (<a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;data, size_t record_size)</td></tr>
+<tr class="memdesc:a6dcedb9a891a56428a5390e5cc4b5b57"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invert transpose of an array. <br /></td></tr>
+<tr class="separator:a6dcedb9a891a56428a5390e5cc4b5b57"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Main namespace for all MDF library classes and functions. </p>
@@ -504,6 +547,179 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>CreateChannelObserver
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A smart pointer to a channel observer. </dd></dl>
+
+</div>
+</div>
+<a id="aeb78ebb2c6a5a61f14d37a05b7afd20a" name="aeb78ebb2c6a5a61f14d37a05b7afd20a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb78ebb2c6a5a61f14d37a05b7afd20a">&#9670;&nbsp;</a></span>CreateMd5FileChecksum()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mdf::CreateMd5FileChecksum </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>file</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;&#160;</td>
+          <td class="paramname"><em>md5</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Generates a file hash MD5 checksum. The output is a byte array. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">file</td><td>Full path to the file name. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">md5</td><td>Returns a byte array. The vector size is set by the function. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True on success. </dd></dl>
+
+</div>
+</div>
+<a id="a1173d96d8ea953eb45c110ac550ce628" name="a1173d96d8ea953eb45c110ac550ce628"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1173d96d8ea953eb45c110ac550ce628">&#9670;&nbsp;</a></span>CreateMd5FileString()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string mdf::CreateMd5FileString </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>file</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Creates an MD5 file checksum. The output is a hexadecimal string. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">file</td><td>Full path to the file name. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A 32 (hex) character string on success else an empty string. </dd></dl>
+
+</div>
+</div>
+<a id="aadc429ba87b1a6757c12e4d8bf3c3583" name="aadc429ba87b1a6757c12e4d8bf3c3583"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aadc429ba87b1a6757c12e4d8bf3c3583">&#9670;&nbsp;</a></span>Deflate() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mdf::Deflate </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;&#160;</td>
+          <td class="paramname"><em>buf_in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;&#160;</td>
+          <td class="paramname"><em>buf_out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Compress a byte array directly to another array.</p>
+<p >The input buffer data is compressed and sent to the output array. The output array needs be sized to a size so the compressed data fits. Normally it should be preset to the same size as the input. The output array is resized to the new compressed size.</p>
+<p >The compress method is deflate according to ZLIB. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buf_in</td><td>Input byte array with data. </td></tr>
+    <tr><td class="paramname">buf_out</td><td>Output array. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True on success. </dd></dl>
+
+</div>
+</div>
+<a id="a2204306496d6be8d0755d78c6b2f3f8a" name="a2204306496d6be8d0755d78c6b2f3f8a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2204306496d6be8d0755d78c6b2f3f8a">&#9670;&nbsp;</a></span>Deflate() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mdf::Deflate </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>filename</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78">ByteArray</a> &amp;&#160;</td>
+          <td class="paramname"><em>buf_out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Compress a file directly to an array.</p>
+<p >The file data is compressed and sent to an output array. Unlike the other <a class="el" href="namespacemdf.html#aad071f40993f8c69d4faf24378fdc731" title="Compress file to file.">Deflate()</a> functions, the output buffer doesn't need to be sized before calling this function. The compress method is deflate according to ZLIB.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filename</td><td>Full name of the file to compress. </td></tr>
+    <tr><td class="paramname">buf_out</td><td>Output byte array. The function resize the buffer </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True on success. </dd></dl>
+
+</div>
+</div>
+<a id="aad071f40993f8c69d4faf24378fdc731" name="aad071f40993f8c69d4faf24378fdc731"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad071f40993f8c69d4faf24378fdc731">&#9670;&nbsp;</a></span>Deflate() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mdf::Deflate </td>
+          <td>(</td>
+          <td class="paramtype">std::FILE *&#160;</td>
+          <td class="paramname"><em>in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::FILE *&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >Compress a file directly to another file. This is an efficient way of compressing a file. The compress method is deflate according to ZLIB. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">in</td><td>Pointer to the input file stream. </td></tr>
+    <tr><td class="paramname">out</td><td>Pointer to the output file stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True on success. </dd></dl>
 
 </div>
 </div>

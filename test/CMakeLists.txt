@@ -6,7 +6,14 @@ project(TestMdf
         DESCRIPTION "Google unit tests for the mdf library"
         LANGUAGES CXX)
 
-add_executable(test_mdf test_conversion.cpp testread.cpp testread.h testwrite.cpp testwrite.h testmdffile.cpp testmetadata.cpp)
+add_executable(test_mdf
+        test_conversion.cpp
+        testcrypto.cpp
+        testread.cpp testread.h
+        testwrite.cpp testwrite.h
+        testmdffile.cpp
+        testmetadata.cpp
+        testzlib.cpp testzlib.h)
 
 target_include_directories(test_mdf PRIVATE
         ../include
@@ -18,15 +25,15 @@ target_include_directories(test_mdf PRIVATE
 if (MINGW)
     target_link_options(test_mdf PRIVATE -static -fstack-protector)
 elseif (MSVC)
-    target_compile_definitions(test_mdf PRIVATE _WIN32_WINNT=0x0A00)
+    target_compile_definitions(test_mdf PRIVATE -D_WIN32_WINNT=0x0A00)
 endif()
 
-target_link_libraries(test_mdf PRIVATE  mdf)
+target_link_libraries(test_mdf PRIVATE mdf)
 target_link_libraries(test_mdf PRIVATE util)
 target_link_libraries(test_mdf PRIVATE ${EXPAT_LIBRARIES})
 target_link_libraries(test_mdf PRIVATE ${Boost_LIBRARIES})
 target_link_libraries(test_mdf PRIVATE ${ZLIB_LIBRARIES})
-target_link_libraries(test_mdf PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
+#target_link_libraries(test_mdf PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
 target_link_libraries(test_mdf PRIVATE ${GTEST_BOTH_LIBRARIES})
 
 if (WIN32)

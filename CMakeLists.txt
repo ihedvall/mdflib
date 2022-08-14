@@ -19,7 +19,7 @@ include("script/boost.cmake")
 include("script/utillib.cmake")
 include("script/zlib.cmake")
 include("script/expat.cmake")
-include("script/openssl.cmake")
+#include("script/openssl.cmake")
 include("script/wxwidgets.cmake")
 include("script/googletest.cmake")
 include("script/doxygen.cmake")
@@ -88,7 +88,14 @@ add_library(mdf STATIC
         src/ichannelhierarchy.cpp include/mdf/ichannelhierarchy.h
         src/isourceinformation.cpp include/mdf/isourceinformation.h
         src/ichannelarray.cpp include/mdf/ichannelarray.h
-        src/mdfhelper.cpp include/mdf/mdfhelper.h src/dv4block.cpp src/dv4block.h src/di4block.cpp src/di4block.h src/rv4block.cpp src/rv4block.h src/ri4block.cpp src/ri4block.h src/ld4block.cpp src/ld4block.h)
+        src/mdfhelper.cpp include/mdf/mdfhelper.h
+        src/dv4block.cpp src/dv4block.h
+        src/di4block.cpp src/di4block.h
+        src/rv4block.cpp src/rv4block.h
+        src/ri4block.cpp src/ri4block.h
+        src/ld4block.cpp src/ld4block.h
+        src/cryptoutil.cpp include/mdf/cryptoutil.h
+        src/zlibutil.cpp include/mdf/zlibutil.h)
 
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>
@@ -96,6 +103,8 @@ target_include_directories(mdf PUBLIC
         )
 target_include_directories(mdf PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(mdf PRIVATE ${utillib_SOURCE_DIR}/include)
+target_include_directories(mdf PRIVATE ${ZLIB_INCLUDE_DIRS})
+
 target_compile_definitions(util PRIVATE XML_STATIC)
 set(MDF_PUBLIC_HEADERS
         include/mdf/iattachment.h

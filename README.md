@@ -18,7 +18,7 @@ The main project is a C++ static library and its dependent applications.
 - **MDF gRPC Server**. Microservice for reading and writing of MDF files. Under development.
 - **MDF Python Library**. Basic reading and writing for Python friends. On hold.
 
-Note that external projects currently only need reading support. This means that the writing support
+Note that external projects currently only needing read support. This means that the writing support
 is on low priority. Please let me know if write support is required.
 
 ## Building
@@ -29,7 +29,6 @@ needs to be downloaded and pre-built.
 - Util Library. Generic library that contains common functionality as logging.
 - Boost Library. Set the 'Boost_ROOT' variable to the Boost root path.
 - Expat Library. Set the 'EXPAT_ROOT' variable to the expat root path.
-- OpenSSL Library. Set the 'OPENSSL_ROOT' variable to the OpenSSL root path.
 - ZLIB Library. Set the 'ZLIB_ROOT' variable to the ZLIB root path.
 - WxWidgets Library. Required if the GUI applications should be built. 
 - Doxygen's application. Is required if the documentation should be built.

@@ -1,10 +1,9 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
+
 if (NOT ZLIB_FOUND)
     SET(ZLIB_USE_STATIC_LIBS ON)
-    if (NOT ZLIB_ROOT)
-        set(ZLIB_ROOT ${COMP_DIR}/zlib/master)
-    endif()
+    set(ZLIB_ROOT ${COMP_DIR}/zlib/master)
 
     find_package(ZLIB)
     message(STATUS "ZLIB Found (Try 1): " ${ZLIB_FOUND})

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['datagrouplist_0',['DataGroupList',['../namespacemdf.html#a066a32e811bf2c5f71e60aab3fd7b45b',1,'mdf']]]
+  ['bytearray_0',['ByteArray',['../namespacemdf.html#a24bf31d8f3157e2358f9fac15dd38c78',1,'mdf']]]
 ];

@@ -19,5 +19,8 @@ var searchData=
   ['createdatagroup_16',['CreateDataGroup',['../classmdf_1_1_i_header.html#a61a41714b4a0a5dad203bd588ba6a053',1,'mdf::IHeader::CreateDataGroup()'],['../classmdf_1_1_mdf_file.html#aacf52cc1100c6abeb624d8effcdcaf6e',1,'mdf::MdfFile::CreateDataGroup()']]],
   ['createevent_17',['CreateEvent',['../classmdf_1_1_i_header.html#a219effee21b1feaf2ff0bd627ef3633f',1,'mdf::IHeader']]],
   ['createfilehistory_18',['CreateFileHistory',['../classmdf_1_1_i_header.html#a8da7d449410274f00b6905f8762d2cf8',1,'mdf::IHeader']]],
-  ['creatorindex_19',['CreatorIndex',['../classmdf_1_1_e_tag.html#a08de1691453abfbe61d527a08575bd32',1,'mdf::ETag::CreatorIndex(int index)'],['../classmdf_1_1_e_tag.html#a28454bf172520170547dedb94a4946a4',1,'mdf::ETag::CreatorIndex() const']]]
+  ['createmd5filechecksum_19',['CreateMd5FileChecksum',['../namespacemdf.html#aeb78ebb2c6a5a61f14d37a05b7afd20a',1,'mdf']]],
+  ['createmd5filestring_20',['CreateMd5FileString',['../namespacemdf.html#a1173d96d8ea953eb45c110ac550ce628',1,'mdf']]],
+  ['creatorindex_21',['CreatorIndex',['../classmdf_1_1_e_tag.html#a08de1691453abfbe61d527a08575bd32',1,'mdf::ETag::CreatorIndex(int index)'],['../classmdf_1_1_e_tag.html#a28454bf172520170547dedb94a4946a4',1,'mdf::ETag::CreatorIndex() const']]],
+  ['cryptoutil_2eh_22',['cryptoutil.h',['../cryptoutil_8h.html',1,'']]]
 ];

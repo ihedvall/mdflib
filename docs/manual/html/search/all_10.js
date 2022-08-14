@@ -6,7 +6,8 @@ var searchData=
   ['toolname_3',['ToolName',['../classmdf_1_1_i_file_history.html#a8ae07886e2dd45270cfe045929dc4d1e',1,'mdf::IFileHistory::ToolName(const std::string &amp;tool_name)'],['../classmdf_1_1_i_file_history.html#a91df51fcebd21deb728753dcffe8db3a',1,'mdf::IFileHistory::ToolName() const']]],
   ['toolvendor_4',['ToolVendor',['../classmdf_1_1_i_file_history.html#a242dd6b440d81fbc3d89b9e1aab0015e',1,'mdf::IFileHistory::ToolVendor(const std::string &amp;tool_vendor)'],['../classmdf_1_1_i_file_history.html#a3cf862e41bca3f1d4d9c56b9eb92cba2',1,'mdf::IFileHistory::ToolVendor() const']]],
   ['toolversion_5',['ToolVersion',['../classmdf_1_1_i_file_history.html#a251254d7cf79e75745eeda68e9086aa6',1,'mdf::IFileHistory::ToolVersion(const std::string &amp;tool_version)'],['../classmdf_1_1_i_file_history.html#ac360caf6a4e065e2acd60c6732f2b123',1,'mdf::IFileHistory::ToolVersion() const']]],
-  ['treelist_6',['TreeList',['../classmdf_1_1_e_tag.html#a86e3ef70ee4638f7068701aa43d81501',1,'mdf::ETag']]],
-  ['trigger_7',['Trigger',['../namespacemdf.html#adce2cd261c2306ee601dfaeb929b6fdbaf698f67f5666aff10729d8a1cb1c14d2',1,'mdf']]],
-  ['type_8',['Type',['../classmdf_1_1_e_tag.html#a9c282d9c49b031fca9e5e626aa526a80',1,'mdf::ETag::Type(const std::string &amp;type)'],['../classmdf_1_1_e_tag.html#a40d911e9a69699f8e88df3150f50496e',1,'mdf::ETag::Type() const']]]
+  ['transpose_6',['Transpose',['../namespacemdf.html#a8888854dace05f8886586643a4e566cd',1,'mdf']]],
+  ['treelist_7',['TreeList',['../classmdf_1_1_e_tag.html#a86e3ef70ee4638f7068701aa43d81501',1,'mdf::ETag']]],
+  ['trigger_8',['Trigger',['../namespacemdf.html#adce2cd261c2306ee601dfaeb929b6fdbaf698f67f5666aff10729d8a1cb1c14d2',1,'mdf']]],
+  ['type_9',['Type',['../classmdf_1_1_e_tag.html#a9c282d9c49b031fca9e5e626aa526a80',1,'mdf::ETag::Type(const std::string &amp;type)'],['../classmdf_1_1_e_tag.html#a40d911e9a69699f8e88df3150f50496e',1,'mdf::ETag::Type() const']]]
 ];

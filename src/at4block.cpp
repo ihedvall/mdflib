@@ -8,12 +8,11 @@
 #include "at4block.h"
 #include "mdf/mdfhelper.h"
 #include "util/logstream.h"
-#include "util/zlibutil.h"
-#include "util/cryptoutil.h"
+#include "mdf/zlibutil.h"
+#include "mdf/cryptoutil.h"
 
 using namespace std::filesystem;
 using namespace util::log;
-using namespace util::zlib;
 
 namespace {
 
@@ -58,7 +57,7 @@ std::string ConvertMd5Buffer(const std::vector<uint8_t>& buffer) {
   return temp.str();
 }
 
-bool FileToBuffer(const std::string& filename, ByteArray& dest) {
+bool FileToBuffer(const std::string& filename, mdf::ByteArray& dest) {
   try {
     path fullname(filename);
     const auto size = file_size(fullname);
@@ -163,7 +162,7 @@ size_t At4Block::Write(std::FILE *file) {
      return 0;
    }
 
-   const auto md5 = util::crypto::CreateMd5FileChecksum(filename_, md5_);
+   const auto md5 = CreateMd5FileChecksum(filename_, md5_);
    if (md5) {
      flags_ |= At4Flags::kUsingMd5;
    }
@@ -228,7 +227,7 @@ void At4Block::ReadData(std::FILE *file, const std::string &dest_file) const {
     if (dest == nullptr) {
       throw std::ios_base::failure("Failed to open the destination file");
     }
-    const bool error = IsCompressed() ? !util::zlib::Inflate(file,dest,nof_bytes_)
+    const bool error = IsCompressed() ? !Inflate(file,dest,nof_bytes_)
         : !CopyBytes(file, dest, nof_bytes_);
      fclose(dest);
     if (error) {
@@ -244,7 +243,7 @@ void At4Block::ReadData(std::FILE *file, const std::string &dest_file) const {
   }
   if (flags_ & At4Flags::kUsingMd5) {
     std::vector<uint8_t> md5(16,0xFF);
-    util::crypto::CreateMd5FileChecksum(dest_file, md5);
+    CreateMd5FileChecksum(dest_file, md5);
     if (md5 != md5_) {
       throw std::runtime_error("Mismatching MD5 checksums");
     }

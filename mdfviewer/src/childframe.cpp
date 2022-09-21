@@ -40,24 +40,24 @@ constexpr int TREE_DZ = 23;
 constexpr int TREE_HL = 24;
 
 // Fake file positions which select a list of blocks
-constexpr fpos_t kHistoryPosition = -100;
-constexpr fpos_t kMeasurementPosition = -200;
-constexpr fpos_t kAttachmentPosition = -300;
-constexpr fpos_t kEventPosition = -400;
-constexpr fpos_t kHierarchyPosition = -500;
+constexpr int64_t kHistoryPosition = -100;
+constexpr int64_t kMeasurementPosition = -200;
+constexpr int64_t kAttachmentPosition = -300;
+constexpr int64_t kEventPosition = -400;
+constexpr int64_t kHierarchyPosition = -500;
 
 class BlockAddress : public wxTreeItemData {
  public:
-  explicit BlockAddress(fpos_t block_address)
+  explicit BlockAddress(int64_t block_address)
       : block_address_(block_address) {
   }
 
-  [[nodiscard]] fpos_t FilePosition() const {
+  [[nodiscard]] int64_t FilePosition() const {
     return block_address_;
   }
 
  private:
-  fpos_t block_address_ = 0;
+  int64_t block_address_ = 0;
 };
 
 wxString CreateBlockText(const mdf::detail::IBlock &block) {
@@ -70,7 +70,7 @@ wxString CreateBlockText(const mdf::detail::IBlock &block) {
   return wxString::FromUTF8(block_string.str());
 }
 
-fpos_t GetBlockId(const wxTreeCtrl& list, const wxTreeItemId& item) {
+int64_t GetBlockId(const wxTreeCtrl& list, const wxTreeItemId& item) {
   if (!item.IsOk()) {
     return -1;
   }
@@ -78,7 +78,7 @@ fpos_t GetBlockId(const wxTreeCtrl& list, const wxTreeItemId& item) {
   return data != nullptr ? data->FilePosition() : -1;
 }
 
-wxTreeItemId FindId(const wxTreeCtrl& list, const wxTreeItemId &root, fpos_t id) { //NOLINT
+wxTreeItemId FindId(const wxTreeCtrl& list, const wxTreeItemId &root, int64_t id) { //NOLINT
    for (auto item = root; item.IsOk(); item = list.GetNextSibling(item)) {
     if (GetBlockId(list, item) == id) {
       return item;
@@ -930,8 +930,8 @@ void ChildFrame::OnListItemActivated(wxListEvent& event) {
   }
 
   auto tree_item = FindId(left_,left_->GetRootItem(), block_id);
-  fpos_t parent_id = -1;
-  fpos_t grand_parent_id = -1;
+  int64_t parent_id = -1;
+  int64_t grand_parent_id = -1;
   if (tree_item.IsOk()) {
     auto parent_item = left_->GetItemParent(tree_item);
     if (parent_item.IsOk()) {

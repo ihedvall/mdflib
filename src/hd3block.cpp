@@ -27,7 +27,7 @@ std::string Hd3Block::Comment() const {
   return comment_;
 }
 
-const IBlock *Hd3Block::Find(fpos_t index) const {
+const IBlock *Hd3Block::Find(int64_t index) const {
   if (pr_block_) {
     const auto* p = pr_block_->Find(index);
     if (p != nullptr) {

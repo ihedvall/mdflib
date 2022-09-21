@@ -109,7 +109,7 @@ class Hd4Block : public IBlock, public IHeader {
     return ev_list_;
   }
 
-  [[nodiscard]] const IBlock* Find(fpos_t index) const override;
+  [[nodiscard]] const IBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList &dest) const override;
 
   size_t Read(std::FILE *file) override;

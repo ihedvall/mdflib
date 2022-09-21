@@ -176,7 +176,7 @@ bool MdfDocument::OnOpenDocument(const wxString &filename) {
   return parse && wxDocument::OnOpenDocument(filename);
 }
 
-const mdf::detail::IBlock *MdfDocument::GetBlock(fpos_t id) const {
+const mdf::detail::IBlock *MdfDocument::GetBlock(int64_t id) const {
   const auto *file = GetFile();
   if (file == nullptr || id < 0) {
     return nullptr;

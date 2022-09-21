@@ -319,7 +319,7 @@ std::string Cn3Block::Comment() const {
   return comment_;
 }
 
-const IBlock *Cn3Block::Find(fpos_t index) const {
+const IBlock *Cn3Block::Find(int64_t index) const {
   if (cc_block_) {
     const auto* p = cc_block_->Find(index);
     if (p != nullptr) {

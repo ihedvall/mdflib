@@ -19,7 +19,7 @@ class DataListBlock : public IBlock {
     return block_list_;
   }
   [[nodiscard]] virtual size_t DataSize() const;
-  [[nodiscard]] const IBlock* Find(fpos_t index) const override;
+  [[nodiscard]] const IBlock* Find(int64_t index) const override;
   void ReadBlockList(std::FILE *file, size_t data_index );
   void ReadLinkList(std::FILE *file, size_t data_index, uint32_t nof_link );
 

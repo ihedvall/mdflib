@@ -53,7 +53,7 @@ class Cn4Block : public DataListBlock , public IChannel {
   [[nodiscard]] bool IsDecimalUsed() const override;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  [[nodiscard]] const IBlock* Find(fpos_t index) const override;
+  [[nodiscard]] const IBlock* Find(int64_t index) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;
 

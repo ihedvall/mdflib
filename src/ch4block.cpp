@@ -89,7 +89,7 @@ size_t Ch4Block::Write(std::FILE *file) { // NOLINT
   return bytes;
 
 }
-const IBlock *Ch4Block::Find(fpos_t index) const { //NOLINT
+const IBlock *Ch4Block::Find(int64_t index) const { //NOLINT
   for (const auto& ch : ch_list_) {
     if (!ch) {
       continue;

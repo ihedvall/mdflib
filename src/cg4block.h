@@ -21,7 +21,7 @@ class Cg4Block : public IBlock, public IChannelGroup {
   using Sr4List = std::vector<std::unique_ptr<Sr4Block>>;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  const IBlock* Find(fpos_t index) const override;
+  const IBlock* Find(int64_t index) const override;
 
   void AddCn4(std::unique_ptr<Cn4Block>& cn3);
   [[nodiscard]] const Cn4List& Cn4() const {

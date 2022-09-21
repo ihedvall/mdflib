@@ -87,7 +87,6 @@ fabric.properties
     Blog
     About
 
-cmake-build-*
 
 # ODS models
 odsconfigurator/model/*_?.xml

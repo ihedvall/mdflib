@@ -31,7 +31,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   }
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  const IBlock* Find(fpos_t index) const override;
+  const IBlock* Find(int64_t index) const override;
 
   size_t Read(std::FILE *file) override;
   void ReadCgList(std::FILE* file);

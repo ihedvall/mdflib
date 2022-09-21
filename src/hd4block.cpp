@@ -65,7 +65,7 @@ Hd4Block::Hd4Block() {
   block_type_ = "##HD";
 }
 
-const IBlock *Hd4Block::Find(fpos_t index) const {
+const IBlock *Hd4Block::Find(int64_t index) const {
   if (index <= 0) {
     return nullptr;
   }

@@ -296,7 +296,7 @@ size_t Cc4Block::Write(std::FILE *file) { // NOLINT
   return bytes;
 }
 
-const IBlock *Cc4Block::Find(fpos_t index) const { // NOLINT
+const IBlock *Cc4Block::Find(int64_t index) const { // NOLINT
   if (cc_block_) {
     const auto* p = cc_block_->Find(index);
     if (p != nullptr) {

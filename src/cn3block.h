@@ -51,7 +51,7 @@ class Cn3Block : public DataListBlock , public IChannel {
 
 
   [[nodiscard]] std::string Comment() const override;
-  [[nodiscard]] const IBlock* Find(fpos_t index) const override;
+  [[nodiscard]] const IBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
   void Init(const IBlock &id_block) override;
   size_t Read(std::FILE *file) override;

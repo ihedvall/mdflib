@@ -198,7 +198,7 @@ void Cg4Block::ReadSrList(std::FILE *file) {
   ReadLink4List(file, sr_list_, kIndexSr);
 }
 
-const IBlock *Cg4Block::Find(fpos_t index) const {
+const IBlock *Cg4Block::Find(int64_t index) const {
   if (si_block_) {
     const auto* p = si_block_->Find(index);
     if (p != nullptr) {

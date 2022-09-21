@@ -29,7 +29,7 @@ class Mdf3File : public MdfFile {
 
   [[nodiscard]] IDataGroup* CreateDataGroup() override;
 
-  [[nodiscard]] const IBlock* Find(fpos_t id) const;
+  [[nodiscard]] const IBlock* Find(int64_t id) const;
 
   [[nodiscard]] bool IsMdf4() const override;
   void IsFinalized(bool finalized,std::FILE* file,

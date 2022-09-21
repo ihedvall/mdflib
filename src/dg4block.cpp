@@ -49,7 +49,7 @@ IChannelGroup* Dg4Block::CreateChannelGroup() {
   return cg_list_.empty() ? nullptr : cg_list_.back().get();
 }
 
-const IBlock *Dg4Block::Find(fpos_t index) const {
+const IBlock *Dg4Block::Find(int64_t index) const {
   for (const auto& cg : cg_list_) {
     if (!cg) {
       continue;

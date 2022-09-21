@@ -161,7 +161,7 @@ void DataListBlock::ReadLinkList(std::FILE *file, size_t data_index, uint32_t no
   }
 }
 
-const IBlock *DataListBlock::Find(fpos_t index) const {
+const IBlock *DataListBlock::Find(int64_t index) const {
   for (const auto& p : block_list_) {
     if (!p) {
       continue;

@@ -33,7 +33,7 @@ class Cg3Block : public IBlock , public IChannelGroup {
   [[nodiscard]] const IChannel* GetXChannel(const IChannel& reference) const override;
 
   [[nodiscard]] std::string Comment() const override;
-  const IBlock* Find(fpos_t index) const override;
+  const IBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;

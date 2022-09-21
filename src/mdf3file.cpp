@@ -93,7 +93,7 @@ const Hd3Block &Mdf3File::Hd() const {
   return *hd_block_;
 }
 
-const IBlock *Mdf3File::Find(fpos_t id) const {
+const IBlock *Mdf3File::Find(int64_t id) const {
   if (id_block_) {
     const auto* p = id_block_->Find(id);
     if (p != nullptr) {

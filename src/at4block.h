@@ -53,7 +53,7 @@ class At4Block : public IBlock, public IAttachment {
   uint64_t original_size_ = 0;
   uint64_t nof_bytes_ = 0;
 
-  fpos_t data_position_ = 0; ///< File position of the data BLOB
+  int64_t data_position_ = 0; ///< File position of the data BLOB
   std::string filename_;
   std::string file_type_;
 

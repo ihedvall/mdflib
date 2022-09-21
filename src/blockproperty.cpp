@@ -21,14 +21,14 @@ BlockProperty::BlockProperty(const std::string &label, const std::string &value,
 /// It assumes the value is formatted as an hex value so this function
 /// is only valid for link property types.
 /// \return File position of the referenced block
-fpos_t BlockProperty::Link() const {
+int64_t BlockProperty::Link() const {
   if (Type() != BlockItemType::LinkItem) {
     return 0;
   }
   if (value_.size() <= 2 ) {
     return 0;
   }
-  fpos_t pos = 0;
+  int64_t pos = 0;
   try {
     std::stringstream temp;
     temp << std::hex << value_.substr(2);

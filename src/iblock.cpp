@@ -19,17 +19,20 @@ using namespace util::log;
 
 namespace mdf::detail {
 
-std::fpos_t GetFilePosition(std::FILE *file) {
-  std::fpos_t curr = 0;
+int64_t GetFilePosition(std::FILE *file) {
+  std::fpos_t curr = {};
   auto get = std::fgetpos(file, &curr);
   if (get != 0) {
     throw std::ios_base::failure("Failed to get a file position");
   }
-  return curr;
+  int64_t temp = curr;
+  return temp;
 }
 
-void SetFilePosition(std::FILE *file, std::fpos_t position) {
-  std::fpos_t curr = 0;
+void SetFilePosition(std::FILE *file,int64_t position) {
+  std::fpos_t curr = {};
+  std::fpos_t pos = {position};
+
   auto get = std::fgetpos(file, &curr);
   if (get != 0) {
     throw std::ios_base::failure("Failed to get a file position");
@@ -37,15 +40,11 @@ void SetFilePosition(std::FILE *file, std::fpos_t position) {
 
   // Fast check if it already is in position
 
-  if (curr == position) {
+  if (curr == pos) {
     return;
   }
-  fpos_t temp = position;
-  auto set = std::fsetpos(file, &temp);
+  auto set = std::fsetpos(file, &pos);
   if (set != 0) {
-    throw std::ios_base::failure("Failed to set a file position");
-  }
-  if (temp != position) {
     throw std::ios_base::failure("Failed to set a file position");
   }
 }
@@ -315,7 +314,7 @@ std::string IBlock::Comment() const {
     return md != nullptr ? md->TxComment() : "";
 }
 
-const IBlock *IBlock::Find(fpos_t index) const {
+const IBlock *IBlock::Find(int64_t index) const {
   if (file_position_ == index) {
     return this;
   }

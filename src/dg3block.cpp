@@ -12,7 +12,7 @@ constexpr size_t kIndexData = 3;
 }
 namespace mdf::detail {
 
-const IBlock *Dg3Block::Find(fpos_t index) const {
+const IBlock *Dg3Block::Find(int64_t index) const {
   if (tr_block_) {
     const auto *pos = tr_block_->Find(index);
     if (pos != nullptr) {

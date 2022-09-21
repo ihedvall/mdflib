@@ -406,7 +406,7 @@ size_t Cn4Block::Write(std::FILE *file) {
   return bytes;
 }
 
-const IBlock *Cn4Block::Find(fpos_t index) const {
+const IBlock *Cn4Block::Find(int64_t index) const {
   if (si_block_) {
     const auto* p = si_block_->Find(index);
     if (p != nullptr) {

@@ -18,23 +18,23 @@ class BlockProperty final {
   explicit BlockProperty(const std::string& label, const std::string& value,
                          const std::string& desc = {}, BlockItemType type = BlockItemType::NormalItem);
 
-  const std::string& Label() const {
+  [[nodiscard]] const std::string& Label() const {
     return label_;
   }
 
-  const std::string& Value() const {
+  [[nodiscard]] const std::string& Value() const {
     return value_;
   }
 
-  const std::string& Description() const {
+  [[nodiscard]] const std::string& Description() const {
     return description_;
   }
 
-  BlockItemType Type() const {
+  [[nodiscard]] BlockItemType Type() const {
     return type_;
   }
 
-  fpos_t Link() const;
+  [[nodiscard]] int64_t Link() const;
  private:
   std::string label_;
   std::string value_;

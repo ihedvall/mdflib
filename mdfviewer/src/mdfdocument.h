@@ -28,31 +28,31 @@ class MdfDocument : public wxDocument {
     return reader_.get();
   }
 
-  void SetSelectedBlockId(fpos_t id, fpos_t parent_id, fpos_t grand_parent_id) {
+  void SetSelectedBlockId(int64_t id, int64_t parent_id, int64_t grand_parent_id) {
     selected_id_ = id;
     parent_id_ = parent_id;
     grand_parent_id_ = grand_parent_id;
   }
 
-  [[nodiscard]] fpos_t GetSelectedBlockId() const {
+  [[nodiscard]] int64_t GetSelectedBlockId() const {
     return selected_id_;
   }
 
-  [[nodiscard]] fpos_t GetParentBlockId() const {
+  [[nodiscard]] int64_t GetParentBlockId() const {
     return parent_id_;
   }
 
-  [[nodiscard]] fpos_t GetGrandParentBlockId() const {
+  [[nodiscard]] int64_t GetGrandParentBlockId() const {
     return grand_parent_id_;
   }
 
-  [[nodiscard]] const mdf::detail::IBlock* GetBlock(fpos_t id) const; ///< Returns a block pointer by block index.
+  [[nodiscard]] const mdf::detail::IBlock* GetBlock(int64_t id) const; ///< Returns a block pointer by block index.
 
  private:
   std::unique_ptr<mdf::MdfReader> reader_;
-  fpos_t selected_id_ = 64; ///< The selected items block index (file position).
-  fpos_t parent_id_ = -1; ///< The parent index of the selected block.
-  fpos_t grand_parent_id_ = -1; ///< The grand parent index of the selected block.
+  int64_t selected_id_ = 64; ///< The selected items block index (file position).
+  int64_t parent_id_ = -1; ///< The parent index of the selected block.
+  int64_t grand_parent_id_ = -1; ///< The grand parent index of the selected block.
 
   void OnSaveAttachment(wxCommandEvent& event);
   void OnUpdateSaveAttachment(wxUpdateUIEvent& event);

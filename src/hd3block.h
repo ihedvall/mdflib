@@ -49,7 +49,7 @@ class Hd3Block : public IBlock, public IHeader {
 
 
   [[nodiscard]] std::string Comment() const override;
-  [[nodiscard]] const IBlock* Find(fpos_t index) const override;
+  [[nodiscard]] const IBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;

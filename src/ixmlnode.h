@@ -11,7 +11,6 @@
 #include <unordered_map>
 #include <sstream>
 #include <vector>
-#include <strings.h>
 #include <memory>
 #include "mdf/mdfhelper.h"
 

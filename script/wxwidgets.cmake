@@ -3,6 +3,7 @@
 
 if (NOT wxWidgets_FOUND )
     find_package(wxWidgets COMPONENTS adv core base)
+    include(${wxWidgets_USE_FILE})
 endif()
 
 if (NOT wxWidgets_FOUND)

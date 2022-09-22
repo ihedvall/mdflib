@@ -28,6 +28,13 @@ class MdfHelper {
  */
   static int64_t TimeZoneOffset();
 
+/** \brief Converts a nanosecond since 1970 to a local ISO date and time string.
+ *
+ * @param [in] ns_since_1970 Nanosecond since 1970
+ * @return Return a date and time string in format YYYY-MM-DD hh:mm:ss.ms
+ */
+  static std::string NsToLocalIsoTime(uint64_t ns_since_1970);
+
 /** \brief Converts from nanoseconds to CANopen 7 byte Date array.
  *
  * Converts from nanoseconds since 1970-01-01 to a 7 byte CANopen date array
@@ -112,6 +119,31 @@ class MdfHelper {
  */
   static std::string NanoSecToHHMMSS(uint64_t ns_since_1970);
 
+  /** \brief Remove white space from string.
+ *
+ * Removes white spaces from the begin and end of the string
+ * @param text String to trim
+ */
+  static void Trim(std::string &text);
+
+/// Converts a floating point value to a string using number of decimals.\n
+/// It also fix rounding and returning a fixed decimals.
+/// Presenting fixed number of decimals means that it fills up the string with '0' characters.\n
+/// Example: Value: 1.23 and decimals 3,String: (Fixed = false) "1.23" (Fixed = true) "1.230"\n
+/// Optional it can append a unit to the string (Example: "1.23 m/s").\n
+/// \param[in] value  The floating point value.
+/// \param[in] decimals Max number of decimals.
+/// \param[in] fixed If it should show fixed number of decimals.
+/// \param[in] unit Appends a unit string to the output.
+/// \return The formatted string.
+  static std::string FormatDouble(double value, uint8_t decimals, bool fixed = false,
+                           const std::string &unit = {}); ///< Converts a float to a string.
+
+  static uint64_t NowNs();
+
+  static std::string Latin1ToUtf8(const std::string &latin1);
+  static std::string Utf16ToUtf8(const std::wstring &utf16);
 };
+
 
 } // end namespace

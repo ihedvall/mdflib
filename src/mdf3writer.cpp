@@ -3,11 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 #include <cstdio>
-#include <cerrno>
 #include <chrono>
-#include <filesystem>
 #include <ranges>
-#include "util/logstream.h"
+#include "mdf/mdflogstream.h"
 #include "mdf3writer.h"
 
 #include "cc3block.h"
@@ -16,7 +14,6 @@
 #include "dg3block.h"
 #include "mdf3file.h"
 
-using namespace util::log;
 using namespace std::chrono_literals;
 
 namespace mdf::detail {

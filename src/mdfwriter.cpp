@@ -9,13 +9,12 @@
 #include <cerrno>
 #include <cstring>
 #include <chrono>
-#include <util/logstream.h>
+#include <mdf/mdflogstream.h>
 #include "mdf/mdfwriter.h"
 #include "iblock.h"
 
 
 using namespace std::filesystem;
-using namespace util::log;
 using namespace std::chrono_literals;
 
 namespace {
@@ -27,6 +26,7 @@ std::string StrErrNo(errno_t error) {
 }
 
 }
+
 namespace mdf {
 
 MdfWriter::~MdfWriter() {
@@ -64,10 +64,10 @@ bool MdfWriter::Init(const std::string& filename) {
         mdf_file_->ReadEverythingButData(file);
         std::fclose(file);
         write_state_ = WriteState::Finalize; // Append to the file
-        LOG_DEBUG() << "Reading existing file. File: " << filename_;
+        MDF_DEBUG() << "Reading existing file. File: " << filename_;
         init = true;
       } else {
-        LOG_ERROR() << "Failed to open the existing MDF file. File: " << filename_;
+        MDF_ERROR() << "Failed to open the existing MDF file. File: " << filename_;
         write_state_ = WriteState::Create;
       }
     } else {
@@ -79,11 +79,11 @@ bool MdfWriter::Init(const std::string& filename) {
     if (file != nullptr) {
       fclose(file);
       write_state_ = WriteState::Finalize;
-      LOG_ERROR() << "Failed to read the existing MDF file. Error: " << err.what()
+      MDF_ERROR() << "Failed to read the existing MDF file. Error: " << err.what()
                   << ", File: " << filename_;
     } else {
       write_state_ = WriteState::Create;
-      LOG_ERROR() << "Failed to open the existing MDF file. Error: " << err.what()
+      MDF_ERROR() << "Failed to open the existing MDF file. Error: " << err.what()
                   << ", File: " << filename_;
     }
   }
@@ -93,7 +93,7 @@ bool MdfWriter::Init(const std::string& filename) {
 bool MdfWriter::InitMeasurement() {
   StopWorkThread(); // Just in case
   if (!mdf_file_) {
-    LOG_ERROR() << "The MDF file is not created. Invalid use of the function.";
+    MDF_ERROR() << "The MDF file is not created. Invalid use of the function.";
     return false;
   }
 
@@ -101,7 +101,7 @@ bool MdfWriter::InitMeasurement() {
   std::FILE* file = nullptr;
   detail::OpenMdfFile(file, filename_, write_state_ == WriteState::Create ? "wb" : "r+b");
   if (file == nullptr) {
-    LOG_ERROR() << "Failed to open the file for writing. File: " << filename_;
+    MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
 
@@ -152,14 +152,14 @@ bool MdfWriter::FinalizeMeasurement() {
 
   // Save outstanding SR and any legal updates
   if (!mdf_file_) {
-    LOG_ERROR() << "The MDF file is not created. Invalid use of the function.";
+    MDF_ERROR() << "The MDF file is not created. Invalid use of the function.";
     return false;
   }
 
   std::FILE* file = nullptr;
   detail::OpenMdfFile(file, filename_, "r+b");
   if (file == nullptr) {
-    LOG_ERROR() << "Failed to open the file for writing. File: " << filename_;
+    MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
   const bool write = mdf_file_ && mdf_file_->Write(file);

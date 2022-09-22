@@ -4,7 +4,7 @@
  */
 #include <sstream>
 #include "tx4block.h"
-#include "util/stringutil.h"
+#include "mdf/mdfhelper.h"
 
 
 namespace mdf::detail {
@@ -31,7 +31,7 @@ std::string FixCommentToLine(const std::string& comment, size_t max) {
 }
 
 bool Tx4Block::IsTxtBlock() const {
-  return util::string::IEquals(block_type_, "##TX", 4);
+  return _strnicmp(block_type_.c_str(), "##TX", 4) == 0;
 }
 
 size_t Tx4Block::Read(std::FILE *file) {
@@ -75,7 +75,7 @@ size_t Tx4Block::Write(std::FILE *file) {
 
 std::string Tx4Block::Text() const {
   std::string temp = text_;
-  util::string::Trim(temp);
+  MdfHelper::Trim(temp);
   return temp;
 }
 

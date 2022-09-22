@@ -4,15 +4,12 @@
  */
 #include <string>
 #include <ctime>
-#define BOOST_NO_AUTO_PTR
-#include <boost/endian/conversion.hpp>
-#include <boost/endian/buffers.hpp>
-#include <boost/locale.hpp>
 #include "cn4block.h"
 #include "ca4block.h"
 #include "sd4block.h"
 #include "cg4block.h"
-
+#include "littlebuffer.h"
+#include "bigbuffer.h"
 
 namespace {
 
@@ -139,6 +136,7 @@ size_t CopyDataToBuffer( const mdf::detail::IBlock* data, std::FILE* from_file,
   }
   return count;
 }
+
 
 } // end namespace
 
@@ -484,8 +482,7 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
     if (index + 4 > data_list_.size()) {
       return false;
     }
-    boost::endian::little_uint32_buf_t length;
-    memcpy(length.data(), data_list_.data() + index, 4 );
+    const LittleBuffer<uint32_t> length(data_list_, index);
     temp.resize(length.value(), 0);
     if (index + 4 + length.value() <= data_list_.size()) {
       memcpy(temp.data(), data_list_.data() + index + 4, length.value());
@@ -507,7 +504,7 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
         s << in;
       }
       try {
-        dest = boost::locale::conv::to_utf<char>(s.str(), "Latin1");
+        dest = MdfHelper::Latin1ToUtf8(s.str());
       } catch (const std::exception&) {
         valid = false; // Conversion error
         dest = s.str();
@@ -533,15 +530,16 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
       std::wostringstream s;
       for (size_t ii = offset; (ii + 2) <= temp.size(); ii += 2) {
         auto* d = temp.data() + ii;
-        boost::endian::little_uint16_buf_t data;
-        memcpy(data.data(), temp.data() + ii, 2);
+
+        const LittleBuffer<uint16_t> data(temp,ii);
+
         if (data.value() == 0) {
           break;
         }
         s << static_cast<wchar_t>(data.value());
       }
       try {
-        dest = boost::locale::conv::utf_to_utf<char>(s.str());
+        dest = MdfHelper::Utf16ToUtf8(s.str());
       } catch (const std::exception&) {
         valid = false; // Conversion error
       }
@@ -551,16 +549,14 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
     case ChannelDataType::StringUTF16Be: {
       std::wostringstream s;
       for (size_t ii = offset; (ii + 2) <= temp.size(); ii += 2) {
-        auto* d = temp.data() + ii;
-        boost::endian::big_uint16_buf_t data;
-        memcpy(data.data(), d, 2);
+        const BigBuffer<uint16_t> data(temp, ii);
         if (data.value() == 0) {
           break;
         }
         s << static_cast<wchar_t>(data.value());
       }
       try {
-        dest = boost::locale::conv::utf_to_utf<char>(s.str());
+        dest = MdfHelper::Utf16ToUtf8(s.str());
       } catch (const std::exception&) {
         valid = false; // Conversion error
       }

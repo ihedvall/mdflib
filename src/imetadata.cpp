@@ -4,12 +4,12 @@
  */
 
 #include "mdf/imetadata.h"
-#include "util/ixmlfile.h"
+#include "ixmlfile.h"
 
-using namespace util::xml;
+
 namespace {
 
-void InsertETag(const mdf::ETag& e_tag,  IXmlNode& root) { //NOLINT
+void InsertETag(const mdf::ETag& e_tag,  mdf::IXmlNode& root) { //NOLINT
   // First check if this is a tree. If so we create a new node and
   const auto& tree_list = e_tag.TreeList();
   if (e_tag.Name().empty()) {
@@ -53,7 +53,7 @@ void InsertETag(const mdf::ETag& e_tag,  IXmlNode& root) { //NOLINT
   }
 }
 
-void FetchETag(const IXmlNode& root, mdf::ETag& e_tag) { //NOLINT
+void FetchETag(const mdf::IXmlNode& root, mdf::ETag& e_tag) { //NOLINT
   e_tag.Name(root.Attribute<std::string>("name"));
   e_tag.Description(root.Attribute<std::string>("desc"));
   e_tag.CreatorIndex(root.Attribute("ci", -1));
@@ -63,7 +63,7 @@ void FetchETag(const IXmlNode& root, mdf::ETag& e_tag) { //NOLINT
   e_tag.Unit(root.Attribute<std::string>("unit"));
   e_tag.UnitRef(root.Attribute<std::string>("unit_ref"));
 
-  IXmlNode::ChildList list;
+  mdf::IXmlNode::ChildList list;
   root.GetChildList(list);
   for (const auto* child : list) {
     if (child == nullptr) {

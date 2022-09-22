@@ -11,11 +11,10 @@
 #include <iomanip>
 #include <cstdio>
 
-#include <boost/endian/conversion.hpp>
-#include <boost/endian/buffers.hpp>
-
-#include "blockproperty.h"
 #include "mdf/imetadata.h"
+#include "blockproperty.h"
+#include "bigbuffer.h"
+#include "littlebuffer.h"
 
 namespace mdf::detail {
 
@@ -167,14 +166,14 @@ class IBlock {
   template<typename T>
   std::size_t ReadNumber(std::FILE *file, T &dest) const {
     if (IsBigEndian()) {
-      boost::endian::endian_buffer<boost::endian::order::big, T, sizeof(T) * 8> buff;
+      BigBuffer<T> buff;
       auto count = std::fread(buff.data(), sizeof(T), 1, file);
       if (count != 1) {
         throw std::ios_base::failure("Invalid number of bytes read");
       }
       dest = buff.value();
     } else {
-      boost::endian::endian_buffer<boost::endian::order::little, T, sizeof(T) * 8> buff;
+      LittleBuffer<T> buff;
       auto count = std::fread(buff.data(), sizeof(T), 1, file);
       if (count != 1) {
         throw std::ios_base::failure("Invalid number of bytes read");
@@ -190,13 +189,13 @@ class IBlock {
       throw std::runtime_error("File pointer is null. Invalid use of function.");
     }
     if (IsBigEndian()) {
-      boost::endian::endian_buffer<boost::endian::order::big, T, sizeof(T) * 8> buff(source);
+      const BigBuffer buff(source);
       auto count = std::fwrite(buff.data(), 1, sizeof(T),  file);
       if (count != sizeof(T)) {
         throw std::runtime_error("Invalid number of bytes written");
       }
     } else {
-      boost::endian::endian_buffer<boost::endian::order::little, T, sizeof(T) * 8> buff(source);
+      const LittleBuffer buff(source);
       auto count = std::fwrite(buff.data(), 1, sizeof(T), file);
       if (count != sizeof(T)) {
         throw std::runtime_error("Invalid number of bytes written");

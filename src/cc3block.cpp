@@ -5,7 +5,7 @@
 #include <limits>
 #include "cc3block.h"
 #include "tx3block.h"
-#include "util/stringutil.h"
+#include "mdf/mdfhelper.h"
 
 namespace {
 
@@ -143,8 +143,8 @@ void Cc3Block::GetBlockProperty(BlockPropertyList &dest) const {
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Range Valid", range_valid_ ? "True" : "False");
-  dest.emplace_back("Range Min", util::string::FormatDouble(min_, 6));
-  dest.emplace_back("Range Max", util::string::FormatDouble(max_, 6));
+  dest.emplace_back("Range Min", MdfHelper::FormatDouble(min_, 6));
+  dest.emplace_back("Range Max", MdfHelper::FormatDouble(max_, 6));
   dest.emplace_back("Unit", unit_);
 
   dest.emplace_back("Conversion Type", std::to_string(conversion_type_), MakeConversionTypeString(conversion_type_));
@@ -153,15 +153,15 @@ void Cc3Block::GetBlockProperty(BlockPropertyList &dest) const {
     dest.emplace_back("Formula", formula_);
   }
   for (auto par : value_list_) {
-    dest.emplace_back("Parameter", util::string::FormatDouble(par, 6));
+    dest.emplace_back("Parameter", MdfHelper::FormatDouble(par, 6));
   }
   for (const auto& conv : text_conversion_list_) {
-    dest.emplace_back("Parameter", util::string::FormatDouble(conv.value, 6));
+    dest.emplace_back("Parameter", MdfHelper::FormatDouble(conv.value, 6));
     dest.emplace_back("Text", conv.text);
   }
   for (const auto& range : text_range_conversion_list_) {
-    dest.emplace_back("Lower", util::string::FormatDouble(range.lower, 6));
-    dest.emplace_back("Upper", util::string::FormatDouble(range.upper, 6));
+    dest.emplace_back("Lower",MdfHelper::FormatDouble(range.lower, 6));
+    dest.emplace_back("Upper", MdfHelper::FormatDouble(range.upper, 6));
     dest.emplace_back("Text", range.text);
   }
 

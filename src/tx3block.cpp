@@ -4,7 +4,7 @@
  */
 #include <sstream>
 #include <cstdio>
-#include <util/stringutil.h>
+#include <mdf/mdfhelper.h>
 #include "tx3block.h"
 
 namespace mdf::detail {
@@ -37,7 +37,7 @@ size_t Tx3Block::Read(std::FILE *file) {
 
 std::string Tx3Block::Text() const {
   std::string temp = text_;
-  util::string::Trim(temp);
+  MdfHelper::Trim(temp);
   return temp;
 }
 size_t Tx3Block::Write(std::FILE *file) {

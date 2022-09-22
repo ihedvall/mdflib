@@ -3,14 +3,15 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include "mdf/mdfhelper.h"
 #include "mdf/ichannelgroup.h"
-#include "util/timestamp.h"
+
 
 namespace mdf {
 
 SampleRecord IChannelGroup::GetSampleRecord() const {
   SampleRecord record;
-  record.timestamp = util::time::TimeStampToNs();
+  record.timestamp = MdfHelper::NowNs();
   record.record_id = RecordId();
   record.record_buffer = sample_buffer_;
   return std::move(record);

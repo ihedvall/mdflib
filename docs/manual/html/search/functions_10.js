@@ -7,5 +7,6 @@ var searchData=
   ['toolversion_4',['ToolVersion',['../classmdf_1_1_i_file_history.html#a251254d7cf79e75745eeda68e9086aa6',1,'mdf::IFileHistory::ToolVersion(const std::string &amp;tool_version)'],['../classmdf_1_1_i_file_history.html#ac360caf6a4e065e2acd60c6732f2b123',1,'mdf::IFileHistory::ToolVersion() const']]],
   ['transpose_5',['Transpose',['../namespacemdf.html#a8888854dace05f8886586643a4e566cd',1,'mdf']]],
   ['treelist_6',['TreeList',['../classmdf_1_1_e_tag.html#a86e3ef70ee4638f7068701aa43d81501',1,'mdf::ETag']]],
-  ['type_7',['Type',['../classmdf_1_1_e_tag.html#a9c282d9c49b031fca9e5e626aa526a80',1,'mdf::ETag::Type(const std::string &amp;type)'],['../classmdf_1_1_e_tag.html#a40d911e9a69699f8e88df3150f50496e',1,'mdf::ETag::Type() const']]]
+  ['trim_7',['Trim',['../classmdf_1_1_mdf_helper.html#a8c3d4c630de6852bf6539ac2d0c69469',1,'mdf::MdfHelper']]],
+  ['type_8',['Type',['../classmdf_1_1_e_tag.html#a9c282d9c49b031fca9e5e626aa526a80',1,'mdf::ETag::Type(const std::string &amp;type)'],['../classmdf_1_1_e_tag.html#a40d911e9a69699f8e88df3150f50496e',1,'mdf::ETag::Type() const']]]
 ];

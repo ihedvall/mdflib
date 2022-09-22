@@ -2,6 +2,8 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+#include <algorithm>
+#include <ranges>
 #include "ch4block.h"
 #include "hd4block.h"
 namespace {

@@ -6,6 +6,9 @@ project(MdfViewer
         DESCRIPTION "Simple MDF file browser"
         LANGUAGES CXX)
 
+include("../script/boost.cmake")
+include("../script/utillib.cmake")
+
 add_executable(mdfview 
         src/mdfviewer.cpp src/mdfviewer.h
         src/mainframe.cpp src/mainframe.h

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['pre_5ftrig_5ftime_5f_0',['pre_trig_time_',['../classmdf_1_1_mdf_writer.html#a0bdf7185c7edb044c1d8ee2a315e1c86',1,'mdf::MdfWriter']]]
+  ['mdf_5ffile_5f_0',['mdf_file_',['../classmdf_1_1_mdf_writer.html#a2b75266333ae91f1091d5860e718797f',1,'mdf::MdfWriter']]]
 ];

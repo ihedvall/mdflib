@@ -10,7 +10,7 @@
 #include <windows.h>
 #endif
 
-#include "util/stringutil.h"
+#include "mdf/mdfhelper.h"
 #include "idblock.h"
 
 using namespace std;
@@ -99,19 +99,19 @@ size_t IdBlock::Write(std::FILE *file) {
 
 std::string IdBlock::FileId() const {
   std::string temp = file_identifier_;
-  util::string::Trim(temp);
+  MdfHelper::Trim(temp);
   return temp;
 }
 
 std::string IdBlock::VersionString() const {
   std::string temp = format_identifier_;
-  util::string::Trim(temp);
+  MdfHelper::Trim(temp);
   return temp;
 }
 
 std::string IdBlock::ProgramId() const {
   std::string temp = program_identifier_;
-  util::string::Trim(temp);
+  MdfHelper::Trim(temp);
   return temp;
 }
 
@@ -128,8 +128,7 @@ void IdBlock::SetDefaultMdf3Values() {
 }
 
 void IdBlock::MinorVersion(int minor) {
-
-  int major = format_identifier_.empty() ? 4 : std::stoi(format_identifier_.substr(0,1));
+  const int major = format_identifier_.empty() ? 4 : std::stoi(format_identifier_.substr(0,1));
   if (minor <= 0) {
       minor = 0;
   } else if (minor < 10) {

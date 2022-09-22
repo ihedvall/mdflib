@@ -6,9 +6,7 @@
 #include <array>
 #include <cstdio>
 #include "mdf/cryptoutil.h"
-#include "util/logstream.h"
-
-using namespace util::log;
+#include "mdf/mdflogstream.h"
 
 namespace {
 
@@ -261,17 +259,17 @@ bool CreateMd5FileChecksum(const std::string &file, std::vector<uint8_t> &md5) {
         MD5_Final(md5.data(), &ctx);
         ok = true;
       } else {
-        LOG_ERROR() << "Failed to create MD5 file checksum. File: " << file
+        MDF_ERROR() << "Failed to create MD5 file checksum. File: " << file
                          << ". Error: Failed to open the file";
       }
 
     } else {
-      LOG_ERROR() << "Failed to create MD5 file checksum. File: " << file
+      MDF_ERROR() << "Failed to create MD5 file checksum. File: " << file
                        << ". Error: The file doesn't exist";
     }
 
   } catch (const std::exception &error) {
-    LOG_ERROR() << "Failed to create MD5 file checksum. File: " << file
+    MDF_ERROR() << "Failed to create MD5 file checksum. File: " << file
                      << ". Error: " << error.what();
     ok = false;
   }

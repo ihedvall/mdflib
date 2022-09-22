@@ -7,8 +7,7 @@
 #include <vector>
 #include "mdf/isampleobserver.h"
 #include "mdf/ichannel.h"
-#include "util/stringutil.h"
-#include "util/timestamp.h"
+#include "mdf/mdfhelper.h"
 
 
 namespace mdf {
@@ -129,7 +128,7 @@ class IChannelObserver : public ISampleObserver
       case ChannelDataType::FloatBe: {
         double v = 0.0;
         valid = GetSampleFloat(sample, v);
-        value = util::string::FormatDouble(v,channel_.IsDecimalUsed() ? channel_.Decimals() : 6);
+        value = MdfHelper::FormatDouble(v,channel_.IsDecimalUsed() ? channel_.Decimals() : 6);
         break;
       }
 
@@ -148,7 +147,7 @@ class IChannelObserver : public ISampleObserver
       case ChannelDataType::CanOpenTime: {
         uint64_t ns_since_1970 = 0;
         valid = GetSampleUnsigned(sample, ns_since_1970);
-        value = util::time::NsToLocalIsoTime(ns_since_1970);
+        value = MdfHelper::NsToLocalIsoTime(ns_since_1970);
         break;
       }
       default: break;

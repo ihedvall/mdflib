@@ -121,6 +121,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_mdf_helper.html">MdfHelper</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_mdf_log_stream.html">MdfLogStream</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_mdf_reader.html">MdfReader</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reader interface to an MDF file.  <a href="classmdf_1_1_mdf_reader.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -320,6 +322,21 @@ Enumerations</h2></td></tr>
 , <b>Mdf4FileType</b> = 1
  }</td></tr>
 <tr class="separator:a2cc3fd35b9f0ae4aa7db3822aa9ae9ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5025c3469ed574e224270c03c89b24ac"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24ac">MdfLogSeverity</a> : uint8_t { <br />
+&#160;&#160;<a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24acafa21506cd249f400de4a974b5a0c8e0e">kTrace</a> = 0
+, <a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24acabb53ce21b7c0b7c8a8f7860a41901d29">kDebug</a>
+, <a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24aca176a473e63c17ccdac91640c67f149bf">kInfo</a>
+, <a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24aca69f03ebfd6cab4eaa75fc4182f0feca9">kNotice</a>
+, <br />
+&#160;&#160;<a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24acaec0da41f4e48b52c362303eb27ed5dee">kWarning</a>
+, <a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24acae3587c730cc1aa530fa4ddc9c4204e97">kError</a>
+, <a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24aca5a20548c220f372fc701cae6de94040b">kCritical</a>
+, <a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24acac0d18299609bebcba35e0e9253cb41c4">kAlert</a>
+, <br />
+&#160;&#160;<a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24aca1921cdd35fc6d7638aa9b2c7fc55cdef">kEmergency</a>
+<br />
+ }</td></tr>
+<tr class="separator:a5025c3469ed574e224270c03c89b24ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -446,6 +463,48 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>InvTranspose</b> (<a 
 <tr><td class="fieldname"><a id="adce2cd261c2306ee601dfaeb929b6fdbaf698f67f5666aff10729d8a1cb1c14d2" name="adce2cd261c2306ee601dfaeb929b6fdbaf698f67f5666aff10729d8a1cb1c14d2"></a>Trigger&#160;</td><td class="fielddoc"><p >Generic event (no range). </p>
 </td></tr>
 <tr><td class="fieldname"><a id="adce2cd261c2306ee601dfaeb929b6fdba0235c996b43b3799573658df41ef82f2" name="adce2cd261c2306ee601dfaeb929b6fdba0235c996b43b3799573658df41ef82f2"></a>Marker&#160;</td><td class="fielddoc"><p >Another generic event (maybe range). </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="a5025c3469ed574e224270c03c89b24ac" name="a5025c3469ed574e224270c03c89b24ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5025c3469ed574e224270c03c89b24ac">&#9670;&nbsp;</a></span>MdfLogSeverity</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="namespacemdf.html#a5025c3469ed574e224270c03c89b24ac">mdf::MdfLogSeverity</a> : uint8_t</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a5025c3469ed574e224270c03c89b24acafa21506cd249f400de4a974b5a0c8e0e" name="a5025c3469ed574e224270c03c89b24acafa21506cd249f400de4a974b5a0c8e0e"></a>kTrace&#160;</td><td class="fielddoc"><p >Trace or listen message. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5025c3469ed574e224270c03c89b24acabb53ce21b7c0b7c8a8f7860a41901d29" name="a5025c3469ed574e224270c03c89b24acabb53ce21b7c0b7c8a8f7860a41901d29"></a>kDebug&#160;</td><td class="fielddoc"><p >Debug message. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5025c3469ed574e224270c03c89b24aca176a473e63c17ccdac91640c67f149bf" name="a5025c3469ed574e224270c03c89b24aca176a473e63c17ccdac91640c67f149bf"></a>kInfo&#160;</td><td class="fielddoc"><p >Informational message. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5025c3469ed574e224270c03c89b24aca69f03ebfd6cab4eaa75fc4182f0feca9" name="a5025c3469ed574e224270c03c89b24aca69f03ebfd6cab4eaa75fc4182f0feca9"></a>kNotice&#160;</td><td class="fielddoc"><p >Notice message. Notify the user. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5025c3469ed574e224270c03c89b24acaec0da41f4e48b52c362303eb27ed5dee" name="a5025c3469ed574e224270c03c89b24acaec0da41f4e48b52c362303eb27ed5dee"></a>kWarning&#160;</td><td class="fielddoc"><p >Warning message. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5025c3469ed574e224270c03c89b24acae3587c730cc1aa530fa4ddc9c4204e97" name="a5025c3469ed574e224270c03c89b24acae3587c730cc1aa530fa4ddc9c4204e97"></a>kError&#160;</td><td class="fielddoc"><p >Error message. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5025c3469ed574e224270c03c89b24aca5a20548c220f372fc701cae6de94040b" name="a5025c3469ed574e224270c03c89b24aca5a20548c220f372fc701cae6de94040b"></a>kCritical&#160;</td><td class="fielddoc"><p >Critical message (device error) </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5025c3469ed574e224270c03c89b24acac0d18299609bebcba35e0e9253cb41c4" name="a5025c3469ed574e224270c03c89b24acac0d18299609bebcba35e0e9253cb41c4"></a>kAlert&#160;</td><td class="fielddoc"><p >Alert or alarm message. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5025c3469ed574e224270c03c89b24aca1921cdd35fc6d7638aa9b2c7fc55cdef" name="a5025c3469ed574e224270c03c89b24aca1921cdd35fc6d7638aa9b2c7fc55cdef"></a>kEmergency&#160;</td><td class="fielddoc"><p >Fatal error message. </p>
 </td></tr>
 </table>
 

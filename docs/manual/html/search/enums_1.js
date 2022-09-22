@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['rangetype_0',['RangeType',['../namespacemdf.html#a46a3858892c319db499ddac17cd55712',1,'mdf']]]
+  ['mdflogseverity_0',['MdfLogSeverity',['../namespacemdf.html#a5025c3469ed574e224270c03c89b24ac',1,'mdf']]]
 ];

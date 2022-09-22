@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['writestate_0',['WriteState',['../classmdf_1_1_mdf_writer.html#adadc2746aad9d59686ca5a984404c69f',1,'mdf::MdfWriter']]]
+  ['synctype_0',['SyncType',['../namespacemdf.html#a8c225042124d87094e5197dea6785cfb',1,'mdf']]]
 ];

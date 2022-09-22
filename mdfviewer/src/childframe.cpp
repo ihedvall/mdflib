@@ -4,6 +4,7 @@
  */
 #include <sstream>
 #include <wx/sizer.h>
+#include <util/timestamp.h>
 #include "childframe.h"
 #include "mdfdocument.h"
 #include "hl4block.h"

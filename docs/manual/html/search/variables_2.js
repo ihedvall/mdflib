@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mdf_5ffile_5f_0',['mdf_file_',['../classmdf_1_1_mdf_writer.html#a2b75266333ae91f1091d5860e718797f',1,'mdf::MdfWriter']]]
+  ['location_5f_0',['location_',['../classmdf_1_1_mdf_log_stream.html#a69f04f1acb2f6db52f38d859b83dea6f',1,'mdf::MdfLogStream']]]
 ];

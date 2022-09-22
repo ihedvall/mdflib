@@ -15,11 +15,11 @@ set(COMP_DIR "k:" CACHE PATH "Components root directory. Components like Boost, 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_DEBUG_POSTFIX d)
 
-include("script/boost.cmake")
-include("script/utillib.cmake")
+# include("script/boost.cmake")
+# include("script/utillib.cmake")
 include("script/zlib.cmake")
 include("script/expat.cmake")
-#include("script/openssl.cmake")
+
 include("script/wxwidgets.cmake")
 include("script/googletest.cmake")
 include("script/doxygen.cmake")
@@ -95,17 +95,25 @@ add_library(mdf STATIC
         src/ri4block.cpp src/ri4block.h
         src/ld4block.cpp src/ld4block.h
         src/cryptoutil.cpp include/mdf/cryptoutil.h
-        src/zlibutil.cpp include/mdf/zlibutil.h)
+        src/zlibutil.cpp include/mdf/zlibutil.h
+        src/ixmlfile.cpp src/ixmlfile.h
+        src/ixmlnode.cpp src/ixmlnode.h
+        src/writexml.cpp src/writexml.h
+        src/xmlnode.cpp src/xmlnode.h
+        src/expatxml.cpp src/expatxml.h
+        src/mdflogstream.cpp include/mdf/mdflogstream.h src/littlebuffer.cpp src/littlebuffer.h src/bigbuffer.cpp src/bigbuffer.h)
 
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         )
-target_include_directories(mdf PRIVATE ${Boost_INCLUDE_DIRS})
-target_include_directories(mdf PRIVATE ${utillib_SOURCE_DIR}/include)
+# target_include_directories(mdf PRIVATE ${Boost_INCLUDE_DIRS})
+# target_include_directories(mdf PRIVATE ${utillib_SOURCE_DIR}/include)
 target_include_directories(mdf PRIVATE ${ZLIB_INCLUDE_DIRS})
+target_include_directories(mdf PRIVATE ${EXPAT_INCLUDE_DIRS})
 
-target_compile_definitions(util PRIVATE XML_STATIC)
+target_compile_definitions(mdf PRIVATE XML_STATIC)
+
 set(MDF_PUBLIC_HEADERS
         include/mdf/iattachment.h
         include/mdf/ichannel.h

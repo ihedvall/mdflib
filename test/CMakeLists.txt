@@ -6,6 +6,9 @@ project(TestMdf
         DESCRIPTION "Google unit tests for the mdf library"
         LANGUAGES CXX)
 
+include("../script/boost.cmake")
+include("../script/utillib.cmake")
+
 add_executable(test_mdf
         test_conversion.cpp
         testcrypto.cpp

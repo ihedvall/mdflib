@@ -1,14 +1,11 @@
-/*
- * Copyright 2021 Ingemar Hedvall
- * SPDX-License-Identifier: MIT
- */
+
 
 #include <string>
-#include <boost/endian/buffers.hpp>
-#include <boost/locale.hpp>
 #include "mdf/ichannel.h"
-#include "util/stringutil.h"
+#include "mdf/mdfhelper.h"
 #include "half.hpp"
+#include "littlebuffer.h"
+#include "bigbuffer.h"
 
 namespace {
 
@@ -16,50 +13,23 @@ uint64_t ConvertUnsignedLe(const std::vector<uint8_t>& data_buffer)
 {
   switch (data_buffer.size()) {
     case 1: {
-      boost::endian::little_uint8_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 1);
+      const mdf::LittleBuffer<uint8_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 2: {
-      boost::endian::little_uint16_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 2);
+      const mdf::LittleBuffer<uint16_t> data(data_buffer, 0);
       return data.value();
     }
 
-    case 3: {
-      boost::endian::little_uint24_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 3);
-      return data.value();
-    }
 
     case 4: {
-      boost::endian::little_uint32_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 4);
-      return data.value();
-    }
-
-    case 5: {
-      boost::endian::little_uint40_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 5);
-      return data.value();
-    }
-
-    case 6: {
-      boost::endian::little_uint48_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 6);
-      return data.value();
-    }
-
-    case 7: {
-      boost::endian::little_uint56_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 7);
+      const mdf::LittleBuffer<uint32_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 8: {
-      boost::endian::little_uint64_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 8);
+      const mdf::LittleBuffer<uint64_t> data(data_buffer, 0);
       return data.value();
     }
 
@@ -72,50 +42,22 @@ uint64_t ConvertUnsignedBe(const std::vector<uint8_t>& data_buffer)
 {
   switch (data_buffer.size()) {
     case 1: {
-      boost::endian::big_uint8_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 1);
+      const mdf::BigBuffer<uint8_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 2: {
-      boost::endian::big_uint16_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 2);
-      return data.value();
-    }
-
-    case 3: {
-      boost::endian::big_uint24_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 3);
+      const mdf::BigBuffer<uint16_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 4: {
-      boost::endian::big_uint32_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 4);
-      return data.value();
-    }
-
-    case 5: {
-      boost::endian::big_uint40_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 5);
-      return data.value();
-    }
-
-    case 6: {
-      boost::endian::big_uint48_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 6);
-      return data.value();
-    }
-
-    case 7: {
-      boost::endian::big_uint56_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 7);
+      const mdf::BigBuffer<uint32_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 8: {
-      boost::endian::big_uint64_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 8);
+      const mdf::BigBuffer<uint64_t> data(data_buffer, 0);
       return data.value();
     }
 
@@ -128,50 +70,22 @@ int64_t ConvertSignedLe(const std::vector<uint8_t>& data_buffer)
 {
   switch (data_buffer.size()) {
     case 1: {
-      boost::endian::little_int8_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 1);
+      const mdf::LittleBuffer<int8_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 2: {
-      boost::endian::little_int16_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 2);
-      return data.value();
-    }
-
-    case 3: {
-      boost::endian::little_int24_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 3);
+      const mdf::LittleBuffer<int16_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 4: {
-      boost::endian::little_int32_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 4);
-      return data.value();
-    }
-
-    case 5: {
-      boost::endian::little_int40_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 5);
-      return data.value();
-    }
-
-    case 6: {
-      boost::endian::little_int48_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 6);
-      return data.value();
-    }
-
-    case 7: {
-      boost::endian::little_int56_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 7);
+      const mdf::LittleBuffer<int32_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 8: {
-      boost::endian::little_int64_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 8);
+      const mdf::LittleBuffer<int64_t> data(data_buffer, 0);
       return data.value();
     }
 
@@ -184,50 +98,22 @@ int64_t ConvertSignedBe(const std::vector<uint8_t>& data_buffer)
 {
   switch (data_buffer.size()) {
     case 1: {
-      boost::endian::big_int8_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 1);
+      const mdf::BigBuffer<int8_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 2: {
-      boost::endian::big_int16_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 2);
-      return data.value();
-    }
-
-    case 3: {
-      boost::endian::big_int24_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 3);
+      const mdf::BigBuffer<int16_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 4: {
-      boost::endian::big_int32_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 4);
-      return data.value();
-    }
-
-    case 5: {
-      boost::endian::big_int40_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 5);
-      return data.value();
-    }
-
-    case 6: {
-      boost::endian::big_int48_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 6);
-      return data.value();
-    }
-
-    case 7: {
-      boost::endian::big_int56_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 7);
+      const mdf::BigBuffer<int32_t> data(data_buffer, 0);
       return data.value();
     }
 
     case 8: {
-      boost::endian::big_int64_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 8);
+      const mdf::BigBuffer<int64_t> data(data_buffer, 0);
       return data.value();
     }
 
@@ -238,21 +124,19 @@ int64_t ConvertSignedBe(const std::vector<uint8_t>& data_buffer)
 
 double ConvertFloatBe(const std::vector<uint8_t>& data_buffer) {
   switch (data_buffer.size()) {
+/*
     case 2: {
-      boost::endian::endian_buffer<boost::endian::order::big, half_float::half, 16, boost::endian::align::no> data {};
-      memcpy(data.data(), data_buffer.data(), 2);
+      const mdf::BigBuffer<half_float::half> data(data_buffer, 0);
       return data.value();
     }
-
+*/
     case 4: {
-      boost::endian::big_float32_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 4);
+      const mdf::BigBuffer<float> data(data_buffer, 0);
       return data.value();
     }
 
     case 8: {
-      boost::endian::big_float64_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 8);
+      const mdf::BigBuffer<double> data(data_buffer, 0);
       return data.value();
     }
     default: break;
@@ -262,23 +146,23 @@ double ConvertFloatBe(const std::vector<uint8_t>& data_buffer) {
 
 double ConvertFloatLe(const std::vector<uint8_t>& data_buffer) {
   switch (data_buffer.size()) {
+/*
     case 2: {
       boost::endian::endian_buffer<boost::endian::order::little, half_float::half, 16, boost::endian::align::no> data {};
       memcpy(data.data(), data_buffer.data(), 2);
       return data.value();
     }
-
+*/
     case 4: {
-      boost::endian::little_float32_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 4);
+      const mdf::LittleBuffer<float> data(data_buffer, 0);
       return data.value();
     }
 
     case 8: {
-      boost::endian::little_float64_buf_t data;
-      memcpy(data.data(), data_buffer.data(), 8);
+      const mdf::LittleBuffer<double> data(data_buffer, 0);
       return data.value();
     }
+
     default: break;
   }
   return 0.0;
@@ -406,7 +290,7 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
         s << in;
       }
       try {
-        dest = boost::locale::conv::to_utf<char>(s.str(), "Latin1");
+        dest = MdfHelper::Latin1ToUtf8(s.str());
       } catch (const std::exception&) {
         valid = false; // Conversion error
         dest = s.str();
@@ -431,15 +315,14 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
     case ChannelDataType::StringUTF16Le: {
       std::wostringstream s;
       for (size_t ii = offset; (ii + 2) <= record_buffer.size(); ii += 2) {
-        boost::endian::little_uint16_buf_t data;
-        memcpy(data.data(), record_buffer.data() + ii, 2);
+        const LittleBuffer<uint16_t> data(record_buffer, ii);
         if (data.value() == 0) {
           break;
         }
         s << static_cast<wchar_t>(data.value());
       }
       try {
-        dest = boost::locale::conv::utf_to_utf<char>(s.str());
+        dest = MdfHelper::Utf16ToUtf8(s.str());
       } catch (const std::exception&) {
         valid = false; // Conversion error
       }
@@ -449,16 +332,14 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
     case ChannelDataType::StringUTF16Be: {
       std::wostringstream s;
       for (size_t ii = offset; (ii + 2) <= record_buffer.size(); ii += 2) {
-        auto* d = record_buffer.data() + ii;
-        boost::endian::big_uint16_buf_t data;
-        memcpy(data.data(), d, 2);
+        const BigBuffer<uint16_t> data(record_buffer, ii);
         if (data.value() == 0) {
           break;
         }
         s << static_cast<wchar_t>(data.value());
       }
       try {
-        dest = boost::locale::conv::utf_to_utf<char>(s.str());
+        dest = MdfHelper::Utf16ToUtf8(s.str());
       } catch (const std::exception&) {
         valid = false; // Conversion error
       }
@@ -505,25 +386,25 @@ void IChannel::SetUnsignedValueLe(uint64_t value, bool valid) {
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 1: {
-      boost::endian::little_uint8_buf_at data(static_cast<uint8_t>(value));
+      const LittleBuffer data(static_cast<uint8_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 2: {
-      boost::endian::little_uint16_buf_at data(static_cast<uint16_t>(value));
+      const LittleBuffer data(static_cast<uint16_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 4: {
-      boost::endian::little_uint32_buf_at data(static_cast<uint32_t>(value));
+      const LittleBuffer data(static_cast<uint32_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 8: {
-      boost::endian::little_uint64_buf_at data(value);
+      const LittleBuffer data(value);
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
@@ -540,25 +421,25 @@ void IChannel::SetUnsignedValueBe(uint64_t value, bool valid) {
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 1: {
-      boost::endian::big_uint8_buf_at data(static_cast<uint8_t>(value));
+      const BigBuffer data(static_cast<uint8_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 2: {
-      boost::endian::big_uint16_buf_at data(static_cast<uint16_t>(value));
+      const BigBuffer data(static_cast<uint16_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 4: {
-      boost::endian::big_uint32_buf_at data(static_cast<uint32_t>(value));
+      const BigBuffer data(static_cast<uint32_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 8: {
-      boost::endian::big_uint64_buf_at data(value);
+      const BigBuffer data(value);
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
@@ -574,25 +455,25 @@ void IChannel::SetSignedValueLe(int64_t value, bool valid) {
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 1: {
-      boost::endian::little_int8_buf_at data(static_cast<int8_t>(value));
+      const LittleBuffer data(static_cast<int8_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 2: {
-      boost::endian::little_int16_buf_at data(static_cast<int16_t>(value));
+      const LittleBuffer data(static_cast<int16_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 4: {
-      boost::endian::little_int32_buf_at data(static_cast<int32_t>(value));
+      const LittleBuffer data(static_cast<int32_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 8: {
-      boost::endian::little_int64_buf_at data(value);
+      const LittleBuffer data(value);
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
@@ -609,25 +490,25 @@ void IChannel::SetSignedValueBe(int64_t value, bool valid) {
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 1: {
-      boost::endian::big_int8_buf_at data(static_cast<int8_t>(value));
+      const BigBuffer data(static_cast<int8_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 2: {
-      boost::endian::big_int16_buf_at data(static_cast<int16_t>(value));
+      const BigBuffer data(static_cast<int16_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 4: {
-      boost::endian::big_int32_buf_at data(static_cast<int32_t>(value));
+      const BigBuffer data(static_cast<int32_t>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 8: {
-      boost::endian::big_int64_buf_at data(value);
+      const BigBuffer data(value);
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
@@ -643,13 +524,13 @@ void IChannel::SetFloatValueLe(double value, bool valid) {
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 4: {
-      boost::endian::little_float32_buf_at data(static_cast<float>(value));
+      const LittleBuffer data(static_cast<float>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 8: {
-      boost::endian::little_float64_buf_at data(value);
+      const LittleBuffer data(value);
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
@@ -666,13 +547,13 @@ void IChannel::SetFloatValueBe(double value, bool valid) {
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 4: {
-      boost::endian::big_float32_buf_at data(static_cast<float>(value));
+      const BigBuffer data(static_cast<float>(value));
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
 
     case 8: {
-      boost::endian::big_float64_buf_at data(value);
+      const BigBuffer data(value);
       memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
       break;
     }
@@ -812,7 +693,7 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::s
     case ChannelDataType::FloatBe: {
       double value = 0;
       valid = GetFloatValue(record_buffer, value);
-      dest = IsDecimalUsed() ? util::string::FormatDouble(value, Decimals()) : std::to_string(value);
+      dest = IsDecimalUsed() ? MdfHelper::FormatDouble(value, Decimals()) : std::to_string(value);
       break;
     }
 

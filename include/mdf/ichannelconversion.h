@@ -7,7 +7,7 @@
 #include <vector>
 #include <optional>
 #include <sstream>
-#include "util/stringutil.h"
+#include "mdf/mdfhelper.h"
 namespace mdf {
 
 enum class ConversionType : uint8_t {
@@ -186,37 +186,37 @@ class IChannelConversion {
     switch (Type()) {
       case ConversionType::Linear: {
         valid = ConvertLinear(static_cast<double>(channel_value),value);
-        eng_value = util::string::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+        eng_value = MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
         break;
       }
 
       case ConversionType::Rational: {
         valid = ConvertRational(static_cast<double>(channel_value),value);
-        eng_value = util::string::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+        eng_value = MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
         break;
       }
 
       case ConversionType::Algebraic: {
         valid = ConvertAlgebraic(static_cast<double>(channel_value),value);
-        eng_value = util::string::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+        eng_value = MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
         break;
       }
 
       case ConversionType::ValueToValueInterpolation: {
         valid = ConvertValueToValueInterpolate(static_cast<double>(channel_value),value);
-        eng_value = util::string::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+        eng_value = MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
         break;
       }
 
       case ConversionType::ValueToValue: {
         valid = ConvertValueToValue(static_cast<double>(channel_value),value);
-        eng_value = util::string::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+        eng_value = MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
         break;
       }
 
       case ConversionType::ValueRangeToValue: {
         valid = ConvertValueRangeToValue(static_cast<double>(channel_value),value);
-        eng_value = util::string::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+        eng_value = MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
         break;
       }
 
@@ -232,25 +232,25 @@ class IChannelConversion {
 
       case ConversionType::Polynomial: {
         valid = ConvertPolynomial(static_cast<double>(channel_value),value);
-        eng_value = util::string::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);;
+        eng_value = MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);;
         break;
       }
 
       case ConversionType::Exponential: {
         valid = ConvertExponential(static_cast<double>(channel_value),value);
-        eng_value = util::string::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);;
+        eng_value = MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);;
         break;
       }
 
       case ConversionType::Logarithmic: {
         valid = ConvertLogarithmic(static_cast<double>(channel_value),value);
-        eng_value = util::string::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);;
+        eng_value = MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);;
         break;
       }
 
       case ConversionType::NoConversion:
       default:{
-        eng_value = util::string::FormatDouble(static_cast<double>(channel_value), IsDecimalUsed() ? Decimals() : 6);
+        eng_value = MdfHelper::FormatDouble(static_cast<double>(channel_value), IsDecimalUsed() ? Decimals() : 6);
         valid = true;
         break;
       }

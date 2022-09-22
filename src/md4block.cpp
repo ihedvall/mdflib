@@ -2,15 +2,13 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include "util/ixmlfile.h"
+#include "ixmlfile.h"
 #include "md4block.h"
-
-using namespace util::xml;
 
 namespace {
 
-void MakeConstantList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  IXmlNode::ChildList constant_list;
+void MakeConstantList(const mdf::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  mdf::IXmlNode::ChildList constant_list;
   root.GetChildList(constant_list);
   if (constant_list.empty()) {
     return;
@@ -23,8 +21,8 @@ void MakeConstantList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest
   }
 }
 
-void MakePhysicalDimension(const IXmlNode &pd, mdf::detail::BlockPropertyList &dest) {
-  IXmlNode::ChildList list;
+void MakePhysicalDimension(const mdf::IXmlNode &pd, mdf::detail::BlockPropertyList &dest) {
+  mdf::IXmlNode::ChildList list;
   pd.GetChildList(list);
 
   const auto name = pd.Attribute<std::string>("ID");
@@ -55,8 +53,8 @@ void MakePhysicalDimension(const IXmlNode &pd, mdf::detail::BlockPropertyList &d
   dest.emplace_back(label, name, desc.str());
 }
 
-void MakePhysicalDimensionList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  IXmlNode::ChildList list;
+void MakePhysicalDimensionList(const mdf::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  mdf::IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -68,8 +66,8 @@ void MakePhysicalDimensionList(const IXmlNode &root, mdf::detail::BlockPropertyL
   }
 }
 
-void MakeUnitGroup(const IXmlNode &pd, mdf::detail::BlockPropertyList &dest) {
-  IXmlNode::ChildList list;
+void MakeUnitGroup(const mdf::IXmlNode &pd, mdf::detail::BlockPropertyList &dest) {
+  mdf::IXmlNode::ChildList list;
   pd.GetChildList(list);
 
   std::string name;
@@ -79,7 +77,7 @@ void MakeUnitGroup(const IXmlNode &pd, mdf::detail::BlockPropertyList &dest) {
     if (c->IsTagName("SHORT_NAME")) {
       name = c->Value<std::string>();
     } else if (c->IsTagName("UNIT-REFS")) {
-      util::xml::IXmlNode::ChildList ref_list;
+      mdf::IXmlNode::ChildList ref_list;
       c->GetChildList(ref_list);
       for (const auto& ref : ref_list ) {
         const auto id = ref->Attribute<std::string>("ID-REF");
@@ -94,8 +92,8 @@ void MakeUnitGroup(const IXmlNode &pd, mdf::detail::BlockPropertyList &dest) {
   dest.emplace_back("Unit Group", name, desc.str());
 }
 
-void MakeUnitGroupList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  IXmlNode::ChildList list;
+void MakeUnitGroupList(const mdf::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  mdf::IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -107,8 +105,8 @@ void MakeUnitGroupList(const IXmlNode &root, mdf::detail::BlockPropertyList &des
   }
 }
 
-void MakeUnit(const IXmlNode &unit, mdf::detail::BlockPropertyList &dest) {
-  IXmlNode::ChildList list;
+void MakeUnit(const mdf::IXmlNode &unit, mdf::detail::BlockPropertyList &dest) {
+  mdf::IXmlNode::ChildList list;
   unit.GetChildList(list);
 
   std::ostringstream desc;
@@ -150,8 +148,8 @@ void MakeUnit(const IXmlNode &unit, mdf::detail::BlockPropertyList &dest) {
   dest.emplace_back(name, display_name, d.str());
 }
 
-void MakeUnitList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  IXmlNode::ChildList list;
+void MakeUnitList(const mdf::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  mdf::IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -163,8 +161,8 @@ void MakeUnitList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
   }
 }
 
-void MakeUnitSpecList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  IXmlNode::ChildList list;
+void MakeUnitSpecList(const mdf::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  mdf::IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -180,7 +178,7 @@ void MakeUnitSpecList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest
   }
 }
 
- void MakeCommonProperty(const IXmlNode &e, mdf::detail::BlockPropertyList &dest) {
+ void MakeCommonProperty(const mdf::IXmlNode &e, mdf::detail::BlockPropertyList &dest) {
    const auto name = e.Attribute<std::string>("name");
    const auto desc = e.Attribute<std::string>("desc");
    auto unit = e.Attribute<std::string>("unit");
@@ -198,8 +196,8 @@ void MakeUnitSpecList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest
    dest.emplace_back(label.str(), value, desc);
  }
 
-void MakeTreePropertyList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  IXmlNode::ChildList list;
+void MakeTreePropertyList(const mdf::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  mdf::IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;
@@ -220,8 +218,8 @@ void MakeTreePropertyList(const IXmlNode &root, mdf::detail::BlockPropertyList &
   }
 }
 
- void MakeCommonPropertyList(const IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
-  IXmlNode::ChildList list;
+ void MakeCommonPropertyList(const mdf::IXmlNode &root, mdf::detail::BlockPropertyList &dest) {
+  mdf::IXmlNode::ChildList list;
   root.GetChildList(list);
   if (list.empty()) {
     return;

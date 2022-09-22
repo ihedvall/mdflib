@@ -13,6 +13,7 @@
 #include "cg3block.h"
 #include "dg3block.h"
 #include "mdf3file.h"
+#include "platform.h"
 
 using namespace std::chrono_literals;
 
@@ -48,11 +49,7 @@ void Mdf3Writer::CreateMdfFile() {
 }
 
 void Mdf3Writer::SetLastPosition(std::FILE *file) {
-#if (_MSC_VER)
-  _fseeki64(file, 0, SEEK_END);
-#else
-  fseeko64(file, 0, SEEK_END);
-#endif
+  Platform::fseek64(file, 0, SEEK_END);
 
   auto* header = Header();
   if (header == nullptr) {

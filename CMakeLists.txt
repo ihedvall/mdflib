@@ -101,7 +101,9 @@ add_library(mdf STATIC
         src/writexml.cpp src/writexml.h
         src/xmlnode.cpp src/xmlnode.h
         src/expatxml.cpp src/expatxml.h
-        src/mdflogstream.cpp include/mdf/mdflogstream.h src/littlebuffer.cpp src/littlebuffer.h src/bigbuffer.cpp src/bigbuffer.h)
+        src/mdflogstream.cpp include/mdf/mdflogstream.h src/littlebuffer.cpp src/littlebuffer.h src/bigbuffer.cpp src/bigbuffer.h
+        src/platform.cpp
+    )
 
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>

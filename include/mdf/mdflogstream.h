@@ -6,13 +6,23 @@
 #pragma once
 #include <string>
 #include <sstream>
+#if (_MSC_VER)
 #include <source_location>
+#else
+#include <experimental/source_location>
+#endif
 namespace mdf {
 
-#define MDF_TRACE() MdfLogStream(std::source_location::current(), MdfLogSeverity::kTrace) ///< Trace log message
-#define MDF_DEBUG() MdfLogStream(std::source_location::current(), MdfLogSeverity::kDebug) ///< Debug log message
-#define MDF_INFO() MdfLogStream(std::source_location::current(), MdfLogSeverity::kInfo) ///< Info log message
-#define MDF_ERROR() MdfLogStream(std::source_location::current(), MdfLogSeverity::kError) ///< Error log message
+#if (_MSC_VER)
+using Loc = std::source_location;
+#else
+using Loc = std::experimental::source_location;
+#endif
+
+#define MDF_TRACE() MdfLogStream(Loc::current(), MdfLogSeverity::kTrace) ///< Trace log message
+#define MDF_DEBUG() MdfLogStream(Loc::current(), MdfLogSeverity::kDebug) ///< Debug log message
+#define MDF_INFO() MdfLogStream(Loc::current(), MdfLogSeverity::kInfo) ///< Info log message
+#define MDF_ERROR() MdfLogStream(Loc::current(), MdfLogSeverity::kError) ///< Error log message
 
 ///< Defines the log severity level
 enum class MdfLogSeverity : uint8_t {
@@ -30,7 +40,7 @@ enum class MdfLogSeverity : uint8_t {
 class MdfLogStream : public std::ostringstream {
 
    public:
-    MdfLogStream(const std::source_location& location, MdfLogSeverity severity); ///< Constructor
+    MdfLogStream(const Loc& location, MdfLogSeverity severity); ///< Constructor
     ~MdfLogStream() override; ///< Destructor
 
     MdfLogStream() = delete;
@@ -39,10 +49,10 @@ class MdfLogStream : public std::ostringstream {
     MdfLogStream &operator=(const MdfLogStream &) = delete;
     MdfLogStream &operator=(MdfLogStream &&) = delete;
    protected:
-    std::source_location location_;  ///< File and function location.
+    Loc location_;  ///< File and function location.
     MdfLogSeverity severity_;    ///< Log level of the stream
 
-    virtual void LogString(const std::source_location& location, MdfLogSeverity severity, const std::string& text);
+    virtual void LogString(const Loc& location, MdfLogSeverity severity, const std::string& text);
 
 
 };

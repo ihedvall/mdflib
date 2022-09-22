@@ -5,6 +5,9 @@
 #include "cn3block.h"
 #include "cg3block.h"
 #include "mdf/mdfhelper.h"
+
+#include <limits>
+
 namespace {
 constexpr size_t kIndexNext = 0;
 constexpr size_t kIndexCc = 1;

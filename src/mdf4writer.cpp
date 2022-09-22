@@ -6,6 +6,7 @@
 
 #include "mdf4writer.h"
 #include "mdf4file.h"
+#include "platform.h"
 
 namespace mdf::detail {
 
@@ -45,11 +46,7 @@ void Mdf4Writer::CreateMdfFile() {
 }
 
 void Mdf4Writer::SetLastPosition(std::FILE *file) {
-#if (_MSC_VER)
-  _fseeki64(file, 0, SEEK_END);
-#else
-  fseeko64(file, 0, SEEK_END);
-#endif
+  Platform::fseek64(file, 0, SEEK_END);
 
   auto* header = Header();
   if (header == nullptr) {

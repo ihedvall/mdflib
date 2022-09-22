@@ -10,6 +10,7 @@
 #include "mdf/mdflogstream.h"
 #include "mdf/zlibutil.h"
 #include "mdf/cryptoutil.h"
+#include "platform.h"
 
 using namespace std::filesystem;
 
@@ -65,7 +66,7 @@ bool FileToBuffer(const std::string& filename, mdf::ByteArray& dest) {
     if (size > 0) {
       dest.resize(size, 0);
       std::FILE* file = nullptr;
-      fopen_s(&file, filename.c_str(), "rb");
+      Platform::fileopen(&file, filename.c_str(), "rb");
       if (file != nullptr) {
         const auto nof_bytes = fread(dest.data(), 1, size, file);
         if (nof_bytes < size) {

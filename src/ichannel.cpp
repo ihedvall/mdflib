@@ -1,6 +1,7 @@
 
 
 #include <string>
+#include <ctime>
 #include "mdf/ichannel.h"
 #include "mdf/mdfhelper.h"
 #include "half.hpp"
@@ -726,11 +727,10 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::s
 
       const auto ms = ms_since_1970 % 1000;
       const auto time = static_cast<time_t>(ms_since_1970 / 1000);
-      struct tm bt{};
-      localtime_s(&bt, &time);
+      const struct tm* bt = std::localtime(&time);
 
       std::ostringstream text;
-      text << std::put_time(&bt, "%Y-%m-%d %H:%M:%S")
+      text << std::put_time(bt, "%Y-%m-%d %H:%M:%S")
            << '.' << std::setfill('0') << std::setw(3) << ms;
       dest = text.str();
       break;
@@ -742,11 +742,10 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::s
 
       const auto ms = ms_since_1970 % 1000;
       const auto time = static_cast<time_t>(ms_since_1970 / 1000);
-      struct tm bt{};
-      localtime_s(&bt, &time);
+      const struct tm* bt = std::localtime(&time);
 
       std::ostringstream text;
-      text << std::put_time(&bt, "%Y-%m-%d %H:%M:%S")
+      text << std::put_time(bt, "%Y-%m-%d %H:%M:%S")
            << '.' << std::setfill('0') << std::setw(3) << ms;
       dest = text.str();
       break;

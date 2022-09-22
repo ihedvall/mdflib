@@ -6,6 +6,7 @@
 #include <ranges>
 #include "ch4block.h"
 #include "hd4block.h"
+#include <algorithm>
 namespace {
 
 constexpr size_t kIndexCh = 1;

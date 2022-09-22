@@ -6,7 +6,9 @@
 
 #include <filesystem>
 #include <boost/process.hpp>
+#if (_MSC_VER)
 #include <boost/process/windows.hpp>
+#endif
 #include <boost/filesystem.hpp>
 
 #include <wx/msgdlg.h>
@@ -512,7 +514,12 @@ void MdfDocument::OnPlotChannelData(wxCommandEvent &event) {
     wxMessageBox("Failed to create CSV or GP files.\nMore information in log file.");
     return;
   }
+#if (_MSC_VER)
   boost::process::spawn(app.GnuPlot(), "--persist", gp_file, boost::process::windows::hide);
+#else
+  // TODO: how to hide?
+  boost::process::spawn(app.GnuPlot(), "--persist", gp_file);
+#endif
 }
 
 void MdfDocument::OnUpdatePlotChannelData(wxUpdateUIEvent &event) {

@@ -24,7 +24,7 @@ jobs:
 
         env:
           - name: linux
-            os: ubuntu-latest
+            os: ubuntu-22.04
             ninja_platform: linux
             cmake_env: {}
 

@@ -127,6 +127,7 @@ set(MDF_PUBLIC_HEADERS
         include/mdf/iheader.h
         include/mdf/mdffile.h
         include/mdf/mdfreader.h
+        include/mdf/mdfhelper.h # TODO: is there a possibility to get this away?
 )
 
 set_target_properties(mdf PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")

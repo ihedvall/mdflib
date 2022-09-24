@@ -10,6 +10,7 @@
 #include <cstring>
 #include <chrono>
 #include <mdf/mdflogstream.h>
+#include <mdf/idatagroup.h>
 #include <string.h>
 #include <algorithm>
 #include "mdf/mdfwriter.h"
@@ -48,6 +49,10 @@ IHeader *MdfWriter::Header() const {
 
 IDataGroup *MdfWriter::CreateDataGroup() {
   return !mdf_file_ ? nullptr : mdf_file_->CreateDataGroup();
+}
+
+IChannelGroup* MdfWriter::CreateChannelGroup(IDataGroup* parent) {
+  return parent == nullptr ? nullptr : parent->CreateChannelGroup();
 }
 
 bool MdfWriter::Init(const std::string& filename) {

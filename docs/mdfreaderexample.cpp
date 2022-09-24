@@ -34,7 +34,7 @@ for (const auto* dg4 : dg_list) {
   for (auto& obs : subscriber_list) {
     for (size_t sample = 0; sample < obs->NofSamples(); ++sample) {
       const auto channel_valid = obs->GetChannelValue(csample, hannel_value);
-      const auto eng_valid = obs->GetEngValue(sample, eng_value);
+      const auto eng_valid = sub->GetEngValue(sample, eng_value);
       // You should do something with data here
     }
   }

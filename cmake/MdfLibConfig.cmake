@@ -1,1 +1,1 @@
-include("${CMAKE_CURRENT_LIST_DIR}/ClimbingStatsTargets.cmake") 
+include("${CMAKE_CURRENT_LIST_DIR}/MdfLibTargets.cmake")

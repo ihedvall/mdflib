@@ -124,6 +124,7 @@ set(MDF_PUBLIC_HEADERS
         include/mdf/ichannelobserver.h
         include/mdf/idatagroup.h
         include/mdf/isampleobserver.h
+        include/mdf/iheader.h
         include/mdf/mdffile.h
         include/mdf/mdfreader.h
 )
@@ -171,7 +172,7 @@ endif()
 ######################################################################################
 # Packaging
 ######################################################################################
-
+# https://cmake.org/cmake/help/v3.17/manual/cmake-packages.7.html#creating-a-package-configuration-file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibConfigVersion.cmake"

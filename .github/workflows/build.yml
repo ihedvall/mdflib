@@ -29,7 +29,7 @@ jobs:
             cmake_env: {}
 
           - name: macos
-            os: macos-latest
+            os: macos-12
             ninja_platform: mac
             cmake_env: {}
             pack: 1
@@ -88,6 +88,10 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
           echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
           brew install expat
+
+      - name: Install llvm
+        if: matrix.env.ninja_platform == 'mac'
+        run: brew install llvm
 
       # https://stackoverflow.com/questions/23749530/brew-install-zlib-devel-on-mac-os-x-mavericks
       - name: zlib

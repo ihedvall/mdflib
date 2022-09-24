@@ -7,7 +7,6 @@
 #include <vector>
 #include "ichannel.h"
 #include "samplerecord.h"
-#include "isourceinformation.h"
 namespace mdf {
 namespace CgFlag {
   constexpr uint16_t VlsdChannel = 0x0001;
@@ -16,6 +15,8 @@ namespace CgFlag {
   constexpr uint16_t RemoteMaster = 0x0008;
   constexpr uint16_t EventSignal = 0x00010;
 }
+
+class ISourceInformation;
 
 class IChannelGroup {
  public:

@@ -124,6 +124,7 @@ set(MDF_PUBLIC_HEADERS
         include/mdf/ichannelobserver.h
         include/mdf/idatagroup.h
         include/mdf/isampleobserver.h
+        include/mdf/samplerecord.h
         include/mdf/iheader.h
         include/mdf/mdffile.h
         include/mdf/mdfreader.h

@@ -112,9 +112,23 @@ jobs:
           cd build/release
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ${{ env.CMAKE_FLAGS }} ${{ matrix.env.cmake_flags }} ../..
 
-
       - name: Build
         run: |
           cd build/release
+          ninja
+
+      # install for testing
+      - name: Install
+        run: |
+          cd build/release
+          ninja install
+
+      # test if cmake finds the mdflib automatically
+      - name: TestInstall
+        run: |
+          cd test/TestMDFCMake
+          mkdir -p build
+          cd build
+          cmake -G Ninja ..
           ninja
 ...

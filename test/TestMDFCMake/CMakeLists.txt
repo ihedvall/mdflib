@@ -4,8 +4,6 @@ project(mdfTestReadExample
         DESCRIPTION "Test find_package mdf"
         LANGUAGES CXX)
         
-find_package(MdfLib REQUIRED)
+find_package(mdf REQUIRED)
 
-add_executable(TestMDFCMake ../../docs/mdfreaderexample.cpp)
-target_link_libraries(TestMDFCMake MdfLibTargets)
-
+add_executable(TestMDFCMake main.cpp)

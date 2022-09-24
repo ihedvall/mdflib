@@ -38,6 +38,6 @@ class MdfViewer : public wxApp {
   void OnUpdateGnuPlotDownloadPage(wxUpdateUIEvent& event);
   wxDECLARE_EVENT_TABLE();
 };
-
-wxDECLARE_APP(MdfViewer);
 } // namespace
+
+wxDECLARE_APP(mdf::viewer::MdfViewer);

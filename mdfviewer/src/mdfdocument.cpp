@@ -38,7 +38,7 @@ std::string CreateCsvFile(const mdf::ChannelObserverList& list) {
     return "";
   }
 
-  const auto& app = mdf::viewer::wxGetApp();
+  const auto& app = wxGetApp();
   std::string csv_file;
   try {
     std::filesystem::path temp_file(app.GetMyTempDir());

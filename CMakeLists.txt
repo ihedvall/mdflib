@@ -158,3 +158,42 @@ if (DOXYGEN_FOUND AND (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC
             include/mdf doxygen
             COMMENT "MDF Library generating API documentation with Doxygen")
 endif()
+
+######################################################################################
+# Packaging
+######################################################################################
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibConfigVersion.cmake"
+  VERSION ${Upstream_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+
+export(EXPORT MdfLibTargets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibTargets.cmake"
+  NAMESPACE Upstream::
+)
+configure_file(cmake/MdfLibConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/mdflib/MdfLibConfig.cmake"
+  COPYONLY
+)
+
+set(ConfigPackageLocation lib/cmake/mdflib)
+install(EXPORT MdfLibTargets
+  FILE
+    MdfLibTargets.cmake
+  NAMESPACE
+    Upstream::
+  DESTINATION
+    ${ConfigPackageLocation}
+)
+install(
+  FILES
+    cmake/MdfLibConfig.cmake
+    "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibConfigVersion.cmake"
+  DESTINATION
+    ${ConfigPackageLocation}
+  COMPONENT
+    Devel
+)

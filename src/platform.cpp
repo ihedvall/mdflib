@@ -25,11 +25,11 @@ int strnicmp (const char *__s1, const char *__s2, size_t __n) {
 #endif
 }
 
-char *strerror (int __errnum, char *__buf, size_t __buflen) {
+void strerror (int __errnum, char *__buf, size_t __buflen) {
 #if (_MSC_VER)
-  return strerror_s(__buf, __buflen, __errnum);
+  strerror_s(__buf, __buflen, __errnum);
 #else
-  return strerror_r(__errnum, __buf, __buflen);
+  strerror_r(__errnum, __buf, __buflen);
 #endif
 }
 

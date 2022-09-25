@@ -51,7 +51,7 @@ int fseek64 (std::FILE *__stream, int64_t __off, int __whence) {
 
 int fileopen (std::FILE** out, const char *__restrict __filename,
                 const char *__restrict __modes) {
-    out = nullptr;
+    *out = nullptr;
     #if (_MSC_VER)
         return fopen_s(out, __filename, __modes);
     #else

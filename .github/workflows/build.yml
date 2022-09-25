@@ -125,7 +125,7 @@ jobs:
       - name: Install
         run: |
           cd build/release
-          sudo cmake --install . --prefix ../../mdflibinstall
+          sudo cmake --install .
 
       # test if cmake finds the mdflib automatically
       - name: TestInstall

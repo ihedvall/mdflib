@@ -174,7 +174,7 @@ endif()
 ######################################################################################
 # Packaging
 ######################################################################################
-# https://cmake.org/cmake/help/v3.17/manual/cmake-packages.7.html#creating-a-package-configuration-file
+# https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#creating-a-package-configuration-file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibConfigVersion.cmake"

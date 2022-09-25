@@ -105,6 +105,8 @@ add_library(mdf STATIC
         src/platform.cpp
     )
 
+target_link_libraries(mdf ${ZLIB_LIBRARIES} ${EXPAT_LIBRARIES})
+
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <thread>
 #include <chrono>
+#include <algorithm>
 #include "util/logconfig.h"
 #include "util/logstream.h"
 #include "util/timestamp.h"

@@ -11,7 +11,7 @@
 namespace Platform {
 int stricmp (const char *__s1, const char *__s2);
 int strnicmp (const char *__s1, const char *__s2, size_t __n);
-char *strerror (int __errnum, char *__buf, size_t __buflen);
+void strerror (int __errnum, char *__buf, size_t __buflen);
 
 int64_t ftell64 (std::FILE *__stream);
 int fseek64 (FILE *__stream, int64_t __off, int __whence);

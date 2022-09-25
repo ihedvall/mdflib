@@ -35,7 +35,7 @@ void SetFilePosition(std::FILE *file, int64_t position) {
     return;
   }
 
-  if (Platform::fseek64(file, pos, SEEK_SET)) {
+  if (Platform::fseek64(file, position, SEEK_SET)) {
     throw std::ios_base::failure("Failed to set a file position");
   }
 }

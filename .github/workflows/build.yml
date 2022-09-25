@@ -125,7 +125,7 @@ jobs:
       - name: Install
         run: |
           cd build/release
-          ninja install
+          sudo ninja install
 
       # test if cmake finds the mdflib automatically
       - name: TestInstall

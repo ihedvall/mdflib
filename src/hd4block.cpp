@@ -131,7 +131,7 @@ void Hd4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("First CH", ToHexString(Link(kIndexCh)), "Link to first channel hierarchy", BlockItemType::LinkItem );
   dest.emplace_back("First AT", ToHexString(Link(kIndexAt)), "Link to first attachment",  BlockItemType::LinkItem );
   dest.emplace_back("First EV", ToHexString(Link(kIndexEv)), "Link to first event",BlockItemType::LinkItem );
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), "Link to meta data",BlockItemType::LinkItem );
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(),BlockItemType::LinkItem );
   dest.emplace_back("", "", "",BlockItemType::BlankItem );
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);

@@ -69,7 +69,7 @@ void Dg4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Next DG", ToHexString(Link(kIndexNext)), "Link to next data group", BlockItemType::LinkItem );
   dest.emplace_back("First CG", ToHexString(Link(kIndexCg)), "Link to first channel group",BlockItemType::LinkItem );
   dest.emplace_back("Link Data", ToHexString(Link(kIndexData)), "Link to Data", BlockItemType::LinkItem );
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), "Link to meta data",BlockItemType::LinkItem );
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(),BlockItemType::LinkItem );
   dest.emplace_back("", "", "",BlockItemType::BlankItem );
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);

@@ -74,7 +74,7 @@ void Cg3Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next CG", ToHexString(Link(kIndexNext)), "Link to next channel group", BlockItemType::LinkItem );
   dest.emplace_back("First CN", ToHexString(Link(kIndexCn)), "Link to first channel",BlockItemType::LinkItem );
-  dest.emplace_back("Comment TX", ToHexString(Link(kIndexTx)), "Link to group comment", BlockItemType::LinkItem );
+  dest.emplace_back("Comment TX", ToHexString(Link(kIndexTx)), comment_, BlockItemType::LinkItem );
   dest.emplace_back("Reduction SR", ToHexString(Link(kIndexSr)), "Link to first sample reduction", BlockItemType::LinkItem );
   dest.emplace_back("", "", "",BlockItemType::BlankItem );
 

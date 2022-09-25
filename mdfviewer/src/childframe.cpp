@@ -991,8 +991,8 @@ void ChildFrame::RedrawListView() {
         auto index = property_view_->InsertItem(line, wxString::FromUTF8(prop.Label()));
         if (prop.Link() > 0) {
           property_view_->SetItem(index, 1, wxString::FromUTF8(prop.Value()));
+          property_view_->SetItem(index, 2, wxString::FromUTF8(prop.Description()));
         }
-        property_view_->SetItem(index, 2, wxString::FromUTF8(prop.Description()));
       }
       break;
 

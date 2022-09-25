@@ -55,9 +55,9 @@ void Si4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
-  dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), "Link to name text", BlockItemType::LinkItem );
-  dest.emplace_back("Path TX", ToHexString(Link(kIndexPath)), "Link to path text",BlockItemType::LinkItem );
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), "Link to meta data",BlockItemType::LinkItem );
+  dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), name_, BlockItemType::LinkItem );
+  dest.emplace_back("Path TX", ToHexString(Link(kIndexPath)), path_, BlockItemType::LinkItem );
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(), BlockItemType::LinkItem );
   dest.emplace_back("", "", "",BlockItemType::BlankItem );
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);

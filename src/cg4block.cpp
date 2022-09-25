@@ -107,10 +107,10 @@ void Cg4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next CG", ToHexString(Link(kIndexNext)), "Link to next channel group", BlockItemType::LinkItem );
   dest.emplace_back("First CN", ToHexString(Link(kIndexCn)), "Link to first channel",BlockItemType::LinkItem );
-  dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), "Link to group name", BlockItemType::LinkItem );
+  dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), acquisition_name_, BlockItemType::LinkItem );
   dest.emplace_back("Source SI", ToHexString(Link(kIndexSi)), "Link to source information", BlockItemType::LinkItem );
   dest.emplace_back("Reduction SR", ToHexString(Link(kIndexSr)), "Link to first sample reduction", BlockItemType::LinkItem );
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), "Link to meta data",BlockItemType::LinkItem );
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(),BlockItemType::LinkItem );
   dest.emplace_back("", "", "",BlockItemType::BlankItem );
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);

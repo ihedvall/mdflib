@@ -145,7 +145,7 @@ void Cn3Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Conversion CC", ToHexString(Link(kIndexCc)), "Link to channel conversion", BlockItemType::LinkItem );
   dest.emplace_back("Source Dependency CE", ToHexString(Link(kIndexCe)), "Link to source dependency block",BlockItemType::LinkItem );
   dest.emplace_back("Dependency CD", ToHexString(Link(kIndexCd)), "Link to dependency",BlockItemType::LinkItem );
-  dest.emplace_back("Comment TX", ToHexString(Link(kIndexTx)), "Link to comment",BlockItemType::LinkItem );
+  dest.emplace_back("Comment TX", ToHexString(Link(kIndexTx)), comment_, BlockItemType::LinkItem );
   dest.emplace_back("", "", "",BlockItemType::BlankItem );
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);

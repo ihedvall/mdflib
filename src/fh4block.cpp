@@ -16,7 +16,7 @@ void Fh4Block::GetBlockProperty(BlockPropertyList &dest) const {
 
   dest.emplace_back("Links", "", "",BlockItemType::HeaderItem);
   dest.emplace_back("Next FH", ToHexString(Link(kIndexNext)), "", BlockItemType::LinkItem);
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), "", BlockItemType::LinkItem);
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(), BlockItemType::LinkItem);
   dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("FH Info", "", "", BlockItemType::HeaderItem);

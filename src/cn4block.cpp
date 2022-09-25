@@ -235,12 +235,12 @@ void Cn4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next CN", ToHexString(Link(kIndexNext)), "Link to next channel", BlockItemType::LinkItem );
   dest.emplace_back("Composition CA/CN", ToHexString(Link(kIndexCx)), "Link to composition",BlockItemType::LinkItem );
-  dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), "Link to channel name", BlockItemType::LinkItem );
+  dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), name_, BlockItemType::LinkItem );
   dest.emplace_back("Source SI", ToHexString(Link(kIndexSi)), "Link to source information", BlockItemType::LinkItem );
   dest.emplace_back("Conversion CC", ToHexString(Link(kIndexCc)), "Link to channel conversion", BlockItemType::LinkItem );
   dest.emplace_back("Signal Data", ToHexString(Link(kIndexData)), "Link to signal data",BlockItemType::LinkItem );
-  dest.emplace_back("Unit MD", ToHexString(Link(kIndexUnit)), "Link to unit",BlockItemType::LinkItem );
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), "Link to meta data",BlockItemType::LinkItem );
+  dest.emplace_back("Unit MD", ToHexString(Link(kIndexUnit)), Unit(),BlockItemType::LinkItem );
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(), BlockItemType::LinkItem );
   for (size_t at = 0; at < nof_attachments_; ++at) {
     dest.emplace_back("Attachment AT", ToHexString(Link(kIndexAt + at)), "Reference to attachment",BlockItemType::LinkItem );
   }

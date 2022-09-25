@@ -87,8 +87,8 @@ void Ev4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Next EV", ToHexString(Link(kIndexNext)), "Link to next event", BlockItemType::LinkItem );
   dest.emplace_back("Parent EV", ToHexString(Link(kIndexParent)), "Reference to parent event",BlockItemType::LinkItem );
   dest.emplace_back("Range EV", ToHexString(Link(kIndexRange)), "Reference to range begin event", BlockItemType::LinkItem );
-  dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), "Link to name", BlockItemType::LinkItem );
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), "Link to meta data",BlockItemType::LinkItem );
+  dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), name_, BlockItemType::LinkItem );
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(),BlockItemType::LinkItem );
   for (size_t m = 0; m < length_m_; ++m) {
     dest.emplace_back("Scope CG/CN", ToHexString(Link(kIndexScope + m)), "Reference to scope ",BlockItemType::LinkItem );
   }

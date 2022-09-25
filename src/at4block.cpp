@@ -99,9 +99,9 @@ void At4Block::GetBlockProperty(BlockPropertyList &dest) const {
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next AT", ToHexString(Link(kIndexNext)), "Link to next attach", BlockItemType::LinkItem );
-  dest.emplace_back("File Name TX", ToHexString(Link(kIndexFilename)), "Link to text block with file name",BlockItemType::LinkItem );
-  dest.emplace_back("Mime Type TX", ToHexString(Link(kIndexType)), "Link to file type (MIME)", BlockItemType::LinkItem );
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), "Link to meta data",BlockItemType::LinkItem );
+  dest.emplace_back("File Name TX", ToHexString(Link(kIndexFilename)), filename_, BlockItemType::LinkItem );
+  dest.emplace_back("Mime Type TX", ToHexString(Link(kIndexType)), file_type_, BlockItemType::LinkItem );
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment() ,BlockItemType::LinkItem );
   dest.emplace_back("", "", "",BlockItemType::BlankItem );
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);

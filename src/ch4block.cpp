@@ -26,8 +26,8 @@ void Ch4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Links", "", "",BlockItemType::HeaderItem);
   dest.emplace_back("Next CH", ToHexString(Link(kIndexNext)), "", BlockItemType::LinkItem);
   dest.emplace_back("First CH", ToHexString(Link(kIndexNext)), "", BlockItemType::LinkItem);
-  dest.emplace_back("Name TX", ToHexString(Link(kIndexNext)), "", BlockItemType::LinkItem);
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), "", BlockItemType::LinkItem);
+  dest.emplace_back("Name TX", ToHexString(Link(kIndexNext)), name_, BlockItemType::LinkItem);
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(), BlockItemType::LinkItem);
   for (uint32_t ii = 0; ii < nof_elements_; ++ii) {
     size_t index = kIndexElement + (3 * ii);
     dest.emplace_back("Reference DG", ToHexString(Link(index)), "", BlockItemType::LinkItem);

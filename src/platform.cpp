@@ -1,9 +1,10 @@
  #include "platform.h"
 
-#include <strings.h>
+
 #include <cstring>
 
 #if (!_MSC_VER)
+    #include <strings.h>
     #include <cerrno>
 #endif
 
@@ -26,7 +27,7 @@ int strnicmp (const char *__s1, const char *__s2, size_t __n) {
 }
 
 void strerror (int __errnum, char *__buf, size_t __buflen) {
-#if (_MSC_VER)
+#if (_WIN32)
   strerror_s(__buf, __buflen, __errnum);
 #else
   strerror_r(__errnum, __buf, __buflen);

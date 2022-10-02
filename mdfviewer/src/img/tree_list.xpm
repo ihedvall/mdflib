@@ -1,5 +1,5 @@
 /* XPM */
-static char *tree_list[] = {
+static const char *tree_list_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "400 16 131 2 ",
 "   c None",

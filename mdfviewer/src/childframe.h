@@ -8,6 +8,8 @@
 #include <wx/splitter.h>
 #include <wx/treectrl.h>
 #include <wx/listctrl.h>
+#include <wx/imaglist.h>
+
 #include "mdf3file.h"
 #include "mdf4file.h"
 #include "mdfdocument.h"

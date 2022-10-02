@@ -77,7 +77,7 @@ class IEvent {
 
   virtual void SyncFactor(double factor) = 0;
   [[nodiscard]] virtual double SyncFactor() const = 0;
-  [[nosdicard]] std::string ValueToString() const;
+  [[nodiscard]] std::string ValueToString() const;
 
   virtual void ParentEvent(const IEvent* parent ) = 0;
   [[nodiscard]] virtual const IEvent* ParentEvent() const = 0;

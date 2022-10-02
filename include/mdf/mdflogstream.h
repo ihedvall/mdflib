@@ -6,14 +6,15 @@
 #pragma once
 #include <string>
 #include <sstream>
-#if (_MSC_VER)
+#include <functional>
+#if __has_include(<source_location>)
 #include <source_location>
 #else
 #include <experimental/source_location>
 #endif
 namespace mdf {
 
-#if (_MSC_VER)
+#if __has_include(<source_location>)
 using Loc = std::source_location;
 #else
 using Loc = std::experimental::source_location;
@@ -36,6 +37,9 @@ enum class MdfLogSeverity : uint8_t {
   kAlert,     ///< Alert or alarm message
   kEmergency  ///< Fatal error message
 };
+using MdfLogFunction = std::function<void(const Loc& location, MdfLogSeverity severity, const std::string& text)>;
+
+
 
 class MdfLogStream : public std::ostringstream {
 
@@ -48,7 +52,9 @@ class MdfLogStream : public std::ostringstream {
     MdfLogStream(MdfLogStream &&) = delete;
     MdfLogStream &operator=(const MdfLogStream &) = delete;
     MdfLogStream &operator=(MdfLogStream &&) = delete;
-   protected:
+
+    static void SetLogFunction(const MdfLogFunction& func);
+ protected:
     Loc location_;  ///< File and function location.
     MdfLogSeverity severity_;    ///< Log level of the stream
 

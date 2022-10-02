@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 #include "channelobserverframe.h"
-
+namespace {
+#include "img/sub.xpm"
+}
 
 namespace mdf::viewer {
 
@@ -11,7 +13,12 @@ ChannelObserverFrame::ChannelObserverFrame(std::unique_ptr<ChannelObserverList>&
                                            wxWindowID id, const wxString &title)
 : wxFrame(parent, id,title,wxDefaultPosition,parent->GetClientSize(),
           wxDEFAULT_FRAME_STYLE | wxFRAME_FLOAT_ON_PARENT) {
-  SetIcon(wxIcon("SUB_ICON", wxBITMAP_TYPE_ICO_RESOURCE));
+#ifdef _WIN32
+  wxIcon sub("SUB_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
+#else
+  wxIcon sub {wxICON(sub)}
+#endif
+  SetIcon(sub);
   list_view_ = new ChannelObserverListView(this);
   list_view_->AppendColumn(wxString::FromUTF8("Sample"));
   size_t samples = 0;

@@ -12,6 +12,11 @@
 
 #include "mainframe.h"
 #include "windowid.h"
+
+namespace {
+#include "img/app.xpm"
+}
+
 namespace mdf::viewer {
 
 wxBEGIN_EVENT_TABLE(MainFrame, wxDocMDIParentFrame)
@@ -26,8 +31,12 @@ wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(const wxString& title, const wxPoint& start_pos, const wxSize& start_size, bool maximized)
     : wxDocMDIParentFrame(wxDocManager::GetDocumentManager(), nullptr, wxID_ANY, title, start_pos, start_size) {
-
-  SetIcon(wxIcon("APP_ICON", wxBITMAP_TYPE_ICO_RESOURCE));
+#ifdef _WIN32
+  wxIcon app("APP_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
+#else
+  wxIcon app {wxICON(app)}
+#endif
+  SetIcon(app);
   wxWindow::SetName("MdfTopWindow");
 #if (_MSC_VER)
   wxTopLevelWindowMSW::Maximize(maximized);

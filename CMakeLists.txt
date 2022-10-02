@@ -15,11 +15,8 @@ set(COMP_DIR "k:" CACHE PATH "Components root directory. Components like Boost, 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_DEBUG_POSTFIX d)
 
-# include("script/boost.cmake")
-# include("script/utillib.cmake")
 include("script/zlib.cmake")
 include("script/expat.cmake")
-
 include("script/wxwidgets.cmake")
 include("script/googletest.cmake")
 include("script/doxygen.cmake")
@@ -111,8 +108,7 @@ target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         )
-# target_include_directories(mdf PRIVATE ${Boost_INCLUDE_DIRS})
-# target_include_directories(mdf PRIVATE ${utillib_SOURCE_DIR}/include)
+
 target_include_directories(mdf PRIVATE ${ZLIB_INCLUDE_DIRS})
 target_include_directories(mdf PRIVATE ${EXPAT_INCLUDE_DIRS})
 

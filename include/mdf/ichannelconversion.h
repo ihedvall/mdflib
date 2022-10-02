@@ -78,7 +78,7 @@ class IChannelConversion {
   [[nodiscard]] virtual ConversionType Type() const = 0;
 
   [[nodiscard]] virtual bool IsDecimalUsed() const = 0;
-  [[nodiscard]] virtual void Decimals(uint8_t decimals);
+  virtual void Decimals(uint8_t decimals);
   [[nodiscard]] virtual uint8_t Decimals() const = 0;
 
   [[nodiscard]] virtual IChannelConversion* CreateInverse();

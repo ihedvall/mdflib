@@ -16,7 +16,7 @@ if (NOT Boost_FOUND)
     message(STATUS "Boost Libraries: " ${Boost_LIBRARIES})
 
     if (NOT Boost_FOUND)
-        set(Boost_ROOT ${COMP_DIR}/boost/boost_1_79_0)
+        set(Boost_ROOT ${COMP_DIR}/boost/boost_1_80_0)
         find_package(Boost REQUIRED COMPONENTS filesystem system locale program_options)
 
         message(STATUS "Boost Found (Try 2): " ${Boost_FOUND})

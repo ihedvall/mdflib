@@ -4,6 +4,7 @@
  */
 #include <sstream>
 #include <wx/sizer.h>
+#include <wx/bitmap.h>
 #include <util/timestamp.h>
 #include "childframe.h"
 #include "mdfdocument.h"
@@ -12,7 +13,8 @@
 #include "windowid.h"
 
 namespace {
-
+#include "img/sub.xpm"
+#include "img/tree_list.xpm"
 // Bitmap index for the tree control (tree_list.bmp)
 constexpr int TREE_ROOT = 0;
 constexpr int TREE_ID = 1;
@@ -114,7 +116,12 @@ ChildFrame::ChildFrame(wxDocument *doc,
     : wxDocMDIChildFrame(doc, view, parent, id, title, wxDefaultPosition, wxDefaultSize,
                          wxDEFAULT_FRAME_STYLE, wxASCII_STR(wxFrameNameStr)),
                          image_list_(16,16,false,25) {
-  SetIcon(wxIcon("SUB_ICON", wxBITMAP_TYPE_ICO_RESOURCE));
+#ifdef _WIN32
+  wxIcon sub("SUB_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
+#else
+  wxIcon sub {wxICON(sub)}
+#endif
+  SetIcon(sub);
 
   auto* main_panel = new wxPanel(this);
 
@@ -170,8 +177,13 @@ ChildFrame::ChildFrame(wxDocument *doc,
   hierarchy_view_->Hide();
 
   splitter_->SplitVertically(left_, property_view_, 400);
+#ifdef _WIN32
+  wxBitmap tree_list("TREE_LIST", wxBITMAP_TYPE_BMP_RESOURCE);
+#else
+  wxBitmap tree_list {wxICON(tree_list)};
+#endif
 
-  image_list_.Add(wxBitmap("TREE_LIST", wxBITMAP_TYPE_BMP_RESOURCE));
+  image_list_.Add(tree_list);
   left_->SetImageList(&image_list_);
 
   auto* main_sizer = new wxBoxSizer(wxVERTICAL);

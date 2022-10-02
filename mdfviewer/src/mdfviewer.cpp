@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: MIT
  */
 #include <filesystem>
+#define BOOST_LOCALE_HIDE_AUTO_PTR
 #include <boost/process.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/locale.hpp>
 
 #include <wx/wx.h>
 #include <wx/docview.h>
-#include <wx/docmdi.h>
 #include <wx/config.h>
 #include <wx/utils.h>
 
@@ -21,10 +21,26 @@
 #include "mdfdocument.h"
 #include "mdfview.h"
 #include "windowid.h"
+#include "mdf/mdflogstream.h"
 
 using namespace util::log;
 
 wxIMPLEMENT_APP(mdf::viewer::MdfViewer);
+namespace {
+
+void LogFunc(const Loc& location, mdf::MdfLogSeverity severity, const std::string& text) {
+  auto &log_config = LogConfig::Instance();
+  LogMessage message;
+  message.message = text;
+  message.severity = static_cast<LogSeverity>(severity);
+  message.location = location;
+  log_config.AddLogMessage(message);
+}
+
+void NoLog(const Loc& location, mdf::MdfLogSeverity severity, const std::string& text) {
+}
+
+} // end namespace
 
 namespace mdf::viewer {
 
@@ -58,6 +74,8 @@ bool MdfViewer::OnInit() {
   log_config.BaseName("mdf_viewer");
   log_config.CreateDefaultLogger();
   LOG_INFO() << "Log File created. Path: " << log_config.GetLogFile();
+
+  MdfLogStream::SetLogFunction(LogFunc);
 
   // Find the path to the 'notepad.exe'
   try {
@@ -129,6 +147,7 @@ int MdfViewer::OnExit() {
     LOG_ERROR() << "Failed to remove temporary directory. Path: " << my_temp_dir_;
   }
 
+  MdfLogStream::SetLogFunction(NoLog);
   auto& log_config = LogConfig::Instance();
   log_config.DeleteLogChain();
   return wxApp::OnExit();

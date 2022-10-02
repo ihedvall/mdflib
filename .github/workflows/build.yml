@@ -38,10 +38,10 @@ jobs:
             os: windows-latest
             ninja_platform: win
             msvc_arch: x64
-            cmake_env:
-              CMAKE_RC_FLAGS: "/C 1252"
-              CC: clang
-              CXX: clang++
+            cmake_env: {}
+ #             CMAKE_RC_FLAGS: "/C 1252"
+ #             CC: clang
+ #             CXX: clang++
             pack: 1
 
           - name: win32

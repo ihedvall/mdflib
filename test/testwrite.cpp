@@ -6,11 +6,17 @@
 #include <filesystem>
 #include <thread>
 #include <chrono>
+#include <algorithm>
 #include "util/logconfig.h"
 #include "util/logstream.h"
 #include "util/timestamp.h"
 #include "mdf/mdffactory.h"
 #include "mdf/mdfreader.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/ifilehistory.h"
+#include "mdf/iattachment.h"
+#include "mdf/ievent.h"
+#include "mdf/idatagroup.h"
 #include "testwrite.h"
 
 namespace {

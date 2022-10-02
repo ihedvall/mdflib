@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <array>
 #include <cstdio>
+#include <cstring>
 #include "mdf/cryptoutil.h"
 #include "mdf/mdflogstream.h"
 

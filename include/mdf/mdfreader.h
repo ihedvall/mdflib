@@ -8,8 +8,11 @@
 #include <string>
 #include <memory>
 #include "mdf/mdffile.h"
+#include "mdf/ichannelobserver.h"
 
 namespace mdf {
+
+class IChannelGroup;
 
 using ChannelObserverPtr = std::unique_ptr<IChannelObserver>;
 using ChannelObserverList = std::vector<ChannelObserverPtr>;

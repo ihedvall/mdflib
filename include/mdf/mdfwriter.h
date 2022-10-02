@@ -15,6 +15,11 @@
 
 namespace mdf {
 
+class IChannelGroup;
+class IChannel;
+class IChannelConversion;
+class IDataGroup;
+
 class MdfWriter {
  public:
   MdfWriter() = default;
@@ -51,9 +56,7 @@ class MdfWriter {
   IHeader* Header() const;
   IDataGroup* CreateDataGroup();
 
-  static IChannelGroup* CreateChannelGroup(IDataGroup* parent) {
-    return parent == nullptr ? nullptr : parent->CreateChannelGroup();
-  }
+  static IChannelGroup* CreateChannelGroup(IDataGroup* parent);
 
   virtual  IChannel* CreateChannel(IChannelGroup* parent) = 0;
   virtual IChannelConversion* CreateChannelConversion(IChannel* parent) = 0;

@@ -10,8 +10,12 @@
 #include <cstring>
 #include <chrono>
 #include <mdf/mdflogstream.h>
+#include <mdf/idatagroup.h>
+#include <string.h>
+#include <algorithm>
 #include "mdf/mdfwriter.h"
 #include "iblock.h"
+#include "platform.h"
 
 
 using namespace std::filesystem;
@@ -19,9 +23,9 @@ using namespace std::chrono_literals;
 
 namespace {
 
-std::string StrErrNo(errno_t error) {
+std::string StrErrNo(int error) {
   std::string err_str(200,'\0');
-  strerror_s(err_str.data(), err_str.size(), error);
+  Platform::strerror(error, err_str.data(), err_str.size());
   return err_str;
 }
 
@@ -45,6 +49,10 @@ IHeader *MdfWriter::Header() const {
 
 IDataGroup *MdfWriter::CreateDataGroup() {
   return !mdf_file_ ? nullptr : mdf_file_->CreateDataGroup();
+}
+
+IChannelGroup* MdfWriter::CreateChannelGroup(IDataGroup* parent) {
+  return parent == nullptr ? nullptr : parent->CreateChannelGroup();
 }
 
 bool MdfWriter::Init(const std::string& filename) {
@@ -225,7 +233,7 @@ void MdfWriter::WorkThread() {
 void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
   lock.unlock();
   std::FILE* file = nullptr;
-  fopen_s(&file, filename_.c_str(), "r+b");
+  Platform::fileopen(&file, filename_.c_str(), "r+b");
   if (file == nullptr) {
     lock.lock();
     return;
@@ -283,7 +291,7 @@ void MdfWriter::CleanQueue(std::unique_lock<std::mutex>& lock) {
 
   lock.unlock();
   std::FILE* file = nullptr;
-  fopen_s(&file, filename_.c_str(), "r+b");
+  Platform::fileopen(&file, filename_.c_str(), "r+b");
   if (file == nullptr) {
     lock.lock();
     return;

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include "mdf/mdfWriter.h"
+#include "mdf/mdfwriter.h"
 #include "mdf/mdffile.h"
 
 namespace mdf {

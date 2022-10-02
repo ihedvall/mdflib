@@ -5,6 +5,7 @@
 #include <filesystem>
 #include "mdf/zlibutil.h"
 #include "testzlib.h"
+#include "platform.h"
 
 using namespace std::filesystem;
 
@@ -100,7 +101,7 @@ TEST_F(TestZlib, FileToBuffCompress)
   EXPECT_TRUE(Deflate(kTestFile, buf_out));
 
   std::FILE* out_file = nullptr;
-  fopen_s(&out_file, kInflateFile.c_str(), "wb");
+  Platform::fileopen(&out_file, kInflateFile.c_str(), "wb");
   ASSERT_TRUE(out_file != nullptr);
 
   EXPECT_TRUE(Inflate(buf_out, out_file));

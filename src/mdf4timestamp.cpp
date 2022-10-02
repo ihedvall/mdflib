@@ -11,10 +11,9 @@ std::string TimestampToString(uint64_t time) {
   auto ms = ns / 1'000'000;
   auto sec = time / 1'000'000'000; // Convert to time_t seconds since 1970
   time_t t = static_cast<time_t>(sec);
-  struct tm bt{};
-  gmtime_s(&bt, &t);
+  const struct tm* bt = gmtime(&t);
   std::ostringstream date_time;
-  date_time << std::put_time(&bt, "%Y-%m-%d %H:%M:%S")
+  date_time << std::put_time(bt, "%Y-%m-%d %H:%M:%S")
       << '.' << std::setfill('0') << std::setw(3) << ms;
   return date_time.str();
 }

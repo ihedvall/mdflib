@@ -14,6 +14,8 @@
 #include <memory>
 #include "mdf/mdfhelper.h"
 
+#include "platform.h"
+
 namespace {
 template<typename T>
 T XValue(const std::string &value) {
@@ -29,10 +31,11 @@ template<>
 bool XValue(const std::string &value) {
   std::string v(value);
   mdf::MdfHelper::Trim(v);
-  return _stricmp(v.c_str(), "1") == 0
-      || _stricmp(v.c_str(), "ON") == 0
-      || _strnicmp(v.c_str(), "T", 1) == 0  // True/False
-      || _strnicmp(v.c_str(), "Y", 1) == 0; // Yes/No
+
+  return Platform::stricmp(v.c_str(), "1") == 0
+      || Platform::stricmp(v.c_str(), "ON") == 0
+      || Platform::strnicmp(v.c_str(), "T", 1) == 0  // True/False
+      || Platform::strnicmp(v.c_str(), "Y", 1) == 0; // Yes/No
 }
 
 template<>
@@ -112,7 +115,7 @@ namespace mdf {
   template<typename T>
   [[nodiscard]] T Attribute(const std::string &key, const T &def = {}) const {
     for (const auto &p: attribute_list_) {
-      if (_stricmp(p.first.c_str(), key.c_str()) == 0) {
+      if (Platform::stricmp(p.first.c_str(), key.c_str()) == 0) {
         return XValue<T>(p.second);
       }
     }

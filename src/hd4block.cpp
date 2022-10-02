@@ -6,6 +6,7 @@
 #include <ranges>
 #include "hd4block.h"
 #include "ixmlfile.h"
+#include <algorithm>
 
 namespace {
   // LINK index

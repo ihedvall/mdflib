@@ -29,7 +29,11 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& start_pos, const wxSi
 
   SetIcon(wxIcon("APP_ICON", wxBITMAP_TYPE_ICO_RESOURCE));
   wxWindow::SetName("MdfTopWindow");
+#if (_MSC_VER)
   wxTopLevelWindowMSW::Maximize(maximized);
+ #else
+  wxTopLevelWindowNative::Maximize(maximized);
+#endif
   wxWindow::DragAcceptFiles(true);
 
   auto* app_config = wxConfig::Get();

@@ -1,0 +1,138 @@
+# https://docs.github.com/en/actions/learn-github-actions/contexts
+
+---
+name: mdflib
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+  page_build:
+  workflow_dispatch:
+
+env:
+  IS_RELEASE: ${{ github.event_name == 'push' && github.ref_type == 'tag' && startswith(github.ref_name, 'v') }}
+
+
+jobs:
+
+  build:
+    runs-on: ${{ matrix.env.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+
+        env:
+          - name: linux
+            os: ubuntu-22.04
+            ninja_platform: linux
+            cmake_env: {}
+
+          - name: macos
+            os: macos-12
+            ninja_platform: mac
+            cmake_env: {}
+            pack: 1
+
+          - name: win64
+            os: windows-latest
+            ninja_platform: win
+            msvc_arch: x64
+            cmake_env:
+              CMAKE_RC_FLAGS: "/C 1252"
+              CC: clang
+              CXX: clang++
+            pack: 1
+
+          - name: win32
+            os: windows-latest
+            ninja_platform: win
+            msvc_arch: x86
+            cmake_env:
+              CMAKE_RC_FLAGS: "/C 1252"
+              CC: clang
+              CXX: clang++
+              CMAKE_C_FLAGS: -m32
+              CMAKE_CXX_FLAGS: -m32
+            pack: 1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v3
+        with:
+          version: 1.9.0
+          platform: ${{ matrix.env.ninja_platform }}
+          destination: ninja
+
+      - name: Setup linux environment
+        if: matrix.env.ninja_platform == 'linux'
+        run: |
+          sudo apt update
+          # flex-old contains FlexLexer.h which is needed by util
+          # For some reason, flex does not contain this header
+          sudo apt install --yes git cmake libboost-all-dev expat zlib1g flex-old
+
+      - name: Setup MSVC environment
+        if: matrix.env.ninja_platform == 'win'
+        uses: seanmiddleditch/gha-setup-vsdevenv@v3
+        with:
+          arch: ${{ matrix.env.msvc_arch }}
+
+      - name: Build expat
+        if: matrix.env.ninja_platform == 'mac'
+        run: |
+          # https://macappstore.org/expat/
+          curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+          brew install expat
+
+      - name: Install llvm
+        if: matrix.env.ninja_platform == 'mac'
+        run: brew install llvm
+
+      # https://stackoverflow.com/questions/23749530/brew-install-zlib-devel-on-mac-os-x-mavericks
+      - name: zlib
+        if: matrix.env.ninja_platform == 'mac'
+        run: |
+          wget https://www.zlib.net/zlib-1.2.12.tar.xz
+          tar -xvf zlib-1.2.12.tar.xz
+          cd zlib-1.2.12
+          ./configure
+          make
+          make install
+
+      - name: Build Information
+        run: |
+          echo "ninja version: $(ninja --version)"
+          cmake --version
+
+      - name: Configure Release
+        env: ${{ matrix.env.cmake_env }}
+        run: |
+          mkdir -p build/release
+          cd build/release
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ${{ env.CMAKE_FLAGS }} ${{ matrix.env.cmake_flags }} ../..
+
+      - name: Build
+        run: |
+          cd build/release
+          ninja
+
+      # install for testing
+      - name: Install
+        run: |
+          cd build/release
+          sudo cmake --install .
+
+      # test if cmake finds the mdflib automatically
+      - name: TestInstall
+        run: |
+          cd test/TestMDFCMake
+          mkdir -p build
+          cd build
+          cmake -G Ninja ..
+          ninja
+...

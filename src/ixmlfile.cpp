@@ -75,7 +75,7 @@ bool IXmlFile::WriteFile() {
     }
 
     // Start with byte order characters if the encoding is UTF-8
-    if (_stricmp(encoding_.c_str(), "UTF-8") == 0) {
+    if (Platform::stricmp(encoding_.c_str(), "UTF-8") == 0) {
       file << "\xEF\xBB\xBF";
     }
     WriteRoot(file, false);
@@ -117,7 +117,7 @@ void IXmlFile::FileName(const std::string &filename) {
 }
 
 std::unique_ptr<IXmlFile> CreateXmlFile(const std::string &type) {
-  if (_stricmp("FileWriter", type.c_str()) == 0) {
+  if (Platform::stricmp("FileWriter", type.c_str()) == 0) {
     return std::make_unique<WriteXml>();
   }
   return std::make_unique<ExpatXml>();

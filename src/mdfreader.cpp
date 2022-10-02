@@ -11,6 +11,7 @@
 
 #include "mdf/mdflogstream.h"
 #include "mdf/mdfreader.h"
+#include "platform.h"
 
 #include "idblock.h"
 #include "dg4block.h"
@@ -42,8 +43,8 @@ bool IsMdfFile(const std::string &filename) {
   if (bError) {
     return false;
   }
-  if (_strnicmp(oId.FileId().c_str(), "MDF", 3) == 0 ||
-      _strnicmp(oId.FileId().c_str(), "UnFinMF", 7) == 0) {
+  if (Platform::strnicmp(oId.FileId().c_str(), "MDF", 3) == 0 ||
+      Platform::strnicmp(oId.FileId().c_str(), "UnFinMF", 7) == 0) {
     return true;
   }
 
@@ -142,7 +143,7 @@ ChannelObserverPtr CreateChannelObserver(const IDataGroup &dg_group, const std::
       if (cn_item == nullptr) {
         continue;
       }
-      if (_stricmp(channel_name.c_str(),cn_item->Name().c_str()) == 0) {
+      if (Platform::stricmp(channel_name.c_str(),cn_item->Name().c_str()) == 0) {
         if (nof_samples <= cg_group->NofSamples()) {
           nof_samples = cg_group->NofSamples();
           channel_group = cg_group;
@@ -199,8 +200,9 @@ MdfReader::MdfReader(const std::string &filename)
   }
   std::unique_ptr<detail::IdBlock> id_block = std::make_unique<detail::IdBlock>();
   id_block->Read(file_);
-  if (_strnicmp(id_block->FileId().c_str(), "MDF", 3) == 0 ||
-      _strnicmp(id_block->FileId().c_str(), "UnFinMF", 7) == 0) {
+
+  if (Platform::strnicmp(id_block->FileId().c_str(), "MDF", 3) == 0 ||
+          Platform::strnicmp(id_block->FileId().c_str(), "UnFinMF", 7) == 0) {
     if (id_block->Version() >= 400) {
       instance_ = std::make_unique<detail::Mdf4File>(std::move(id_block));
       instance_->FileName(filename_);

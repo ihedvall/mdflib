@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <zlib.h>
 #include "mdf/zlibutil.h"
+#include "platform.h"
 namespace
 {
 constexpr size_t kZlibChunk = 16384;
@@ -78,7 +79,7 @@ bool Deflate(const std::string &filename, ByteArray &buf_out) {
     auto size = std::filesystem::file_size(name);
 
     std::FILE* file = nullptr;
-    fopen_s(&file, filename.c_str(), "rb");
+    Platform::fileopen(&file, filename.c_str(), "rb");
     if (file == nullptr) {
       return false;
     }

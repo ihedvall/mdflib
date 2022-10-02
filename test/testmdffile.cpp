@@ -5,6 +5,7 @@
 #include <string_view>
 #include <gtest/gtest.h>
 #include "mdf/mdffactory.h"
+#include "mdf/imetadata.h"
 
 namespace {
   constexpr std::string_view  kFileName  = "c:/olle.dat";

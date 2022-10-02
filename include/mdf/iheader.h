@@ -10,14 +10,17 @@
  */
 #pragma once
 #include <string>
-#include "mdf/idatagroup.h"
-#include "mdf/iattachment.h"
-#include "mdf/imetadata.h"
-#include "mdf/ifilehistory.h"
-#include "mdf/ievent.h"
-#include "mdf/ichannelhierarchy.h"
+#include <vector>
+#include <optional>
 
 namespace mdf {
+
+class IAttachment;
+class IChannelHierarchy;
+class IEvent;
+class IFileHistory;
+class IMetaData;
+class IDataGroup;
 
 /** \class IHeader iheader.h "mdf/iheader.h"
  * \brief Interface class against an MDF HD block

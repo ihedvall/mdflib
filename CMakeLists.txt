@@ -101,7 +101,11 @@ add_library(mdf STATIC
         src/writexml.cpp src/writexml.h
         src/xmlnode.cpp src/xmlnode.h
         src/expatxml.cpp src/expatxml.h
-        src/mdflogstream.cpp include/mdf/mdflogstream.h src/littlebuffer.cpp src/littlebuffer.h src/bigbuffer.cpp src/bigbuffer.h)
+        src/mdflogstream.cpp include/mdf/mdflogstream.h src/littlebuffer.cpp src/littlebuffer.h src/bigbuffer.cpp src/bigbuffer.h
+        src/platform.cpp
+    )
+
+target_link_libraries(mdf ${ZLIB_LIBRARIES} ${EXPAT_LIBRARIES})
 
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>
@@ -122,20 +126,32 @@ set(MDF_PUBLIC_HEADERS
         include/mdf/ichannelobserver.h
         include/mdf/idatagroup.h
         include/mdf/isampleobserver.h
+        include/mdf/samplerecord.h
+        include/mdf/iheader.h
         include/mdf/mdffile.h
         include/mdf/mdfreader.h
+        include/mdf/mdfhelper.h # TODO: is there a possibility to get this away?
 )
 
 set_target_properties(mdf PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")
 get_target_property(PH1 mdf PUBLIC_HEADER)
 message( STATUS "MDF Target Includes: " "${PH1}")
 
+if (WIN32)
 install(TARGETS mdf
         EXPORT MdfLibTargets
         LIBRARY DESTINATION mdf/lib
         ARCHIVE DESTINATION mdf/lib
         RUNTIME DESTINATION mdf/bin
         PUBLIC_HEADER DESTINATION mdf/include/mdf)
+else()
+    install(TARGETS mdf
+            EXPORT MdfLibTargets
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+            PUBLIC_HEADER DESTINATION include/mdf)
+endif()
 
 if (wxWidgets_FOUND AND MDF_BUILD_TOOL)
     add_subdirectory(mdfviewer)
@@ -156,3 +172,42 @@ if (DOXYGEN_FOUND AND (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC
             include/mdf doxygen
             COMMENT "MDF Library generating API documentation with Doxygen")
 endif()
+
+######################################################################################
+# Packaging
+######################################################################################
+# https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#creating-a-package-configuration-file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibConfigVersion.cmake"
+  VERSION ${Upstream_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+
+export(EXPORT MdfLibTargets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibTargets.cmake"
+  NAMESPACE Upstream::
+)
+configure_file(cmake/MdfLibConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/mdflib/MdfLibConfig.cmake"
+  COPYONLY
+)
+
+set(ConfigPackageLocation lib/cmake/mdflib)
+install(EXPORT MdfLibTargets
+  FILE
+    MdfLibTargets.cmake
+  NAMESPACE
+    Upstream::
+  DESTINATION
+    ${ConfigPackageLocation}
+)
+install(
+  FILES
+    cmake/MdfLibConfig.cmake
+    "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibConfigVersion.cmake"
+  DESTINATION
+    ${ConfigPackageLocation}
+  COMPONENT
+    Devel
+)

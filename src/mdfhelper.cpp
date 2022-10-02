@@ -5,9 +5,12 @@
 #include <ctime>
 #include <iomanip>
 #include <filesystem>
+#include <algorithm>
 #include <array>
 #include <bit>
 #include <codecvt>
+#include <cstring>
+#include <cmath>
 #include "mdf/mdfhelper.h"
 #include "littlebuffer.h"
 
@@ -36,20 +39,18 @@ uint64_t MdfHelper::NanoSecToLocal(uint64_t ns_since_1970) {
 
 int64_t MdfHelper::TimeZoneOffset() {
   const auto system_time = std::time(nullptr);
-  struct tm utc{};
-  gmtime_s( &utc, &system_time);
-  utc.tm_isdst = -1;
-  const auto local_time = mktime(&utc);
+  struct tm* utc = gmtime(&system_time);
+  utc->tm_isdst = -1;
+  const auto local_time = mktime(utc);
   return system_time - local_time;
 }
 
 std::string MdfHelper::NsToLocalIsoTime(uint64_t ns_since_1970) {
   const auto ms_sec = (ns_since_1970 / 1'000'000) % 1'000;
   const auto system_time = static_cast<std::time_t>(ns_since_1970 / 1'000'000'000);
-  struct tm bt{};
-  localtime_s(&bt, &system_time);
+  struct tm *bt = std::localtime(&system_time);
   std::ostringstream text;
-  text << std::put_time(&bt, "%Y-%m-%d %H:%M:%S");
+  text << std::put_time(bt, "%Y-%m-%d %H:%M:%S");
   if (ms_sec > 0) {
     text << '.' << std::setfill('0') << std::setw(3) << ms_sec;
   }
@@ -64,18 +65,17 @@ std::vector<uint8_t> MdfHelper::NsToCanOpenDateArray(uint64_t ns_since_1970) {
   const LittleBuffer data(ms_min);
   memcpy(date_array.data(), data.data(), data.size());
 
-  struct tm bt{};
-  localtime_s(&bt, &system_time);
-  date_array[2] = bt.tm_min;
-  date_array[3] = bt.tm_hour;
-  if (bt.tm_isdst) {
+  const struct tm* bt = localtime(&system_time);
+  date_array[2] = bt->tm_min;
+  date_array[3] = bt->tm_hour;
+  if (bt->tm_isdst) {
     date_array[3] |= 0x80;
   }
-  date_array[4] = bt.tm_mday;
-  uint8_t day_in_week = bt.tm_wday == 0 ? 7 : bt.tm_wday;
+  date_array[4] = bt->tm_mday;
+  uint8_t day_in_week = bt->tm_wday == 0 ? 7 : bt->tm_wday;
   date_array[4] |= (day_in_week << 5);
-  date_array[5] = 1 + bt.tm_mon;
-  date_array[6] = bt.tm_year % 100;
+  date_array[5] = 1 + bt->tm_mon;
+  date_array[6] = bt->tm_year % 100;
   return std::move(date_array);
 }
 
@@ -155,19 +155,17 @@ uint64_t MdfHelper::CanOpenDateArrayToNs(const std::vector<uint8_t> &buffer) {
 
 std::string MdfHelper::NanoSecToDDMMYYYY(uint64_t ns_since_1970) {
   auto system_time = static_cast<time_t>(ns_since_1970 / 1'000'000'000ULL);
-  struct tm bt{};
-  localtime_s(&bt, &system_time);
+  const struct tm* bt = localtime(&system_time);
   std::ostringstream s;
-  s << std::put_time(&bt, "%d:%m:%Y");
+  s << std::put_time(bt, "%d:%m:%Y");
   return s.str();
 }
 
 std::string MdfHelper::NanoSecToHHMMSS(uint64_t ns_since_1970) {
   const auto system_time = static_cast<time_t>(ns_since_1970 / 1'000'000'000ULL);
-  struct tm bt{};
-  localtime_s(&bt, &system_time);
+  const struct tm* bt = localtime(&system_time);
   std::ostringstream s;
-  s << std::put_time(&bt, "%H:%M:%S");
+  s << std::put_time(bt, "%H:%M:%S");
   return s.str();
 }
 

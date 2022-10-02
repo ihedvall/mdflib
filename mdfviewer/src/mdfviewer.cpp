@@ -24,9 +24,9 @@
 
 using namespace util::log;
 
-namespace mdf::viewer {
+wxIMPLEMENT_APP(mdf::viewer::MdfViewer);
 
-wxIMPLEMENT_APP(MdfViewer);
+namespace mdf::viewer {
 
 wxBEGIN_EVENT_TABLE(MdfViewer, wxApp)
   EVT_UPDATE_UI(kIdOpenLogFile,MdfViewer::OnUpdateOpenLogFile)

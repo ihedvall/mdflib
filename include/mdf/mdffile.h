@@ -8,10 +8,11 @@
 #include <memory>
 #include <vector>
 #include "mdf/iheader.h"
-#include "mdf/iattachment.h"
-#include "mdf/idatagroup.h"
 
 namespace mdf {
+
+class IAttachment;
+class IDataGroup;
 
 /** \typedef AttachmentList
  * \brief List of pointers to attachments.

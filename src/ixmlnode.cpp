@@ -108,14 +108,14 @@ void IXmlNode::GetChildList(IXmlNode::ChildList &child_list) const {
 }
 
 bool IXmlNode::IsTagName(const std::string &tag) const {
-  if (_stricmp(tag.c_str(), tag_name_.c_str()) == 0) {
+  if (Platform::stricmp(tag.c_str(), tag_name_.c_str()) == 0) {
     return true;
   }
     // try the tag name without namespace
   const auto* ns = strchr(tag_name_.c_str(), ':');
   if (ns != nullptr) {
     ++ns;
-    if (_stricmp(tag.c_str(), ns) == 0) {
+    if (Platform::stricmp(tag.c_str(), ns) == 0) {
       return true;
     }
   }
@@ -124,7 +124,7 @@ bool IXmlNode::IsTagName(const std::string &tag) const {
 
 bool IXmlNode::IsAttribute(const std::string &key, const std::string &value) const {
   return std::ranges::any_of(attribute_list_, [&] (const auto& itr) {
-    return _stricmp(itr.first.c_str(), key.c_str()) == 0 && _stricmp(itr.second.c_str(), value.c_str()) == 0;
+    return Platform::stricmp(itr.first.c_str(), key.c_str()) == 0 && Platform::stricmp(itr.second.c_str(), value.c_str()) == 0;
   });
 }
 

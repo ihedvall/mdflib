@@ -7,11 +7,12 @@
 #include <vector>
 
 #include "isampleobserver.h"
-#include "ichannelobserver.h"
 #include "ichannelgroup.h"
-#include "imetadata.h"
 
 namespace mdf {
+
+class IMetaData;
+
 class IDataGroup {
  public:
   [[nodiscard]] virtual int64_t Index() const = 0;

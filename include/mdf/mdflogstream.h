@@ -15,7 +15,11 @@
 namespace mdf {
 
 #if __has_include(<source_location>)
+#if __clang__
+using Loc = std::experimental::source_location;
+#else
 using Loc = std::source_location;
+#endif
 #else
 using Loc = std::experimental::source_location;
 #endif

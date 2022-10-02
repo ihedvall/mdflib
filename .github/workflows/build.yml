@@ -28,33 +28,35 @@ jobs:
             ninja_platform: linux
             cmake_env: {}
 
-          - name: macos
-            os: macos-12
-            ninja_platform: mac
-            cmake_env: {}
-            pack: 1
-
-          - name: win64
-            os: windows-latest
-            ninja_platform: win
-            msvc_arch: x64
-            cmake_env:
-              CMAKE_RC_FLAGS: "/C 1252"
-              CC: cl
-              CXX: cl
-            pack: 1
-
-          - name: win32
-            os: windows-latest
-            ninja_platform: win
-            msvc_arch: x86
-            cmake_env:
-              CMAKE_RC_FLAGS: "/C 1252"
-              CC: clang
-              CXX: clang++
-              CMAKE_C_FLAGS: -m32
-              CMAKE_CXX_FLAGS: -m32
-            pack: 1
+#          - name: macos
+#            os: macos-12
+#            ninja_platform: mac
+#            cmake_env:
+#              CC: clang
+#              CXX: clang++
+#            pack: 1
+#
+#          - name: win64
+#            os: windows-latest
+#            ninja_platform: win
+#            msvc_arch: x64
+#            cmake_env:
+#              CMAKE_RC_FLAGS: "/C 1252"
+#              CC: clang
+#              CXX: clang++
+#            pack: 1
+#
+#          - name: win32
+#            os: windows-latest
+#            ninja_platform: win
+#            msvc_arch: x86
+#            cmake_env:
+#              CMAKE_RC_FLAGS: "/C 1252"
+#              CC: clang
+#              CXX: clang++
+#              CMAKE_C_FLAGS: -m32
+#              CMAKE_CXX_FLAGS: -m32
+#            pack: 1
 
     steps:
       - name: Checkout repository

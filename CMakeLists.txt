@@ -10,7 +10,6 @@ option(BUILD_SHARED_LIBS "Static libraries are preferred." OFF)
 option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
 option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." ON)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." ON)
-set(COMP_DIR "k:" CACHE PATH "Components root directory. Components like Boost, wxWidgets.")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_DEBUG_POSTFIX d)

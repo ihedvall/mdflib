@@ -16,7 +16,7 @@ ChannelObserverFrame::ChannelObserverFrame(std::unique_ptr<ChannelObserverList>&
 #ifdef _WIN32
   wxIcon sub("SUB_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
 #else
-  wxIcon sub {wxICON(sub)}
+  wxIcon sub {wxICON(sub)};
 #endif
   SetIcon(sub);
   list_view_ = new ChannelObserverListView(this);

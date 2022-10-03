@@ -25,7 +25,6 @@ target_include_directories(mdfview PRIVATE ${wxWidgets_INCLUDE_DIRS})
 target_include_directories(mdfview PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(mdfview PRIVATE mdf)
 target_include_directories(mdfview PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src")
-# target_include_directories(mdfview PRIVATE "../../utillib/include")
 
 target_compile_definitions(mdfview PRIVATE XML_STATIC)
 

@@ -76,16 +76,7 @@ bool MdfViewer::OnInit() {
   LOG_INFO() << "Log File created. Path: " << log_config.GetLogFile();
 
   MdfLogStream::SetLogFunction(LogFunc);
-
-  // Find the path to the 'notepad.exe'
-  try {
-    auto np = boost::process::search_path("notepad");
-    notepad_ = np.string();
-    LOG_INFO() << "Found NotePad. Path: " << notepad_;
-  } catch(const std::exception& ) {
-    notepad_.clear();
-    LOG_INFO() << "NotePad was not found.";
-  }
+  notepad_ = util::log::FindNotepad();
 
   // Find the path to the 'gnuplot.exe'
   try {

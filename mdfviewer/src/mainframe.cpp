@@ -34,7 +34,7 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& start_pos, const wxSi
 #ifdef _WIN32
   wxIcon app("APP_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
 #else
-  wxIcon app {wxICON(app)}
+  wxIcon app {wxICON(app)};
 #endif
   SetIcon(app);
   wxWindow::SetName("MdfTopWindow");
@@ -132,6 +132,16 @@ void MainFrame::OnAbout(wxCommandEvent&) {
       "DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR\n"
       "IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
   );
+  if (!info.HasIcon()) {
+#ifdef _WIN32
+      wxIcon app("APP_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
+#else
+      wxIcon app {wxICON(app)};
+#endif
+      info.SetIcon(app);
+  }
+
+
   wxAboutBox(info);
 }
 

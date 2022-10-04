@@ -39,7 +39,3 @@ for dir in ${FOLDERS[@]}; do
         format ${dir};
     fi
 done
-
-echo "Start formatting cmake files"
-pip install cmake-format==0.6.13
-find \( -type d -path './dep/*/*' -prune \) -o \( -name CMakeLists.txt -exec cmake-format --in-place {} + \)

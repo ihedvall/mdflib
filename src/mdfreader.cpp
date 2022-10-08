@@ -2,22 +2,22 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <cstdio>
-#include <string>
-#include <filesystem>
-#include <thread>
 #include <chrono>
+#include <cstdio>
+#include <filesystem>
+#include <string>
+#include <thread>
 #include <vector>
 
 #include "mdf/mdflogstream.h"
 #include "mdf/mdfreader.h"
 #include "platform.h"
 
-#include "idblock.h"
+#include "channelobserver.h"
 #include "dg4block.h"
+#include "idblock.h"
 #include "mdf3file.h"
 #include "mdf4file.h"
-#include "channelobserver.h"
 
 using namespace std::chrono_literals;
 
@@ -51,14 +51,11 @@ bool IsMdfFile(const std::string &filename) {
   return false;
 }
 
-/// Creates a channel sample observer. The sample observer creates internal memory for
-/// all samples.\n
-/// The function also attach the observer to the notifier (see observer pattern).
-/// The destructor of the channel observer detach the observer.
-/// \param data_group
-/// \param group
-/// \param channel
-/// \return Smart pointer to a channel observer
+/// Creates a channel sample observer. The sample observer creates internal
+/// memory for all samples.\n The function also attach the observer to the
+/// notifier (see observer pattern). The destructor of the channel observer
+/// detach the observer. \param data_group \param group \param channel \return
+/// Smart pointer to a channel observer
 ChannelObserverPtr CreateChannelObserver(const IDataGroup &data_group,
                                          const IChannelGroup &group,
                                          const IChannel &channel) {
@@ -66,84 +63,97 @@ ChannelObserverPtr CreateChannelObserver(const IDataGroup &data_group,
   const uint32_t bytes = channel.DataBytes();
 
   switch (channel.DataType()) {
-    case ChannelDataType::UnsignedIntegerLe:
-    case ChannelDataType::UnsignedIntegerBe:
-      if (bytes <= 1) {
-        observer = std::make_unique<detail::ChannelObserver<uint8_t>>(data_group, group, channel);
-      } else if (bytes <= 2) {
-        observer = std::make_unique<detail::ChannelObserver<uint16_t>>(data_group, group, channel);
-      } else if (bytes <= 4) {
-        observer = std::make_unique<detail::ChannelObserver<uint32_t>>(data_group, group, channel);
-      } else {
-        observer = std::make_unique<detail::ChannelObserver<uint64_t>>(data_group, group, channel);
-      }
-      break;
+  case ChannelDataType::UnsignedIntegerLe:
+  case ChannelDataType::UnsignedIntegerBe:
+    if (bytes <= 1) {
+      observer = std::make_unique<detail::ChannelObserver<uint8_t>>(
+          data_group, group, channel);
+    } else if (bytes <= 2) {
+      observer = std::make_unique<detail::ChannelObserver<uint16_t>>(
+          data_group, group, channel);
+    } else if (bytes <= 4) {
+      observer = std::make_unique<detail::ChannelObserver<uint32_t>>(
+          data_group, group, channel);
+    } else {
+      observer = std::make_unique<detail::ChannelObserver<uint64_t>>(
+          data_group, group, channel);
+    }
+    break;
 
-    case ChannelDataType::SignedIntegerLe:
-    case ChannelDataType::SignedIntegerBe:
-      if (bytes <= 1) {
-        observer = std::make_unique<detail::ChannelObserver<int8_t>>(data_group, group, channel);
-      } else if (bytes <= 2) {
-        observer = std::make_unique<detail::ChannelObserver<int16_t>>(data_group, group, channel);
-      } else if (bytes <= 4) {
-        observer = std::make_unique<detail::ChannelObserver<int32_t>>(data_group, group, channel);
-      } else {
-        observer = std::make_unique<detail::ChannelObserver<int64_t>>(data_group, group, channel);
-      }
-      break;
+  case ChannelDataType::SignedIntegerLe:
+  case ChannelDataType::SignedIntegerBe:
+    if (bytes <= 1) {
+      observer = std::make_unique<detail::ChannelObserver<int8_t>>(
+          data_group, group, channel);
+    } else if (bytes <= 2) {
+      observer = std::make_unique<detail::ChannelObserver<int16_t>>(
+          data_group, group, channel);
+    } else if (bytes <= 4) {
+      observer = std::make_unique<detail::ChannelObserver<int32_t>>(
+          data_group, group, channel);
+    } else {
+      observer = std::make_unique<detail::ChannelObserver<int64_t>>(
+          data_group, group, channel);
+    }
+    break;
 
+  case ChannelDataType::FloatLe:
+  case ChannelDataType::FloatBe:
+    if (bytes <= 4) {
+      observer = std::make_unique<detail::ChannelObserver<float>>(
+          data_group, group, channel);
+    } else {
+      observer = std::make_unique<detail::ChannelObserver<double>>(
+          data_group, group, channel);
+    }
+    break;
 
+  case ChannelDataType::StringUTF16Le:
+  case ChannelDataType::StringUTF16Be:
+  case ChannelDataType::StringUTF8:
+  case ChannelDataType::StringAscii:
+    observer = std::make_unique<detail::ChannelObserver<std::string>>(
+        data_group, group, channel);
+    break;
 
-    case ChannelDataType::FloatLe:
-    case ChannelDataType::FloatBe:
-      if (bytes <= 4) {
-        observer = std::make_unique<detail::ChannelObserver<float>>(data_group, group, channel);
-      } else {
-        observer = std::make_unique<detail::ChannelObserver<double>>(data_group, group, channel);
-      }
-      break;
+  case ChannelDataType::MimeStream:
+  case ChannelDataType::MimeSample:
+  case ChannelDataType::ByteArray:
+    observer = std::make_unique<detail::ChannelObserver<std::vector<uint8_t>>>(
+        data_group, group, channel);
+    break;
 
-    case ChannelDataType::StringUTF16Le:
-    case ChannelDataType::StringUTF16Be:
-    case ChannelDataType::StringUTF8:
-    case ChannelDataType::StringAscii:
-      observer = std::make_unique<detail::ChannelObserver<std::string>>(data_group, group, channel);
-      break;
+  case ChannelDataType::CanOpenDate: // Convert to ms since 1970
+  case ChannelDataType::CanOpenTime:
+    observer = std::make_unique<detail::ChannelObserver<uint64_t>>(
+        data_group, group, channel);
+    break;
 
-    case ChannelDataType::MimeStream:
-    case ChannelDataType::MimeSample:
-    case ChannelDataType::ByteArray:
-      observer = std::make_unique<detail::ChannelObserver< std::vector<uint8_t> > >(data_group, group, channel);
-      break;
-
-
-    case ChannelDataType::CanOpenDate: // Convert to ms since 1970
-    case ChannelDataType::CanOpenTime:
-      observer = std::make_unique<detail::ChannelObserver<uint64_t>>(data_group, group, channel);
-      break;
-
-    default: break;
+  default:
+    break;
   }
   return std::move(observer);
 }
 
-ChannelObserverPtr CreateChannelObserver(const IDataGroup &dg_group, const std::string &channel_name) {
+ChannelObserverPtr CreateChannelObserver(const IDataGroup &dg_group,
+                                         const std::string &channel_name) {
   std::unique_ptr<IChannelObserver> observer;
 
-  const IChannelGroup* channel_group = nullptr;
-  const IChannel* channel = nullptr;
+  const IChannelGroup *channel_group = nullptr;
+  const IChannel *channel = nullptr;
   uint64_t nof_samples = 0;
   const auto cg_list = dg_group.ChannelGroups();
-  for (const auto* cg_group : cg_list) {
+  for (const auto *cg_group : cg_list) {
     if (cg_group == nullptr) {
       continue;
     }
     const auto cn_list = cg_group->Channels();
-    for (const auto* cn_item : cn_list) {
+    for (const auto *cn_item : cn_list) {
       if (cn_item == nullptr) {
         continue;
       }
-      if (Platform::stricmp(channel_name.c_str(),cn_item->Name().c_str()) == 0) {
+      if (Platform::stricmp(channel_name.c_str(), cn_item->Name().c_str()) ==
+          0) {
         if (nof_samples <= cg_group->NofSamples()) {
           nof_samples = cg_group->NofSamples();
           channel_group = cg_group;
@@ -160,19 +170,17 @@ ChannelObserverPtr CreateChannelObserver(const IDataGroup &dg_group, const std::
 
 void CreateChannelObserverForChannelGroup(const IDataGroup &data_group,
                                           const IChannelGroup &group,
-                                          ChannelObserverList& dest) {
+                                          ChannelObserverList &dest) {
   auto cn_list = group.Channels();
-  for (const auto* cn : cn_list) {
+  for (const auto *cn : cn_list) {
     if (cn != nullptr) {
-      dest.emplace_back(std::move(CreateChannelObserver(data_group, group, *cn )));
+      dest.emplace_back(
+          std::move(CreateChannelObserver(data_group, group, *cn)));
     }
   }
 }
 
-
-
-MdfReader::MdfReader(const std::string &filename)
-    : filename_(filename) {
+MdfReader::MdfReader(const std::string &filename) : filename_(filename) {
   // Need to create MDF3 of MDF4 file
   bool bExist = false;
   try {
@@ -193,16 +201,18 @@ MdfReader::MdfReader(const std::string &filename)
   }
   bool open = Open();
   if (!open || file_ == nullptr) {
-    MDF_ERROR() << "The file couldn't be opened for reading (locked?). Filename: " << filename;
+    MDF_ERROR()
+        << "The file couldn't be opened for reading (locked?). Filename: "
+        << filename;
     // No meaning to continue if the file doesn't exist
     return;
-
   }
-  std::unique_ptr<detail::IdBlock> id_block = std::make_unique<detail::IdBlock>();
+  std::unique_ptr<detail::IdBlock> id_block =
+      std::make_unique<detail::IdBlock>();
   id_block->Read(file_);
 
   if (Platform::strnicmp(id_block->FileId().c_str(), "MDF", 3) == 0 ||
-          Platform::strnicmp(id_block->FileId().c_str(), "UnFinMF", 7) == 0) {
+      Platform::strnicmp(id_block->FileId().c_str(), "UnFinMF", 7) == 0) {
     if (id_block->Version() >= 400) {
       instance_ = std::make_unique<detail::Mdf4File>(std::move(id_block));
       instance_->FileName(filename_);
@@ -220,22 +230,18 @@ MdfReader::MdfReader(const std::string &filename)
   }
 }
 
-MdfReader::~MdfReader() {
-  Close();
-}
+MdfReader::~MdfReader() { Close(); }
 
 std::string MdfReader::ShortName() const {
   try {
     std::filesystem::path file(filename_);
     return file.stem().string();
-  } catch (const std::exception&) {
+  } catch (const std::exception &) {
   }
   return {};
 }
 
-bool MdfReader::Open() {
-  return detail::OpenMdfFile(file_,filename_, "rb");
-}
+bool MdfReader::Open() { return detail::OpenMdfFile(file_, filename_, "rb"); }
 
 void MdfReader::Close() {
   if (file_ != nullptr) {
@@ -249,7 +255,7 @@ bool MdfReader::ReadHeader() {
     MDF_ERROR() << "No instance created. File: " << filename_;
     return false;
   }
-    // If file is not open then open and close the file in this call
+  // If file is not open then open and close the file in this call
   bool shall_close = file_ == nullptr && Open();
   if (file_ == nullptr) {
     MDF_ERROR() << "File is not open. File: " << filename_;
@@ -311,7 +317,8 @@ bool MdfReader::ReadEverythingButData() {
     instance_->ReadEverythingButData(file_);
 
   } catch (const std::exception &error) {
-    MDF_ERROR() << "Failed to read the file information blocks. Error: " << error.what();
+    MDF_ERROR() << "Failed to read the file information blocks. Error: "
+                << error.what();
     no_error = false;
   }
   if (shall_close) {
@@ -320,7 +327,8 @@ bool MdfReader::ReadEverythingButData() {
   return no_error;
 }
 
-bool MdfReader::ExportAttachmentData(const IAttachment &attachment, const std::string &dest_file) {
+bool MdfReader::ExportAttachmentData(const IAttachment &attachment,
+                                     const std::string &dest_file) {
   if (!instance_) {
     MDF_ERROR() << "No instance created. File: " << filename_;
     return false;
@@ -334,10 +342,11 @@ bool MdfReader::ExportAttachmentData(const IAttachment &attachment, const std::s
 
   bool no_error = true;
   try {
-    auto& at4 = dynamic_cast<const detail::At4Block&>(attachment);
+    auto &at4 = dynamic_cast<const detail::At4Block &>(attachment);
     at4.ReadData(file_, dest_file);
   } catch (const std::exception &error) {
-    MDF_ERROR() << "Failed to read the file information blocks. Error: " << error.what();
+    MDF_ERROR() << "Failed to read the file information blocks. Error: "
+                << error.what();
     no_error = false;
   }
 
@@ -362,15 +371,15 @@ bool MdfReader::ReadData(const IDataGroup &data_group) {
   bool no_error = true;
   try {
     if (instance_->IsMdf4()) {
-      const auto& dg4 = dynamic_cast<const detail::Dg4Block&>(data_group);
+      const auto &dg4 = dynamic_cast<const detail::Dg4Block &>(data_group);
       dg4.ReadData(file_);
     } else {
-      const auto& dg3 = dynamic_cast<const detail::Dg3Block&>(data_group);
+      const auto &dg3 = dynamic_cast<const detail::Dg3Block &>(data_group);
       dg3.ReadData(file_);
-
     }
   } catch (const std::exception &error) {
-    MDF_ERROR() << "Failed to read the file information blocks. Error: " << error.what();
+    MDF_ERROR() << "Failed to read the file information blocks. Error: "
+                << error.what();
     no_error = false;
   }
 
@@ -381,7 +390,7 @@ bool MdfReader::ReadData(const IDataGroup &data_group) {
 }
 
 const IDataGroup *MdfReader::GetDataGroup(size_t order) const {
-  const auto* file = GetFile();
+  const auto *file = GetFile();
   if (file != nullptr) {
     DataGroupList dg_list;
     file->DataGroups(dg_list);
@@ -392,5 +401,4 @@ const IDataGroup *MdfReader::GetDataGroup(size_t order) const {
   return nullptr;
 }
 
-}
-
+} // namespace mdf

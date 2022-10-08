@@ -2,22 +2,22 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string>
-#include <filesystem>
-#include <thread>
-#include <chrono>
-#include <algorithm>
+#include "testwrite.h"
+#include "mdf/iattachment.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
+#include "mdf/ievent.h"
+#include "mdf/ifilehistory.h"
+#include "mdf/mdffactory.h"
+#include "mdf/mdfreader.h"
 #include "util/logconfig.h"
 #include "util/logstream.h"
 #include "util/timestamp.h"
-#include "mdf/mdffactory.h"
-#include "mdf/mdfreader.h"
-#include "mdf/ichannelgroup.h"
-#include "mdf/ifilehistory.h"
-#include "mdf/iattachment.h"
-#include "mdf/ievent.h"
-#include "mdf/idatagroup.h"
-#include "testwrite.h"
+#include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <string>
+#include <thread>
 
 namespace {
 
@@ -26,7 +26,7 @@ constexpr std::string_view kLogFile = "mdf_write.log";
 constexpr std::string_view kTestDir = "o:/test/mdf/write";
 
 bool kSkipTest = false;
-}
+} // namespace
 
 using namespace std::this_thread;
 using namespace std::chrono_literals;
@@ -54,7 +54,7 @@ void TestWrite::SetUpTestSuite() {
       }
       std::this_thread::sleep_for(1ms);
     }
-  } catch (const std::exception& error) {
+  } catch (const std::exception &error) {
     LOG_ERROR() << "Failed to create directories. Error: " << error.what();
     kSkipTest = true;
   }
@@ -65,7 +65,7 @@ void TestWrite::TearDownTestSuite() {
   log_config.DeleteLogChain();
 }
 
-TEST_F(TestWrite,Mdf3WriteHD) {
+TEST_F(TestWrite, Mdf3WriteHD) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -75,7 +75,7 @@ TEST_F(TestWrite,Mdf3WriteHD) {
 
   writer->Init(mdf_file.string());
 
-  auto* header = writer->Header();
+  auto *header = writer->Header();
   ASSERT_TRUE(header != nullptr);
   header->Author("Ingemar Hedvall");
   header->Department("Home Alone");
@@ -88,17 +88,18 @@ TEST_F(TestWrite,Mdf3WriteHD) {
     auto *dg3 = writer->CreateDataGroup();
     ASSERT_TRUE(dg3 != nullptr);
     for (size_t cg_index = 0; cg_index < 2; ++cg_index) {
-      auto* cg3 = writer->CreateChannelGroup(dg3);
+      auto *cg3 = writer->CreateChannelGroup(dg3);
       ASSERT_TRUE(cg3 != nullptr);
       cg3->Description("CG description");
       for (size_t cn_index = 0; cn_index < 3; ++cn_index) {
-        auto* cn3 = writer->CreateChannel(cg3);
+        auto *cn3 = writer->CreateChannel(cg3);
         ASSERT_TRUE(cn3 != nullptr);
         std::ostringstream name;
         name << "Channel" << cn_index;
         cn3->Name(name.str());
         cn3->Description("Channel description");
-        cn3->Type(cn_index == 0 ? ChannelType::Master : ChannelType::FixedLength);
+        cn3->Type(cn_index == 0 ? ChannelType::Master
+                                : ChannelType::FixedLength);
         cn3->DataType(ChannelDataType::FloatBe);
         cn3->DataBytes(4);
         cn3->Unit("s");
@@ -109,8 +110,7 @@ TEST_F(TestWrite,Mdf3WriteHD) {
   writer->FinalizeMeasurement();
 }
 
-
-TEST_F(TestWrite,Mdf3WriteTest1) {
+TEST_F(TestWrite, Mdf3WriteTest1) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -120,7 +120,7 @@ TEST_F(TestWrite,Mdf3WriteTest1) {
 
   writer->Init(mdf_file.string());
 
-  auto* header = writer->Header();
+  auto *header = writer->Header();
   ASSERT_TRUE(header != nullptr);
   header->Author("Ingemar Hedvall");
   header->Department("Home Alone");
@@ -129,11 +129,10 @@ TEST_F(TestWrite,Mdf3WriteTest1) {
   header->StartTime(TimeStampToNs());
   header->Subject("PXY");
 
-
   auto *dg3 = writer->CreateDataGroup();
-  auto* cg3 = writer->CreateChannelGroup(dg3);
+  auto *cg3 = writer->CreateChannelGroup(dg3);
   for (size_t cn_index = 0; cn_index < 3; ++cn_index) {
-    auto* cn3 = writer->CreateChannel(cg3);
+    auto *cn3 = writer->CreateChannel(cg3);
     ASSERT_TRUE(cn3 != nullptr);
     std::ostringstream name;
     name << "Channel_" << cn_index + 1;
@@ -151,7 +150,8 @@ TEST_F(TestWrite,Mdf3WriteTest1) {
   for (size_t sample = 0; sample < 100; ++sample) {
     auto cn_list = cg3->Channels();
     double value = 0.01 * static_cast<double>(sample);
-    std::ranges::for_each(cn_list, [&](auto *channel) { channel->SetChannelValue(value, true); });
+    std::ranges::for_each(
+        cn_list, [&](auto *channel) { channel->SetChannelValue(value, true); });
     writer->SaveSample(*cg3, TimeStampToNs());
     sleep_for(10ms);
   }
@@ -159,7 +159,7 @@ TEST_F(TestWrite,Mdf3WriteTest1) {
   writer->FinalizeMeasurement();
 }
 
-TEST_F(TestWrite,Mdf3WriteTestValueType) {
+TEST_F(TestWrite, Mdf3WriteTestValueType) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -168,7 +168,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf3Basic);
   writer->Init(mdf_file.string());
 
-  auto* header = writer->Header();
+  auto *header = writer->Header();
   ASSERT_TRUE(header != nullptr);
   header->Author("Ingemar Hedvall");
   header->Department("Home Alone");
@@ -177,11 +177,10 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
   header->StartTime(TimeStampToNs());
   header->Subject("PXY");
 
-
   auto *dg3 = writer->CreateDataGroup();
-  auto* cg3 = writer->CreateChannelGroup(dg3);
+  auto *cg3 = writer->CreateChannelGroup(dg3);
   {
-    auto* master = writer->CreateChannel(cg3);
+    auto *master = writer->CreateChannel(cg3);
     master->Name("Time");
     master->Description("Time channel");
     master->Type(ChannelType::Master);
@@ -190,7 +189,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
     master->Unit("s");
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto *channel = writer->CreateChannel(cg3);
     channel->Name("UnsignedLe");
     channel->Description("uint32_t");
     channel->Type(ChannelType::FixedLength);
@@ -198,7 +197,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
     channel->DataBytes(sizeof(uint32_t));
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto *channel = writer->CreateChannel(cg3);
     channel->Name("UnsignedBe");
     channel->Description("uint16_t");
     channel->Type(ChannelType::FixedLength);
@@ -207,7 +206,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
   }
 
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto *channel = writer->CreateChannel(cg3);
     channel->Name("SignedLe");
     channel->Description("int32_t");
     channel->Type(ChannelType::FixedLength);
@@ -215,7 +214,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
     channel->DataBytes(sizeof(int32_t));
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto *channel = writer->CreateChannel(cg3);
     channel->Name("SignedBe");
     channel->Description("int8_t");
     channel->Type(ChannelType::FixedLength);
@@ -224,7 +223,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
   }
 
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto *channel = writer->CreateChannel(cg3);
     channel->Name("FloatLe");
     channel->Description("float");
     channel->Type(ChannelType::FixedLength);
@@ -232,7 +231,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
     channel->DataBytes(sizeof(float));
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto *channel = writer->CreateChannel(cg3);
     channel->Name("FloatBe");
     channel->Description("double");
     channel->Type(ChannelType::FixedLength);
@@ -241,7 +240,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
   }
 
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto *channel = writer->CreateChannel(cg3);
     channel->Name("String");
     channel->Description("string");
     channel->Type(ChannelType::FixedLength);
@@ -249,7 +248,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
     channel->DataBytes(10);
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto *channel = writer->CreateChannel(cg3);
     channel->Name("Array");
     channel->Description("vector");
     channel->Type(ChannelType::FixedLength);
@@ -257,22 +256,21 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
     channel->DataBytes(5);
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto *channel = writer->CreateChannel(cg3);
     channel->Name("Date");
     channel->Description("CANopen Date");
     channel->Type(ChannelType::FixedLength);
     channel->DataType(ChannelDataType::CanOpenDate);
-    //channel->DataBytes(7);
+    // channel->DataBytes(7);
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto *channel = writer->CreateChannel(cg3);
     channel->Name("Time");
     channel->Description("CANopen Time");
     channel->Type(ChannelType::FixedLength);
     channel->DataType(ChannelDataType::CanOpenTime);
-    //channel->DataBytes(7);
+    // channel->DataBytes(7);
   }
-
 
   writer->InitMeasurement();
   writer->StartMeasurement(TimeStampToNs());
@@ -287,7 +285,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
     cn_list[6]->SetChannelValue(11.1 * static_cast<double>(sample));
 
     cn_list[7]->SetChannelValue(std::to_string(sample));
-    std::vector<uint8_t> temp(5,0);
+    std::vector<uint8_t> temp(5, 0);
     temp[0] = 'T';
     cn_list[8]->SetChannelValue(temp);
 
@@ -300,10 +298,9 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
   }
   writer->StopMeasurement(TimeStampToNs());
   writer->FinalizeMeasurement();
-
 }
 
-TEST_F(TestWrite,Mdf4WriteHD) { //NOLINT
+TEST_F(TestWrite, Mdf4WriteHD) { // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -315,7 +312,7 @@ TEST_F(TestWrite,Mdf4WriteHD) { //NOLINT
 
   const auto start_time1 = TimeStampToNs();
 
-  auto* header = writer->Header();
+  auto *header = writer->Header();
   ASSERT_TRUE(header != nullptr);
   EXPECT_EQ(header->Index(), 0);
 
@@ -341,13 +338,12 @@ TEST_F(TestWrite,Mdf4WriteHD) { //NOLINT
   MdfReader reader(mdf_file.string());
   ASSERT_TRUE(reader.IsOk());
   ASSERT_TRUE(reader.ReadHeader());
-  const auto* file1 = reader.GetFile();
+  const auto *file1 = reader.GetFile();
   ASSERT_TRUE(file1 != nullptr);
 
-  const auto* header1 = file1->Header();
+  const auto *header1 = file1->Header();
   ASSERT_TRUE(header1 != nullptr);
   EXPECT_GT(header1->Index(), 0);
-
 
   EXPECT_EQ(header->Author(), header1->Author());
   std::cout << "Author: " << header1->Author() << std::endl;
@@ -369,10 +365,9 @@ TEST_F(TestWrite,Mdf4WriteHD) { //NOLINT
 
   EXPECT_EQ(header->StartDistance(), header1->StartDistance());
   EXPECT_TRUE(header1->StartDistance().has_value());
-
 }
 
-TEST_F(TestWrite,Mdf4WriteFH) { //NOLINT
+TEST_F(TestWrite, Mdf4WriteFH) { // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -381,12 +376,12 @@ TEST_F(TestWrite,Mdf4WriteFH) { //NOLINT
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
   ASSERT_TRUE(writer->Init(mdf_file.string()));
-  auto* header = writer->Header();
+  auto *header = writer->Header();
   ASSERT_TRUE(header != nullptr);
   header->Author("Ingemar Hedvall");
 
   auto time_stamp = TimeStampToNs();
-  auto* history = header->CreateFileHistory();
+  auto *history = header->CreateFileHistory();
   ASSERT_TRUE(history != nullptr);
   EXPECT_EQ(history->Index(), 0);
   history->Time(time_stamp);
@@ -406,17 +401,17 @@ TEST_F(TestWrite,Mdf4WriteFH) { //NOLINT
   MdfReader reader(mdf_file.string());
   ASSERT_TRUE(reader.IsOk());
   ASSERT_TRUE(reader.ReadHeader());
-  const auto* file1 = reader.GetFile();
+  const auto *file1 = reader.GetFile();
   ASSERT_TRUE(file1 != nullptr);
 
-  const auto* header1 = file1->Header();
+  const auto *header1 = file1->Header();
   ASSERT_TRUE(header1 != nullptr);
   EXPECT_GT(header1->Index(), 0);
 
   const auto fh_list = header1->FileHistories();
   ASSERT_EQ(fh_list.size(), 1);
 
-  const auto* history1 = fh_list[0];
+  const auto *history1 = fh_list[0];
   ASSERT_TRUE(history1 != nullptr);
   EXPECT_EQ(history->Time(), history1->Time());
   EXPECT_EQ(history->Description(), history1->Description());
@@ -426,8 +421,7 @@ TEST_F(TestWrite,Mdf4WriteFH) { //NOLINT
   EXPECT_EQ(history->UserName(), history1->UserName());
 }
 
-
-TEST_F(TestWrite,Mdf4WriteAT) { //NOLINT
+TEST_F(TestWrite, Mdf4WriteAT) { // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -436,7 +430,7 @@ TEST_F(TestWrite,Mdf4WriteAT) { //NOLINT
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
   ASSERT_TRUE(writer->Init(mdf_file.string()));
-  auto* header = writer->Header();
+  auto *header = writer->Header();
   ASSERT_TRUE(header != nullptr);
 
   const auto &log_config = LogConfig::Instance();
@@ -465,10 +459,10 @@ TEST_F(TestWrite,Mdf4WriteAT) { //NOLINT
   MdfReader reader(mdf_file.string());
   ASSERT_TRUE(reader.IsOk());
   ASSERT_TRUE(reader.ReadMeasurementInfo());
-  const auto* file1 = reader.GetFile();
+  const auto *file1 = reader.GetFile();
   ASSERT_TRUE(file1 != nullptr);
 
-  const auto* header1 = file1->Header();
+  const auto *header1 = file1->Header();
   ASSERT_TRUE(header1 != nullptr);
   EXPECT_GT(header1->Index(), 0);
 
@@ -476,21 +470,19 @@ TEST_F(TestWrite,Mdf4WriteAT) { //NOLINT
   ASSERT_EQ(at_list.size(), 3);
 
   for (size_t count1 = 0; count1 < at_list.size(); ++count1) {
-    const auto* attachment = at_list[count1];
+    const auto *attachment = at_list[count1];
     ASSERT_TRUE(attachment != nullptr);
     EXPECT_EQ(attachment->CreatorIndex(), count1);
     EXPECT_EQ(attachment->IsEmbedded(), count1 > 0);
     EXPECT_EQ(attachment->IsCompressed(), count1 > 1);
-    EXPECT_EQ(attachment->FileName(),log_file);
-    EXPECT_STREQ(attachment->FileType().c_str(),"text/plain");
+    EXPECT_EQ(attachment->FileName(), log_file);
+    EXPECT_STREQ(attachment->FileType().c_str(), "text/plain");
     EXPECT_TRUE(attachment->Md5().has_value());
     EXPECT_EQ(attachment->Md5().value().size(), 32);
-
   }
-
 }
 
-TEST_F(TestWrite,Mdf4WriteEV) { //NOLINT
+TEST_F(TestWrite, Mdf4WriteEV) { // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -499,10 +491,10 @@ TEST_F(TestWrite,Mdf4WriteEV) { //NOLINT
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
   ASSERT_TRUE(writer->Init(mdf_file.string()));
-  auto* header = writer->Header();
+  auto *header = writer->Header();
   ASSERT_TRUE(header != nullptr);
 
-  auto* history = header->CreateFileHistory();
+  auto *history = header->CreateFileHistory();
   ASSERT_TRUE(history != nullptr);
   history->Description("Created");
   history->ToolName("MdfWrite");
@@ -525,20 +517,18 @@ TEST_F(TestWrite,Mdf4WriteEV) { //NOLINT
   MdfReader reader(mdf_file.string());
   ASSERT_TRUE(reader.IsOk());
   ASSERT_TRUE(reader.ReadEverythingButData());
-  const auto* file1 = reader.GetFile();
+  const auto *file1 = reader.GetFile();
   ASSERT_TRUE(file1 != nullptr);
 
-  const auto* header1 = file1->Header();
+  const auto *header1 = file1->Header();
   ASSERT_TRUE(header1 != nullptr);
   EXPECT_GT(header1->Index(), 0);
 
   const auto ev_list = header1->Events();
   ASSERT_EQ(ev_list.size(), 1);
-
-
 }
 
-TEST_F(TestWrite,Mdf4WriteDG) { //NOLINT
+TEST_F(TestWrite, Mdf4WriteDG) { // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -547,10 +537,10 @@ TEST_F(TestWrite,Mdf4WriteDG) { //NOLINT
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
   ASSERT_TRUE(writer->Init(mdf_file.string()));
-  auto* header = writer->Header();
+  auto *header = writer->Header();
   ASSERT_TRUE(header != nullptr);
 
-  auto* history = header->CreateFileHistory();
+  auto *history = header->CreateFileHistory();
   ASSERT_TRUE(history != nullptr);
   history->Description("Created");
   history->ToolName("MdfWrite");
@@ -564,7 +554,7 @@ TEST_F(TestWrite,Mdf4WriteDG) { //NOLINT
   data_group->Description("Olle Meas");
   EXPECT_STREQ(data_group->Description().c_str(), "Olle Meas");
 
-  auto* channel_group = data_group->CreateChannelGroup();
+  auto *channel_group = data_group->CreateChannelGroup();
   ASSERT_TRUE(channel_group != nullptr);
   EXPECT_EQ(channel_group->Index(), 0);
 
@@ -581,10 +571,10 @@ TEST_F(TestWrite,Mdf4WriteDG) { //NOLINT
   MdfReader reader(mdf_file.string());
   ASSERT_TRUE(reader.IsOk());
   ASSERT_TRUE(reader.ReadEverythingButData());
-  const auto* file1 = reader.GetFile();
+  const auto *file1 = reader.GetFile();
   ASSERT_TRUE(file1 != nullptr);
 
-  const auto* header1 = file1->Header();
+  const auto *header1 = file1->Header();
   ASSERT_TRUE(header1 != nullptr);
   EXPECT_GT(header1->Index(), 0);
 
@@ -594,6 +584,5 @@ TEST_F(TestWrite,Mdf4WriteDG) { //NOLINT
   const auto cg_list = dg_list[0]->ChannelGroups();
   ASSERT_EQ(cg_list.size(), 1);
 }
-
 
 } // end namespace mdf::test

@@ -10,13 +10,18 @@ constexpr size_t kIndexData = 1;
 
 std::string MakeSyncTypeString(uint8_t type) {
   switch (type) {
-    case 0: return "";
-    case 1: return "Timer";
-    case 2: return "Angle";
-    case 3: return "Distance";
-    case 4: return "Index";
-    default:
-      break;
+  case 0:
+    return "";
+  case 1:
+    return "Timer";
+  case 2:
+    return "Angle";
+  case 3:
+    return "Distance";
+  case 4:
+    return "Index";
+  default:
+    break;
   }
   return "Unknown";
 }
@@ -29,7 +34,7 @@ std::string MakeFlagString(uint16_t flag) {
   return s.str();
 }
 
-}
+} // namespace
 
 namespace mdf::detail {
 
@@ -37,9 +42,11 @@ void Sr4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
-  dest.emplace_back("Next SR", ToHexString(Link(kIndexNext)), "Link to next sample reduction", BlockItemType::LinkItem );
-  dest.emplace_back("Data", ToHexString(Link(kIndexData)), "Link to data",BlockItemType::LinkItem );
-  dest.emplace_back("", "", "",BlockItemType::BlankItem );
+  dest.emplace_back("Next SR", ToHexString(Link(kIndexNext)),
+                    "Link to next sample reduction", BlockItemType::LinkItem);
+  dest.emplace_back("Data", ToHexString(Link(kIndexData)), "Link to data",
+                    BlockItemType::LinkItem);
+  dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Samples", std::to_string(nof_samples_));
@@ -60,4 +67,4 @@ size_t Sr4Block::Read(std::FILE *file) {
   return bytes;
 }
 
-}
+} // namespace mdf::detail

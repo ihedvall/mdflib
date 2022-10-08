@@ -9,12 +9,13 @@
 namespace mdf::detail {
 
 class Rv4Block : public DataBlock {
- public:
+public:
   size_t Read(std::FILE *file) override;
- protected:
-  [[nodiscard]] size_t DataSize() const override;
- private:
 
+protected:
+  [[nodiscard]] size_t DataSize() const override;
+
+private:
 };
 
-} // namespace
+} // namespace mdf::detail

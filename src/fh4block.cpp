@@ -6,17 +6,17 @@
 namespace {
 constexpr size_t kIndexNext = 0;
 constexpr size_t kIndexMd = 1;
-}
+} // namespace
 namespace mdf::detail {
-Fh4Block::Fh4Block() {
-  block_type_ = "##FH";
-}
+Fh4Block::Fh4Block() { block_type_ = "##FH"; }
 void Fh4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
 
-  dest.emplace_back("Links", "", "",BlockItemType::HeaderItem);
-  dest.emplace_back("Next FH", ToHexString(Link(kIndexNext)), "", BlockItemType::LinkItem);
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(), BlockItemType::LinkItem);
+  dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
+  dest.emplace_back("Next FH", ToHexString(Link(kIndexNext)), "",
+                    BlockItemType::LinkItem);
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(),
+                    BlockItemType::LinkItem);
   dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("FH Info", "", "", BlockItemType::HeaderItem);
@@ -35,19 +35,20 @@ size_t Fh4Block::Read(std::FILE *file) {
 }
 
 size_t Fh4Block::Write(std::FILE *file) {
-  const bool update = FilePosition() > 0; // Write or update the values inside the block
+  const bool update =
+      FilePosition() > 0; // Write or update the values inside the block
   if (update) {
     return block_length_;
   }
   block_type_ = "##FH";
-  block_length_ = 24 + (2*8) + 8 + 2 + 2 + 1 + 3;
-  link_list_.resize(2,0);
+  block_length_ = 24 + (2 * 8) + 8 + 2 + 2 + 1 + 3;
+  link_list_.resize(2, 0);
 
   auto bytes = IBlock::Write(file);
   bytes += timestamp_.Write(file);
   bytes += WriteBytes(file, 3);
   UpdateBlockSize(file, bytes);
-   WriteMdComment(file, kIndexMd);
+  WriteMdComment(file, kIndexMd);
   return bytes;
 }
 
@@ -60,18 +61,12 @@ const IMetaData *Fh4Block::MetaData() const {
   return !md_comment_ ? nullptr : dynamic_cast<IMetaData *>(md_comment_.get());
 }
 
-int64_t Fh4Block::Index() const {
-  return FilePosition();
-}
+int64_t Fh4Block::Index() const { return FilePosition(); }
 
 void Fh4Block::Time(uint64_t ns_since_1970) {
   timestamp_.NsSince1970(ns_since_1970);
 }
 
-uint64_t Fh4Block::Time() const {
-  return timestamp_.NsSince1970();
-}
+uint64_t Fh4Block::Time() const { return timestamp_.NsSince1970(); }
 
-
-
-}
+} // namespace mdf::detail

@@ -7,12 +7,8 @@
 #include "ixmlfile.h"
 namespace mdf {
 class WriteXml final : public IXmlFile {
- public:
- protected:
-
+public:
+protected:
 };
 
-}
-
-
-
+} // namespace mdf

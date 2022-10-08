@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <memory>
-#include <gtest/gtest.h>
 #include "md4block.h"
+#include <gtest/gtest.h>
+#include <memory>
 
 namespace mdf::test {
 
 TEST(TestMetaData, HDComment) {
   auto md4 = std::make_unique<detail::Md4Block>();
-  auto* meta_data = md4.get();
+  auto *meta_data = md4.get();
   meta_data->InitMd("HDcomment");
   std::cout << meta_data->XmlSnippet() << std::endl;
   meta_data->StringProperty("TX", "Comments");
@@ -42,8 +42,6 @@ TEST(TestMetaData, HDComment) {
 
   const auto olle2_list = meta_data->CommonProperties();
   EXPECT_EQ(olle2_list.size(), 2);
-
 }
 
-}
-
+} // namespace mdf::test

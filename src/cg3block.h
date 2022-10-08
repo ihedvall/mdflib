@@ -1,17 +1,17 @@
 
 #pragma once
-#include <string>
-#include <memory>
-#include <vector>
+#include "cn3block.h"
 #include "iblock.h"
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
-#include "tx3block.h"
-#include "cn3block.h"
 #include "sr3block.h"
+#include "tx3block.h"
+#include <memory>
+#include <string>
+#include <vector>
 namespace mdf::detail {
-class Cg3Block : public IBlock , public IChannelGroup {
- public:
+class Cg3Block : public IBlock, public IChannelGroup {
+public:
   using Cn3List = std::vector<std::unique_ptr<Cn3Block>>;
   using Sr3List = std::vector<std::unique_ptr<Sr3Block>>;
 
@@ -30,37 +30,30 @@ class Cg3Block : public IBlock , public IChannelGroup {
   [[nodiscard]] uint64_t RecordId() const override;
 
   [[nodiscard]] std::vector<IChannel *> Channels() const override;
-  [[nodiscard]] const IChannel* GetXChannel(const IChannel& reference) const override;
+  [[nodiscard]] const IChannel *
+  GetXChannel(const IChannel &reference) const override;
 
   [[nodiscard]] std::string Comment() const override;
-  const IBlock* Find(int64_t index) const override;
-  void GetBlockProperty(BlockPropertyList& dest) const override;
+  const IBlock *Find(int64_t index) const override;
+  void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;
-  void ReadCnList(std::FILE* file);
-  void ReadSrList(std::FILE* file);
+  void ReadCnList(std::FILE *file);
+  void ReadSrList(std::FILE *file);
 
-  uint16_t RecordSize() const {
-    return size_of_data_record_;
-  }
+  uint16_t RecordSize() const { return size_of_data_record_; }
 
-  void AddCn3(std::unique_ptr<Cn3Block>& cn3);
-  const Cn3List& Cn3() const {
-    return cn_list_;
-  }
+  void AddCn3(std::unique_ptr<Cn3Block> &cn3);
+  const Cn3List &Cn3() const { return cn_list_; }
 
-  const Sr3List& Sr3() const {
-    return sr_list_;
-  }
+  const Sr3List &Sr3() const { return sr_list_; }
 
-
-
-  [[nodiscard]] std::vector<uint8_t>& SampleBuffer() const {
+  [[nodiscard]] std::vector<uint8_t> &SampleBuffer() const {
     return sample_buffer_;
   }
-  size_t ReadDataRecord(std::FILE* file, const IDataGroup& notifier) const;
- private:
+  size_t ReadDataRecord(std::FILE *file, const IDataGroup &notifier) const;
 
+private:
   uint16_t record_id_ = 0;
   uint16_t nof_channels_ = 0;
   uint16_t size_of_data_record_ = 0;
@@ -70,11 +63,6 @@ class Cg3Block : public IBlock , public IChannelGroup {
   Cn3List cn_list_;
   Sr3List sr_list_;
 
-
-
   void PrepareForWriting();
 };
-}
-
-
-
+} // namespace mdf::detail

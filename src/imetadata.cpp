@@ -6,29 +6,28 @@
 #include "mdf/imetadata.h"
 #include "ixmlfile.h"
 
-
 namespace {
 
-void InsertETag(const mdf::ETag& e_tag,  mdf::IXmlNode& root) { //NOLINT
+void InsertETag(const mdf::ETag &e_tag, mdf::IXmlNode &root) { // NOLINT
   // First check if this is a tree. If so we create a new node and
-  const auto& tree_list = e_tag.TreeList();
+  const auto &tree_list = e_tag.TreeList();
   if (e_tag.Name().empty()) {
     return;
   }
 
   if (!tree_list.empty()) {
-    auto& tree = root.AddUniqueNode("tree","name", e_tag.Name());
+    auto &tree = root.AddUniqueNode("tree", "name", e_tag.Name());
     if (!e_tag.Description().empty()) {
       tree.SetAttribute("desc", e_tag.Description());
     }
     if (e_tag.CreatorIndex() >= 0) {
       tree.SetAttribute("ci", e_tag.CreatorIndex());
     }
-    for (const auto& tag : tree_list) {
+    for (const auto &tag : tree_list) {
       InsertETag(tag, tree);
     }
   } else {
-    auto& tag = root.AddUniqueNode("e","name", e_tag.Name());
+    auto &tag = root.AddUniqueNode("e", "name", e_tag.Name());
     if (!e_tag.Description().empty()) {
       tag.SetAttribute("desc", e_tag.Description());
     }
@@ -53,7 +52,7 @@ void InsertETag(const mdf::ETag& e_tag,  mdf::IXmlNode& root) { //NOLINT
   }
 }
 
-void FetchETag(const mdf::IXmlNode& root, mdf::ETag& e_tag) { //NOLINT
+void FetchETag(const mdf::IXmlNode &root, mdf::ETag &e_tag) { // NOLINT
   e_tag.Name(root.Attribute<std::string>("name"));
   e_tag.Description(root.Attribute<std::string>("desc"));
   e_tag.CreatorIndex(root.Attribute("ci", -1));
@@ -65,7 +64,7 @@ void FetchETag(const mdf::IXmlNode& root, mdf::ETag& e_tag) { //NOLINT
 
   mdf::IXmlNode::ChildList list;
   root.GetChildList(list);
-  for (const auto* child : list) {
+  for (const auto *child : list) {
     if (child == nullptr) {
       continue;
     }
@@ -77,7 +76,7 @@ void FetchETag(const mdf::IXmlNode& root, mdf::ETag& e_tag) { //NOLINT
   }
 }
 
-}
+} // namespace
 namespace mdf {
 
 void IMetaData::InitMd(const std::string &root_name) {
@@ -86,12 +85,13 @@ void IMetaData::InitMd(const std::string &root_name) {
   if (!snippet.empty()) {
     xml->ParseString(XmlSnippet());
   }
-  auto& root_node = xml->RootName(root_name);
+  auto &root_node = xml->RootName(root_name);
   root_node.AddUniqueNode("TX");
   XmlSnippet(xml->WriteString(true));
 }
 
-void IMetaData::StringProperty(const std::string &tag, const std::string &value) {
+void IMetaData::StringProperty(const std::string &tag,
+                               const std::string &value) {
   auto xml = CreateXmlFile();
   xml->ParseString(XmlSnippet());
   xml->SetProperty(tag, value);
@@ -122,8 +122,8 @@ double IMetaData::FloatProperty(const std::string &tag) const {
 void IMetaData::CommonProperty(const ETag &e_tag) {
   auto xml = CreateXmlFile();
   xml->ParseString(XmlSnippet());
-  auto& root_node = xml->RootName(xml->RootName());
-  auto& common = root_node.AddUniqueNode("common_properties");
+  auto &root_node = xml->RootName(xml->RootName());
+  auto &common = root_node.AddUniqueNode("common_properties");
   InsertETag(e_tag, common);
   XmlSnippet(xml->WriteString());
 }
@@ -131,11 +131,11 @@ void IMetaData::CommonProperty(const ETag &e_tag) {
 ETag IMetaData::CommonProperty(const std::string &name) const {
   auto xml = CreateXmlFile();
   xml->ParseString(XmlSnippet());
-  const auto* common = xml->GetNode("common_properties");
+  const auto *common = xml->GetNode("common_properties");
   ETag tag;
   if (common != nullptr) {
-    const auto* tree_tag = common->GetNode("tree", "name", name);
-    const auto* e_tag = common->GetNode("e", "name", name);
+    const auto *tree_tag = common->GetNode("tree", "name", name);
+    const auto *e_tag = common->GetNode("e", "name", name);
     if (tree_tag != nullptr) {
       FetchETag(*tree_tag, tag);
     } else if (e_tag != nullptr) {
@@ -145,12 +145,12 @@ ETag IMetaData::CommonProperty(const std::string &name) const {
   return tag;
 }
 
-void IMetaData::CommonProperties(const std::vector<ETag>& tag_list) {
+void IMetaData::CommonProperties(const std::vector<ETag> &tag_list) {
   auto xml = CreateXmlFile();
   xml->ParseString(XmlSnippet());
-  auto& root_node = xml->RootName(xml->RootName());
-  auto& common = root_node.AddUniqueNode("common_properties");
-  for (const auto& tag : tag_list) {
+  auto &root_node = xml->RootName(xml->RootName());
+  auto &common = root_node.AddUniqueNode("common_properties");
+  for (const auto &tag : tag_list) {
     InsertETag(tag, common);
   }
   XmlSnippet(xml->WriteString());
@@ -160,11 +160,11 @@ std::vector<ETag> IMetaData::CommonProperties() const {
   std::vector<ETag> tag_list;
   auto xml = CreateXmlFile();
   xml->ParseString(XmlSnippet());
-  const auto* common = xml->GetNode("common_properties");
+  const auto *common = xml->GetNode("common_properties");
   if (common != nullptr) {
     IXmlNode::ChildList list;
     common->GetChildList(list);
-    for (const auto* child : list) {
+    for (const auto *child : list) {
       if (child == nullptr) {
         continue;
       }
@@ -181,4 +181,4 @@ std::vector<ETag> IMetaData::CommonProperties() const {
   }
   return tag_list;
 }
-}
+} // namespace mdf

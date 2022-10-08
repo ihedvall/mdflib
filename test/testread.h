@@ -7,13 +7,11 @@
 namespace mdf::test {
 
 class TestRead : public testing::Test {
- public:
+public:
   static void SetUpTestSuite();
   static void TearDownTestSuite();
- protected:
 
+protected:
 };
 
-}
-
-
+} // namespace mdf::test

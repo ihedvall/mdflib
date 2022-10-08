@@ -4,21 +4,21 @@
  */
 
 #include "datalistblock.h"
-#include "dt4block.h"
-#include "dz4block.h"
-#include "dl4block.h"
-#include "hl4block.h"
-#include "sr4block.h"
-#include "rd4block.h"
-#include "sd4block.h"
-#include "dv4block.h"
 #include "di4block.h"
-#include "rv4block.h"
-#include "ri4block.h"
+#include "dl4block.h"
+#include "dt4block.h"
+#include "dv4block.h"
+#include "dz4block.h"
+#include "hl4block.h"
 #include "ld4block.h"
+#include "rd4block.h"
+#include "ri4block.h"
+#include "rv4block.h"
+#include "sd4block.h"
+#include "sr4block.h"
 
 namespace {
-  constexpr size_t kIndexNext = 0;
+constexpr size_t kIndexNext = 0;
 }
 
 namespace mdf::detail {
@@ -105,7 +105,8 @@ void DataListBlock::ReadBlockList(std::FILE *file, size_t data_index) {
   }
 }
 
-void DataListBlock::ReadLinkList(std::FILE *file, size_t data_index, uint32_t nof_link) {
+void DataListBlock::ReadLinkList(std::FILE *file, size_t data_index,
+                                 uint32_t nof_link) {
   if (block_list_.empty()) {
     for (uint32_t ii = 0; ii < nof_link; ++ii) {
       auto link = Link(data_index + ii);
@@ -156,17 +157,17 @@ void DataListBlock::ReadLinkList(std::FILE *file, size_t data_index, uint32_t no
         sd->Init(*this);
         sd->Read(file);
         block_list_.emplace_back(std::move(sd));
-       }
+      }
     }
   }
 }
 
 const IBlock *DataListBlock::Find(int64_t index) const {
-  for (const auto& p : block_list_) {
+  for (const auto &p : block_list_) {
     if (!p) {
       continue;
     }
-    const auto* pp = p->Find(index);
+    const auto *pp = p->Find(index);
     if (pp != nullptr) {
       return pp;
     }
@@ -176,12 +177,12 @@ const IBlock *DataListBlock::Find(int64_t index) const {
 
 size_t DataListBlock::DataSize() const { // NOLINT
   size_t count = 0;
-  for (const auto& p : block_list_) {
+  for (const auto &p : block_list_) {
     if (!p) {
       continue;
     }
-    const auto* list = dynamic_cast<const DataListBlock*>(p.get());
-    const auto* block = dynamic_cast<const DataBlock*>(p.get());
+    const auto *list = dynamic_cast<const DataListBlock *>(p.get());
+    const auto *block = dynamic_cast<const DataBlock *>(p.get());
     if (list != nullptr) {
       count += list->DataSize();
     } else if (block != nullptr) {

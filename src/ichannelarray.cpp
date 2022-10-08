@@ -5,5 +5,4 @@
 
 #include "mdf/ichannelarray.h"
 
-namespace mdf {
-} // mdf
+namespace mdf {} // namespace mdf

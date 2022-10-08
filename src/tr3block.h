@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <string>
-#include <vector>
 #include "iblock.h"
 #include "tx3block.h"
+#include <string>
+#include <vector>
 
 namespace mdf::detail {
 struct Tr3Event {
@@ -16,13 +16,14 @@ struct Tr3Event {
 };
 
 class Tr3Block : public IBlock {
- public:
+public:
   [[nodiscard]] std::string Comment() const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;
- private:
+
+private:
   uint16_t nof_events_ = 0;
   std::vector<Tr3Event> event_list_;
   std::string comment_;
 };
-}
+} // namespace mdf::detail

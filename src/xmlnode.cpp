@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <sstream>
 #include "xmlnode.h"
+#include <sstream>
 
 namespace mdf {
 
@@ -21,10 +21,7 @@ void XmlNode::AppendData(const char *buffer, int len) {
   value_ += temp.str();
 }
 
-XmlNode::XmlNode(const std::string &tag_name)
-    : IXmlNode(tag_name) {
-
-}
+XmlNode::XmlNode(const std::string &tag_name) : IXmlNode(tag_name) {}
 
 void XmlNode::SetAttribute(const XML_Char **attribute_list) {
   attribute_list_.clear();
@@ -43,5 +40,4 @@ void XmlNode::SetAttribute(const XML_Char **attribute_list) {
   }
 }
 
-
-}
+} // namespace mdf

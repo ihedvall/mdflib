@@ -16,18 +16,20 @@ std::string MakeFlagString(uint8_t flag) {
   }
   return s.str();
 }
-}
+} // namespace
 namespace mdf::detail {
 
 void Dl4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
-  dest.emplace_back("Next DL", ToHexString(Link(kIndexNext)), "Link to next DL block", BlockItemType::LinkItem );
+  dest.emplace_back("Next DL", ToHexString(Link(kIndexNext)),
+                    "Link to next DL block", BlockItemType::LinkItem);
   for (size_t ii = 0; ii < nof_blocks_; ++ii) {
-    dest.emplace_back("Data", ToHexString(Link(kIndexData + ii)), "Link to data block", BlockItemType::LinkItem );
+    dest.emplace_back("Data", ToHexString(Link(kIndexData + ii)),
+                      "Link to data block", BlockItemType::LinkItem);
   }
-  dest.emplace_back("", "", "",BlockItemType::BlankItem );
+  dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
 
@@ -57,4 +59,4 @@ size_t Dl4Block::Read(std::FILE *file) {
   ReadLinkList(file, kIndexData, nof_blocks_);
   return bytes;
 }
-}
+} // namespace mdf::detail

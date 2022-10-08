@@ -5,25 +5,23 @@
 
 #pragma once
 
-
 #include "mdf/mdfwriter.h"
-
 
 namespace mdf::detail {
 
 class Mdf4Writer : public MdfWriter {
- public:
+public:
   Mdf4Writer() = default;
   virtual ~Mdf4Writer();
 
+  IChannel *CreateChannel(IChannelGroup *parent) override;
+  IChannelConversion *CreateChannelConversion(IChannel *parent) override;
 
-  IChannel* CreateChannel(IChannelGroup* parent) override;
-  IChannelConversion* CreateChannelConversion(IChannel* parent) override;
- protected:
+protected:
   void CreateMdfFile() override;
-  void SetLastPosition(std::FILE* file) override;
- private:
+  void SetLastPosition(std::FILE *file) override;
 
+private:
 };
 
-} // mdf
+} // namespace mdf::detail

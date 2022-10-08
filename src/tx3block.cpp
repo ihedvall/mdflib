@@ -2,16 +2,14 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <sstream>
+#include "tx3block.h"
 #include <cstdio>
 #include <mdf/mdfhelper.h>
-#include "tx3block.h"
+#include <sstream>
 
 namespace mdf::detail {
 
-Tx3Block::Tx3Block(const std::string &text)
-: text_(text) {
-}
+Tx3Block::Tx3Block(const std::string &text) : text_(text) {}
 
 size_t Tx3Block::Read(std::FILE *file) {
   auto bytes = ReadHeader3(file);
@@ -52,4 +50,4 @@ size_t Tx3Block::Write(std::FILE *file) {
   return bytes;
 }
 
-}
+} // namespace mdf::detail

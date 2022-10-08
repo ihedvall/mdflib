@@ -16,22 +16,25 @@ std::string MakeFlagString(uint16_t flag) {
 }
 std::string MakeZipTypeString(uint8_t type) {
   switch (type) {
-    case 0: return "ZLIB Deflate";
-    case 1: return "Transposition + ZLIB Deflate";
+    case 0:
+      return "ZLIB Deflate";
+    case 1:
+      return "Transposition + ZLIB Deflate";
     default:
       break;
   }
   return "Unknown";
 }
-}
+}  // namespace
 
 namespace mdf::detail {
 void Hl4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
-  dest.emplace_back("First DL", ToHexString(Link(kIndexData)), "Link to next attach", BlockItemType::LinkItem );
-  dest.emplace_back("", "", "",BlockItemType::BlankItem );
+  dest.emplace_back("First DL", ToHexString(Link(kIndexData)),
+                    "Link to next attach", BlockItemType::LinkItem);
+  dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
 
@@ -48,4 +51,4 @@ size_t Hl4Block::Read(std::FILE *file) {
   ReadBlockList(file, kIndexData);
   return bytes;
 }
-}
+}  // namespace mdf::detail

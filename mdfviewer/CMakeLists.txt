@@ -39,7 +39,7 @@ endif()
 
 target_link_libraries(mdfview PRIVATE mdf)
 target_link_libraries(mdfview PRIVATE util)
-target_link_libraries(mdfview PRIVATE ${EXPAT_LIBRARIES})
+target_link_libraries(mdfview PRIVATE expat)
 target_link_libraries(mdfview PRIVATE ${wxWidgets_LIBRARIES})
 target_link_libraries(mdfview PRIVATE ${Boost_LIBRARIES})
 target_link_libraries(mdfview PRIVATE ${ZLIB_LIBRARIES})

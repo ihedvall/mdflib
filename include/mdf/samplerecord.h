@@ -17,9 +17,9 @@ namespace mdf {
  * struct has a timestamp, record ID and the raw record bytes.
  */
 struct SampleRecord {
-  uint64_t timestamp = 0; ///< Nanosecond since midnight 1970-01-01 UTC.
-  uint64_t record_id = 0; ///< Unique record ID within the data group.
-  std::vector<uint8_t> record_buffer; ///< Raw sample array.
+  uint64_t timestamp = 0;  ///< Nanosecond since midnight 1970-01-01 UTC.
+  uint64_t record_id = 0;  ///< Unique record ID within the data group.
+  std::vector<uint8_t> record_buffer;  ///< Raw sample array.
 };
 
-}
+}  // namespace mdf

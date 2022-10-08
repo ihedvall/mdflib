@@ -14,27 +14,20 @@ enum class BlockItemType {
 
 class BlockProperty final {
  public:
-
   explicit BlockProperty(const std::string& label, const std::string& value,
-                         const std::string& desc = {}, BlockItemType type = BlockItemType::NormalItem);
+                         const std::string& desc = {},
+                         BlockItemType type = BlockItemType::NormalItem);
 
-  [[nodiscard]] const std::string& Label() const {
-    return label_;
-  }
+  [[nodiscard]] const std::string& Label() const { return label_; }
 
-  [[nodiscard]] const std::string& Value() const {
-    return value_;
-  }
+  [[nodiscard]] const std::string& Value() const { return value_; }
 
-  [[nodiscard]] const std::string& Description() const {
-    return description_;
-  }
+  [[nodiscard]] const std::string& Description() const { return description_; }
 
-  [[nodiscard]] BlockItemType Type() const {
-    return type_;
-  }
+  [[nodiscard]] BlockItemType Type() const { return type_; }
 
   [[nodiscard]] int64_t Link() const;
+
  private:
   std::string label_;
   std::string value_;
@@ -42,8 +35,4 @@ class BlockProperty final {
   BlockItemType type_ = BlockItemType::NormalItem;
 };
 
-} // Namespace mdf::detail
-
-
-
-
+}  // Namespace mdf::detail

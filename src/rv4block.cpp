@@ -16,4 +16,4 @@ size_t Rv4Block::DataSize() const {
   return block_length_ > 24 ? block_length_ - 24 : 0;
 }
 
-} // namespace
+}  // namespace mdf::detail

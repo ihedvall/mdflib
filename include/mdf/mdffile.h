@@ -4,9 +4,10 @@
  */
 #pragma once
 #include <cstdio>
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
+
 #include "mdf/iheader.h"
 
 namespace mdf {
@@ -33,7 +34,7 @@ using DataGroupList = std::vector<const IDataGroup*>;
  */
 class MdfFile {
  public:
-  virtual ~MdfFile() = default; ///< Default destructor
+  virtual ~MdfFile() = default;  ///< Default destructor
 
   /** \brief Fetch a list of attachments.
    *
@@ -49,7 +50,7 @@ class MdfFile {
    * Fetches a list aof all measurements (DG blocks) in the file.
    * @param dest Destination list of all measurements.
    */
-  virtual void DataGroups(DataGroupList& dest ) const = 0;
+  virtual void DataGroups(DataGroupList& dest) const = 0;
 
   /** \brief Returns the file version.
    *
@@ -96,15 +97,15 @@ class MdfFile {
    *
    * @return Program identifier (max 8 characters).
    */
-   [[nodiscard]] virtual std::string ProgramId() const = 0;
+  [[nodiscard]] virtual std::string ProgramId() const = 0;
 
-   /** \brief Returns the header object
-    *
-    * Returns the header object. This object hold general information about
-    * the file and its contents. The header is the root of most information
-    * in the file.
-    * @return Pointer to the header object.
-    */
+  /** \brief Returns the header object
+   *
+   * Returns the header object. This object hold general information about
+   * the file and its contents. The header is the root of most information
+   * in the file.
+   * @return Pointer to the header object.
+   */
   [[nodiscard]] virtual IHeader* Header() const = 0;
 
   /** \brief Creates a new attachment (AT block).
@@ -121,8 +122,8 @@ class MdfFile {
   /** \brief Creates a new measurement (DG block).
    *
    * Creates a new measurement block in the file also known as a DG block.
-   * A DG block defines one measurement with one or more sub-measurements (CG block).
-   * The new DG block is always put last in the file.
+   * A DG block defines one measurement with one or more sub-measurements (CG
+   * block). The new DG block is always put last in the file.
    * @return Pointer to the new measurement.
    */
   [[nodiscard]] virtual IDataGroup* CreateDataGroup() = 0;
@@ -140,46 +141,50 @@ class MdfFile {
    * read in any other information as measurement information.
    * @param file Pointer to an opened file.
    */
-  virtual void ReadHeader(std::FILE *file) = 0;
+  virtual void ReadHeader(std::FILE* file) = 0;
 
   /** \brief Reads the measurement information about the file.
    *
-   * Reads information about the measurements (DG) and sub-measurements (CG) in the file.
-   * It doesn't read any information about the channels.
+   * Reads information about the measurements (DG) and sub-measurements (CG) in
+   * the file. It doesn't read any information about the channels.
    *
    * There is no need to call the ReadHeader function before this function.
    *
    * @param file Pointer to an opened file.
    */
-  virtual void ReadMeasurementInfo(std::FILE *file) = 0;
+  virtual void ReadMeasurementInfo(std::FILE* file) = 0;
 
   /** \brief Reads in all expect raw data from the file.
    *
-   * Reads all information about the file but not raw data as sample data or embedded attachment data.
+   * Reads all information about the file but not raw data as sample data or
+   * embedded attachment data.
    *
-   * There is no need to call the ReadHeader or ReadMeasurement functions before this function.
+   * There is no need to call the ReadHeader or ReadMeasurement functions before
+   * this function.
    *
    * @param file Pointer to an opened file.
-   */   virtual void ReadEverythingButData(std::FILE *file) = 0;
+   */
+  virtual void
+  ReadEverythingButData(std::FILE* file) = 0;
 
-   /** \brief Saves all blocks onto the file.
-    *
-    * Saves all blocks onto the file. You may call this function many times as it keep track
-    * of which blocks has been saved or not. You may close and open the file in between calls but
-    * this object keeps track of which block has been written or not, so don't delete this object.
-    * @param file Pointer to an open file.
-    * @return True on success.
-    */
+  /** \brief Saves all blocks onto the file.
+   *
+   * Saves all blocks onto the file. You may call this function many times as it
+   * keep track of which blocks has been saved or not. You may close and open
+   * the file in between calls but this object keeps track of which block has
+   * been written or not, so don't delete this object.
+   * @param file Pointer to an open file.
+   * @return True on success.
+   */
   virtual bool Write(std::FILE* file) = 0;
 
   /** \brief Display name of the file.
    *
-   * Default set to the stem of the file. Not stored in the file itself. Only used for display purpose.
+   * Default set to the stem of the file. Not stored in the file itself. Only
+   * used for display purpose.
    * @return Short name of the file.
    */
-  [[nodiscard]] const std::string& Name() const {
-    return name_;
-  }
+  [[nodiscard]] const std::string& Name() const { return name_; }
 
   /** \brief Set the display name of the file.
    *
@@ -187,35 +192,30 @@ class MdfFile {
    * set to the file name without path and extension (stem).
    * @param name Short name of the file.
    */
-  void Name(const std::string& name) {
-    name_ = name;
-  }
+  void Name(const std::string& name) { name_ = name; }
 
   /** \brief Returns the full name of the file.
    *
    * Returns the file name with path and extension.
    * @return File name with path and extension.
    */
-  [[nodiscard]] const std::string& FileName() const {
-    return filename_;
-  }
+  [[nodiscard]] const std::string& FileName() const { return filename_; }
   /** \brief Sets the file name.
    * Sets the file name and the short name of the object.
    * @param filename
    */
   void FileName(const std::string& filename);
 
-  virtual void IsFinalized(bool finalized,std::FILE* file, uint16_t standard_flags, uint16_t custom_flags) = 0;
-  [[nodiscard]] virtual bool IsFinalized(uint16_t& standard_flags, uint16_t& custom_flags) const = 0;
+  virtual void IsFinalized(bool finalized, std::FILE* file,
+                           uint16_t standard_flags, uint16_t custom_flags) = 0;
+  [[nodiscard]] virtual bool IsFinalized(uint16_t& standard_flags,
+                                         uint16_t& custom_flags) const = 0;
 
  protected:
-  MdfFile() = default; ///< Default constructor
+  MdfFile() = default;  ///< Default constructor
  private:
-  std::string name_; ///< File name without path and extension.
-  std::string filename_; ///< File name with full path.
+  std::string name_;      ///< File name without path and extension.
+  std::string filename_;  ///< File name with full path.
 };
 
-}
-
-
-
+}  // namespace mdf

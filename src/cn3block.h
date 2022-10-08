@@ -3,32 +3,33 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <string>
 #include <memory>
+#include <string>
+
+#include "cc3block.h"
+#include "cd3block.h"
+#include "ce3block.h"
 #include "datalistblock.h"
 #include "mdf/ichannel.h"
 #include "tx3block.h"
-#include "cc3block.h"
-#include "ce3block.h"
-#include "cd3block.h"
 
 namespace mdf::detail {
 class Cg3Block;
 
-class Cn3Block : public DataListBlock , public IChannel {
+class Cn3Block : public DataListBlock, public IChannel {
  public:
   [[nodiscard]] int64_t Index() const override;
 
-  void Name(const std::string &name) override;
+  void Name(const std::string& name) override;
   [[nodiscard]] std::string Name() const override;
 
-  void DisplayName(const std::string &name) override;
+  void DisplayName(const std::string& name) override;
   [[nodiscard]] std::string DisplayName() const override;
 
-  void Description(const std::string &description) override;
+  void Description(const std::string& description) override;
   [[nodiscard]] std::string Description() const override;
 
-  void Unit(const std::string &unit) override;
+  void Unit(const std::string& unit) override;
   [[nodiscard]] std::string Unit() const override;
   [[nodiscard]] bool IsUnitValid() const override;
 
@@ -49,35 +50,31 @@ class Cn3Block : public DataListBlock , public IChannel {
   [[nodiscard]] uint8_t Decimals() const override;
   [[nodiscard]] bool IsDecimalUsed() const override;
 
-
   [[nodiscard]] std::string Comment() const override;
   [[nodiscard]] const IBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  void Init(const IBlock &id_block) override;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  void Init(const IBlock& id_block) override;
+  size_t Read(std::FILE* file) override;
+  size_t Write(std::FILE* file) override;
 
   void AddCc3(std::unique_ptr<Cc3Block>& cc3);
   void ByteOffset(uint16_t byte_offset);
 
-  [[nodiscard]] Cc3Block* Cc3() const {
-    return cc_block_.get();
-  }
+  [[nodiscard]] Cc3Block* Cc3() const { return cc_block_.get(); }
 
-  [[nodiscard]] Cd3Block* Cd3() const {
-    return cd_block_.get();
-  }
+  [[nodiscard]] Cd3Block* Cd3() const { return cd_block_.get(); }
 
-  [[nodiscard]] Ce3Block* Ce3() const {
-    return ce_block_.get();
-  }
+  [[nodiscard]] Ce3Block* Ce3() const { return ce_block_.get(); }
 
  protected:
-  [[nodiscard]] size_t BitCount() const override; ///< Returns number of bits in value.
-  [[nodiscard]] size_t BitOffset() const override; ///< Returns bit offset (0..7).
-  [[nodiscard]] size_t ByteOffset() const override; ///< Returns byte offset in record.
+  [[nodiscard]] size_t BitCount()
+      const override;  ///< Returns number of bits in value.
+  [[nodiscard]] size_t BitOffset()
+      const override;  ///< Returns bit offset (0..7).
+  [[nodiscard]] size_t ByteOffset()
+      const override;  ///< Returns byte offset in record.
 
-  [[nodiscard]] std::vector<uint8_t> &SampleBuffer() const override;
+  [[nodiscard]] std::vector<uint8_t>& SampleBuffer() const override;
 
  private:
   uint16_t channel_type_ = 0;
@@ -102,6 +99,4 @@ class Cn3Block : public DataListBlock , public IChannel {
 
   const Cg3Block* cg3_block = nullptr;
 };
-}
-
-
+}  // namespace mdf::detail

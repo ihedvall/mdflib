@@ -2,8 +2,10 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <filesystem>
 #include <gtest/gtest.h>
+
+#include <filesystem>
+
 #include "mdf/cryptoutil.h"
 namespace {
 constexpr std::string_view kTestFile = "k:/test/mdf/mdf4_1/ct/cyclelow.mf4";
@@ -11,12 +13,12 @@ constexpr std::string_view kTestFile = "k:/test/mdf/mdf4_1/ct/cyclelow.mf4";
 
 namespace mdf::test {
 
-TEST(CryptoUtil, CreateMd5FileChecksum) // NOLINT
+TEST(CryptoUtil, CreateMd5FileChecksum)  // NOLINT
 {
   bool skip_test;
   try {
     skip_test = !std::filesystem::exists(kTestFile);
-  } catch (const std::exception& ) {
+  } catch (const std::exception&) {
     skip_test = true;
   }
   if (skip_test) {
@@ -32,7 +34,6 @@ TEST(CryptoUtil, CreateMd5FileChecksum) // NOLINT
   // Check that it handles files missing
   const auto md5_abnormal = CreateMd5FileString("testXXX.exe");
   EXPECT_TRUE(md5_abnormal.empty());
-
 }
 
-} // namespace util::test
+}  // namespace mdf::test

@@ -2,16 +2,17 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <cstdio>
-#include <chrono>
-#include <ranges>
-#include "mdf/mdflogstream.h"
 #include "mdf3writer.h"
 
+#include <chrono>
+#include <cstdio>
+#include <ranges>
+
 #include "cc3block.h"
-#include "cn3block.h"
 #include "cg3block.h"
+#include "cn3block.h"
 #include "dg3block.h"
+#include "mdf/mdflogstream.h"
 #include "mdf3file.h"
 #include "platform.h"
 
@@ -19,12 +20,10 @@ using namespace std::chrono_literals;
 
 namespace mdf::detail {
 
-Mdf3Writer::~Mdf3Writer() {
-  StopWorkThread();
-}
+Mdf3Writer::~Mdf3Writer() { StopWorkThread(); }
 
 IChannel *Mdf3Writer::CreateChannel(IChannelGroup *parent) {
-  auto* cg3 = dynamic_cast<detail::Cg3Block*> (parent);
+  auto *cg3 = dynamic_cast<detail::Cg3Block *>(parent);
   if (cg3 != nullptr) {
     auto cn3 = std::make_unique<detail::Cn3Block>();
     cn3->Init(*cg3);
@@ -34,7 +33,7 @@ IChannel *Mdf3Writer::CreateChannel(IChannelGroup *parent) {
 }
 
 IChannelConversion *Mdf3Writer::CreateChannelConversion(IChannel *parent) {
-  auto *cn3 = dynamic_cast<detail::Cn3Block *> (parent);
+  auto *cn3 = dynamic_cast<detail::Cn3Block *>(parent);
   if (cn3 != nullptr) {
     auto cc3 = std::make_unique<detail::Cc3Block>();
     cc3->Init(*cn3);
@@ -51,15 +50,15 @@ void Mdf3Writer::CreateMdfFile() {
 void Mdf3Writer::SetLastPosition(std::FILE *file) {
   Platform::fseek64(file, 0, SEEK_END);
 
-  auto* header = Header();
+  auto *header = Header();
   if (header == nullptr) {
     return;
   }
-  auto* last_dg = header->LastDataGroup();
-  if (last_dg == nullptr)  {
+  auto *last_dg = header->LastDataGroup();
+  if (last_dg == nullptr) {
     return;
   }
-  auto* dg3 = dynamic_cast<Dg3Block*>(last_dg);
+  auto *dg3 = dynamic_cast<Dg3Block *>(last_dg);
   if (dg3 == nullptr) {
     return;
   }
@@ -70,8 +69,8 @@ void Mdf3Writer::SetLastPosition(std::FILE *file) {
 
   dg3->SetLastFilePosition(file);
   auto position = detail::GetFilePosition(file);
-  dg3->UpdateLink(file,3, position);
+  dg3->UpdateLink(file, 3, position);
   dg3->SetLastFilePosition(file);
 }
 
-} // end namespace mdf
+}  // namespace mdf::detail

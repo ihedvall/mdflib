@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <memory>
 #include <gtest/gtest.h>
+
+#include <memory>
+
 #include "md4block.h"
 
 namespace mdf::test {
@@ -42,8 +44,6 @@ TEST(TestMetaData, HDComment) {
 
   const auto olle2_list = meta_data->CommonProperties();
   EXPECT_EQ(olle2_list.size(), 2);
-
 }
 
-}
-
+}  // namespace mdf::test

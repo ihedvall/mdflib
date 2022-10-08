@@ -8,21 +8,21 @@
 
 #pragma once
 #include <cstdio>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace mdf {
 
-using ByteArray = std::vector<uint8_t>; ///< Defines a dynamic byte array
+using ByteArray = std::vector<uint8_t>;  ///< Defines a dynamic byte array
 
 /**
- * Compress a file directly to another file. This is an efficient way of compressing a file.
- * The compress method is deflate according to ZLIB.
+ * Compress a file directly to another file. This is an efficient way of
+ * compressing a file. The compress method is deflate according to ZLIB.
  * @param in Pointer to the input file stream.
  * @param out Pointer to the output file stream.
  * @return True on success.
  */
-bool Deflate(std::FILE *in, std::FILE *out); ///< Compress file to file.
+bool Deflate(std::FILE* in, std::FILE* out);  ///< Compress file to file.
 
 /**
  * Compress a byte array directly to another array.
@@ -37,27 +37,34 @@ bool Deflate(std::FILE *in, std::FILE *out); ///< Compress file to file.
  * @param buf_out Output array.
  * @return True on success.
  */
-bool Deflate(const ByteArray& buf_in, ByteArray& buf_out); ///< Compress array to array.
+bool Deflate(const ByteArray& buf_in,
+             ByteArray& buf_out);  ///< Compress array to array.
 
 /**
  * Compress a file directly to an array.
  *
  * The file data is compressed and sent to an output array. Unlike the other
- * Deflate() functions, the output buffer doesn't need to be sized before calling
- * this function. The compress method is deflate according to ZLIB.
+ * Deflate() functions, the output buffer doesn't need to be sized before
+ * calling this function. The compress method is deflate according to ZLIB.
  *
  * @param filename Full name of the file to compress.
  * @param buf_out Output byte array. The function resize the buffer
  * @return True on success.
  */
-bool Deflate(const std::string& filename, ByteArray& buf_out); ///< Compress array to array.
+bool Deflate(const std::string& filename,
+             ByteArray& buf_out);  ///< Compress array to array.
 
-bool Inflate(std::FILE* in, std::FILE* out); ///< Decompress file to file.
-bool Inflate(std::FILE* in, std::FILE* out, uint64_t nof_bytes); ///< Decompress part of file to file
-bool Inflate(const ByteArray& in, ByteArray& out); ///< Decompress array to array.
-bool Inflate(const ByteArray& in, std::FILE* out); ///< Decompress array to file.
+bool Inflate(std::FILE* in, std::FILE* out);  ///< Decompress file to file.
+bool Inflate(std::FILE* in, std::FILE* out,
+             uint64_t nof_bytes);  ///< Decompress part of file to file
+bool Inflate(const ByteArray& in,
+             ByteArray& out);  ///< Decompress array to array.
+bool Inflate(const ByteArray& in,
+             std::FILE* out);  ///< Decompress array to file.
 
-void Transpose(ByteArray& data, size_t record_size); ///< Transpose of an array.
-void InvTranspose(ByteArray& data, size_t record_size); ///< Invert transpose of an array.
+void Transpose(ByteArray& data,
+               size_t record_size);  ///< Transpose of an array.
+void InvTranspose(ByteArray& data,
+                  size_t record_size);  ///< Invert transpose of an array.
 
-}
+}  // namespace mdf

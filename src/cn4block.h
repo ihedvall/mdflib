@@ -4,33 +4,33 @@
  */
 #pragma once
 #include <string>
-#include "datalistblock.h"
-#include "mdf/ichannel.h"
-#include "mdf/iattachment.h"
-#include "mdf/ichannelhierarchy.h"
 
-#include "si4block.h"
 #include "cc4block.h"
+#include "datalistblock.h"
 #include "md4block.h"
+#include "mdf/iattachment.h"
+#include "mdf/ichannel.h"
+#include "mdf/ichannelhierarchy.h"
+#include "si4block.h"
 
 namespace mdf::detail {
 class Cg4Block;
 
-class Cn4Block : public DataListBlock , public IChannel {
+class Cn4Block : public DataListBlock, public IChannel {
  public:
   Cn4Block();
   [[nodiscard]] int64_t Index() const override;
 
-  void Name(const std::string &name) override;
+  void Name(const std::string& name) override;
   [[nodiscard]] std::string Name() const override;
 
-  void DisplayName(const std::string &name) override;
+  void DisplayName(const std::string& name) override;
   std::string DisplayName() const override;
 
-  void Description(const std::string &description) override;
+  void Description(const std::string& description) override;
   std::string Description() const override;
 
-  void Unit(const std::string &unit) override;
+  void Unit(const std::string& unit) override;
   [[nodiscard]] std::string Unit() const override;
   [[nodiscard]] bool IsUnitValid() const override;
 
@@ -54,30 +54,20 @@ class Cn4Block : public DataListBlock , public IChannel {
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
   [[nodiscard]] const IBlock* Find(int64_t index) const override;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  size_t Read(std::FILE* file) override;
+  size_t Write(std::FILE* file) override;
 
-  void Init(const IBlock &id_block) override;
+  void Init(const IBlock& id_block) override;
 
-  [[nodiscard]] const IBlock* Cx() const {
-    return cx_block_.get();
-  }
+  [[nodiscard]] const IBlock* Cx() const { return cx_block_.get(); }
 
-  [[nodiscard]] const Si4Block* Si() const {
-    return si_block_.get();
-  }
+  [[nodiscard]] const Si4Block* Si() const { return si_block_.get(); }
   void AddCc4(std::unique_ptr<Cc4Block>& cc4);
-  [[nodiscard]] const Cc4Block* Cc() const {
-    return cc_block_.get();
-  }
-  void ReadData(std::FILE* file) const; ///< Reads in (VLSD) channel data
+  [[nodiscard]] const Cc4Block* Cc() const { return cc_block_.get(); }
+  void ReadData(std::FILE* file) const;  ///< Reads in (VLSD) channel data
 
-  void ClearData() const {
-    data_list_.clear();
-  }
-  const std::vector<uint8_t>& DataList() const {
-    return data_list_;
-  }
+  void ClearData() const { data_list_.clear(); }
+  const std::vector<uint8_t>& DataList() const { return data_list_; }
 
   [[nodiscard]] int64_t DataLink() const;
   [[nodiscard]] std::vector<int64_t> AtLinkList() const;
@@ -90,12 +80,15 @@ class Cn4Block : public DataListBlock , public IChannel {
   std::optional<std::pair<double, double>> Limit() const override;
   void ExtLimit(double min, double max) override;
   std::optional<std::pair<double, double>> ExtLimit() const override;
+
  protected:
-  size_t BitCount() const override; ///< Returns number of bits in value.
-  size_t BitOffset() const override; ///< Returns bit offset (0..7).
-  size_t ByteOffset() const override; ///< Returns byte offset in record.
-  bool GetTextValue(const std::vector<uint8_t> &record_buffer, std::string &dest) const override;
-  std::vector<uint8_t> &SampleBuffer() const override;
+  size_t BitCount() const override;    ///< Returns number of bits in value.
+  size_t BitOffset() const override;   ///< Returns bit offset (0..7).
+  size_t ByteOffset() const override;  ///< Returns byte offset in record.
+  bool GetTextValue(const std::vector<uint8_t>& record_buffer,
+                    std::string& dest) const override;
+  std::vector<uint8_t>& SampleBuffer() const override;
+
  private:
   uint8_t type_ = 0;
   uint8_t sync_type_ = 0;
@@ -127,4 +120,4 @@ class Cn4Block : public DataListBlock , public IChannel {
   const Cg4Block* cg_block_ = nullptr;
 };
 
-}
+}  // namespace mdf::detail

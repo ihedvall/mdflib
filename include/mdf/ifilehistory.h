@@ -4,12 +4,13 @@
  */
 
 /** \file ifilehistory.h
- * Defines an interface against a FH block in an MDF4 file. MDF3 file doesn't support
- * file history.
+ * Defines an interface against a FH block in an MDF4 file. MDF3 file doesn't
+ * support file history.
  */
 #pragma once
 #include <cstdint>
 #include <string>
+
 #include "mdf/imetadata.h"
 
 namespace mdf {
@@ -17,9 +18,9 @@ namespace mdf {
 /** \class IFileHistory ifilehistory.h "mdf/ifilehistory.h"
  * \brief Interface class against an MDF FH block.
  *
- * Interface against an MDF4 file history block. An MDF4 file must have at least one
- * history block that defines it creation. Each time the file is modified, there should
- * be a new history block appended.
+ * Interface against an MDF4 file history block. An MDF4 file must have at least
+ * one history block that defines it creation. Each time the file is modified,
+ * there should be a new history block appended.
  */
 class IFileHistory {
  public:
@@ -46,7 +47,7 @@ class IFileHistory {
    * Sets the time the history block was created.
    * @return Nanoseconds since 1970.
    */
-  [[nodiscard]] virtual uint64_t Time() const  = 0;
+  [[nodiscard]] virtual uint64_t Time() const = 0;
 
   /** \brief Returns an interface against a MD4 block
    *
@@ -69,7 +70,7 @@ class IFileHistory {
   void Description(const std::string& description) {
     auto* md4 = MetaData();
     if (md4 != nullptr) {
-      md4->StringProperty("TX",description);
+      md4->StringProperty("TX", description);
     }
   }
 
@@ -147,10 +148,10 @@ class IFileHistory {
   }
 
   /** \brief Sets the user name.
-    *
-    * Optional text that identify the user.
-    * @param user User name.
-    */
+   *
+   * Optional text that identify the user.
+   * @param user User name.
+   */
   void UserName(const std::string& user) {
     auto* md4 = MetaData();
     if (md4 != nullptr) {
@@ -166,7 +167,6 @@ class IFileHistory {
     const auto* md4 = MetaData();
     return md4 != nullptr ? md4->StringProperty("user_name") : std::string();
   }
-
 };
 
-} // end namespace
+}  // namespace mdf

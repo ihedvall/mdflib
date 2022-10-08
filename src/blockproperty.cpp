@@ -2,21 +2,15 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <sstream>
 #include "blockproperty.h"
 
-namespace mdf::detail
-{
+#include <sstream>
+
+namespace mdf::detail {
 
 BlockProperty::BlockProperty(const std::string &label, const std::string &value,
-                             const std::string& desc, BlockItemType type)
-: label_(label),
-  value_(value),
-  description_(desc),
-  type_(type)
-{
-
-}
+                             const std::string &desc, BlockItemType type)
+    : label_(label), value_(value), description_(desc), type_(type) {}
 /// Converts the the string value to a file position of the block.
 /// It assumes the value is formatted as an hex value so this function
 /// is only valid for link property types.
@@ -25,7 +19,7 @@ int64_t BlockProperty::Link() const {
   if (Type() != BlockItemType::LinkItem) {
     return 0;
   }
-  if (value_.size() <= 2 ) {
+  if (value_.size() <= 2) {
     return 0;
   }
   int64_t pos = 0;
@@ -33,10 +27,10 @@ int64_t BlockProperty::Link() const {
     std::stringstream temp;
     temp << std::hex << value_.substr(2);
     temp >> pos;
-  } catch (const std::exception&) {
+  } catch (const std::exception &) {
     return 0;
   }
   return pos;
 }
 
-}
+}  // namespace mdf::detail

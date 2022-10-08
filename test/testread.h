@@ -10,10 +10,8 @@ class TestRead : public testing::Test {
  public:
   static void SetUpTestSuite();
   static void TearDownTestSuite();
- protected:
 
+ protected:
 };
 
-}
-
-
+}  // namespace mdf::test

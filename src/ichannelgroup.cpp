@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "mdf/mdfhelper.h"
 #include "mdf/ichannelgroup.h"
 
+#include "mdf/mdfhelper.h"
 
 namespace mdf {
 
@@ -17,38 +17,24 @@ SampleRecord IChannelGroup::GetSampleRecord() const {
   return std::move(record);
 }
 
-void IChannelGroup::ResetSample() const {
-  sample_ = 0;
-}
+void IChannelGroup::ResetSample() const { sample_ = 0; }
 
-void IChannelGroup::IncrementSample() const {
-  ++sample_;
-}
+void IChannelGroup::IncrementSample() const { ++sample_; }
 
-size_t IChannelGroup::Sample() const {
-  return sample_;
-}
+size_t IChannelGroup::Sample() const { return sample_; }
 
-uint16_t IChannelGroup::Flags() {
-  return 0;
-}
+uint16_t IChannelGroup::Flags() { return 0; }
 
-void IChannelGroup::Flags(uint16_t flags) {
-}
+void IChannelGroup::Flags(uint16_t flags) {}
 
-char16_t IChannelGroup::PathSeparator() {
-  return u'/';
-}
+char16_t IChannelGroup::PathSeparator() { return u'/'; }
 
-void IChannelGroup::PathSeparator(char16_t path_separator) {
-}
+void IChannelGroup::PathSeparator(char16_t path_separator) {}
 
-ISourceInformation *IChannelGroup::CreateSourceInformation() {
-  return nullptr;
-}
+ISourceInformation *IChannelGroup::CreateSourceInformation() { return nullptr; }
 
 const ISourceInformation *IChannelGroup::SourceInformation() const {
   return nullptr;
 }
 
-}
+}  // namespace mdf

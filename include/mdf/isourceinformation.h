@@ -6,6 +6,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
+
 #include "mdf/imetadata.h"
 
 namespace mdf {
@@ -32,7 +33,7 @@ enum class BusType : uint8_t {
 };
 
 namespace SiFlag {
- constexpr uint8_t Simulated = 0x01;
+constexpr uint8_t Simulated = 0x01;
 }
 
 class ISourceInformation {
@@ -61,4 +62,4 @@ class ISourceInformation {
   [[nodiscard]] virtual const IMetaData* MetaData() const = 0;
 };
 
-} // end namespace mdf
+}  // end namespace mdf

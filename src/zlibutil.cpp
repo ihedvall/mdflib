@@ -2,31 +2,32 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+#include "mdf/zlibutil.h"
+
+#include <zlib.h>
+
 #include <cstdint>
 #include <cstring>
-#include <string>
 #include <filesystem>
-#include <zlib.h>
-#include "mdf/zlibutil.h"
+#include <string>
+
 #include "platform.h"
-namespace
-{
+namespace {
 constexpr size_t kZlibChunk = 16384;
 }
 
 namespace mdf {
 
-
-bool Deflate(FILE *in, FILE *out) {
+bool Deflate(FILE* in, FILE* out) {
   if (in == nullptr || out == nullptr) {
     return false;
   }
 
-  z_stream s {};
+  z_stream s{};
   std::vector<uint8_t> buf_in(kZlibChunk, 0);
-  std::vector<uint8_t> buf_out(kZlibChunk,0);
+  std::vector<uint8_t> buf_out(kZlibChunk, 0);
 
-  auto ret = deflateInit(&s,  Z_DEFAULT_COMPRESSION);
+  auto ret = deflateInit(&s, Z_DEFAULT_COMPRESSION);
   if (ret != Z_OK) {
     return false;
   }
@@ -49,7 +50,7 @@ bool Deflate(FILE *in, FILE *out) {
       s.avail_out = kZlibChunk;
       s.next_out = buf_out.data();
       ret = deflate(&s, flush);    /* no bad return value */
-      if (ret == Z_STREAM_ERROR) {  /* state not clobbered */
+      if (ret == Z_STREAM_ERROR) { /* state not clobbered */
         return false;
       }
       const auto have = kZlibChunk - s.avail_out;
@@ -58,13 +59,13 @@ bool Deflate(FILE *in, FILE *out) {
         return false;
       }
     } while (s.avail_out == 0);
-    if (s.avail_in != 0) {     /* all input will be used */
+    if (s.avail_in != 0) { /* all input will be used */
       return false;
     }
     /* done when last data in file processed */
   } while (flush != Z_FINISH);
   /* stream will be complete */
-  if (ret != Z_STREAM_END) {     /* all input will be used */
+  if (ret != Z_STREAM_END) { /* all input will be used */
     return false;
   }
 
@@ -73,7 +74,7 @@ bool Deflate(FILE *in, FILE *out) {
   return true;
 }
 
-bool Deflate(const std::string &filename, ByteArray &buf_out) {
+bool Deflate(const std::string& filename, ByteArray& buf_out) {
   try {
     std::filesystem::path name(filename);
     auto size = std::filesystem::file_size(name);
@@ -103,11 +104,11 @@ bool Deflate(const ByteArray& buf_in, ByteArray& buf_out) {
     return false;
   }
   if (buf_out.size() < 100) {
-    buf_out.resize(100,0);
+    buf_out.resize(100, 0);
   }
 
-  z_stream s {};
-  auto ret = deflateInit(&s,  Z_DEFAULT_COMPRESSION);
+  z_stream s{};
+  auto ret = deflateInit(&s, Z_DEFAULT_COMPRESSION);
   if (ret != Z_OK) {
     return false;
   }
@@ -117,8 +118,8 @@ bool Deflate(const ByteArray& buf_in, ByteArray& buf_out) {
 
   s.avail_out = static_cast<uInt>(buf_out.size());
   s.next_out = const_cast<Bytef*>(buf_out.data());
-  ret = deflate(&s, Z_FINISH);    /* no bad return value */
-  if (ret == Z_STREAM_ERROR) {  /* state not clobbered */
+  ret = deflate(&s, Z_FINISH); /* no bad return value */
+  if (ret == Z_STREAM_ERROR) { /* state not clobbered */
     return false;
   }
   const auto compress = static_cast<uInt>(buf_out.size()) - s.avail_out;
@@ -128,20 +129,18 @@ bool Deflate(const ByteArray& buf_in, ByteArray& buf_out) {
   return ret == Z_STREAM_END;
 }
 
-bool Inflate(std::FILE* in, std::FILE* out)
-{
+bool Inflate(std::FILE* in, std::FILE* out) {
   if (in == nullptr || out == nullptr) {
     return false;
   }
   // Inflate the input file to the output file
   z_stream o{};
   ByteArray buf_in(kZlibChunk, 0);
-  ByteArray buf_out(kZlibChunk,0);
+  ByteArray buf_out(kZlibChunk, 0);
   auto ret = inflateInit(&o);
   if (ret != Z_OK) {
     return false;
   }
-
 
   /* decompress until deflate stream ends or end of file */
   do {
@@ -187,25 +186,24 @@ bool Inflate(std::FILE* in, std::FILE* out)
   return ret == Z_STREAM_END;
 }
 
-bool Inflate(std::FILE *in, std::FILE *out, uint64_t nof_bytes) {
+bool Inflate(std::FILE* in, std::FILE* out, uint64_t nof_bytes) {
   if (in == nullptr || out == nullptr) {
     return false;
   }
   // Inflate the input file to the output file
   z_stream o{};
   ByteArray buf_in(kZlibChunk, 0);
-  ByteArray buf_out(kZlibChunk,0);
+  ByteArray buf_out(kZlibChunk, 0);
   auto ret = inflateInit(&o);
   if (ret != Z_OK) {
     return false;
   }
 
-
   uint64_t count = 0;
   /* decompress until deflate stream ends or end of file */
   do {
     if (count >= nof_bytes) {
-      break; // Ready
+      break;  // Ready
     }
 
     size_t bytes_to_read = kZlibChunk;
@@ -256,8 +254,7 @@ bool Inflate(std::FILE *in, std::FILE *out, uint64_t nof_bytes) {
   return ret == Z_STREAM_END;
 }
 
-bool Inflate(const ByteArray& buf_in, ByteArray& buf_out)
-{
+bool Inflate(const ByteArray& buf_in, ByteArray& buf_out) {
   if (buf_in.empty() || buf_out.empty()) {
     return false;
   }
@@ -299,28 +296,26 @@ bool Inflate(const ByteArray& buf_in, ByteArray& buf_out)
   return ret == Z_STREAM_END;
 }
 
-bool Inflate(const ByteArray& buf_in, std::FILE* to_file)
-{
+bool Inflate(const ByteArray& buf_in, std::FILE* to_file) {
   if (buf_in.empty() || to_file == nullptr) {
     return false;
   }
 
-
   // Inflate the input file to the output file
   z_stream o{};
 
-  ByteArray buf_out(kZlibChunk,0);
+  ByteArray buf_out(kZlibChunk, 0);
   auto ret = inflateInit(&o);
   if (ret != Z_OK) {
     return false;
   }
   o.avail_in = static_cast<uInt>(buf_in.size());
   o.next_in = const_cast<Bytef*>(buf_in.data());
-     /* run inflate() on input until output buffer not full */
-   do {
-     o.avail_out = kZlibChunk;
-     o.next_out = buf_out.data();
-     ret = inflate(&o, Z_NO_FLUSH);
+  /* run inflate() on input until output buffer not full */
+  do {
+    o.avail_out = kZlibChunk;
+    o.next_out = buf_out.data();
+    ret = inflate(&o, Z_NO_FLUSH);
 
     switch (ret) {
       case Z_STREAM_ERROR:
@@ -347,8 +342,7 @@ bool Inflate(const ByteArray& buf_in, std::FILE* to_file)
   return ret == Z_STREAM_END;
 }
 
-void Transpose(ByteArray& data, size_t record_size)
-{
+void Transpose(ByteArray& data, size_t record_size) {
   if (record_size == 0) {
     return;
   }
@@ -365,8 +359,7 @@ void Transpose(ByteArray& data, size_t record_size)
   }
 }
 
-void InvTranspose(ByteArray& data, size_t record_size)
-{
+void InvTranspose(ByteArray& data, size_t record_size) {
   if (record_size == 0) {
     return;
   }
@@ -382,6 +375,4 @@ void InvTranspose(ByteArray& data, size_t record_size)
   }
 }
 
-
-
-}
+}  // namespace mdf

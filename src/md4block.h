@@ -4,10 +4,11 @@
  */
 #pragma once
 #include <string>
+
 #include "tx4block.h"
 
 namespace mdf::detail {
-class Md4Block : public Tx4Block , public IMetaData {
+class Md4Block : public Tx4Block, public IMetaData {
  public:
   explicit Md4Block(const std::string& text);
   Md4Block() = default;
@@ -19,8 +20,5 @@ class Md4Block : public Tx4Block , public IMetaData {
 
   void XmlSnippet(const std::string& text) override;
   [[nodiscard]] const std::string& XmlSnippet() const override;
-
-
 };
-}
-
+}  // namespace mdf::detail

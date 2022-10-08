@@ -4,8 +4,8 @@
  */
 #pragma once
 #include "iblock.h"
-#include "mdf/ievent.h"
 #include "mdf/iattachment.h"
+#include "mdf/ievent.h"
 
 namespace mdf::detail {
 class Hd4Block;
@@ -14,10 +14,10 @@ class Ev4Block : public IBlock, public IEvent {
  public:
   Ev4Block();
 
-  void GetBlockProperty(BlockPropertyList& dest) const override;
+  void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;
-  void FindReferencedBlocks(const Hd4Block& hd4);
+  void FindReferencedBlocks(const Hd4Block &hd4);
 
   [[nodiscard]] int64_t Index() const override;
 
@@ -58,9 +58,11 @@ class Ev4Block : public IBlock, public IEvent {
   [[nodiscard]] const std::vector<const void *> &Scopes() const override;
 
   void AddAttachment(const IAttachment *attachment) override;
-  [[nodiscard]] const std::vector<const IAttachment *> &Attachments() const override;
+  [[nodiscard]] const std::vector<const IAttachment *> &Attachments()
+      const override;
   IMetaData *MetaData() override;
   [[nodiscard]] const IMetaData *MetaData() const override;
+
  private:
   uint8_t type_ = static_cast<uint8_t>(EventType::Marker);
   uint8_t sync_type_ = static_cast<uint8_t>(SyncType::SyncTime);
@@ -68,22 +70,18 @@ class Ev4Block : public IBlock, public IEvent {
   uint8_t cause_ = 0;
   uint8_t flags_ = 0;
   /* 1 byte reserved */
-  uint32_t length_m_ = 0; ///< Number of scope events
-  uint16_t length_n_ = 0; ///< Number of attachments
+  uint32_t length_m_ = 0;  ///< Number of scope events
+  uint16_t length_n_ = 0;  ///< Number of attachments
   uint16_t creator_index_ = 0;
   int64_t sync_base_value_ = 0;
   double sync_factor_ = 1.0;
 
-  const IEvent* parent_event_ = nullptr;
-  const IEvent* range_event_ = nullptr;
-  std::vector<const void*> scope_list_; ///< List of IBlock pointers
-  std::vector<const IAttachment*> attachment_list_;
+  const IEvent *parent_event_ = nullptr;
+  const IEvent *range_event_ = nullptr;
+  std::vector<const void *> scope_list_;  ///< List of IBlock pointers
+  std::vector<const IAttachment *> attachment_list_;
 
   std::string name_;
   std::string group_name_;
 };
-}
-
-
-
-
+}  // namespace mdf::detail

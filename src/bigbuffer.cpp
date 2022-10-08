@@ -4,5 +4,4 @@
 
 #include "bigbuffer.h"
 
-namespace mdf {
-} // mdf
+namespace mdf {}  // namespace mdf

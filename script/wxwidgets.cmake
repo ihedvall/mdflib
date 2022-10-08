@@ -16,7 +16,7 @@ if (NOT wxWidgets_FOUND)
         if (MINGW)
             set(wxWidgets_LIB_DIR ${COMP_DIR}/wxwidgets/master/lib/gcc_x64_lib)
         else()
-            #            set(wxWidgets_LIB_DIR ${COMP_DIR}/wxwidgets/master/lib/vc_x64_lib)
+            set(wxWidgets_LIB_DIR ${COMP_DIR}/wxwidgets/master/lib/vc_x64_lib)
         endif()
     else()
         set(CMAKE_FIND_ROOT_PATH ${COMP_DIR}/wxwidgets/master)
@@ -29,12 +29,8 @@ if (NOT wxWidgets_FOUND)
         endif()
         set(wxWidgets_USE_UNIVERSAL OFF)
     endif()
-
-
-
     find_package(wxWidgets COMPONENTS adv core base )
     include(${wxWidgets_USE_FILE})
-
 endif()
 
 message(STATUS "wxWidgets Find Style: " ${wxWidgets_FIND_STYLE})

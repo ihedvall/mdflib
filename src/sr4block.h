@@ -9,7 +9,8 @@ namespace mdf::detail {
 class Sr4Block : public DataListBlock {
  public:
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  size_t Read(std::FILE *file) override;
+  size_t Read(std::FILE* file) override;
+
  private:
   uint64_t nof_samples_ = 0;
   double interval_ = 0;
@@ -17,6 +18,4 @@ class Sr4Block : public DataListBlock {
   uint8_t flags_ = 0;
   /* reserved 6 byte */
 };
-}
-
-
+}  // namespace mdf::detail

@@ -5,9 +5,10 @@
 
 #pragma once
 #include <cstdint>
-#include "mdf/idatagroup.h"
-#include "mdf/ichannelgroup.h"
+
 #include "mdf/ichannel.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
 
 namespace mdf {
 
@@ -44,9 +45,9 @@ class IChannelHierarchy {
   [[nodiscard]] virtual std::string Description() const = 0;
 
   /** \brief Returns an interface against an MD4 block
- *
- * @return Pointer to a meta data block.
- */
+   *
+   * @return Pointer to a meta data block.
+   */
   [[nodiscard]] virtual IMetaData* MetaData() = 0;
 
   /** \brief Returns an constant interface against a MD4 block
@@ -56,10 +57,11 @@ class IChannelHierarchy {
   [[nodiscard]] virtual const IMetaData* MetaData() const = 0;
 
   virtual void AddElementLink(const ElementLink& element) = 0;
-  [[nodiscard]] virtual const std::vector<ElementLink>& ElementLinks() const = 0;
+  [[nodiscard]] virtual const std::vector<ElementLink>& ElementLinks()
+      const = 0;
 
   [[nodiscard]] virtual IChannelHierarchy* CreateChannelHierarchy() = 0;
-  [[nodiscard]] virtual std::vector<IChannelHierarchy*> ChannelHierarchies() const = 0;
-
+  [[nodiscard]] virtual std::vector<IChannelHierarchy*> ChannelHierarchies()
+      const = 0;
 };
-}
+}  // namespace mdf

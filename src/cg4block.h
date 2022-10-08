@@ -3,14 +3,15 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
+
+#include "cn4block.h"
 #include "iblock.h"
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
 #include "si4block.h"
-#include "cn4block.h"
 #include "sr4block.h"
 
 namespace mdf::detail {
@@ -24,20 +25,16 @@ class Cg4Block : public IBlock, public IChannelGroup {
   const IBlock* Find(int64_t index) const override;
 
   void AddCn4(std::unique_ptr<Cn4Block>& cn3);
-  [[nodiscard]] const Cn4List& Cn4() const {
-    return cn_list_;
-  }
+  [[nodiscard]] const Cn4List& Cn4() const { return cn_list_; }
 
-  [[nodiscard]] const Sr4List& Sr4() const {
-    return sr_list_;
-  }
+  [[nodiscard]] const Sr4List& Sr4() const { return sr_list_; }
 
   [[nodiscard]] int64_t Index() const override;
-  void Name(const std::string &name) override;
+  void Name(const std::string& name) override;
 
   [[nodiscard]] std::string Name() const override;
 
-  void Description(const std::string &description) override;
+  void Description(const std::string& description) override;
   [[nodiscard]] std::string Description() const override;
 
   [[nodiscard]] uint64_t NofSamples() const override;
@@ -52,24 +49,21 @@ class Cg4Block : public IBlock, public IChannelGroup {
   char16_t PathSeparator() override;
   void PathSeparator(char16_t path_separator) override;
 
-  [[nodiscard]] std::vector<IChannel *> Channels() const override;
-  [[nodiscard]] const IChannel* GetXChannel(const IChannel& reference) const override;
+  [[nodiscard]] std::vector<IChannel*> Channels() const override;
+  [[nodiscard]] const IChannel* GetXChannel(
+      const IChannel& reference) const override;
 
-  const Si4Block* Source() const {
-    return si_block_.get();
-  }
+  const Si4Block* Source() const { return si_block_.get(); }
 
-  size_t Read(std::FILE *file) override;
+  size_t Read(std::FILE* file) override;
   void ReadCnList(std::FILE* file);
   void ReadSrList(std::FILE* file);
 
   size_t ReadDataRecord(std::FILE* file, const IDataGroup& notifier) const;
-  std::vector<uint8_t>& SampleBuffer() const {
-    return sample_buffer_;
-  }
-  size_t Write(std::FILE *file) override;
-  ISourceInformation *CreateSourceInformation() override;
-  const ISourceInformation *SourceInformation() const override;
+  std::vector<uint8_t>& SampleBuffer() const { return sample_buffer_; }
+  size_t Write(std::FILE* file) override;
+  ISourceInformation* CreateSourceInformation() override;
+  const ISourceInformation* SourceInformation() const override;
 
  private:
   uint64_t record_id_ = 0;
@@ -86,7 +80,4 @@ class Cg4Block : public IBlock, public IChannelGroup {
   Sr4List sr_list_;
 };
 
-} // namespace mdf::detail
-
-
-
+}  // namespace mdf::detail

@@ -22,16 +22,16 @@ enum class ArrayStorage : uint8_t {
 };
 
 namespace CaFlag {
-  constexpr uint32_t DynamicSize = 0x0001;
-  constexpr uint32_t InputQuantity = 0x0002;
-  constexpr uint32_t OutputQuantity = 0x0004;
-  constexpr uint32_t ComparisonQuantity = 0x0008;
-  constexpr uint32_t Axis = 0x0010;
-  constexpr uint32_t FixedAxis = 0x0020;
-  constexpr uint32_t InverseLayout = 0x0040;
-  constexpr uint32_t LeftOpenInterval = 0x0080;
-  constexpr uint32_t StandardAxis = 0x0100;
-}
+constexpr uint32_t DynamicSize = 0x0001;
+constexpr uint32_t InputQuantity = 0x0002;
+constexpr uint32_t OutputQuantity = 0x0004;
+constexpr uint32_t ComparisonQuantity = 0x0008;
+constexpr uint32_t Axis = 0x0010;
+constexpr uint32_t FixedAxis = 0x0020;
+constexpr uint32_t InverseLayout = 0x0040;
+constexpr uint32_t LeftOpenInterval = 0x0080;
+constexpr uint32_t StandardAxis = 0x0100;
+}  // namespace CaFlag
 
 class IChannelArray {
  public:
@@ -45,8 +45,6 @@ class IChannelArray {
 
   virtual void Flags(uint32_t flags) = 0;
   [[nodiscard]] virtual uint32_t Flags() const = 0;
-
-
 };
 
-} // mdf
+}  // namespace mdf

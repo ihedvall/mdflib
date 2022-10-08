@@ -3,14 +3,15 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
-#include "mdf/idatagroup.h"
-#include "datalistblock.h"
-#include "tr3block.h"
+
 #include "cg3block.h"
+#include "datalistblock.h"
 #include "dt3block.h"
+#include "mdf/idatagroup.h"
+#include "tr3block.h"
 
 namespace mdf::detail {
 
@@ -24,20 +25,16 @@ class Dg3Block : public DataListBlock, public IDataGroup {
 
   void AddCg3(std::unique_ptr<Cg3Block>& cg3);
   [[nodiscard]] const Cg3List& Cg3() const;
-  [[nodiscard]] const Tr3Block* Tr3() const {
-    return tr_block_.get();
-  }
-  uint16_t NofRecordId() const {
-    return nof_record_id_;
-  }
+  [[nodiscard]] const Tr3Block* Tr3() const { return tr_block_.get(); }
+  uint16_t NofRecordId() const { return nof_record_id_; }
   void GetBlockProperty(BlockPropertyList& dest) const override;
   [[nodiscard]] const IBlock* Find(int64_t index) const override;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  size_t Read(std::FILE* file) override;
+  size_t Write(std::FILE* file) override;
 
   void ReadData(std::FILE* file) const;
- private:
 
+ private:
   uint16_t nof_cg_blocks_ = 0;
   uint16_t nof_record_id_ = 0;
 
@@ -47,8 +44,4 @@ class Dg3Block : public DataListBlock, public IDataGroup {
   const Cg3Block* FindCgRecordId(const uint64_t record_id) const;
 };
 
-}
-
-
-
-
+}  // namespace mdf::detail

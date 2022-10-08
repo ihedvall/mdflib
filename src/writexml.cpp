@@ -4,6 +4,4 @@
  */
 // #include "writexml.h"
 
-namespace mdf {
-
-} // end namespace
+namespace mdf {}  // namespace mdf

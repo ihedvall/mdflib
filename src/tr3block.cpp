@@ -6,13 +6,11 @@
 
 namespace {
 constexpr size_t kIndexTx = 0;
-} // end namespace
+}  // end namespace
 
 namespace mdf::detail {
 
-std::string Tr3Block::Comment() const {
-  return comment_;
-}
+std::string Tr3Block::Comment() const { return comment_; }
 size_t Tr3Block::Read(std::FILE *file) {
   size_t bytes = ReadHeader3(file);
   bytes += ReadLinks3(file, 1);
@@ -28,20 +26,21 @@ size_t Tr3Block::Read(std::FILE *file) {
     bytes += ReadNumber(file, ev.post_time);
     event_list_.emplace_back(ev);
   }
-  comment_ = ReadTx3(file,kIndexTx);
+  comment_ = ReadTx3(file, kIndexTx);
   return bytes;
 }
 
 size_t Tr3Block::Write(std::FILE *file) {
-  // The TR block is normally added after the measurement has been stopped as it cannot be appended
+  // The TR block is normally added after the measurement has been stopped as it
+  // cannot be appended
   if (FilePosition() > 0) {
     return block_size_;
   }
 
   nof_events_ = static_cast<uint16_t>(event_list_.size());
   block_type_ = "TR";
-  block_size_ = (2 + 2) + (1*4) + 2 + (nof_events_ * 24);
-  link_list_.resize(1,0);
+  block_size_ = (2 + 2) + (1 * 4) + 2 + (nof_events_ * 24);
+  link_list_.resize(1, 0);
 
   if (!comment_.empty()) {
     Tx3Block tx(comment_);
@@ -53,7 +52,7 @@ size_t Tr3Block::Write(std::FILE *file) {
   size_t bytes = IBlock::Write(file);
   bytes += WriteNumber(file, nof_events_);
 
-  for (const auto& ev : event_list_) {
+  for (const auto &ev : event_list_) {
     bytes += WriteNumber(file, ev.event_time);
     bytes += WriteNumber(file, ev.pre_time);
     bytes += WriteNumber(file, ev.post_time);
@@ -62,5 +61,4 @@ size_t Tr3Block::Write(std::FILE *file) {
   return bytes;
 }
 
-}
-
+}  // namespace mdf::detail

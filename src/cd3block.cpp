@@ -11,7 +11,8 @@ size_t Cd3Block::Read(std::FILE *file) {
   dependency_list_.clear();
   dimension_list_.clear();
   switch (dependency_type_) {
-    case 0:break;
+    case 0:
+      break;
     case 1:
     case 2:
       for (uint16_t dep = 0; dep < nof_dependencies_; ++dep) {
@@ -33,4 +34,4 @@ size_t Cd3Block::Read(std::FILE *file) {
 
   return bytes;
 }
-}
+}  // namespace mdf::detail

@@ -7,81 +7,46 @@
 
 namespace mdf {
 
-void IHeader::MeasurementId(const std::string& uuid) {
-}
+void IHeader::MeasurementId(const std::string &uuid) {}
 
-std::string IHeader::MeasurementId() const {
-  return {};
-}
+std::string IHeader::MeasurementId() const { return {}; }
 
-void IHeader::RecorderId(const std::string &uuid) {
-}
+void IHeader::RecorderId(const std::string &uuid) {}
 
-std::string IHeader::RecorderId() const {
-  return {};
-}
+std::string IHeader::RecorderId() const { return {}; }
 
-void IHeader::RecorderIndex(int64_t index) {
-}
+void IHeader::RecorderIndex(int64_t index) {}
 
-int64_t IHeader::RecorderIndex() const {
-  return 0;
-}
+int64_t IHeader::RecorderIndex() const { return 0; }
 
+void IHeader::StartAngle(double angle) {}
 
+std::optional<double> IHeader::StartAngle() const { return {}; }
 
-void IHeader::StartAngle(double angle) {
-}
+void IHeader::StartDistance(double distance) {}
 
-std::optional<double> IHeader::StartAngle() const {
-  return {};
-}
+std::optional<double> IHeader::StartDistance() const { return {}; }
 
-void IHeader::StartDistance(double distance) {
-}
+IMetaData *IHeader::MetaData() { return nullptr; }
 
-std::optional<double>  IHeader::StartDistance() const {
-  return {};
-}
+const IMetaData *IHeader::MetaData() const { return nullptr; }
 
-IMetaData *IHeader::MetaData() {
-  return nullptr;
-}
+IAttachment *IHeader::CreateAttachment() { return nullptr; }
 
-const IMetaData *IHeader::MetaData() const {
-  return nullptr;
-}
+std::vector<IAttachment *> IHeader::Attachments() const { return {}; }
 
-IAttachment *IHeader::CreateAttachment() {
-  return nullptr;
-}
+IFileHistory *IHeader::CreateFileHistory() { return nullptr; }
 
-std::vector<IAttachment *> IHeader::Attachments() const {
-  return {};
-}
+std::vector<IFileHistory *> IHeader::FileHistories() const { return {}; }
 
-IFileHistory *IHeader::CreateFileHistory() {
-  return nullptr;
-}
+IEvent *IHeader::CreateEvent() { return nullptr; }
 
-std::vector<IFileHistory *> IHeader::FileHistories() const {
-  return {};
-}
+std::vector<IEvent *> IHeader::Events() const { return {}; }
 
-IEvent *IHeader::CreateEvent() {
-  return nullptr;
-}
-
-std::vector<IEvent *> IHeader::Events() const {
-  return {};
-}
-
-IChannelHierarchy *IHeader::CreateChannelHierarchy() {
-  return nullptr;
-}
+IChannelHierarchy *IHeader::CreateChannelHierarchy() { return nullptr; }
 
 std::vector<IChannelHierarchy *> IHeader::ChannelHierarchies() const {
   return {};
 }
 
-} // end namespace
+}  // namespace mdf

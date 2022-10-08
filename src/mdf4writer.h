@@ -5,9 +5,7 @@
 
 #pragma once
 
-
 #include "mdf/mdfwriter.h"
-
 
 namespace mdf::detail {
 
@@ -16,14 +14,14 @@ class Mdf4Writer : public MdfWriter {
   Mdf4Writer() = default;
   virtual ~Mdf4Writer();
 
-
   IChannel* CreateChannel(IChannelGroup* parent) override;
   IChannelConversion* CreateChannelConversion(IChannel* parent) override;
+
  protected:
   void CreateMdfFile() override;
   void SetLastPosition(std::FILE* file) override;
- private:
 
+ private:
 };
 
-} // mdf
+}  // namespace mdf::detail

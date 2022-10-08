@@ -7,11 +7,16 @@ namespace {
 constexpr size_t kIndexArray = 0;
 std::string MakeTypeString(uint8_t type) {
   switch (type) {
-    case 0: return "Array";
-    case 1: return "Scaling Axis";
-    case 2: return "Look-Up";
-    case 3: return "Interval Axis";
-    case 4: return "Classification Result";
+    case 0:
+      return "Array";
+    case 1:
+      return "Scaling Axis";
+    case 2:
+      return "Look-Up";
+    case 3:
+      return "Interval Axis";
+    case 4:
+      return "Classification Result";
     default:
       break;
   }
@@ -20,9 +25,12 @@ std::string MakeTypeString(uint8_t type) {
 
 std::string MakeStorageString(uint8_t storage) {
   switch (storage) {
-    case 0: return "CM Template";
-    case 1: return "CG Template";
-    case 2: return "DG Template";
+    case 0:
+      return "CM Template";
+    case 1:
+      return "CG Template";
+    case 2:
+      return "DG Template";
     default:
       break;
   }
@@ -58,7 +66,7 @@ std::string MakeFlagString(uint16_t flag) {
 
   return s.str();
 }
-}
+}  // namespace
 namespace mdf::detail {
 
 void Ca4Block::GetBlockProperty(BlockPropertyList &dest) const {
@@ -70,7 +78,8 @@ void Ca4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Nof Dimensions", std::to_string(dimension_));
   dest.emplace_back("Flags", MakeFlagString(flags_));
   dest.emplace_back("Byte Offset", std::to_string(byte_offset_base_));
-  dest.emplace_back("Interval Bit Position", std::to_string(invalid_bit_pos_base_));
+  dest.emplace_back("Interval Bit Position",
+                    std::to_string(invalid_bit_pos_base_));
 
   if (md_comment_) {
     md_comment_->GetBlockProperty(dest);
@@ -103,21 +112,14 @@ size_t Ca4Block::Read(std::FILE *file) {
     }
   }
 
-
   // TODO(ihedvall): Figure out how the cycle count actually works
   return bytes;
 }
-int64_t Ca4Block::Index() const {
-  return FilePosition();
-}
+int64_t Ca4Block::Index() const { return FilePosition(); }
 
-void Ca4Block::Type(ArrayType type) {
-  type_ = static_cast<uint8_t>(type);
-}
+void Ca4Block::Type(ArrayType type) { type_ = static_cast<uint8_t>(type); }
 
-ArrayType Ca4Block::Type() const {
-  return static_cast<ArrayType>(type_);
-}
+ArrayType Ca4Block::Type() const { return static_cast<ArrayType>(type_); }
 
 void Ca4Block::Storage(ArrayStorage storage) {
   storage_ = static_cast<uint8_t>(storage);
@@ -127,16 +129,10 @@ ArrayStorage Ca4Block::Storage() const {
   return static_cast<ArrayStorage>(storage_);
 }
 
-void Ca4Block::Flags(uint32_t flags) {
-  flags_ = flags;
-}
+void Ca4Block::Flags(uint32_t flags) { flags_ = flags; }
 
-uint32_t Ca4Block::Flags() const {
-  return flags_;
-}
+uint32_t Ca4Block::Flags() const { return flags_; }
 
-Ca4Block::Ca4Block() {
-  block_type_ = "##CA";
-}
+Ca4Block::Ca4Block() { block_type_ = "##CA"; }
 
-}
+}  // namespace mdf::detail

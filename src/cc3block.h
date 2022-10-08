@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
+#include <cstdio>
 #include <string>
 #include <vector>
-#include <cstdio>
+
 #include "iblock.h"
 #include "mdf/ichannelconversion.h"
 
@@ -27,7 +28,7 @@ class Cc3Block : public IBlock, public IChannelConversion {
  public:
   [[nodiscard]] int64_t Index() const override;
 
-  void Unit(const std::string &unit) override;
+  void Unit(const std::string& unit) override;
   [[nodiscard]] std::string Unit() const override;
 
   void Type(ConversionType type) override;
@@ -39,11 +40,15 @@ class Cc3Block : public IBlock, public IChannelConversion {
   [[nodiscard]] uint8_t Decimals() const override;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  size_t Read(std::FILE* file) override;
+  size_t Write(std::FILE* file) override;
+
  protected:
-  bool ConvertValueToText(double channel_value, std::string& eng_value) const override;
-  bool ConvertValueRangeToText(double channel_value, std::string& eng_value) const override;
+  bool ConvertValueToText(double channel_value,
+                          std::string& eng_value) const override;
+  bool ConvertValueRangeToText(double channel_value,
+                               std::string& eng_value) const override;
+
  private:
   bool range_valid_ = false;
   double min_ = 0.0;
@@ -54,6 +59,5 @@ class Cc3Block : public IBlock, public IChannelConversion {
   std::string formula_;
   std::vector<TextConversion> text_conversion_list_;
   std::vector<TextRangeConversion> text_range_conversion_list_;
-
 };
-}
+}  // namespace mdf::detail

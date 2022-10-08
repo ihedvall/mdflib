@@ -5,13 +5,14 @@
 
 /** \file imetadata.h
  *
- * Support class for storing meta data within an MDF block. Many MDF4 blocks store
- * its properties in an embedded XML file or more correctly an XML snippets which just
- * includes the root tag and its content.
+ * Support class for storing meta data within an MDF block. Many MDF4 blocks
+ * store its properties in an embedded XML file or more correctly an XML
+ * snippets which just includes the root tag and its content.
  */
 #pragma once
 #include <string>
 #include <vector>
+
 #include "mdf/etag.h"
 
 namespace mdf {
@@ -99,4 +100,4 @@ class IMetaData {
   [[nodiscard]] virtual const std::string& XmlSnippet() const = 0;
 };
 
-} // end namespace
+}  // namespace mdf

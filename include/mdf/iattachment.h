@@ -3,14 +3,13 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <string>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace mdf {
 
-class IAttachment
-{
+class IAttachment {
  public:
   /** \brief Returns the file position.
    *
@@ -26,7 +25,7 @@ class IAttachment
   [[nodiscard]] virtual uint16_t CreatorIndex() const = 0;
 
   virtual void IsEmbedded(bool embed) = 0;
-  [[nodiscard]] virtual  bool IsEmbedded() const = 0;
+  [[nodiscard]] virtual bool IsEmbedded() const = 0;
 
   virtual void IsCompressed(bool compress) = 0;
   [[nodiscard]] virtual bool IsCompressed() const = 0;
@@ -38,8 +37,6 @@ class IAttachment
 
   virtual void FileType(const std::string& file_type) = 0;
   [[nodiscard]] virtual const std::string& FileType() const = 0;
-
-
 };
 
-} // namespace mdf
+}  // namespace mdf

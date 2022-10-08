@@ -9,11 +9,12 @@ namespace mdf::detail {
 class Hl4Block : public DataListBlock {
  public:
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  size_t Read(std::FILE *file) override;
+  size_t Read(std::FILE* file) override;
+
  private:
   uint16_t flags_ = 0;
   uint8_t type_ = 0;
   /* 5 byte reserved */
 };
 
-}
+}  // namespace mdf::detail

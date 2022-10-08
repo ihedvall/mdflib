@@ -3,20 +3,22 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <memory>
-#include <filesystem>
-#include <cstdio>
-#include <cerrno>
-#include <cstring>
-#include <chrono>
-#include <mdf/mdflogstream.h>
-#include <mdf/idatagroup.h>
-#include <string.h>
-#include <algorithm>
 #include "mdf/mdfwriter.h"
+
+#include <mdf/idatagroup.h>
+#include <mdf/mdflogstream.h>
+#include <string.h>
+
+#include <algorithm>
+#include <cerrno>
+#include <chrono>
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
+#include <memory>
+
 #include "iblock.h"
 #include "platform.h"
-
 
 using namespace std::filesystem;
 using namespace std::chrono_literals;
@@ -24,18 +26,16 @@ using namespace std::chrono_literals;
 namespace {
 
 std::string StrErrNo(int error) {
-  std::string err_str(200,'\0');
+  std::string err_str(200, '\0');
   Platform::strerror(error, err_str.data(), err_str.size());
   return err_str;
 }
 
-}
+}  // namespace
 
 namespace mdf {
 
-MdfWriter::~MdfWriter() {
-  StopWorkThread();
-}
+MdfWriter::~MdfWriter() { StopWorkThread(); }
 
 void MdfWriter::PreTrigTime(double pre_trig_time) {
   auto temp = static_cast<uint64_t>(pre_trig_time);
@@ -43,11 +43,11 @@ void MdfWriter::PreTrigTime(double pre_trig_time) {
   pre_trig_time_ = temp;
 }
 
-IHeader *MdfWriter::Header() const {
-  return mdf_file_  ? mdf_file_->Header() : nullptr;
+IHeader* MdfWriter::Header() const {
+  return mdf_file_ ? mdf_file_->Header() : nullptr;
 }
 
-IDataGroup *MdfWriter::CreateDataGroup() {
+IDataGroup* MdfWriter::CreateDataGroup() {
   return !mdf_file_ ? nullptr : mdf_file_->CreateDataGroup();
 }
 
@@ -67,39 +67,41 @@ bool MdfWriter::Init(const std::string& filename) {
     if (std::filesystem::exists(filename_)) {
       // Read in existing file so we can append to it
 
-      detail::OpenMdfFile(file,filename_, "rb");
+      detail::OpenMdfFile(file, filename_, "rb");
       if (file != nullptr) {
         mdf_file_->ReadEverythingButData(file);
         std::fclose(file);
-        write_state_ = WriteState::Finalize; // Append to the file
+        write_state_ = WriteState::Finalize;  // Append to the file
         MDF_DEBUG() << "Reading existing file. File: " << filename_;
         init = true;
       } else {
-        MDF_ERROR() << "Failed to open the existing MDF file. File: " << filename_;
+        MDF_ERROR() << "Failed to open the existing MDF file. File: "
+                    << filename_;
         write_state_ = WriteState::Create;
       }
     } else {
       // Create a new file
-      write_state_ = WriteState::Create; // Indicate the file shall be opened with "wb" option.
+      write_state_ = WriteState::Create;  // Indicate the file shall be opened
+                                          // with "wb" option.
       init = true;
     }
   } catch (const std::exception& err) {
     if (file != nullptr) {
       fclose(file);
       write_state_ = WriteState::Finalize;
-      MDF_ERROR() << "Failed to read the existing MDF file. Error: " << err.what()
-                  << ", File: " << filename_;
+      MDF_ERROR() << "Failed to read the existing MDF file. Error: "
+                  << err.what() << ", File: " << filename_;
     } else {
       write_state_ = WriteState::Create;
-      MDF_ERROR() << "Failed to open the existing MDF file. Error: " << err.what()
-                  << ", File: " << filename_;
+      MDF_ERROR() << "Failed to open the existing MDF file. Error: "
+                  << err.what() << ", File: " << filename_;
     }
   }
   return init;
 }
 
 bool MdfWriter::InitMeasurement() {
-  StopWorkThread(); // Just in case
+  StopWorkThread();  // Just in case
   if (!mdf_file_) {
     MDF_ERROR() << "The MDF file is not created. Invalid use of the function.";
     return false;
@@ -107,22 +109,23 @@ bool MdfWriter::InitMeasurement() {
 
   // 1: Save ID, HD, DG, AT, CG and CN blocks to the file.
   std::FILE* file = nullptr;
-  detail::OpenMdfFile(file, filename_, write_state_ == WriteState::Create ? "wb" : "r+b");
+  detail::OpenMdfFile(file, filename_,
+                      write_state_ == WriteState::Create ? "wb" : "r+b");
   if (file == nullptr) {
     MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
 
-  const bool write =  mdf_file_->Write(file);
+  const bool write = mdf_file_->Write(file);
   fclose(file);
 
   // Start the working thread that handles the samples
-  write_state_ = WriteState::Init; // Waits for new samples
+  write_state_ = WriteState::Init;  // Waits for new samples
   work_thread_ = std::thread(&MdfWriter::WorkThread, this);
   return write;
 }
 
-void MdfWriter::SaveSample(IChannelGroup& group, uint64_t time ) {
+void MdfWriter::SaveSample(IChannelGroup& group, uint64_t time) {
   SampleRecord sample = group.GetSampleRecord();
   sample.timestamp = time;
 
@@ -201,12 +204,10 @@ void MdfWriter::WorkThread() {
   do {
     // Wait on stop condition
     std::unique_lock lock(locker_);
-    sample_event_.wait_for(lock,10s, [&] {
-      return stop_thread_.load();
-    });
+    sample_event_.wait_for(lock, 10s, [&] { return stop_thread_.load(); });
     switch (write_state_) {
       case WriteState::Init: {
-        TrimQueue(); // Purge the queue using pre-trig time
+        TrimQueue();  // Purge the queue using pre-trig time
         break;
       }
       case WriteState::StartMeas: {
@@ -252,16 +253,16 @@ void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
     sample_queue_.pop_front();
     const auto& next = sample_queue_.front();
     if (next.timestamp < start_time) {
-      continue; // Skip this sample
+      continue;  // Skip this sample
     }
 
     lock.unlock();
 
-    if (sample.record_id > 0 ) {
+    if (sample.record_id > 0) {
       const auto id = static_cast<uint8_t>(sample.record_id);
-      fwrite(&id,1,1,file);
+      fwrite(&id, 1, 1, file);
     }
-    fwrite(sample.record_buffer.data(),1,sample.record_buffer.size(),file);
+    fwrite(sample.record_buffer.data(), 1, sample.record_buffer.size(), file);
     IncrementNofSamples(sample.record_id);
     lock.lock();
   }
@@ -269,7 +270,6 @@ void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
   lock.unlock();
   fclose(file);
   lock.lock();
-
 }
 
 void MdfWriter::CleanQueue(std::unique_lock<std::mutex>& lock) {
@@ -304,15 +304,15 @@ void MdfWriter::CleanQueue(std::unique_lock<std::mutex>& lock) {
     auto sample = sample_queue_.front();
     sample_queue_.pop_front();
     if (sample.timestamp > stop_time_) {
-      continue; // Skip this sample
+      continue;  // Skip this sample
     }
 
     lock.unlock();
-    if (sample.record_id > 0 ) {
+    if (sample.record_id > 0) {
       const auto id = static_cast<uint8_t>(sample.record_id);
-      fwrite(&id,1,1,file);
+      fwrite(&id, 1, 1, file);
     }
-    fwrite(sample.record_buffer.data(),1,sample.record_buffer.size(),file);
+    fwrite(sample.record_buffer.data(), 1, sample.record_buffer.size(), file);
     IncrementNofSamples(sample.record_id);
     lock.lock();
   }
@@ -322,20 +322,20 @@ void MdfWriter::CleanQueue(std::unique_lock<std::mutex>& lock) {
 }
 
 void MdfWriter::IncrementNofSamples(uint64_t record_id) const {
-  auto *header = Header();
+  auto* header = Header();
   if (header == nullptr) {
     return;
   }
-  auto *data_group = header->LastDataGroup();
+  auto* data_group = header->LastDataGroup();
   if (data_group == nullptr) {
     return;
   }
 
-  std::ranges::for_each(data_group->ChannelGroups(), [&](auto *group) {
+  std::ranges::for_each(data_group->ChannelGroups(), [&](auto* group) {
     if (group != nullptr && group->RecordId() == record_id) {
       group->IncrementSample();
       group->NofSamples(group->Sample());
     }
   });
 }
-} // end namespace
+}  // namespace mdf

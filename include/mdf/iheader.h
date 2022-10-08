@@ -9,9 +9,9 @@
  * Defines an interface against a HD block in an MDF file.
  */
 #pragma once
+#include <optional>
 #include <string>
 #include <vector>
-#include <optional>
 
 namespace mdf {
 
@@ -86,13 +86,13 @@ class IHeader {
    * Sets the subject of the file.
    * @param subject Subject of the file.
    */
-   virtual void Subject(const std::string& subject) = 0;
+  virtual void Subject(const std::string& subject) = 0;
 
-   /** \brief Returns the subject of the file.
-    *
-    * Returns the subject of the file
-    * @return Subject of the file.
-    */
+  /** \brief Returns the subject of the file.
+   *
+   * Returns the subject of the file
+   * @return Subject of the file.
+   */
   [[nodiscard]] virtual std::string Subject() const = 0;
 
   /** \brief Sets the description of the file.
@@ -133,10 +133,10 @@ class IHeader {
   virtual void RecorderId(const std::string& uuid);
 
   /** \brief Returns the unique recorder identifier.
- *
- * Returns the unique recorder identifier of the file.
- * @return Unique identifier (UUID) of the recorder.
- */
+   *
+   * Returns the unique recorder identifier of the file.
+   * @return Unique identifier (UUID) of the recorder.
+   */
   [[nodiscard]] virtual std::string RecorderId() const;
 
   /** \brief Sets the recorder order number.
@@ -165,7 +165,7 @@ class IHeader {
    * Returns the absolute start time for the measurement file.
    * @return Nanoseconds since 1970.
    */
-  [[nodiscard]] virtual uint64_t StartTime() const  = 0;
+  [[nodiscard]] virtual uint64_t StartTime() const = 0;
 
   /** \brief Returns meta data information object.
    *
@@ -201,7 +201,8 @@ class IHeader {
 
   /** \brief Create a new file history block.
    *
-   * Creates a new file history (FH) block that reference a change/update of the MDF file.
+   * Creates a new file history (FH) block that reference a change/update of the
+   * MDF file.
    * @return A file history  interface pointer.
    */
   [[nodiscard]] virtual IFileHistory* CreateFileHistory();
@@ -239,7 +240,8 @@ class IHeader {
    * Returns a list of channel hierarchy blocks in the measurement file.
    * @return List of interface pointers.
    */
-  [[nodiscard]] virtual std::vector<IChannelHierarchy*> ChannelHierarchies() const;
+  [[nodiscard]] virtual std::vector<IChannelHierarchy*> ChannelHierarchies()
+      const;
 
   /** \brief Creates a new data group block.
    *
@@ -254,7 +256,6 @@ class IHeader {
    * @return List of measurements.
    */
   [[nodiscard]] virtual std::vector<IDataGroup*> DataGroups() const = 0;
-
 
   /** \brief Returns the last measurement in the file.
    *
@@ -292,9 +293,9 @@ class IHeader {
    * @return Start distance in meters.
    */
   [[nodiscard]] virtual std::optional<double> StartDistance() const;
+
  protected:
-  virtual ~IHeader() = default; ///< Default constructor
+  virtual ~IHeader() = default;  ///< Default constructor
 };
 
-
-} // end namespace mdf
+}  // end namespace mdf

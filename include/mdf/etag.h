@@ -10,8 +10,8 @@
  */
 #pragma once
 
-#include <string>
 #include <sstream>
+#include <string>
 #include <vector>
 namespace mdf {
 
@@ -21,10 +21,11 @@ namespace mdf {
  * Most of meta data related items are stored in an associated MD block
  * which is an XML snippet. The items are stored in 'e' and 'tree' tags.
  *
- * The 'tree' tag is a list of 'e' tags and shall have a unique name attribute and
- * optional description and creator index.
+ * The 'tree' tag is a list of 'e' tags and shall have a unique name attribute
+ * and optional description and creator index.
  *
- * The 'e' tag shall have a unique name attribute and a value. The other attributes are optional.
+ * The 'e' tag shall have a unique name attribute and a value. The other
+ * attributes are optional.
  */
 class ETag {
  public:
@@ -34,119 +35,91 @@ class ETag {
    * possible to search for. It is not possible to store if the name is blank.
    * @param name Unique name and not empty.
    */
-  void Name(const std::string &name) {
-    name_ = name;
-  }
+  void Name(const std::string& name) { name_ = name; }
 
   /** \brief Returns the name attribute
    *
    * @return Name attribute
    */
-  [[nodiscard]] const std::string& Name() const {
-    return name_;
-  }
+  [[nodiscard]] const std::string& Name() const { return name_; }
 
   /** \brief Optional attribute in an e-tag or tree-tag.
    *
    * @param desc Description text (UTF8)
    */
-  void Description(const std::string &desc) {
-    desc_ = desc;
-  }
+  void Description(const std::string& desc) { desc_ = desc; }
 
   /** \brief Description text
    *
    * @return Description text (UTF8)
    */
-  [[nodiscard]] const std::string& Description() const {
-    return desc_;
-  }
+  [[nodiscard]] const std::string& Description() const { return desc_; }
 
   /** \brief Optional unit of the value in a nn e-tag..
    *
    * @param unit Unit text (UTF8)
    */
-  void Unit(const std::string &unit) {
-    unit_ = unit;
-  }
+  void Unit(const std::string& unit) { unit_ = unit; }
 
   /** \brief Unit of value.
    *
    * @return Unit of value (UTF8)
    */
-  [[nodiscard]] const std::string& Unit() const {
-    return unit_;
-  }
+  [[nodiscard]] const std::string& Unit() const { return unit_; }
 
   /** \brief Reference unit
    *
    * Reference to a global unit. This is an advanced MDF4 feature.
    * @param unit_ref Reference to a global unit.
    */
-  void UnitRef(const std::string &unit_ref) {
-    unit_ref_ = unit_ref;
-  }
+  void UnitRef(const std::string& unit_ref) { unit_ref_ = unit_ref; }
 
   /** \brief Reference unit
    *
    * @return Reference unit
    */
-  [[nodiscard]] const std::string& UnitRef() const {
-    return unit_ref_;
-  }
+  [[nodiscard]] const std::string& UnitRef() const { return unit_ref_; }
 
   /** \brief Data type of the value.
    *
-   * The data type is default set to a string. Standard types are according to the XML
-   * standard primitive types. Standard types are 'string', 'decimal', 'integer', 'float', 'boolean',
-   * 'date', 'time' and 'dateTime'.
+   * The data type is default set to a string. Standard types are according to
+   * the XML standard primitive types. Standard types are 'string', 'decimal',
+   * 'integer', 'float', 'boolean', 'date', 'time' and 'dateTime'.
    * @param type
    */
-  void Type(const std::string &type) {
-    type_ = type;
-  }
+  void Type(const std::string& type) { type_ = type; }
 
   /** \brief Data type of the value.
    *
    * Data types as defined in 'Primitive XML Data Types'.
    * @return Value data type.
    */
-  [[nodiscard]] const std::string& Type() const {
-    return type_;
-  }
+  [[nodiscard]] const std::string& Type() const { return type_; }
 
   /** \brief Language of the value.
    *
    * Defines the language. Advanced feature.
    * @param language Language string
    */
-  void Language(const std::string &language) {
-    language_ = language;
-  }
+  void Language(const std::string& language) { language_ = language; }
 
   /** \brief Language code.
    *
    * @return Language code.
    */
-  [[nodiscard]] const std::string& Language() const {
-    return language_;
-  }
+  [[nodiscard]] const std::string& Language() const { return language_; }
 
   /** \brief The value is read-only.
    *
    * @param read_only Set to true if the value is read-only.
    */
-  void ReadOnly(bool read_only) {
-    read_only_ = read_only;
-  }
+  void ReadOnly(bool read_only) { read_only_ = read_only; }
 
   /** \brief Indicates that the value is read-only.
    *
    * @return True if the value is read-only.
    */
-  [[nodiscard]] bool ReadOnly() const {
-    return read_only_;
-  }
+  [[nodiscard]] bool ReadOnly() const { return read_only_; }
 
   /** \brief Index to FH block.
    *
@@ -154,17 +127,13 @@ class ETag {
    * who set the value in the block.
    * @param index Index to file history block.
    */
-  void CreatorIndex(int index) {
-    creator_index_ = index;
-  }
+  void CreatorIndex(int index) { creator_index_ = index; }
 
   /** \brief Index to file history block
    *
    * @return Index to a file history block.
    */
-  [[nodiscard]] int CreatorIndex() const {
-    return creator_index_;
-  }
+  [[nodiscard]] int CreatorIndex() const { return creator_index_; }
 
   /** \brief Sets the value for an e-tag.
    *
@@ -184,7 +153,8 @@ class ETag {
 
   /** \brief Adds a tag and define this to be a list of tags (tree).
    *
-   * Adds a tag meaning that this tag should be treated as a list of tags (tree).
+   * Adds a tag meaning that this tag should be treated as a list of tags
+   * (tree).
    * @param tag Tag item to add
    */
   void AddTag(const ETag& tag);
@@ -193,9 +163,8 @@ class ETag {
    *
    * @return List of tag items.
    */
-  [[nodiscard]] const std::vector<ETag>& TreeList() const {
-    return tree_list_;
-  }
+  [[nodiscard]] const std::vector<ETag>& TreeList() const { return tree_list_; }
+
  private:
   std::string name_;
   std::string desc_;
@@ -217,8 +186,7 @@ void ETag::Value(const T& value) {
   value_ = temp.str();
 }
 
-
-template<>
+template <>
 void ETag::Value(const bool& value);
 
 template <typename T>
@@ -231,6 +199,6 @@ T ETag::Value() const {
   return temp_value;
 }
 
-template<>
+template <>
 [[nodiscard]] bool ETag::Value() const;
-}
+}  // namespace mdf

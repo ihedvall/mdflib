@@ -3,27 +3,22 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <cmath>
 #include "mdf/ichannelconversion.h"
 
+#include <cmath>
+
 namespace mdf {
-IChannelConversion* IChannelConversion::CreateInverse() {
+IChannelConversion *IChannelConversion::CreateInverse() { return nullptr; }
+
+const IChannelConversion *IChannelConversion::Inverse() const {
   return nullptr;
 }
 
-const IChannelConversion* IChannelConversion::Inverse() const {
-  return nullptr;
-}
+void IChannelConversion::Flags(uint16_t flags) {}
 
-void IChannelConversion::Flags(uint16_t flags) {
-}
+uint16_t IChannelConversion::Flags() const { return 0; }
 
-uint16_t IChannelConversion::Flags() const {
-  return 0;
-}
-
-void IChannelConversion::Range(double min, double max) {
-}
+void IChannelConversion::Range(double min, double max) {}
 
 std::optional<std::pair<double, double>> IChannelConversion::Range() const {
   return {};
@@ -41,27 +36,29 @@ bool IChannelConversion::IsChannelFloat() const {
   return channel_data_type_ > 3 && channel_data_type_ <= 5;
 }
 
-bool IChannelConversion::ConvertLinear(double channel_value, double& eng_value) const {
+bool IChannelConversion::ConvertLinear(double channel_value,
+                                       double &eng_value) const {
   if (value_list_.empty()) {
     return false;
   }
   if (value_list_.size() == 1) {
-    eng_value = value_list_[0]; // Constant value
+    eng_value = value_list_[0];  // Constant value
   } else {
     eng_value = value_list_[0] + (value_list_[1] * channel_value);
   }
   return true;
 }
 
-bool IChannelConversion::ConvertRational(double channel_value, double &eng_value) const {
+bool IChannelConversion::ConvertRational(double channel_value,
+                                         double &eng_value) const {
   if (value_list_.size() < 6) {
     return false;
   }
 
-  eng_value = (value_list_[0] * std::pow(channel_value,2))
-      + (value_list_[1] * channel_value) + value_list_[2];
-  const double div = (value_list_[3] * std::pow(channel_value,2))
-      + (value_list_[4] * channel_value) + value_list_[5];
+  eng_value = (value_list_[0] * std::pow(channel_value, 2)) +
+              (value_list_[1] * channel_value) + value_list_[2];
+  const double div = (value_list_[3] * std::pow(channel_value, 2)) +
+                     (value_list_[4] * channel_value) + value_list_[5];
   if (div == 0.0) {
     return false;
   }
@@ -69,7 +66,8 @@ bool IChannelConversion::ConvertRational(double channel_value, double &eng_value
   return true;
 }
 
-bool IChannelConversion::ConvertPolynomial(double channel_value, double &eng_value) const {
+bool IChannelConversion::ConvertPolynomial(double channel_value,
+                                           double &eng_value) const {
   if (value_list_.size() < 6) {
     return false;
   }
@@ -83,12 +81,14 @@ bool IChannelConversion::ConvertPolynomial(double channel_value, double &eng_val
   return true;
 }
 
-bool IChannelConversion::ConvertLogarithmic(double channel_value, double &eng_value) const {
+bool IChannelConversion::ConvertLogarithmic(double channel_value,
+                                            double &eng_value) const {
   if (value_list_.size() < 7) {
     return false;
   }
   if (value_list_[3] == 0.0) {
-    double eng_value = (channel_value - value_list_[6]) * value_list_[5] - value_list_[2];
+    double eng_value =
+        (channel_value - value_list_[6]) * value_list_[5] - value_list_[2];
     if (value_list_[0] == 0) {
       return false;
     }
@@ -122,12 +122,14 @@ bool IChannelConversion::ConvertLogarithmic(double channel_value, double &eng_va
   return true;
 }
 
-bool IChannelConversion::ConvertExponential(double channel_value, double &eng_value) const {
+bool IChannelConversion::ConvertExponential(double channel_value,
+                                            double &eng_value) const {
   if (value_list_.size() < 7) {
     return false;
   }
   if (value_list_[3] == 0.0) {
-    double eng_value = (channel_value - value_list_[6]) * value_list_[5] - value_list_[2];
+    double eng_value =
+        (channel_value - value_list_[6]) * value_list_[5] - value_list_[2];
     if (value_list_[0] == 0) {
       return false;
     }
@@ -160,12 +162,15 @@ bool IChannelConversion::ConvertExponential(double channel_value, double &eng_va
   }
   return true;
 }
-bool IChannelConversion::ConvertAlgebraic(double channel_value, double &eng_value) const {
-  // Todo (ihedvall): This requires a flex and bison formula calculator. Currently not supported.
+bool IChannelConversion::ConvertAlgebraic(double channel_value,
+                                          double &eng_value) const {
+  // Todo (ihedvall): This requires a flex and bison formula calculator.
+  // Currently not supported.
   return false;
 }
 
-bool IChannelConversion::ConvertValueToValueInterpolate(double channel_value, double &eng_value) const {
+bool IChannelConversion::ConvertValueToValueInterpolate(
+    double channel_value, double &eng_value) const {
   if (value_list_.size() < 2) {
     return false;
   }
@@ -204,7 +209,8 @@ bool IChannelConversion::ConvertValueToValueInterpolate(double channel_value, do
   return true;
 }
 
-bool IChannelConversion::ConvertValueToValue(double channel_value, double &eng_value) const {
+bool IChannelConversion::ConvertValueToValue(double channel_value,
+                                             double &eng_value) const {
   if (value_list_.size() < 2) {
     return false;
   }
@@ -235,7 +241,7 @@ bool IChannelConversion::ConvertValueToValue(double channel_value, double &eng_v
         return false;
       }
       double x = (channel_value - prev_key) / key_range;
-      eng_value =  x <= 0.5 ? prev_value : value;
+      eng_value = x <= 0.5 ? prev_value : value;
       return true;
     }
   }
@@ -243,7 +249,8 @@ bool IChannelConversion::ConvertValueToValue(double channel_value, double &eng_v
   return true;
 }
 
-bool IChannelConversion::ConvertValueRangeToValue(double channel_value, double &eng_value) const {
+bool IChannelConversion::ConvertValueRangeToValue(double channel_value,
+                                                  double &eng_value) const {
   if (!value_list_.empty()) {
     return false;
   }
@@ -258,12 +265,14 @@ bool IChannelConversion::ConvertValueRangeToValue(double channel_value, double &
     const double key_min = value_list_[key_min_index];
     const double key_max = value_list_[key_max_index];
     const double value = value_list_[value_index];
-    if (IsChannelInteger() && channel_value >= key_min && channel_value <= key_max) {
+    if (IsChannelInteger() && channel_value >= key_min &&
+        channel_value <= key_max) {
       eng_value = value;
       return true;
     }
 
-    if (IsChannelFloat() && channel_value >= key_min && channel_value < key_max) {
+    if (IsChannelFloat() && channel_value >= key_min &&
+        channel_value < key_max) {
       eng_value = value;
       return true;
     }
@@ -272,19 +281,23 @@ bool IChannelConversion::ConvertValueRangeToValue(double channel_value, double &
   return true;
 }
 
-bool IChannelConversion::ConvertTextToValue(const std::string &channel_value, double &eng_value) const {
+bool IChannelConversion::ConvertTextToValue(const std::string &channel_value,
+                                            double &eng_value) const {
   return false;
 }
 
-bool IChannelConversion::ConvertValueToText(double channel_value, std::string &eng_value) const {
+bool IChannelConversion::ConvertValueToText(double channel_value,
+                                            std::string &eng_value) const {
   return false;
 }
 
-bool IChannelConversion::ConvertValueRangeToText(double channel_value, std::string &eng_value) const {
+bool IChannelConversion::ConvertValueRangeToText(double channel_value,
+                                                 std::string &eng_value) const {
   return false;
 }
 
-bool IChannelConversion::ConvertTextToTranslation(const std::string &channel_value, std::string &eng_value) const {
+bool IChannelConversion::ConvertTextToTranslation(
+    const std::string &channel_value, std::string &eng_value) const {
   return false;
 }
 
@@ -295,23 +308,14 @@ void IChannelConversion::Parameter(size_t index, double parameter) {
   value_list_[index] = parameter;
 }
 
-void IChannelConversion::Name(const std::string &name) {
+void IChannelConversion::Name(const std::string &name) {}
 
-}
+std::string IChannelConversion::Name() const { return {}; }
 
-std::string IChannelConversion::Name() const {
-  return {};
-}
+void IChannelConversion::Description(const std::string &desc) {}
 
-void IChannelConversion::Description(const std::string& desc) {
-}
+std::string IChannelConversion::Description() const { return {}; }
 
-std::string IChannelConversion::Description() const {
-  return {};
-}
+void IChannelConversion::Decimals(uint8_t decimals) {}
 
-void IChannelConversion::Decimals(uint8_t decimals) {
-}
-
-} // end namespace mdf
-
+}  // end namespace mdf

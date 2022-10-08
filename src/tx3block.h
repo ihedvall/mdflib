@@ -8,7 +8,7 @@
 namespace mdf::detail {
 class Tx3Block : public IBlock {
  public:
-  explicit Tx3Block(const std::string& text);
+  explicit Tx3Block(const std::string &text);
   Tx3Block() = default;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;
@@ -17,8 +17,4 @@ class Tx3Block : public IBlock {
  private:
   std::string text_;
 };
-}
-
-
-
-
+}  // namespace mdf::detail

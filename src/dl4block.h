@@ -13,7 +13,8 @@ constexpr uint8_t EqualLength = 0x01;
 class Dl4Block : public DataListBlock {
  public:
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  size_t Read(std::FILE *file) override;
+  size_t Read(std::FILE* file) override;
+
  private:
   uint8_t flags_ = 0;
   /* 3 byte reserved */
@@ -22,8 +23,4 @@ class Dl4Block : public DataListBlock {
 
   std::vector<uint64_t> offset_list_;
 };
-}
-
-
-
-
+}  // namespace mdf::detail

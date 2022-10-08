@@ -9,10 +9,6 @@ namespace mdf {
 class WriteXml final : public IXmlFile {
  public:
  protected:
-
 };
 
-}
-
-
-
+}  // namespace mdf

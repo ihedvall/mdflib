@@ -18,15 +18,10 @@ class Fh4Block : public IBlock, public IFileHistory {
   void GetBlockProperty(BlockPropertyList& dest) const override;
   [[nodiscard]] IMetaData* MetaData() override;
   [[nodiscard]] const IMetaData* MetaData() const override;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  size_t Read(std::FILE* file) override;
+  size_t Write(std::FILE* file) override;
 
  private:
   Mdf4Timestamp timestamp_;
 };
-}
-
-
-
-
-
+}  // namespace mdf::detail

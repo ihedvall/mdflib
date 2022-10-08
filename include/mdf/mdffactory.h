@@ -3,20 +3,14 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include "mdf/mdfwriter.h"
 #include "mdf/mdffile.h"
+#include "mdf/mdfwriter.h"
 
 namespace mdf {
 
-enum class MdfWriterType : int {
-  Mdf3Basic = 0,
-  Mdf4Basic = 1
-};
+enum class MdfWriterType : int { Mdf3Basic = 0, Mdf4Basic = 1 };
 
-enum class MdfFileType : int {
-  Mdf3FileType = 0,
-  Mdf4FileType = 1
-};
+enum class MdfFileType : int { Mdf3FileType = 0, Mdf4FileType = 1 };
 
 class MdfFactory {
  public:
@@ -24,4 +18,4 @@ class MdfFactory {
   static std::unique_ptr<MdfFile> CreateMdfFile(MdfFileType type);
 };
 
-} // end namespace
+}  // namespace mdf

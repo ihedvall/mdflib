@@ -2,15 +2,16 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <cstdio>
 #include "sr3block.h"
+
+#include <cstdio>
 
 namespace {
 
 constexpr size_t kIndexSr = 0;
 constexpr size_t kIndexData = 1;
 
-}
+}  // namespace
 
 namespace mdf::detail {
 
@@ -36,7 +37,7 @@ size_t Sr3Block::Write(std::FILE *file) {
   bytes += WriteNumber(file, time_interval_);
 
   for (size_t index = 0; index < block_list_.size(); ++index) {
-    auto& data = block_list_[index];
+    auto &data = block_list_[index];
     if (!data) {
       continue;
     }
@@ -52,4 +53,4 @@ size_t Sr3Block::Write(std::FILE *file) {
   return bytes;
 }
 
-}
+}  // namespace mdf::detail

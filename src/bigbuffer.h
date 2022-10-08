@@ -4,14 +4,14 @@
  */
 
 #pragma once
+#include <array>
+#include <bit>
 #include <cstdint>
 #include <cstring>
-#include <array>
 #include <vector>
-#include <bit>
 namespace mdf {
 
-template<typename T>
+template <typename T>
 class BigBuffer {
  public:
   BigBuffer() = default;
@@ -22,14 +22,15 @@ class BigBuffer {
   [[nodiscard]] uint8_t* data();
   [[nodiscard]] size_t size() const;
   T value() const;
+
  private:
   std::array<uint8_t, sizeof(T)> buffer_;
 };
 
-template<typename T>
-BigBuffer<T>::BigBuffer(const T &value) {
+template <typename T>
+BigBuffer<T>::BigBuffer(const T& value) {
   if (std::endian::native == std::endian::little) {
-    std::array<uint8_t,sizeof(T)> temp = {0};
+    std::array<uint8_t, sizeof(T)> temp = {0};
     memcpy(temp.data(), &value, sizeof(T));
     for (size_t index = sizeof(T); index > 0; --index) {
       buffer_[sizeof(T) - index] = temp[index - 1];
@@ -39,10 +40,10 @@ BigBuffer<T>::BigBuffer(const T &value) {
   }
 }
 
-template<typename T>
-BigBuffer<T>::BigBuffer(const std::vector<uint8_t> &buffer, size_t offset) {
+template <typename T>
+BigBuffer<T>::BigBuffer(const std::vector<uint8_t>& buffer, size_t offset) {
   if (std::endian::native == std::endian::little) {
-    std::array<uint8_t,sizeof(T)> temp = {0};
+    std::array<uint8_t, sizeof(T)> temp = {0};
     memcpy(temp.data(), buffer.data() + offset, sizeof(T));
     for (size_t index = sizeof(T); index > 0; --index) {
       buffer_[sizeof(T) - index] = temp[index - 1];
@@ -52,25 +53,24 @@ BigBuffer<T>::BigBuffer(const std::vector<uint8_t> &buffer, size_t offset) {
   }
 }
 
-template<typename T>
-const uint8_t *BigBuffer<T>::data() const {
+template <typename T>
+const uint8_t* BigBuffer<T>::data() const {
   return buffer_.data();
 }
 
-template<typename T>
-uint8_t *BigBuffer<T>::data() {
+template <typename T>
+uint8_t* BigBuffer<T>::data() {
   return buffer_.data();
 }
 
-template<typename T>
+template <typename T>
 size_t BigBuffer<T>::size() const {
   return buffer_.size();
 }
 
-template<typename T>
+template <typename T>
 T BigBuffer<T>::value() const {
-
-  std::array<uint8_t,sizeof(T)> temp = {0};
+  std::array<uint8_t, sizeof(T)> temp = {0};
   if (std::endian::native == std::endian::little) {
     for (size_t index = sizeof(T); index > 0; --index) {
       temp[sizeof(T) - index] = buffer_[index - 1];
@@ -82,5 +82,4 @@ T BigBuffer<T>::value() const {
   return *val;
 }
 
-} // mdf
-
+}  // namespace mdf

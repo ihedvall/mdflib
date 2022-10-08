@@ -4,9 +4,9 @@
  */
 
 #pragma once
-#include <string>
-#include <sstream>
 #include <functional>
+#include <sstream>
+#include <string>
 #if __has_include(<source_location>)
 #include <source_location>
 #else
@@ -20,47 +20,49 @@ using Loc = std::source_location;
 using Loc = std::experimental::source_location;
 #endif
 
-#define MDF_TRACE() MdfLogStream(Loc::current(), MdfLogSeverity::kTrace) ///< Trace log message
-#define MDF_DEBUG() MdfLogStream(Loc::current(), MdfLogSeverity::kDebug) ///< Debug log message
-#define MDF_INFO() MdfLogStream(Loc::current(), MdfLogSeverity::kInfo) ///< Info log message
-#define MDF_ERROR() MdfLogStream(Loc::current(), MdfLogSeverity::kError) ///< Error log message
+#define MDF_TRACE() \
+  MdfLogStream(Loc::current(), MdfLogSeverity::kTrace)  ///< Trace log message
+#define MDF_DEBUG() \
+  MdfLogStream(Loc::current(), MdfLogSeverity::kDebug)  ///< Debug log message
+#define MDF_INFO() \
+  MdfLogStream(Loc::current(), MdfLogSeverity::kInfo)  ///< Info log message
+#define MDF_ERROR() \
+  MdfLogStream(Loc::current(), MdfLogSeverity::kError)  ///< Error log message
 
 ///< Defines the log severity level
 enum class MdfLogSeverity : uint8_t {
-  kTrace = 0, ///< Trace or listen message
-  kDebug,     ///< Debug message
-  kInfo,      ///< Informational message
-  kNotice,    ///< Notice message. Notify the user.
-  kWarning,   ///< Warning message
-  kError,     ///< Error message
-  kCritical,  ///< Critical message (device error)
-  kAlert,     ///< Alert or alarm message
-  kEmergency  ///< Fatal error message
+  kTrace = 0,  ///< Trace or listen message
+  kDebug,      ///< Debug message
+  kInfo,       ///< Informational message
+  kNotice,     ///< Notice message. Notify the user.
+  kWarning,    ///< Warning message
+  kError,      ///< Error message
+  kCritical,   ///< Critical message (device error)
+  kAlert,      ///< Alert or alarm message
+  kEmergency   ///< Fatal error message
 };
-using MdfLogFunction = std::function<void(const Loc& location, MdfLogSeverity severity, const std::string& text)>;
-
-
+using MdfLogFunction = std::function<void(
+    const Loc& location, MdfLogSeverity severity, const std::string& text)>;
 
 class MdfLogStream : public std::ostringstream {
+ public:
+  MdfLogStream(const Loc& location, MdfLogSeverity severity);  ///< Constructor
+  ~MdfLogStream() override;                                    ///< Destructor
 
-   public:
-    MdfLogStream(const Loc& location, MdfLogSeverity severity); ///< Constructor
-    ~MdfLogStream() override; ///< Destructor
+  MdfLogStream() = delete;
+  MdfLogStream(const MdfLogStream&) = delete;
+  MdfLogStream(MdfLogStream&&) = delete;
+  MdfLogStream& operator=(const MdfLogStream&) = delete;
+  MdfLogStream& operator=(MdfLogStream&&) = delete;
 
-    MdfLogStream() = delete;
-    MdfLogStream(const MdfLogStream &) = delete;
-    MdfLogStream(MdfLogStream &&) = delete;
-    MdfLogStream &operator=(const MdfLogStream &) = delete;
-    MdfLogStream &operator=(MdfLogStream &&) = delete;
+  static void SetLogFunction(const MdfLogFunction& func);
 
-    static void SetLogFunction(const MdfLogFunction& func);
  protected:
-    Loc location_;  ///< File and function location.
-    MdfLogSeverity severity_;    ///< Log level of the stream
+  Loc location_;             ///< File and function location.
+  MdfLogSeverity severity_;  ///< Log level of the stream
 
-    virtual void LogString(const Loc& location, MdfLogSeverity severity, const std::string& text);
-
-
+  virtual void LogString(const Loc& location, MdfLogSeverity severity,
+                         const std::string& text);
 };
 
-} // mdf
+}  // namespace mdf

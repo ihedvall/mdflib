@@ -9,20 +9,19 @@ namespace {
 
 mdf::MdfLogFunction LogFunction;
 
-} // end namespace
+}  // end namespace
 
 namespace mdf {
 
 MdfLogStream::MdfLogStream(const Loc &location, MdfLogSeverity severity)
-    : location_(location),
-      severity_(severity) {
-}
+    : location_(location), severity_(severity) {}
 
 MdfLogStream::~MdfLogStream() {
   MdfLogStream::LogString(location_, severity_, str());
 }
 
-void MdfLogStream::LogString(const Loc &location, MdfLogSeverity severity, const std::string &text) {
+void MdfLogStream::LogString(const Loc &location, MdfLogSeverity severity,
+                             const std::string &text) {
   if (LogFunction) {
     LogFunction(location, severity, text);
   }
@@ -32,4 +31,4 @@ void MdfLogStream::SetLogFunction(const MdfLogFunction &func) {
   LogFunction = func;
 }
 
-} // mdf
+}  // namespace mdf

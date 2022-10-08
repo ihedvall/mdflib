@@ -2,19 +2,18 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <sstream>
 #include "tx4block.h"
+
+#include <sstream>
+
 #include "mdf/mdfhelper.h"
 #include "platform.h"
 
-
 namespace mdf::detail {
 
-Tx4Block::Tx4Block(const std::string &text)
-: text_(text) {
-}
+Tx4Block::Tx4Block(const std::string &text) : text_(text) {}
 
-std::string FixCommentToLine(const std::string& comment, size_t max) {
+std::string FixCommentToLine(const std::string &comment, size_t max) {
   std::ostringstream temp;
   size_t count = 0;
   for (const char in : comment) {
@@ -63,7 +62,7 @@ size_t Tx4Block::Write(std::FILE *file) {
     return block_size_;
   }
   const bool is_xml = !text_.empty() && text_[0] == '<';
-  block_type_ = is_xml ? "##MD" :"##TX";
+  block_type_ = is_xml ? "##MD" : "##TX";
   block_size_ = 24 + text_.size() + 1;
   link_list_.clear();
 
@@ -80,13 +79,10 @@ std::string Tx4Block::Text() const {
   return temp;
 }
 
-std::string Tx4Block::TxComment() const {
-  return FixCommentToLine(Text(), 40);
-}
+std::string Tx4Block::TxComment() const { return FixCommentToLine(Text(), 40); }
 
 void Tx4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Comment", Text());
 }
 
-
-}
+}  // namespace mdf::detail

@@ -3,20 +3,17 @@
  * SPDX-License-Identifier: MIT
  */
 
-
 #include "mdf4writer.h"
+
 #include "mdf4file.h"
 #include "platform.h"
 
 namespace mdf::detail {
 
-Mdf4Writer::~Mdf4Writer() {
-  StopWorkThread();
-}
+Mdf4Writer::~Mdf4Writer() { StopWorkThread(); }
 
-
-IChannel *Mdf4Writer::CreateChannel(IChannelGroup *parent) {
-  auto* cg4 = dynamic_cast<Cg4Block*> (parent);
+IChannel* Mdf4Writer::CreateChannel(IChannelGroup* parent) {
+  auto* cg4 = dynamic_cast<Cg4Block*>(parent);
   IChannel* cn = nullptr;
   if (cg4 != nullptr) {
     auto cn4 = std::make_unique<Cn4Block>();
@@ -28,8 +25,8 @@ IChannel *Mdf4Writer::CreateChannel(IChannelGroup *parent) {
   return cn;
 }
 
-IChannelConversion *Mdf4Writer::CreateChannelConversion(IChannel *parent) {
-  auto *cn4 = dynamic_cast<Cn4Block *> (parent);
+IChannelConversion* Mdf4Writer::CreateChannelConversion(IChannel* parent) {
+  auto* cn4 = dynamic_cast<Cn4Block*>(parent);
   IChannelConversion* cc = nullptr;
   if (cn4 != nullptr) {
     auto cc4 = std::make_unique<Cc4Block>();
@@ -45,7 +42,7 @@ void Mdf4Writer::CreateMdfFile() {
   mdf_file_ = std::move(mdf4);
 }
 
-void Mdf4Writer::SetLastPosition(std::FILE *file) {
+void Mdf4Writer::SetLastPosition(std::FILE* file) {
   Platform::fseek64(file, 0, SEEK_END);
 
   auto* header = Header();
@@ -53,7 +50,7 @@ void Mdf4Writer::SetLastPosition(std::FILE *file) {
     return;
   }
   auto* last_dg = header->LastDataGroup();
-  if (last_dg == nullptr)  {
+  if (last_dg == nullptr) {
     return;
   }
   auto* dg4 = dynamic_cast<Dg4Block*>(last_dg);
@@ -67,8 +64,8 @@ void Mdf4Writer::SetLastPosition(std::FILE *file) {
 
   dg4->SetLastFilePosition(file);
   auto position = GetFilePosition(file);
-  dg4->UpdateLink(file,2, position);
+  dg4->UpdateLink(file, 2, position);
   dg4->SetLastFilePosition(file);
 }
 
-} // mdf
+}  // namespace mdf::detail

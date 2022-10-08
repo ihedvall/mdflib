@@ -2,22 +2,24 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string>
-#include <filesystem>
-#include <thread>
-#include <chrono>
+#include "testwrite.h"
+
 #include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <string>
+#include <thread>
+
+#include "mdf/iattachment.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
+#include "mdf/ievent.h"
+#include "mdf/ifilehistory.h"
+#include "mdf/mdffactory.h"
+#include "mdf/mdfreader.h"
 #include "util/logconfig.h"
 #include "util/logstream.h"
 #include "util/timestamp.h"
-#include "mdf/mdffactory.h"
-#include "mdf/mdfreader.h"
-#include "mdf/ichannelgroup.h"
-#include "mdf/ifilehistory.h"
-#include "mdf/iattachment.h"
-#include "mdf/ievent.h"
-#include "mdf/idatagroup.h"
-#include "testwrite.h"
 
 namespace {
 
@@ -26,7 +28,7 @@ constexpr std::string_view kLogFile = "mdf_write.log";
 constexpr std::string_view kTestDir = "o:/test/mdf/write";
 
 bool kSkipTest = false;
-}
+}  // namespace
 
 using namespace std::this_thread;
 using namespace std::chrono_literals;
@@ -37,7 +39,7 @@ using namespace mdf;
 namespace mdf::test {
 
 void TestWrite::SetUpTestSuite() {
-  auto &log_config = LogConfig::Instance();
+  auto& log_config = LogConfig::Instance();
   log_config.RootDir(kLogRootDir.data());
   log_config.BaseName(kLogFile.data());
   log_config.Type(util::log::LogType::LogToFile);
@@ -61,11 +63,11 @@ void TestWrite::SetUpTestSuite() {
 }
 
 void TestWrite::TearDownTestSuite() {
-  LogConfig &log_config = LogConfig::Instance();
+  LogConfig& log_config = LogConfig::Instance();
   log_config.DeleteLogChain();
 }
 
-TEST_F(TestWrite,Mdf3WriteHD) {
+TEST_F(TestWrite, Mdf3WriteHD) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -85,7 +87,7 @@ TEST_F(TestWrite,Mdf3WriteHD) {
   header->Subject("PXY");
 
   for (size_t dg_index = 0; dg_index < 2; ++dg_index) {
-    auto *dg3 = writer->CreateDataGroup();
+    auto* dg3 = writer->CreateDataGroup();
     ASSERT_TRUE(dg3 != nullptr);
     for (size_t cg_index = 0; cg_index < 2; ++cg_index) {
       auto* cg3 = writer->CreateChannelGroup(dg3);
@@ -98,7 +100,8 @@ TEST_F(TestWrite,Mdf3WriteHD) {
         name << "Channel" << cn_index;
         cn3->Name(name.str());
         cn3->Description("Channel description");
-        cn3->Type(cn_index == 0 ? ChannelType::Master : ChannelType::FixedLength);
+        cn3->Type(cn_index == 0 ? ChannelType::Master
+                                : ChannelType::FixedLength);
         cn3->DataType(ChannelDataType::FloatBe);
         cn3->DataBytes(4);
         cn3->Unit("s");
@@ -109,8 +112,7 @@ TEST_F(TestWrite,Mdf3WriteHD) {
   writer->FinalizeMeasurement();
 }
 
-
-TEST_F(TestWrite,Mdf3WriteTest1) {
+TEST_F(TestWrite, Mdf3WriteTest1) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -129,8 +131,7 @@ TEST_F(TestWrite,Mdf3WriteTest1) {
   header->StartTime(TimeStampToNs());
   header->Subject("PXY");
 
-
-  auto *dg3 = writer->CreateDataGroup();
+  auto* dg3 = writer->CreateDataGroup();
   auto* cg3 = writer->CreateChannelGroup(dg3);
   for (size_t cn_index = 0; cn_index < 3; ++cn_index) {
     auto* cn3 = writer->CreateChannel(cg3);
@@ -151,7 +152,8 @@ TEST_F(TestWrite,Mdf3WriteTest1) {
   for (size_t sample = 0; sample < 100; ++sample) {
     auto cn_list = cg3->Channels();
     double value = 0.01 * static_cast<double>(sample);
-    std::ranges::for_each(cn_list, [&](auto *channel) { channel->SetChannelValue(value, true); });
+    std::ranges::for_each(
+        cn_list, [&](auto* channel) { channel->SetChannelValue(value, true); });
     writer->SaveSample(*cg3, TimeStampToNs());
     sleep_for(10ms);
   }
@@ -159,7 +161,7 @@ TEST_F(TestWrite,Mdf3WriteTest1) {
   writer->FinalizeMeasurement();
 }
 
-TEST_F(TestWrite,Mdf3WriteTestValueType) {
+TEST_F(TestWrite, Mdf3WriteTestValueType) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -177,8 +179,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
   header->StartTime(TimeStampToNs());
   header->Subject("PXY");
 
-
-  auto *dg3 = writer->CreateDataGroup();
+  auto* dg3 = writer->CreateDataGroup();
   auto* cg3 = writer->CreateChannelGroup(dg3);
   {
     auto* master = writer->CreateChannel(cg3);
@@ -262,7 +263,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
     channel->Description("CANopen Date");
     channel->Type(ChannelType::FixedLength);
     channel->DataType(ChannelDataType::CanOpenDate);
-    //channel->DataBytes(7);
+    // channel->DataBytes(7);
   }
   {
     auto* channel = writer->CreateChannel(cg3);
@@ -270,9 +271,8 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
     channel->Description("CANopen Time");
     channel->Type(ChannelType::FixedLength);
     channel->DataType(ChannelDataType::CanOpenTime);
-    //channel->DataBytes(7);
+    // channel->DataBytes(7);
   }
-
 
   writer->InitMeasurement();
   writer->StartMeasurement(TimeStampToNs());
@@ -287,7 +287,7 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
     cn_list[6]->SetChannelValue(11.1 * static_cast<double>(sample));
 
     cn_list[7]->SetChannelValue(std::to_string(sample));
-    std::vector<uint8_t> temp(5,0);
+    std::vector<uint8_t> temp(5, 0);
     temp[0] = 'T';
     cn_list[8]->SetChannelValue(temp);
 
@@ -300,10 +300,9 @@ TEST_F(TestWrite,Mdf3WriteTestValueType) {
   }
   writer->StopMeasurement(TimeStampToNs());
   writer->FinalizeMeasurement();
-
 }
 
-TEST_F(TestWrite,Mdf4WriteHD) { //NOLINT
+TEST_F(TestWrite, Mdf4WriteHD) {  // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -348,7 +347,6 @@ TEST_F(TestWrite,Mdf4WriteHD) { //NOLINT
   ASSERT_TRUE(header1 != nullptr);
   EXPECT_GT(header1->Index(), 0);
 
-
   EXPECT_EQ(header->Author(), header1->Author());
   std::cout << "Author: " << header1->Author() << std::endl;
   EXPECT_EQ(header->Department(), header1->Department());
@@ -369,10 +367,9 @@ TEST_F(TestWrite,Mdf4WriteHD) { //NOLINT
 
   EXPECT_EQ(header->StartDistance(), header1->StartDistance());
   EXPECT_TRUE(header1->StartDistance().has_value());
-
 }
 
-TEST_F(TestWrite,Mdf4WriteFH) { //NOLINT
+TEST_F(TestWrite, Mdf4WriteFH) {  // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -426,8 +423,7 @@ TEST_F(TestWrite,Mdf4WriteFH) { //NOLINT
   EXPECT_EQ(history->UserName(), history1->UserName());
 }
 
-
-TEST_F(TestWrite,Mdf4WriteAT) { //NOLINT
+TEST_F(TestWrite, Mdf4WriteAT) {  // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -439,11 +435,11 @@ TEST_F(TestWrite,Mdf4WriteAT) { //NOLINT
   auto* header = writer->Header();
   ASSERT_TRUE(header != nullptr);
 
-  const auto &log_config = LogConfig::Instance();
+  const auto& log_config = LogConfig::Instance();
   const auto log_file = log_config.GetLogFile();
 
   for (size_t count = 0; count < 3; ++count) {
-    auto *attachment = header->CreateAttachment();
+    auto* attachment = header->CreateAttachment();
     ASSERT_TRUE(attachment != nullptr);
     EXPECT_EQ(attachment->Index(), 0);
     attachment->CreatorIndex(count);
@@ -481,16 +477,14 @@ TEST_F(TestWrite,Mdf4WriteAT) { //NOLINT
     EXPECT_EQ(attachment->CreatorIndex(), count1);
     EXPECT_EQ(attachment->IsEmbedded(), count1 > 0);
     EXPECT_EQ(attachment->IsCompressed(), count1 > 1);
-    EXPECT_EQ(attachment->FileName(),log_file);
-    EXPECT_STREQ(attachment->FileType().c_str(),"text/plain");
+    EXPECT_EQ(attachment->FileName(), log_file);
+    EXPECT_STREQ(attachment->FileType().c_str(), "text/plain");
     EXPECT_TRUE(attachment->Md5().has_value());
     EXPECT_EQ(attachment->Md5().value().size(), 32);
-
   }
-
 }
 
-TEST_F(TestWrite,Mdf4WriteEV) { //NOLINT
+TEST_F(TestWrite, Mdf4WriteEV) {  // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -510,7 +504,7 @@ TEST_F(TestWrite,Mdf4WriteEV) { //NOLINT
   history->ToolVersion("1.0");
   history->UserName("Ingemar Hedvall");
 
-  auto *event = header->CreateEvent();
+  auto* event = header->CreateEvent();
   ASSERT_TRUE(event != nullptr);
   EXPECT_EQ(event->Index(), 0);
   event->GroupName("Olle");
@@ -534,11 +528,9 @@ TEST_F(TestWrite,Mdf4WriteEV) { //NOLINT
 
   const auto ev_list = header1->Events();
   ASSERT_EQ(ev_list.size(), 1);
-
-
 }
 
-TEST_F(TestWrite,Mdf4WriteDG) { //NOLINT
+TEST_F(TestWrite, Mdf4WriteDG) {  // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -558,7 +550,7 @@ TEST_F(TestWrite,Mdf4WriteDG) { //NOLINT
   history->ToolVersion("1.0");
   history->UserName("Ingemar Hedvall");
 
-  auto *data_group = header->CreateDataGroup();
+  auto* data_group = header->CreateDataGroup();
   ASSERT_TRUE(data_group != nullptr);
   EXPECT_EQ(data_group->Index(), 0);
   data_group->Description("Olle Meas");
@@ -595,5 +587,4 @@ TEST_F(TestWrite,Mdf4WriteDG) { //NOLINT
   ASSERT_EQ(cg_list.size(), 1);
 }
 
-
-} // end namespace mdf::test
+}  // end namespace mdf::test

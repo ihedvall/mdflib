@@ -1,17 +1,18 @@
 
 
-#include <string>
-#include <ctime>
 #include "mdf/ichannel.h"
-#include "mdf/mdfhelper.h"
+
+#include <ctime>
+#include <string>
+
+#include "bigbuffer.h"
 #include "half.hpp"
 #include "littlebuffer.h"
-#include "bigbuffer.h"
+#include "mdf/mdfhelper.h"
 
 namespace {
 
-uint64_t ConvertUnsignedLe(const std::vector<uint8_t>& data_buffer)
-{
+uint64_t ConvertUnsignedLe(const std::vector<uint8_t> &data_buffer) {
   switch (data_buffer.size()) {
     case 1: {
       const mdf::LittleBuffer<uint8_t> data(data_buffer, 0);
@@ -23,7 +24,6 @@ uint64_t ConvertUnsignedLe(const std::vector<uint8_t>& data_buffer)
       return data.value();
     }
 
-
     case 4: {
       const mdf::LittleBuffer<uint32_t> data(data_buffer, 0);
       return data.value();
@@ -34,13 +34,13 @@ uint64_t ConvertUnsignedLe(const std::vector<uint8_t>& data_buffer)
       return data.value();
     }
 
-    default:break;
+    default:
+      break;
   }
   return 0;
 }
 
-uint64_t ConvertUnsignedBe(const std::vector<uint8_t>& data_buffer)
-{
+uint64_t ConvertUnsignedBe(const std::vector<uint8_t> &data_buffer) {
   switch (data_buffer.size()) {
     case 1: {
       const mdf::BigBuffer<uint8_t> data(data_buffer, 0);
@@ -62,13 +62,13 @@ uint64_t ConvertUnsignedBe(const std::vector<uint8_t>& data_buffer)
       return data.value();
     }
 
-    default:break;
+    default:
+      break;
   }
   return 0;
 }
 
-int64_t ConvertSignedLe(const std::vector<uint8_t>& data_buffer)
-{
+int64_t ConvertSignedLe(const std::vector<uint8_t> &data_buffer) {
   switch (data_buffer.size()) {
     case 1: {
       const mdf::LittleBuffer<int8_t> data(data_buffer, 0);
@@ -90,13 +90,13 @@ int64_t ConvertSignedLe(const std::vector<uint8_t>& data_buffer)
       return data.value();
     }
 
-    default:break;
+    default:
+      break;
   }
   return 0;
 }
 
-int64_t ConvertSignedBe(const std::vector<uint8_t>& data_buffer)
-{
+int64_t ConvertSignedBe(const std::vector<uint8_t> &data_buffer) {
   switch (data_buffer.size()) {
     case 1: {
       const mdf::BigBuffer<int8_t> data(data_buffer, 0);
@@ -118,19 +118,20 @@ int64_t ConvertSignedBe(const std::vector<uint8_t>& data_buffer)
       return data.value();
     }
 
-    default:break;
+    default:
+      break;
   }
   return 0;
 }
 
-double ConvertFloatBe(const std::vector<uint8_t>& data_buffer) {
+double ConvertFloatBe(const std::vector<uint8_t> &data_buffer) {
   switch (data_buffer.size()) {
-/*
-    case 2: {
-      const mdf::BigBuffer<half_float::half> data(data_buffer, 0);
-      return data.value();
-    }
-*/
+      /*
+          case 2: {
+            const mdf::BigBuffer<half_float::half> data(data_buffer, 0);
+            return data.value();
+          }
+      */
     case 4: {
       const mdf::BigBuffer<float> data(data_buffer, 0);
       return data.value();
@@ -140,20 +141,22 @@ double ConvertFloatBe(const std::vector<uint8_t>& data_buffer) {
       const mdf::BigBuffer<double> data(data_buffer, 0);
       return data.value();
     }
-    default: break;
+    default:
+      break;
   }
   return 0.0;
 }
 
-double ConvertFloatLe(const std::vector<uint8_t>& data_buffer) {
+double ConvertFloatLe(const std::vector<uint8_t> &data_buffer) {
   switch (data_buffer.size()) {
-/*
-    case 2: {
-      boost::endian::endian_buffer<boost::endian::order::little, half_float::half, 16, boost::endian::align::no> data {};
-      memcpy(data.data(), data_buffer.data(), 2);
-      return data.value();
-    }
-*/
+      /*
+          case 2: {
+            boost::endian::endian_buffer<boost::endian::order::little,
+         half_float::half, 16, boost::endian::align::no> data {};
+            memcpy(data.data(), data_buffer.data(), 2);
+            return data.value();
+          }
+      */
     case 4: {
       const mdf::LittleBuffer<float> data(data_buffer, 0);
       return data.value();
@@ -164,16 +167,17 @@ double ConvertFloatLe(const std::vector<uint8_t>& data_buffer) {
       return data.value();
     }
 
-    default: break;
+    default:
+      break;
   }
   return 0.0;
 }
 
-
-} // namespace
+}  // namespace
 namespace mdf {
 
-void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer, std::vector<uint8_t>& data_buffer) const {
+void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
+                                std::vector<uint8_t> &data_buffer) const {
   size_t nof_bytes = (BitCount() / 8) + (BitCount() % 8 > 0 ? 1 : 0);
   if (data_buffer.size() != nof_bytes) {
     data_buffer.resize(nof_bytes);
@@ -182,11 +186,12 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer, std::
 
   if (BitOffset() == 0) {
     // This is the preferred way of doing business
-    memcpy(data_buffer.data(),record_buffer.data() + ByteOffset(), data_buffer.size());
+    memcpy(data_buffer.data(), record_buffer.data() + ByteOffset(),
+           data_buffer.size());
   } else if (BitCount() == 1) {
     // This is OK for boolean and bits
     uint8_t in_bit = 0x01 << (BitOffset() - 1);
-    data_buffer[0] = (record_buffer[ByteOffset()] & in_bit)? 0x01 : 0x00;
+    data_buffer[0] = (record_buffer[ByteOffset()] & in_bit) ? 0x01 : 0x00;
   } else {
     uint8_t in_offset = BitOffset();
     uint32_t in_byte = ByteOffset();
@@ -206,12 +211,11 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer, std::
         ++in_byte;
       }
     }
-
   }
 }
 
-bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer, uint64_t &dest) const {
-
+bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
+                                uint64_t &dest) const {
   // Copy to a temp data buffer, so we can get rid of this bit offset nonsense
   std::vector<uint8_t> data_buffer;
   CopyToDataBuffer(record_buffer, data_buffer);
@@ -229,13 +233,13 @@ bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer, uint6
       break;
 
     default:
-      return false; // Not valid conversion
+      return false;  // Not valid conversion
   }
   return true;
 }
 
-bool IChannel::GetSignedValue(const std::vector<uint8_t> &record_buffer, int64_t &dest) const {
-
+bool IChannel::GetSignedValue(const std::vector<uint8_t> &record_buffer,
+                              int64_t &dest) const {
   // Copy to a temp data buffer, so we can get rid of the bit offset nonsense
   std::vector<uint8_t> data_buffer;
   CopyToDataBuffer(record_buffer, data_buffer);
@@ -249,13 +253,13 @@ bool IChannel::GetSignedValue(const std::vector<uint8_t> &record_buffer, int64_t
       break;
 
     default:
-      return false; // Not valid conversion
+      return false;  // Not valid conversion
   }
   return true;
 }
 
-bool IChannel::GetFloatValue(const std::vector<uint8_t> &record_buffer, double &dest) const {
-
+bool IChannel::GetFloatValue(const std::vector<uint8_t> &record_buffer,
+                             double &dest) const {
   // Copy to a temp data buffer, so we can get rid of the bit offset nonsense
   std::vector<uint8_t> data_buffer;
   CopyToDataBuffer(record_buffer, data_buffer);
@@ -269,12 +273,13 @@ bool IChannel::GetFloatValue(const std::vector<uint8_t> &record_buffer, double &
       break;
 
     default:
-      return false; // Not valid conversion
+      return false;  // Not valid conversion
   }
   return true;
 }
 
-bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer, std::string &dest) const {
+bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer,
+                            std::string &dest) const {
   auto offset = ByteOffset();
   bool valid = true;
   dest.clear();
@@ -292,8 +297,8 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
       }
       try {
         dest = MdfHelper::Latin1ToUtf8(s.str());
-      } catch (const std::exception&) {
-        valid = false; // Conversion error
+      } catch (const std::exception &) {
+        valid = false;  // Conversion error
         dest = s.str();
       }
       break;
@@ -324,8 +329,8 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
       }
       try {
         dest = MdfHelper::Utf16ToUtf8(s.str());
-      } catch (const std::exception&) {
-        valid = false; // Conversion error
+      } catch (const std::exception &) {
+        valid = false;  // Conversion error
       }
       break;
     }
@@ -341,8 +346,8 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
       }
       try {
         dest = MdfHelper::Utf16ToUtf8(s.str());
-      } catch (const std::exception&) {
-        valid = false; // Conversion error
+      } catch (const std::exception &) {
+        valid = false;  // Conversion error
       }
       break;
     }
@@ -352,27 +357,32 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
   return valid;
 }
 
-bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer, std::vector<uint8_t> &dest) const {
+bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
+                                 std::vector<uint8_t> &dest) const {
   if (dest.size() != DataBytes()) {
     dest.resize(DataBytes());
   }
   if (dest.empty()) {
     return true;
   }
-  memcpy(dest.data(),record_buffer.data() + ByteOffset(), DataBytes());
+  memcpy(dest.data(), record_buffer.data() + ByteOffset(), DataBytes());
   return true;
 }
 
-bool IChannel::GetCanOpenDate(const std::vector<uint8_t> &record_buffer, uint64_t &dest) const {
-  std::vector<uint8_t> date_array(7,0);
-  memcpy(date_array.data(), record_buffer.data() + ByteOffset(), date_array.size());
+bool IChannel::GetCanOpenDate(const std::vector<uint8_t> &record_buffer,
+                              uint64_t &dest) const {
+  std::vector<uint8_t> date_array(7, 0);
+  memcpy(date_array.data(), record_buffer.data() + ByteOffset(),
+         date_array.size());
   dest = MdfHelper::CanOpenDateArrayToNs(date_array);
   return true;
 }
 
-bool IChannel::GetCanOpenTime(const std::vector<uint8_t> &record_buffer, uint64_t &dest) const {
-  std::vector<uint8_t> time_array(6,0);
-  memcpy(time_array.data(), record_buffer.data() + ByteOffset(), time_array.size());
+bool IChannel::GetCanOpenTime(const std::vector<uint8_t> &record_buffer,
+                              uint64_t &dest) const {
+  std::vector<uint8_t> time_array(6, 0);
+  memcpy(time_array.data(), record_buffer.data() + ByteOffset(),
+         time_array.size());
   dest = MdfHelper::CanOpenTimeArrayToNs(time_array);
   return true;
 }
@@ -383,7 +393,7 @@ void IChannel::SetValid(bool) {
 
 void IChannel::SetUnsignedValueLe(uint64_t value, bool valid) {
   SetValid(valid);
-  auto& buffer = SampleBuffer();
+  auto &buffer = SampleBuffer();
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 1: {
@@ -418,7 +428,7 @@ void IChannel::SetUnsignedValueLe(uint64_t value, bool valid) {
 
 void IChannel::SetUnsignedValueBe(uint64_t value, bool valid) {
   SetValid(valid);
-  auto& buffer = SampleBuffer();
+  auto &buffer = SampleBuffer();
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 1: {
@@ -452,7 +462,7 @@ void IChannel::SetUnsignedValueBe(uint64_t value, bool valid) {
 
 void IChannel::SetSignedValueLe(int64_t value, bool valid) {
   SetValid(valid);
-  auto& buffer = SampleBuffer();
+  auto &buffer = SampleBuffer();
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 1: {
@@ -487,7 +497,7 @@ void IChannel::SetSignedValueLe(int64_t value, bool valid) {
 
 void IChannel::SetSignedValueBe(int64_t value, bool valid) {
   SetValid(valid);
-  auto& buffer = SampleBuffer();
+  auto &buffer = SampleBuffer();
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 1: {
@@ -521,7 +531,7 @@ void IChannel::SetSignedValueBe(int64_t value, bool valid) {
 
 void IChannel::SetFloatValueLe(double value, bool valid) {
   SetValid(valid);
-  auto& buffer = SampleBuffer();
+  auto &buffer = SampleBuffer();
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 4: {
@@ -544,7 +554,7 @@ void IChannel::SetFloatValueLe(double value, bool valid) {
 
 void IChannel::SetFloatValueBe(double value, bool valid) {
   SetValid(valid);
-  auto& buffer = SampleBuffer();
+  auto &buffer = SampleBuffer();
   const size_t bytes = BitCount() / 8;
   switch (bytes) {
     case 4: {
@@ -567,7 +577,7 @@ void IChannel::SetFloatValueBe(double value, bool valid) {
 
 void IChannel::SetTextValue(const std::string &value, bool valid) {
   SetValid(valid);
-  auto& buffer = SampleBuffer();
+  auto &buffer = SampleBuffer();
   const size_t bytes = BitCount() / 8;
   if (bytes == 0) {
     SetValid(false);
@@ -576,15 +586,15 @@ void IChannel::SetTextValue(const std::string &value, bool valid) {
   // The string shall be null terminated
   memset(buffer.data() + ByteOffset(), '\0', bytes);
   if (value.size() < bytes) {
-    memcpy(buffer.data() + ByteOffset(),value.data(), value.size());
+    memcpy(buffer.data() + ByteOffset(), value.data(), value.size());
   } else {
-    memcpy(buffer.data() + ByteOffset(),value.data(), bytes -1);
+    memcpy(buffer.data() + ByteOffset(), value.data(), bytes - 1);
   }
 }
 
 void IChannel::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
   SetValid(valid);
-  auto& buffer = SampleBuffer();
+  auto &buffer = SampleBuffer();
   const size_t bytes = BitCount() / 8;
   if (bytes == 0) {
     SetValid(false);
@@ -593,14 +603,15 @@ void IChannel::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
   // The string shall be null terminated
   memset(buffer.data() + ByteOffset(), '\0', bytes);
   if (value.size() <= bytes) {
-    memcpy(buffer.data() + ByteOffset(),value.data(), value.size());
+    memcpy(buffer.data() + ByteOffset(), value.data(), value.size());
   } else {
-    memcpy(buffer.data() + ByteOffset(),value.data(), bytes);
+    memcpy(buffer.data() + ByteOffset(), value.data(), bytes);
   }
 }
 
-template<>
-bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::vector<uint8_t> &dest) const {
+template <>
+bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
+                               std::vector<uint8_t> &dest) const {
   bool valid = false;
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
@@ -664,13 +675,15 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::v
       break;
     }
 
-    default: break;
+    default:
+      break;
   }
   return valid;
 }
 
-template<>
-bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::string &dest) const {
+template <>
+bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
+                               std::string &dest) const {
   bool valid = false;
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
@@ -694,7 +707,8 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::s
     case ChannelDataType::FloatBe: {
       double value = 0;
       valid = GetFloatValue(record_buffer, value);
-      dest = IsDecimalUsed() ? MdfHelper::FormatDouble(value, Decimals()) : std::to_string(value);
+      dest = IsDecimalUsed() ? MdfHelper::FormatDouble(value, Decimals())
+                             : std::to_string(value);
       break;
     }
 
@@ -712,9 +726,8 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::s
       std::vector<uint8_t> list;
       valid = GetByteArrayValue(record_buffer, list);
       std::ostringstream s;
-      for (const auto byte: list) {
-        s << std::setfill('0') << std::setw(2)
-          << std::hex << std::uppercase
+      for (const auto byte : list) {
+        s << std::setfill('0') << std::setw(2) << std::hex << std::uppercase
           << static_cast<uint16_t>(byte);
       }
       dest = s.str();
@@ -727,11 +740,11 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::s
 
       const auto ms = ms_since_1970 % 1000;
       const auto time = static_cast<time_t>(ms_since_1970 / 1000);
-      const struct tm* bt = std::localtime(&time);
+      const struct tm *bt = std::localtime(&time);
 
       std::ostringstream text;
-      text << std::put_time(bt, "%Y-%m-%d %H:%M:%S")
-           << '.' << std::setfill('0') << std::setw(3) << ms;
+      text << std::put_time(bt, "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0')
+           << std::setw(3) << ms;
       dest = text.str();
       break;
     }
@@ -742,22 +755,23 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer, std::s
 
       const auto ms = ms_since_1970 % 1000;
       const auto time = static_cast<time_t>(ms_since_1970 / 1000);
-      const struct tm* bt = std::localtime(&time);
+      const struct tm *bt = std::localtime(&time);
 
       std::ostringstream text;
-      text << std::put_time(bt, "%Y-%m-%d %H:%M:%S")
-           << '.' << std::setfill('0') << std::setw(3) << ms;
+      text << std::put_time(bt, "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0')
+           << std::setw(3) << ms;
       dest = text.str();
       break;
     }
 
-    default: break;
+    default:
+      break;
   }
   return valid;
 }
 
-template<>
-void IChannel::SetChannelValue(const std::string& value, bool valid) {
+template <>
+void IChannel::SetChannelValue(const std::string &value, bool valid) {
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
       SetUnsignedValueLe(std::stoull(value), valid);
@@ -801,8 +815,8 @@ void IChannel::SetChannelValue(const std::string& value, bool valid) {
   }
 }
 
-template<>
-void IChannel::SetChannelValue(const std::vector<uint8_t>& value, bool valid) {
+template <>
+void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid) {
   switch (DataType()) {
     case ChannelDataType::ByteArray:
       SetByteArray(value, valid);
@@ -828,32 +842,22 @@ void IChannel::SetChannelValue(const std::vector<uint8_t>& value, bool valid) {
   }
 }
 
-void IChannel::Sync(ChannelSyncType type) {
-}
+void IChannel::Sync(ChannelSyncType type) {}
 
-ChannelSyncType IChannel::Sync() const {
-  return ChannelSyncType::None;
-}
+ChannelSyncType IChannel::Sync() const { return ChannelSyncType::None; }
 
-void IChannel::Range(double min, double max) {
-}
+void IChannel::Range(double min, double max) {}
 
-std::optional<std::pair<double, double>> IChannel::Range() const {
-  return {};
-}
+std::optional<std::pair<double, double>> IChannel::Range() const { return {}; }
 
-void IChannel::Limit(double min, double max) {
-}
+void IChannel::Limit(double min, double max) {}
 
-std::optional<std::pair<double, double>> IChannel::Limit() const {
-  return {};
-}
+std::optional<std::pair<double, double>> IChannel::Limit() const { return {}; }
 
-void IChannel::ExtLimit(double min, double max) {
-}
+void IChannel::ExtLimit(double min, double max) {}
 
 std::optional<std::pair<double, double>> IChannel::ExtLimit() const {
   return {};
 }
 
-} // end namespace mdf
+}  // end namespace mdf

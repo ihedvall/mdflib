@@ -4,12 +4,13 @@
  */
 
 #pragma once
-#include <string>
 #include <atomic>
-#include <thread>
-#include <mutex>
-#include <deque>
 #include <condition_variable>
+#include <deque>
+#include <mutex>
+#include <string>
+#include <thread>
+
 #include "mdf/mdffile.h"
 #include "samplerecord.h"
 
@@ -26,7 +27,7 @@ class MdfWriter {
   virtual ~MdfWriter();
 
   MdfWriter(const MdfWriter& writer) = delete;
-  MdfWriter& operator = (const MdfWriter& writer) = delete;
+  MdfWriter& operator=(const MdfWriter& writer) = delete;
 
   bool Init(const std::string& filename);
 
@@ -44,46 +45,44 @@ class MdfWriter {
 
   /** \brief Returns the MDF file interface.
    *
-   * Returns the MDF file interface. The user may change the file version and the
-   * finalize status of the file. By default is the MDF 4.2 or 3.2 version of the file
-   * used.
+   * Returns the MDF file interface. The user may change the file version and
+   * the finalize status of the file. By default is the MDF 4.2 or 3.2 version
+   * of the file used.
    * @return Pointer to the MDF file interface.
    */
-  MdfFile* GetFile() {
-    return mdf_file_.get();
-  }
+  MdfFile* GetFile() { return mdf_file_.get(); }
 
   IHeader* Header() const;
   IDataGroup* CreateDataGroup();
 
   static IChannelGroup* CreateChannelGroup(IDataGroup* parent);
 
-  virtual  IChannel* CreateChannel(IChannelGroup* parent) = 0;
+  virtual IChannel* CreateChannel(IChannelGroup* parent) = 0;
   virtual IChannelConversion* CreateChannelConversion(IChannel* parent) = 0;
 
   bool InitMeasurement();
-  void SaveSample(IChannelGroup& group, uint64_t time );
+  void SaveSample(IChannelGroup& group, uint64_t time);
   void StartMeasurement(uint64_t start_time);
   void StopMeasurement(uint64_t stop_time);
   bool FinalizeMeasurement();
 
  protected:
-
   enum class WriteState : uint8_t {
-    Create,       ///< Only at first measurement
-    Init,         ///< Start work thread and start collecting samples
-    StartMeas,    ///< Start saving samples to file
-    StopMeas,     ///< Stop saving samples. OK to
-    Finalize      ///< OK to add new DG and CG blocks
+    Create,     ///< Only at first measurement
+    Init,       ///< Start work thread and start collecting samples
+    StartMeas,  ///< Start saving samples to file
+    StopMeas,   ///< Stop saving samples. OK to
+    Finalize    ///< OK to add new DG and CG blocks
   };
-  std::atomic<WriteState> write_state_ = WriteState::Create; ///< Keeps track of the worker thread state.
+  std::atomic<WriteState> write_state_ =
+      WriteState::Create;  ///< Keeps track of the worker thread state.
 
-  std::unique_ptr<MdfFile> mdf_file_; ///< Holds the actual file object.
-  std::string filename_;              ///< Full name of file with path and extension.
+  std::unique_ptr<MdfFile> mdf_file_;  ///< Holds the actual file object.
+  std::string filename_;  ///< Full name of file with path and extension.
 
-  std::atomic<uint64_t> pre_trig_time_ = 0;   ///< Nanoseconds difference.
-  std::atomic<uint64_t> start_time_ = 0;      ///< Nanoseconds since 1970.
-  std::atomic<uint64_t> stop_time_ = 0;       ///< Nanoseconds since 1970.
+  std::atomic<uint64_t> pre_trig_time_ = 0;  ///< Nanoseconds difference.
+  std::atomic<uint64_t> start_time_ = 0;     ///< Nanoseconds since 1970.
+  std::atomic<uint64_t> stop_time_ = 0;      ///< Nanoseconds since 1970.
 
   std::thread work_thread_;
   std::atomic_bool stop_thread_ = false;
@@ -103,9 +102,8 @@ class MdfWriter {
 
   void IncrementNofSamples(uint64_t record_id) const;
   virtual void SetLastPosition(std::FILE* file) = 0;
+
  private:
-
-
 };
 
-} // end namespace
+}  // namespace mdf

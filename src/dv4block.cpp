@@ -22,4 +22,4 @@ size_t Dv4Block::Read(std::FILE *file) {
 size_t Dv4Block::DataSize() const {
   return block_length_ > 24 ? block_length_ - 24 : 0;
 }
-} // end namespace
+}  // namespace mdf::detail

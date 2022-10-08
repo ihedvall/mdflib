@@ -2,23 +2,25 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string_view>
 #include <gtest/gtest.h>
-#include "mdf/mdffactory.h"
+
+#include <string_view>
+
 #include "mdf/imetadata.h"
+#include "mdf/mdffactory.h"
 
 namespace {
-  constexpr std::string_view  kFileName  = "c:/olle.dat";
+constexpr std::string_view kFileName = "c:/olle.dat";
 }
 
 namespace mdf::test {
 
-TEST(TestMdf, Mdf3File) { // NOLINT
+TEST(TestMdf, Mdf3File) {  // NOLINT
   auto mdf = MdfFactory::CreateMdfFile(MdfFileType::Mdf3FileType);
   ASSERT_TRUE(mdf);
   std::cout << "MDF Version: " << mdf->Version() << std::endl;
-  EXPECT_TRUE(mdf->Version() > "3.00" && mdf->Version() < "4.00" );
-  EXPECT_EQ(mdf->MainVersion(), 3 );
+  EXPECT_TRUE(mdf->Version() > "3.00" && mdf->Version() < "4.00");
+  EXPECT_EQ(mdf->MainVersion(), 3);
   EXPECT_TRUE(mdf->MinorVersion() >= 0 && mdf->MinorVersion() <= 30);
 
   mdf->MinorVersion(-10);
@@ -83,18 +85,18 @@ TEST(TestMdf, Mdf3File) { // NOLINT
   EXPECT_FALSE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 1);
   EXPECT_EQ(custom_flags, 2);
-  mdf->IsFinalized(true,nullptr,0,0);
+  mdf->IsFinalized(true, nullptr, 0, 0);
   EXPECT_TRUE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 0);
   EXPECT_EQ(custom_flags, 0);
 }
 
-TEST(TestMdf, Mdf4File) { //NOLINT
+TEST(TestMdf, Mdf4File) {  // NOLINT
   auto mdf = MdfFactory::CreateMdfFile(MdfFileType::Mdf4FileType);
   ASSERT_TRUE(mdf);
   std::cout << "MDF Version: " << mdf->Version() << std::endl;
-  EXPECT_TRUE(mdf->Version() > "4.00" && mdf->Version() < "5.00" );
-  EXPECT_EQ(mdf->MainVersion(), 4 );
+  EXPECT_TRUE(mdf->Version() > "4.00" && mdf->Version() < "5.00");
+  EXPECT_EQ(mdf->MainVersion(), 4);
   EXPECT_TRUE(mdf->MinorVersion() >= 0 && mdf->MinorVersion() <= 99);
 
   mdf->MinorVersion(-10);
@@ -159,7 +161,7 @@ TEST(TestMdf, Mdf4File) { //NOLINT
   EXPECT_FALSE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 1);
   EXPECT_EQ(custom_flags, 2);
-  mdf->IsFinalized(true,nullptr,0,0);
+  mdf->IsFinalized(true, nullptr, 0, 0);
   EXPECT_TRUE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 0);
   EXPECT_EQ(custom_flags, 0);
@@ -171,4 +173,4 @@ TEST(TestMdf, Mdf4File) { //NOLINT
   std::cout << meta_data->XmlSnippet() << std::endl;
 }
 
-} // end namespace
+}  // namespace mdf::test

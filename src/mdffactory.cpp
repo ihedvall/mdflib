@@ -4,10 +4,11 @@
  */
 
 #include "mdf/mdffactory.h"
-#include "mdf3writer.h"
-#include "mdf4writer.h"
+
 #include "mdf3file.h"
+#include "mdf3writer.h"
 #include "mdf4file.h"
+#include "mdf4writer.h"
 
 using namespace mdf::detail;
 
@@ -56,4 +57,4 @@ std::unique_ptr<MdfFile> MdfFactory::CreateMdfFile(MdfFileType type) {
   }
   return file;
 }
-} // nad namespace
+}  // namespace mdf

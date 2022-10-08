@@ -2,14 +2,14 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string>
-#include <ctime>
 #include "cn4block.h"
+#include "bigbuffer.h"
 #include "ca4block.h"
-#include "sd4block.h"
 #include "cg4block.h"
 #include "littlebuffer.h"
-#include "bigbuffer.h"
+#include "sd4block.h"
+#include <ctime>
+#include <string>
 
 namespace {
 
@@ -23,52 +23,83 @@ constexpr size_t kIndexUnit = 6;
 constexpr size_t kIndexMd = 7;
 constexpr size_t kIndexAt = 8;
 
-constexpr uint32_t kDefaultXFlag = 0x1000; ///< Default X-axis defined for this channel
+constexpr uint32_t kDefaultXFlag =
+    0x1000; ///< Default X-axis defined for this channel
 
 std::string MakeTypeString(uint8_t type) {
   switch (type) {
-    case 0: return "Fixed";
-    case 1: return "VLSD";
-    case 2: return "Master";
-    case 3: return "Virtual Master";
-    case 4: return "Synchronization";
-    case 5: return "MLSD";
-    case 6: return "Virtual Data";
-    default:break;
+  case 0:
+    return "Fixed";
+  case 1:
+    return "VLSD";
+  case 2:
+    return "Master";
+  case 3:
+    return "Virtual Master";
+  case 4:
+    return "Synchronization";
+  case 5:
+    return "MLSD";
+  case 6:
+    return "Virtual Data";
+  default:
+    break;
   }
   return "Unknown";
 }
 
 std::string MakeSyncString(uint8_t type) {
   switch (type) {
-    case 0: return "None";
-    case 1: return "Time";
-    case 2: return "Angle";
-    case 3: return "Distance";
-    case 4: return "Index";
-    default:break;
+  case 0:
+    return "None";
+  case 1:
+    return "Time";
+  case 2:
+    return "Angle";
+  case 3:
+    return "Distance";
+  case 4:
+    return "Index";
+  default:
+    break;
   }
   return "Unknown";
 }
 
 std::string MakeDataTypeString(uint8_t type) {
   switch (type) {
-    case 0: return "Unsigned Integer (LE)";
-    case 1: return "Unsigned Integer (BE)";
-    case 2: return "Signed Integer (LE)";
-    case 3: return "Signed Integer (BE)";
-    case 4: return "Float (LE)";
-    case 5: return "Float (BE)";
-    case 6: return "String ASCII";
-    case 7: return "String UTF-8";
-    case 8: return "String UTF-16 (LE)";
-    case 9: return "String UTF-16 (BE)";
-    case 10: return "Byte Array";
-    case 11: return "MIME Sample";
-    case 12: return "MIME Stream";
-    case 13: return "CAN Open Date";
-    case 14: return "CAN Open Time";
-    default:break;
+  case 0:
+    return "Unsigned Integer (LE)";
+  case 1:
+    return "Unsigned Integer (BE)";
+  case 2:
+    return "Signed Integer (LE)";
+  case 3:
+    return "Signed Integer (BE)";
+  case 4:
+    return "Float (LE)";
+  case 5:
+    return "Float (BE)";
+  case 6:
+    return "String ASCII";
+  case 7:
+    return "String UTF-8";
+  case 8:
+    return "String UTF-16 (LE)";
+  case 9:
+    return "String UTF-16 (BE)";
+  case 10:
+    return "Byte Array";
+  case 11:
+    return "MIME Sample";
+  case 12:
+    return "MIME Stream";
+  case 13:
+    return "CAN Open Date";
+  case 14:
+    return "CAN Open Time";
+  default:
+    break;
   }
   return "Unknown";
 }
@@ -119,36 +150,31 @@ std::string MakeFlagString(uint32_t flag) {
 
 ///< Helper function that recursively copies all data bytes to a
 /// destination buffer.
-size_t CopyDataToBuffer( const mdf::detail::IBlock* data, std::FILE* from_file,
-                         std::vector<uint8_t>& buffer, size_t& buffer_index ) {
+size_t CopyDataToBuffer(const mdf::detail::IBlock *data, std::FILE *from_file,
+                        std::vector<uint8_t> &buffer, size_t &buffer_index) {
   if (data == nullptr) {
     return 0;
   }
   size_t count = 0;
-  const auto* db = dynamic_cast< const mdf::detail::DataBlock* > (data);
-  const auto* dl = dynamic_cast< const mdf::detail::DataListBlock* > (data);
+  const auto *db = dynamic_cast<const mdf::detail::DataBlock *>(data);
+  const auto *dl = dynamic_cast<const mdf::detail::DataListBlock *>(data);
   if (db != nullptr) {
     count += db->CopyDataToBuffer(from_file, buffer, buffer_index);
   } else if (dl != nullptr) {
-    for (const auto& block : dl->DataBlockList()) {
+    for (const auto &block : dl->DataBlockList()) {
       count += CopyDataToBuffer(block.get(), from_file, buffer, buffer_index);
     }
   }
   return count;
 }
 
-
 } // end namespace
 
 namespace mdf::detail {
 
-Cn4Block::Cn4Block() {
-  block_type_ = "##CN";
-}
+Cn4Block::Cn4Block() { block_type_ = "##CN"; }
 
-int64_t Cn4Block::DataLink() const {
-  return Link(kIndexData);
-}
+int64_t Cn4Block::DataLink() const { return Link(kIndexData); }
 
 std::vector<int64_t> Cn4Block::AtLinkList() const {
   std::vector<int64_t> link_list;
@@ -166,32 +192,21 @@ std::vector<int64_t> Cn4Block::XAxisLinkList() const {
   return link_list;
 }
 
-int64_t Cn4Block::Index() const {
-  return FilePosition();
-}
+int64_t Cn4Block::Index() const { return FilePosition(); }
 
-void Cn4Block::Name(const std::string &name) {
-  name_ = name;
-}
+void Cn4Block::Name(const std::string &name) { name_ = name; }
 
-std::string Cn4Block::Name() const {
-  return name_;
-}
+std::string Cn4Block::Name() const { return name_; }
 
-void Cn4Block::DisplayName(const std::string &name) {
-}
+void Cn4Block::DisplayName(const std::string &name) {}
 
-std::string Cn4Block::DisplayName() const {
-  return std::string();
-}
+std::string Cn4Block::DisplayName() const { return std::string(); }
 
 void Cn4Block::Description(const std::string &description) {
   md_comment_ = std::make_unique<Md4Block>(description);
 }
 
-std::string Cn4Block::Description() const {
-  return MdText();
-}
+std::string Cn4Block::Description() const { return MdText(); }
 
 const IChannelConversion *Cn4Block::ChannelConversion() const {
   return cc_block_.get();
@@ -199,25 +214,19 @@ const IChannelConversion *Cn4Block::ChannelConversion() const {
 ChannelDataType Cn4Block::DataType() const {
   return static_cast<ChannelDataType>(data_type_);
 }
-ChannelType Cn4Block::Type() const {
-  return static_cast<ChannelType>(type_);
-}
+ChannelType Cn4Block::Type() const { return static_cast<ChannelType>(type_); }
 size_t Cn4Block::DataBytes() const {
   return (bit_count_ / 8) + (bit_count_ % 8 > 0 ? 1 : 0);
 }
 uint8_t Cn4Block::Decimals() const {
-  auto max = static_cast<uint8_t>( DataBytes() == 4 ?
-                                   std::numeric_limits<float>::max_digits10 :
-                                   std::numeric_limits<double>::max_digits10);
+  auto max = static_cast<uint8_t>(
+      DataBytes() == 4 ? std::numeric_limits<float>::max_digits10
+                       : std::numeric_limits<double>::max_digits10);
   return std::min(precision_, max);
 }
-bool Cn4Block::IsDecimalUsed() const {
-  return flags_ & 0x04;
-}
+bool Cn4Block::IsDecimalUsed() const { return flags_ & 0x04; }
 
-bool Cn4Block::IsUnitValid() const {
-  return Link(kIndexUnit) != 0;
-}
+bool Cn4Block::IsUnitValid() const { return Link(kIndexUnit) != 0; }
 
 std::string Cn4Block::Unit() const {
   if (!unit_) {
@@ -233,23 +242,38 @@ void Cn4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
-  dest.emplace_back("Next CN", ToHexString(Link(kIndexNext)), "Link to next channel", BlockItemType::LinkItem );
-  dest.emplace_back("Composition CA/CN", ToHexString(Link(kIndexCx)), "Link to composition",BlockItemType::LinkItem );
-  dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), name_, BlockItemType::LinkItem );
-  dest.emplace_back("Source SI", ToHexString(Link(kIndexSi)), "Link to source information", BlockItemType::LinkItem );
-  dest.emplace_back("Conversion CC", ToHexString(Link(kIndexCc)), "Link to channel conversion", BlockItemType::LinkItem );
-  dest.emplace_back("Signal Data", ToHexString(Link(kIndexData)), "Link to signal data",BlockItemType::LinkItem );
-  dest.emplace_back("Unit MD", ToHexString(Link(kIndexUnit)), Unit(),BlockItemType::LinkItem );
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(), BlockItemType::LinkItem );
+  dest.emplace_back("Next CN", ToHexString(Link(kIndexNext)),
+                    "Link to next channel", BlockItemType::LinkItem);
+  dest.emplace_back("Composition CA/CN", ToHexString(Link(kIndexCx)),
+                    "Link to composition", BlockItemType::LinkItem);
+  dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), name_,
+                    BlockItemType::LinkItem);
+  dest.emplace_back("Source SI", ToHexString(Link(kIndexSi)),
+                    "Link to source information", BlockItemType::LinkItem);
+  dest.emplace_back("Conversion CC", ToHexString(Link(kIndexCc)),
+                    "Link to channel conversion", BlockItemType::LinkItem);
+  dest.emplace_back("Signal Data", ToHexString(Link(kIndexData)),
+                    "Link to signal data", BlockItemType::LinkItem);
+  dest.emplace_back("Unit MD", ToHexString(Link(kIndexUnit)), Unit(),
+                    BlockItemType::LinkItem);
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(),
+                    BlockItemType::LinkItem);
   for (size_t at = 0; at < nof_attachments_; ++at) {
-    dest.emplace_back("Attachment AT", ToHexString(Link(kIndexAt + at)), "Reference to attachment",BlockItemType::LinkItem );
+    dest.emplace_back("Attachment AT", ToHexString(Link(kIndexAt + at)),
+                      "Reference to attachment", BlockItemType::LinkItem);
   }
   if (Link(kIndexAt + nof_attachments_) > 0) {
-    dest.emplace_back("Reference DG", ToHexString(Link(kIndexAt + nof_attachments_)), "Reference to x-axis data block",BlockItemType::LinkItem );
-    dest.emplace_back("Reference CG", ToHexString(Link(kIndexAt + nof_attachments_ + 1)), "Reference to x-axis channel group",BlockItemType::LinkItem );
-    dest.emplace_back("Reference CN", ToHexString(Link(kIndexAt + nof_attachments_ + 2)), "Reference to x-axis channel",BlockItemType::LinkItem );
+    dest.emplace_back(
+        "Reference DG", ToHexString(Link(kIndexAt + nof_attachments_)),
+        "Reference to x-axis data block", BlockItemType::LinkItem);
+    dest.emplace_back(
+        "Reference CG", ToHexString(Link(kIndexAt + nof_attachments_ + 1)),
+        "Reference to x-axis channel group", BlockItemType::LinkItem);
+    dest.emplace_back("Reference CN",
+                      ToHexString(Link(kIndexAt + nof_attachments_ + 2)),
+                      "Reference to x-axis channel", BlockItemType::LinkItem);
   }
-  dest.emplace_back("", "", "",BlockItemType::BlankItem );
+  dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Name", name_);
@@ -330,7 +354,8 @@ size_t Cn4Block::Read(std::FILE *file) {
     cc_block_->Read(file);
   }
 
-  // Need ot check if the data block is owned by this CN block or if it is a reference only
+  // Need ot check if the data block is owned by this CN block or if it is a
+  // reference only
   ReadBlockList(file, kIndexData);
 
   if (Link(kIndexUnit) > 0) {
@@ -339,7 +364,7 @@ size_t Cn4Block::Read(std::FILE *file) {
     unit_->Init(*this);
     unit_->Read(file);
   }
-  ReadMdComment(file,kIndexMd);
+  ReadMdComment(file, kIndexMd);
 
   return bytes;
 }
@@ -353,30 +378,30 @@ size_t Cn4Block::Write(std::FILE *file) {
   const auto default_x = (flags_ & CnFlag::DefaultX) != 0;
 
   block_type_ = "##CN";
-  block_length_ = 24 + (8*8);
+  block_length_ = 24 + (8 * 8);
   block_length_ += nof_attachments_ * 8;
   if (default_x) {
-    block_length_ += 3*8;
+    block_length_ += 3 * 8;
   }
-  block_length_ += 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 1 + 1 + 2 + (6*8);
-  link_list_.resize(8 + nof_attachments_ + (default_x ? 1 : 0),0);
+  block_length_ += 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 1 + 1 + 2 + (6 * 8);
+  link_list_.resize(8 + nof_attachments_ + (default_x ? 1 : 0), 0);
   WriteBlock4(file, cx_block_, kIndexCx);
   WriteTx4(file, kIndexName, name_);
   WriteBlock4(file, si_block_, kIndexSi);
   WriteBlock4(file, cc_block_, kIndexCc);
   // ToDo: Signal data needs to be fixed
   WriteBlock4(file, unit_, kIndexUnit);
-  WriteMdComment(file,  kIndexMd);
-  for (size_t index_at = 0; index_at <attachment_list_.size(); ++index_at) {
+  WriteMdComment(file, kIndexMd);
+  for (size_t index_at = 0; index_at < attachment_list_.size(); ++index_at) {
     const auto index = 8 + index_at;
-    const auto* at4 = attachment_list_[index_at];
-    link_list_[index] =at4 != nullptr ? at4->Index() : 0;
+    const auto *at4 = attachment_list_[index_at];
+    link_list_[index] = at4 != nullptr ? at4->Index() : 0;
   }
   if (default_x) {
     const auto index = 8 + nof_attachments_;
-    const auto* dg4 = default_x_.data_group;
-    const auto* cg4 = default_x_.channel_group;
-    const auto* cn4 = default_x_.channel;
+    const auto *dg4 = default_x_.data_group;
+    const auto *cg4 = default_x_.channel_group;
+    const auto *cn4 = default_x_.channel;
     link_list_[index] = dg4 != nullptr ? dg4->Index() : 0;
     link_list_[index] = cg4 != nullptr ? cg4->Index() : 0;
     link_list_[index] = cn4 != nullptr ? cn4->Index() : 0;
@@ -391,7 +416,8 @@ size_t Cn4Block::Write(std::FILE *file) {
   bytes += WriteNumber(file, bit_count_);
   bytes += WriteNumber(file, flags_);
   bytes += WriteNumber(file, invalid_bit_pos_);
-  bytes += WriteNumber(file, precision_);;
+  bytes += WriteNumber(file, precision_);
+  ;
   bytes += WriteBytes(file, 1);
   bytes += WriteNumber(file, nof_attachments_);
   bytes += WriteNumber(file, range_min_);
@@ -406,28 +432,28 @@ size_t Cn4Block::Write(std::FILE *file) {
 
 const IBlock *Cn4Block::Find(int64_t index) const {
   if (si_block_) {
-    const auto* p = si_block_->Find(index);
+    const auto *p = si_block_->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
 
   if (cc_block_) {
-    const auto* p = cc_block_->Find(index);
+    const auto *p = cc_block_->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
 
   if (unit_) {
-    const auto* p = unit_->Find(index);
+    const auto *p = unit_->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
 
   if (cx_block_) {
-    const auto* p = cx_block_->Find(index);
+    const auto *p = cx_block_->Find(index);
     if (p != nullptr) {
       return p;
     }
@@ -438,11 +464,11 @@ const IBlock *Cn4Block::Find(int64_t index) const {
 
 void Cn4Block::ReadData(std::FILE *file) const {
   size_t count = 0;
-  for (const auto& b : DataBlockList()) {
+  for (const auto &b : DataBlockList()) {
     const auto *dl = dynamic_cast<const DataListBlock *>(b.get());
     const auto *db = dynamic_cast<const DataBlock *>(b.get());
     if (dl != nullptr) {
-     count += dl->DataSize();
+      count += dl->DataSize();
     } else if (db != nullptr) {
       count += db->DataSize();
     }
@@ -450,7 +476,7 @@ void Cn4Block::ReadData(std::FILE *file) const {
 
   size_t index = 0;
   data_list_.resize(count, 0);
-  for (const auto& block : DataBlockList()) {
+  for (const auto &block : DataBlockList()) {
     const auto *dl = dynamic_cast<const DataListBlock *>(block.get());
     const auto *db = dynamic_cast<const DataBlock *>(block.get());
     if (dl != nullptr) {
@@ -460,17 +486,12 @@ void Cn4Block::ReadData(std::FILE *file) const {
     }
   }
 }
-size_t Cn4Block::BitCount() const {
-  return bit_count_;
-}
-size_t Cn4Block::BitOffset() const {
-  return bit_offset_;
-}
-size_t Cn4Block::ByteOffset() const {
-  return byte_offset_;
-}
+size_t Cn4Block::BitCount() const { return bit_count_; }
+size_t Cn4Block::BitOffset() const { return bit_offset_; }
+size_t Cn4Block::ByteOffset() const { return byte_offset_; }
 
-bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer, std::string &dest) const {
+bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
+                            std::string &dest) const {
   auto offset = ByteOffset();
   std::vector<uint8_t> temp;
   bool valid = true;
@@ -493,107 +514,94 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer, std::stri
   }
 
   switch (DataType()) {
-    case ChannelDataType::StringAscii: {
-      // Convert ASCII to UTF8
-      std::ostringstream s;
-      for (size_t ii = offset; ii < temp.size(); ++ii) {
-        char in = static_cast<char>(temp[ii]);
-        if (in == '\0') {
-          break;
-        }
-        s << in;
+  case ChannelDataType::StringAscii: {
+    // Convert ASCII to UTF8
+    std::ostringstream s;
+    for (size_t ii = offset; ii < temp.size(); ++ii) {
+      char in = static_cast<char>(temp[ii]);
+      if (in == '\0') {
+        break;
       }
-      try {
-        dest = MdfHelper::Latin1ToUtf8(s.str());
-      } catch (const std::exception&) {
-        valid = false; // Conversion error
-        dest = s.str();
-      }
-      break;
+      s << in;
     }
-
-    case ChannelDataType::StringUTF8: {
-      // No conversion needed
-      std::ostringstream s;
-      for (size_t ii = offset; ii < temp.size(); ++ii) {
-        char in = static_cast<char>(temp[ii]);
-        if (in == '\0') {
-          break;
-        }
-        s << in;
-      }
+    try {
+      dest = MdfHelper::Latin1ToUtf8(s.str());
+    } catch (const std::exception &) {
+      valid = false; // Conversion error
       dest = s.str();
-      break;
     }
+    break;
+  }
 
-    case ChannelDataType::StringUTF16Le: {
-      std::wostringstream s;
-      for (size_t ii = offset; (ii + 2) <= temp.size(); ii += 2) {
-        auto* d = temp.data() + ii;
-
-        const LittleBuffer<uint16_t> data(temp,ii);
-
-        if (data.value() == 0) {
-          break;
-        }
-        s << static_cast<wchar_t>(data.value());
+  case ChannelDataType::StringUTF8: {
+    // No conversion needed
+    std::ostringstream s;
+    for (size_t ii = offset; ii < temp.size(); ++ii) {
+      char in = static_cast<char>(temp[ii]);
+      if (in == '\0') {
+        break;
       }
-      try {
-        dest = MdfHelper::Utf16ToUtf8(s.str());
-      } catch (const std::exception&) {
-        valid = false; // Conversion error
-      }
-      break;
+      s << in;
     }
+    dest = s.str();
+    break;
+  }
 
-    case ChannelDataType::StringUTF16Be: {
-      std::wostringstream s;
-      for (size_t ii = offset; (ii + 2) <= temp.size(); ii += 2) {
-        const BigBuffer<uint16_t> data(temp, ii);
-        if (data.value() == 0) {
-          break;
-        }
-        s << static_cast<wchar_t>(data.value());
+  case ChannelDataType::StringUTF16Le: {
+    std::wostringstream s;
+    for (size_t ii = offset; (ii + 2) <= temp.size(); ii += 2) {
+      auto *d = temp.data() + ii;
+
+      const LittleBuffer<uint16_t> data(temp, ii);
+
+      if (data.value() == 0) {
+        break;
       }
-      try {
-        dest = MdfHelper::Utf16ToUtf8(s.str());
-      } catch (const std::exception&) {
-        valid = false; // Conversion error
-      }
-      break;
+      s << static_cast<wchar_t>(data.value());
     }
-    default:
-      break;
+    try {
+      dest = MdfHelper::Utf16ToUtf8(s.str());
+    } catch (const std::exception &) {
+      valid = false; // Conversion error
+    }
+    break;
+  }
+
+  case ChannelDataType::StringUTF16Be: {
+    std::wostringstream s;
+    for (size_t ii = offset; (ii + 2) <= temp.size(); ii += 2) {
+      const BigBuffer<uint16_t> data(temp, ii);
+      if (data.value() == 0) {
+        break;
+      }
+      s << static_cast<wchar_t>(data.value());
+    }
+    try {
+      dest = MdfHelper::Utf16ToUtf8(s.str());
+    } catch (const std::exception &) {
+      valid = false; // Conversion error
+    }
+    break;
+  }
+  default:
+    break;
   }
   return valid;
 }
 
-
-void Cn4Block::Unit(const std::string &unit) {
-
-}
-void Cn4Block::Type(ChannelType type) {
-
-}
-void Cn4Block::DataType(ChannelDataType type) {
-
-}
-void Cn4Block::DataBytes(size_t nof_bytes) {
-
-}
-void Cn4Block::SamplingRate(double sampling_rate) {
-
-}
-double Cn4Block::SamplingRate() const {
-  return 0;
-}
+void Cn4Block::Unit(const std::string &unit) {}
+void Cn4Block::Type(ChannelType type) {}
+void Cn4Block::DataType(ChannelDataType type) {}
+void Cn4Block::DataBytes(size_t nof_bytes) {}
+void Cn4Block::SamplingRate(double sampling_rate) {}
+double Cn4Block::SamplingRate() const { return 0; }
 
 std::vector<uint8_t> &Cn4Block::SampleBuffer() const {
   return cg_block_->SampleBuffer();
 }
 void Cn4Block::Init(const IBlock &id_block) {
   IBlock::Init(id_block);
-  cg_block_ = dynamic_cast<const Cg4Block*>(&id_block);
+  cg_block_ = dynamic_cast<const Cg4Block *>(&id_block);
 }
 
 void Cn4Block::AddCc4(std::unique_ptr<Cc4Block> &cc4) {
@@ -615,8 +623,9 @@ void Cn4Block::Range(double min, double max) {
 }
 
 std::optional<std::pair<double, double>> Cn4Block::Range() const {
-  return (flags_ & CnFlag::RangeValid) != 0 ?
-      std::optional(std::pair(range_min_, range_max_)) : IChannel::Range();
+  return (flags_ & CnFlag::RangeValid) != 0
+             ? std::optional(std::pair(range_min_, range_max_))
+             : IChannel::Range();
 }
 
 void Cn4Block::Limit(double min, double max) {
@@ -626,8 +635,9 @@ void Cn4Block::Limit(double min, double max) {
 }
 
 std::optional<std::pair<double, double>> Cn4Block::Limit() const {
-  return (flags_ & CnFlag::LimitValid) != 0 ?
-         std::optional(std::pair(limit_min_, limit_max_)) : IChannel::Limit();
+  return (flags_ & CnFlag::LimitValid) != 0
+             ? std::optional(std::pair(limit_min_, limit_max_))
+             : IChannel::Limit();
 }
 
 void Cn4Block::ExtLimit(double min, double max) {
@@ -637,9 +647,9 @@ void Cn4Block::ExtLimit(double min, double max) {
 }
 
 std::optional<std::pair<double, double>> Cn4Block::ExtLimit() const {
-  return (flags_ & CnFlag::ExtendedLimitValid) != 0 ?
-         std::optional(std::pair(limit_ext_min_, limit_ext_max_)) : IChannel::Limit();
+  return (flags_ & CnFlag::ExtendedLimitValid) != 0
+             ? std::optional(std::pair(limit_ext_min_, limit_ext_max_))
+             : IChannel::Limit();
 }
-
 
 } // namespace mdf::detail

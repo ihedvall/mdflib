@@ -33,25 +33,27 @@ std::string MakeFlagString(uint32_t flag) {
   return temp.str();
 }
 
-}
+} // namespace
 
 namespace mdf::detail {
 void Ld4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
-  dest.emplace_back("Next LD", ToHexString(Link(kIndexNext)), "Link to next attach", BlockItemType::LinkItem );
+  dest.emplace_back("Next LD", ToHexString(Link(kIndexNext)),
+                    "Link to next attach", BlockItemType::LinkItem);
   for (size_t ii = 0; ii < nof_blocks_; ++ii) {
-    dest.emplace_back("Data Block", ToHexString(Link(kIndexData + ii)), "Link to data block",
-                      BlockItemType::LinkItem );
+    dest.emplace_back("Data Block", ToHexString(Link(kIndexData + ii)),
+                      "Link to data block", BlockItemType::LinkItem);
   }
   if (flags_ & Ld4Flags::InvalidData) {
     for (size_t ii = 0; ii < nof_blocks_; ++ii) {
-      dest.emplace_back("Invalid Block", ToHexString(Link(kIndexData + nof_blocks_ + ii)), "Link to invalid block",
-                        BlockItemType::LinkItem );
+      dest.emplace_back("Invalid Block",
+                        ToHexString(Link(kIndexData + nof_blocks_ + ii)),
+                        "Link to invalid block", BlockItemType::LinkItem);
     }
   }
-  dest.emplace_back("", "", "",BlockItemType::BlankItem );
+  dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
 
@@ -101,4 +103,4 @@ size_t Ld4Block::Read(std::FILE *file) {
   ReadLinkList(file, kIndexData, nof_blocks_);
   return bytes;
 }
-}
+} // namespace mdf::detail

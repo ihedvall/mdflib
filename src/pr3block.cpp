@@ -3,14 +3,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <sstream>
-#include <cstdio>
 #include "pr3block.h"
+#include <cstdio>
+#include <sstream>
 namespace mdf::detail {
 
-Pr3Block::Pr3Block(const std::string &meta_data)
-: text_(meta_data) {
-}
+Pr3Block::Pr3Block(const std::string &meta_data) : text_(meta_data) {}
 
 size_t Pr3Block::Read(std::FILE *file) {
   size_t bytes = ReadHeader3(file);
@@ -46,4 +44,4 @@ size_t Pr3Block::Write(std::FILE *file) {
   return bytes;
 }
 
-}
+} // namespace mdf::detail

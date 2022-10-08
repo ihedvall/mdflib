@@ -15,4 +15,4 @@ size_t Sd4Block::DataSize() const {
   return block_length_ > 24 ? block_length_ - 24 : 0;
 }
 
-}
+} // namespace mdf::detail

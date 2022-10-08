@@ -2,50 +2,49 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <cstring>
-#include <algorithm>
-#include "mdf/mdfhelper.h"
 #include "ixmlnode.h"
+#include "mdf/mdfhelper.h"
 #include "xmlnode.h"
+#include <algorithm>
+#include <cstring>
 
 namespace {
-  std::string XmlString(const std::string& text) {
-    std::ostringstream xml_string;
-    for (char in_char : text) {
-      switch (in_char) {
-        case '<':
-          xml_string << "&lt;";
-          break;
+std::string XmlString(const std::string &text) {
+  std::ostringstream xml_string;
+  for (char in_char : text) {
+    switch (in_char) {
+    case '<':
+      xml_string << "&lt;";
+      break;
 
-        case '>':
-          xml_string << "&gt;";
-          break;
+    case '>':
+      xml_string << "&gt;";
+      break;
 
-        case '&':
-          xml_string << "&amp;";
-          break;
+    case '&':
+      xml_string << "&amp;";
+      break;
 
-        case '\"':
-          xml_string << "&quot;";
-          break;
+    case '\"':
+      xml_string << "&quot;";
+      break;
 
-        case '\'':
-          xml_string << "&apos;";
-          break;
+    case '\'':
+      xml_string << "&apos;";
+      break;
 
-        default:
-          xml_string << in_char;
-          break;
-      }
+    default:
+      xml_string << in_char;
+      break;
     }
-    return xml_string.str();
   }
-
+  return xml_string.str();
 }
+
+} // namespace
 namespace mdf {
 
-IXmlNode::IXmlNode(const std::string &tag_name)
-    : tag_name_(tag_name) {
+IXmlNode::IXmlNode(const std::string &tag_name) : tag_name_(tag_name) {
   MdfHelper::Trim(tag_name_);
 }
 
@@ -55,26 +54,27 @@ void IXmlNode::AddNode(std::unique_ptr<IXmlNode> p) {
 
 IXmlNode &IXmlNode::AddNode(const std::string &name) {
   auto node = CreateNode(name);
-  auto& ret = *node;
+  auto &ret = *node;
   AddNode(std::move(node));
   return ret;
 }
 
 IXmlNode &IXmlNode::AddUniqueNode(const std::string &name) {
-  auto itr = std::ranges::find_if(node_list_, [&] (const auto& ptr) {
-    return ptr && ptr->IsTagName(name);
-  });
+  auto itr = std::ranges::find_if(
+      node_list_, [&](const auto &ptr) { return ptr && ptr->IsTagName(name); });
   return itr != node_list_.end() ? *(itr->get()) : AddNode(name);
 }
 
-IXmlNode &IXmlNode::AddUniqueNode(const std::string &name, const std::string& key, const std::string& attr) {
-  auto itr = std::ranges::find_if(node_list_, [&] (const auto& ptr) {
+IXmlNode &IXmlNode::AddUniqueNode(const std::string &name,
+                                  const std::string &key,
+                                  const std::string &attr) {
+  auto itr = std::ranges::find_if(node_list_, [&](const auto &ptr) {
     return ptr && ptr->IsTagName(name) && ptr->IsAttribute(key, attr);
   });
   if (itr != node_list_.end()) {
     return *(itr->get());
   }
-  auto& node = AddNode(name);
+  auto &node = AddNode(name);
   node.SetAttribute(key, attr);
   return node;
 }
@@ -84,22 +84,22 @@ std::unique_ptr<IXmlNode> IXmlNode::CreateNode(const std::string &name) const {
 }
 
 const IXmlNode *IXmlNode::GetNode(const std::string &tag) const {
-  const auto itr = std::ranges::find_if(node_list_, [&] (const auto& ptr) {
-    return ptr && ptr->IsTagName(tag);
-  });
+  const auto itr = std::ranges::find_if(
+      node_list_, [&](const auto &ptr) { return ptr && ptr->IsTagName(tag); });
   return itr == node_list_.cend() ? nullptr : itr->get();
 }
 
-const IXmlNode *IXmlNode::GetNode(const std::string &tag, const std::string& key,
-                                  const std::string& value) const {
-  const auto itr = std::ranges::find_if(node_list_, [&] (const auto& ptr) {
+const IXmlNode *IXmlNode::GetNode(const std::string &tag,
+                                  const std::string &key,
+                                  const std::string &value) const {
+  const auto itr = std::ranges::find_if(node_list_, [&](const auto &ptr) {
     return ptr && ptr->IsTagName(tag) && ptr->IsAttribute(key, value);
   });
   return itr == node_list_.cend() ? nullptr : itr->get();
 }
 
 void IXmlNode::GetChildList(IXmlNode::ChildList &child_list) const {
-  for (const auto &p: node_list_) {
+  for (const auto &p : node_list_) {
     if (!p) {
       continue;
     }
@@ -111,8 +111,8 @@ bool IXmlNode::IsTagName(const std::string &tag) const {
   if (Platform::stricmp(tag.c_str(), tag_name_.c_str()) == 0) {
     return true;
   }
-    // try the tag name without namespace
-  const auto* ns = strchr(tag_name_.c_str(), ':');
+  // try the tag name without namespace
+  const auto *ns = strchr(tag_name_.c_str(), ':');
   if (ns != nullptr) {
     ++ns;
     if (Platform::stricmp(tag.c_str(), ns) == 0) {
@@ -122,28 +122,30 @@ bool IXmlNode::IsTagName(const std::string &tag) const {
   return false;
 }
 
-bool IXmlNode::IsAttribute(const std::string &key, const std::string &value) const {
-  return std::ranges::any_of(attribute_list_, [&] (const auto& itr) {
-    return Platform::stricmp(itr.first.c_str(), key.c_str()) == 0 && Platform::stricmp(itr.second.c_str(), value.c_str()) == 0;
+bool IXmlNode::IsAttribute(const std::string &key,
+                           const std::string &value) const {
+  return std::ranges::any_of(attribute_list_, [&](const auto &itr) {
+    return Platform::stricmp(itr.first.c_str(), key.c_str()) == 0 &&
+           Platform::stricmp(itr.second.c_str(), value.c_str()) == 0;
   });
 }
 
-void IXmlNode::Write(std::ostream &dest, size_t level) { //NOLINT
+void IXmlNode::Write(std::ostream &dest, size_t level) { // NOLINT
 
   for (size_t tab = 0; tab < level; ++tab) {
     dest << "  ";
   }
   dest << "<" << TagName();
-  for (const auto& attr : attribute_list_) {
+  for (const auto &attr : attribute_list_) {
     dest << " " << attr.first << "='" << XmlString(attr.second) << "'";
   }
   if (node_list_.empty() && value_.empty()) {
     dest << "/>" << std::endl;
-  } else if (node_list_.empty()){
+  } else if (node_list_.empty()) {
     dest << ">" << XmlString(value_) << "</" << TagName() << ">" << std::endl;
   } else {
     dest << ">" << std::endl;
-    for (const auto& node : node_list_) {
+    for (const auto &node : node_list_) {
       if (!node) {
         continue;
       }
@@ -156,20 +158,15 @@ void IXmlNode::Write(std::ostream &dest, size_t level) { //NOLINT
   }
 }
 
-template<>
-void IXmlNode::Value(const bool& value) {
+template <> void IXmlNode::Value(const bool &value) {
   value_ = value ? "true" : "false";
 }
 
-template<>
-void IXmlNode::Value(const std::string& value) {
-  value_ = value;
-}
+template <> void IXmlNode::Value(const std::string &value) { value_ = value; }
 
-template<>
-void IXmlNode::SetAttribute(const std::string &key, const bool& value) {
+template <>
+void IXmlNode::SetAttribute(const std::string &key, const bool &value) {
   attribute_list_.insert({key, value ? "true" : "false"});
 }
 
-
-}
+} // namespace mdf

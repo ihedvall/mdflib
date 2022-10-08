@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <vector>
 #include "iblock.h"
+#include <vector>
 
 namespace mdf::detail {
 struct Dependency {
@@ -14,13 +14,14 @@ struct Dependency {
 };
 
 class Cd3Block : public IBlock {
- public:
+public:
   size_t Read(std::FILE *file) override;
- private:
+
+private:
   uint16_t dependency_type_ = 0;
   uint16_t nof_dependencies_ = 0;
 
   std::vector<Dependency> dependency_list_;
   std::vector<uint16_t> dimension_list_;
 };
-}
+} // namespace mdf::detail

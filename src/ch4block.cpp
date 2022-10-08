@@ -2,11 +2,10 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <algorithm>
-#include <ranges>
 #include "ch4block.h"
 #include "hd4block.h"
 #include <algorithm>
+#include <ranges>
 namespace {
 
 constexpr size_t kIndexCh = 1;
@@ -14,26 +13,31 @@ constexpr size_t kIndexTx = 2;
 constexpr size_t kIndexMd = 3;
 constexpr size_t kIndexElement = 4;
 constexpr size_t kIndexNext = 0;
-}
+} // namespace
 
 namespace mdf::detail {
-Ch4Block::Ch4Block() {
-  block_type_ = "##CH";
-}
+Ch4Block::Ch4Block() { block_type_ = "##CH"; }
 
 void Ch4Block::GetBlockProperty(BlockPropertyList &dest) const {
   IBlock::GetBlockProperty(dest);
 
-  dest.emplace_back("Links", "", "",BlockItemType::HeaderItem);
-  dest.emplace_back("Next CH", ToHexString(Link(kIndexNext)), "", BlockItemType::LinkItem);
-  dest.emplace_back("First CH", ToHexString(Link(kIndexNext)), "", BlockItemType::LinkItem);
-  dest.emplace_back("Name TX", ToHexString(Link(kIndexNext)), name_, BlockItemType::LinkItem);
-  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(), BlockItemType::LinkItem);
+  dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
+  dest.emplace_back("Next CH", ToHexString(Link(kIndexNext)), "",
+                    BlockItemType::LinkItem);
+  dest.emplace_back("First CH", ToHexString(Link(kIndexNext)), "",
+                    BlockItemType::LinkItem);
+  dest.emplace_back("Name TX", ToHexString(Link(kIndexNext)), name_,
+                    BlockItemType::LinkItem);
+  dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(),
+                    BlockItemType::LinkItem);
   for (uint32_t ii = 0; ii < nof_elements_; ++ii) {
     size_t index = kIndexElement + (3 * ii);
-    dest.emplace_back("Reference DG", ToHexString(Link(index)), "", BlockItemType::LinkItem);
-    dest.emplace_back("Reference CG", ToHexString(Link(index + 1)), "", BlockItemType::LinkItem);
-    dest.emplace_back("Reference CN", ToHexString(Link(index + 2)), "", BlockItemType::LinkItem);
+    dest.emplace_back("Reference DG", ToHexString(Link(index)), "",
+                      BlockItemType::LinkItem);
+    dest.emplace_back("Reference CG", ToHexString(Link(index + 1)), "",
+                      BlockItemType::LinkItem);
+    dest.emplace_back("Reference CN", ToHexString(Link(index + 2)), "",
+                      BlockItemType::LinkItem);
   }
   dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
@@ -46,16 +50,16 @@ void Ch4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Ch4Block::Read(std::FILE *file) { //NOLINT
+size_t Ch4Block::Read(std::FILE *file) { // NOLINT
   size_t bytes = ReadHeader4(file);
   bytes += ReadNumber(file, nof_elements_);
   bytes += ReadNumber(file, type_);
 
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file,reserved,3);
+  bytes += ReadByte(file, reserved, 3);
 
-  name_ = ReadTx4(file,kIndexTx);
-  ReadMdComment(file,kIndexMd);
+  name_ = ReadTx4(file, kIndexTx);
+  ReadMdComment(file, kIndexMd);
   ReadLink4List(file, ch_list_, kIndexCh);
   return bytes;
 }
@@ -68,18 +72,21 @@ size_t Ch4Block::Write(std::FILE *file) { // NOLINT
   }
   nof_elements_ = element_list_.size();
   block_type_ = "##CH";
-  block_length_ = 24 + ((4 + (nof_elements_*3)) * 8) + 8 + 1 + 3;
-  link_list_.resize(4 + (nof_elements_*3), 0);
+  block_length_ = 24 + ((4 + (nof_elements_ * 3)) * 8) + 8 + 1 + 3;
+  link_list_.resize(4 + (nof_elements_ * 3), 0);
 
   for (size_t index_n = 0; index_n < nof_elements_; ++index_n) {
     const auto index = 4 + (index_n * 3);
-    const auto& element = element_list_[index_n];
-    link_list_[index] = element.data_group != nullptr ? element.data_group->Index() : 0;
-    link_list_[index + 1] = element.channel_group != nullptr ? element.channel_group->Index() : 0;
-    link_list_[index +2] = element.channel != nullptr ? element.channel->Index() : 0;
+    const auto &element = element_list_[index_n];
+    link_list_[index] =
+        element.data_group != nullptr ? element.data_group->Index() : 0;
+    link_list_[index + 1] =
+        element.channel_group != nullptr ? element.channel_group->Index() : 0;
+    link_list_[index + 2] =
+        element.channel != nullptr ? element.channel->Index() : 0;
   }
-  WriteTx4(file,kIndexTx, name_);
-  WriteMdComment(file,kIndexMd);
+  WriteTx4(file, kIndexTx, name_);
+  WriteMdComment(file, kIndexMd);
   WriteLink4List(file, ch_list_, kIndexCh, 0);
 
   size_t bytes = IBlock::Write(file);
@@ -88,16 +95,14 @@ size_t Ch4Block::Write(std::FILE *file) { // NOLINT
   bytes += WriteBytes(file, 3);
   UpdateBlockSize(file, bytes);
 
-
   return bytes;
-
 }
-const IBlock *Ch4Block::Find(int64_t index) const { //NOLINT
-  for (const auto& ch : ch_list_) {
+const IBlock *Ch4Block::Find(int64_t index) const { // NOLINT
+  for (const auto &ch : ch_list_) {
     if (!ch) {
       continue;
     }
-    const auto* p = ch->Find(index);
+    const auto *p = ch->Find(index);
     if (p != nullptr) {
       return p;
     }
@@ -105,33 +110,21 @@ const IBlock *Ch4Block::Find(int64_t index) const { //NOLINT
   return IBlock::Find(index);
 }
 
-int64_t Ch4Block::Index() const {
-  return FilePosition();
-}
+int64_t Ch4Block::Index() const { return FilePosition(); }
 
-const std::string &Ch4Block::Name() const {
-  return name_;
-}
+const std::string &Ch4Block::Name() const { return name_; }
 
-void Ch4Block::Name(const std::string &name) {
-  name_ = name;
-}
+void Ch4Block::Name(const std::string &name) { name_ = name; }
 
-void Ch4Block::Type(ChType type) {
-  type_ = static_cast<uint8_t>(type);
-}
+void Ch4Block::Type(ChType type) { type_ = static_cast<uint8_t>(type); }
 
-ChType Ch4Block::Type() const {
-  return static_cast<ChType>(type_);
-}
+ChType Ch4Block::Type() const { return static_cast<ChType>(type_); }
 
 void Ch4Block::Description(const std::string &description) {
   md_comment_ = std::make_unique<Md4Block>(description);
 }
 
-std::string Ch4Block::Description() const {
-  return MdText();
-}
+std::string Ch4Block::Description() const { return MdText(); }
 
 IMetaData *Ch4Block::MetaData() {
   CreateMd4Block();
@@ -152,26 +145,26 @@ const std::vector<ElementLink> &Ch4Block::ElementLinks() const {
 
 void Ch4Block::FindReferencedBlocks(const Hd4Block &hd4) { // NOLINT
   element_list_.clear();
-  for (uint32_t index_n = 0; index_n < nof_elements_; ++index_n ) {
+  for (uint32_t index_n = 0; index_n < nof_elements_; ++index_n) {
     const auto index = 5 + (index_n * 3);
     if (index < link_list_.size()) {
-      const auto* block1 = hd4.Find(Link(index));
-      const auto* block2 = hd4.Find(Link(index + 1));
-      const auto* block3 = hd4.Find(Link(index + 2));
+      const auto *block1 = hd4.Find(Link(index));
+      const auto *block2 = hd4.Find(Link(index + 1));
+      const auto *block3 = hd4.Find(Link(index + 2));
       ElementLink element;
       if (block1 != nullptr) {
-        element.data_group = dynamic_cast<const IDataGroup*>(block1);
+        element.data_group = dynamic_cast<const IDataGroup *>(block1);
       }
       if (block2 != nullptr) {
-        element.channel_group = dynamic_cast<const IChannelGroup*>(block2);
+        element.channel_group = dynamic_cast<const IChannelGroup *>(block2);
       }
       if (block3 != nullptr) {
-        element.channel = dynamic_cast<const IChannel*>(block3);
+        element.channel = dynamic_cast<const IChannel *>(block3);
       }
       element_list_.emplace_back(element);
     }
   }
-  for (auto& ch4 : ch_list_) {
+  for (auto &ch4 : ch_list_) {
     if (ch4) {
       ch4->FindReferencedBlocks(hd4);
     }
@@ -187,8 +180,9 @@ IChannelHierarchy *Ch4Block::CreateChannelHierarchy() {
 
 std::vector<IChannelHierarchy *> Ch4Block::ChannelHierarchies() const {
   std::vector<IChannelHierarchy *> list;
-  std::ranges::transform(ch_list_, std::back_inserter(list), [] (const auto& ch4) { return ch4.get(); });
+  std::ranges::transform(ch_list_, std::back_inserter(list),
+                         [](const auto &ch4) { return ch4.get(); });
   return list;
 }
 
-} // end namespace mdf
+} // namespace mdf::detail

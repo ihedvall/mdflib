@@ -5,7 +5,4 @@
 
 #include "mdf/isourceinformation.h"
 
-namespace mdf {
-
-
-} // end namespace
+namespace mdf {} // namespace mdf

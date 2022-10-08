@@ -11,26 +11,27 @@ size_t Cd3Block::Read(std::FILE *file) {
   dependency_list_.clear();
   dimension_list_.clear();
   switch (dependency_type_) {
-    case 0:break;
-    case 1:
-    case 2:
-      for (uint16_t dep = 0; dep < nof_dependencies_; ++dep) {
-        Dependency d;
-        bytes += ReadNumber(file, d.link_dg);
-        bytes += ReadNumber(file, d.link_cg);
-        bytes += ReadNumber(file, d.link_cn);
-        dependency_list_.emplace_back(d);
-      }
-      break;
-    default:
-      for (uint16_t dim = 256; dim < nof_dependencies_; ++dim) {
-        uint16_t temp = 0;
-        bytes += ReadNumber(file, temp);
-        dimension_list_.emplace_back(temp);
-      }
-      break;
+  case 0:
+    break;
+  case 1:
+  case 2:
+    for (uint16_t dep = 0; dep < nof_dependencies_; ++dep) {
+      Dependency d;
+      bytes += ReadNumber(file, d.link_dg);
+      bytes += ReadNumber(file, d.link_cg);
+      bytes += ReadNumber(file, d.link_cn);
+      dependency_list_.emplace_back(d);
+    }
+    break;
+  default:
+    for (uint16_t dim = 256; dim < nof_dependencies_; ++dim) {
+      uint16_t temp = 0;
+      bytes += ReadNumber(file, temp);
+      dimension_list_.emplace_back(temp);
+    }
+    break;
   }
 
   return bytes;
 }
-}
+} // namespace mdf::detail

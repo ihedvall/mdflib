@@ -3,23 +3,23 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
+#include "datablock.h"
 #include <cstdio>
 #include <vector>
-#include "datablock.h"
-
 
 namespace mdf::detail {
 class Dg3Block;
 class Dt3Block : public DataBlock {
- public:
+public:
   void Init(const IBlock &id_block) override;
-  void GetBlockProperty(BlockPropertyList& dest) const override;
+  void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;
   size_t DataSize() const override;
- private:
-  const Dg3Block* dg_block_ = nullptr; ///< Pointer to the for calculating data size
+
+private:
+  const Dg3Block *dg_block_ =
+      nullptr; ///< Pointer to the for calculating data size
 };
 
-}
-
+} // namespace mdf::detail

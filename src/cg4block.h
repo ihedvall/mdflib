@@ -3,34 +3,30 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <string>
-#include <vector>
-#include <memory>
+#include "cn4block.h"
 #include "iblock.h"
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
 #include "si4block.h"
-#include "cn4block.h"
 #include "sr4block.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace mdf::detail {
 
 class Cg4Block : public IBlock, public IChannelGroup {
- public:
+public:
   using Cn4List = std::vector<std::unique_ptr<Cn4Block>>;
   using Sr4List = std::vector<std::unique_ptr<Sr4Block>>;
 
-  void GetBlockProperty(BlockPropertyList& dest) const override;
-  const IBlock* Find(int64_t index) const override;
+  void GetBlockProperty(BlockPropertyList &dest) const override;
+  const IBlock *Find(int64_t index) const override;
 
-  void AddCn4(std::unique_ptr<Cn4Block>& cn3);
-  [[nodiscard]] const Cn4List& Cn4() const {
-    return cn_list_;
-  }
+  void AddCn4(std::unique_ptr<Cn4Block> &cn3);
+  [[nodiscard]] const Cn4List &Cn4() const { return cn_list_; }
 
-  [[nodiscard]] const Sr4List& Sr4() const {
-    return sr_list_;
-  }
+  [[nodiscard]] const Sr4List &Sr4() const { return sr_list_; }
 
   [[nodiscard]] int64_t Index() const override;
   void Name(const std::string &name) override;
@@ -53,25 +49,22 @@ class Cg4Block : public IBlock, public IChannelGroup {
   void PathSeparator(char16_t path_separator) override;
 
   [[nodiscard]] std::vector<IChannel *> Channels() const override;
-  [[nodiscard]] const IChannel* GetXChannel(const IChannel& reference) const override;
+  [[nodiscard]] const IChannel *
+  GetXChannel(const IChannel &reference) const override;
 
-  const Si4Block* Source() const {
-    return si_block_.get();
-  }
+  const Si4Block *Source() const { return si_block_.get(); }
 
   size_t Read(std::FILE *file) override;
-  void ReadCnList(std::FILE* file);
-  void ReadSrList(std::FILE* file);
+  void ReadCnList(std::FILE *file);
+  void ReadSrList(std::FILE *file);
 
-  size_t ReadDataRecord(std::FILE* file, const IDataGroup& notifier) const;
-  std::vector<uint8_t>& SampleBuffer() const {
-    return sample_buffer_;
-  }
+  size_t ReadDataRecord(std::FILE *file, const IDataGroup &notifier) const;
+  std::vector<uint8_t> &SampleBuffer() const { return sample_buffer_; }
   size_t Write(std::FILE *file) override;
   ISourceInformation *CreateSourceInformation() override;
   const ISourceInformation *SourceInformation() const override;
 
- private:
+private:
   uint64_t record_id_ = 0;
   uint64_t nof_samples_ = 0;
   uint16_t flags_ = 0;
@@ -87,6 +80,3 @@ class Cg4Block : public IBlock, public IChannelGroup {
 };
 
 } // namespace mdf::detail
-
-
-

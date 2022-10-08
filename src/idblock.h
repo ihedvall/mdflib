@@ -7,32 +7,37 @@
 
 namespace mdf::detail {
 class IdBlock : public IBlock {
- public:
+public:
   IdBlock();
-  void GetBlockProperty(BlockPropertyList& dest) const override;
+  void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;
 
   [[nodiscard]] std::string FileId() const;
   [[nodiscard]] std::string VersionString() const;
 
-  void ProgramId(const std::string& program_id ) {
+  void ProgramId(const std::string &program_id) {
     program_identifier_ = program_id;
   }
 
   [[nodiscard]] std::string ProgramId() const;
 
-  void IsFinalized(bool finalized,std::FILE* file, uint16_t standard_flags, uint16_t custom_flags);
-  [[nodiscard]] bool IsFinalized(uint16_t &standard_flags, uint16_t &custom_flags) const;
+  void IsFinalized(bool finalized, std::FILE *file, uint16_t standard_flags,
+                   uint16_t custom_flags);
+  [[nodiscard]] bool IsFinalized(uint16_t &standard_flags,
+                                 uint16_t &custom_flags) const;
 
   void MinorVersion(int minor);
 
   void SetDefaultMdf3Values();
- private:
-  std::string file_identifier_ = "MDF     "; ///< Note the string must be 8 characters including spaces
+
+private:
+  std::string file_identifier_ =
+      "MDF     "; ///< Note the string must be 8 characters including spaces
   std::string format_identifier_ = "4.20";
   std::string program_identifier_ = "MdfWrite";
-  /* uint16_t byte_order_ = 0; Default 0 = Little endian (Intel byte order). Defined in IBlock class. */
+  /* uint16_t byte_order_ = 0; Default 0 = Little endian (Intel byte order).
+   * Defined in IBlock class. */
   uint16_t floating_point_format_ = 0; ///< Default IEEE standard
   /* uint16_t version_ = 420;   Defined in IBlock class. */
   uint16_t code_page_number_ = 0;
@@ -40,9 +45,5 @@ class IdBlock : public IBlock {
   /* 26 byte reserved */
   uint16_t standard_flags_ = 0;
   uint16_t custom_flags_ = 0;
-
 };
-}
-
-
-
+} // namespace mdf::detail

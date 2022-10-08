@@ -3,24 +3,21 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <string>
 #include "tx4block.h"
+#include <string>
 
 namespace mdf::detail {
-class Md4Block : public Tx4Block , public IMetaData {
- public:
-  explicit Md4Block(const std::string& text);
+class Md4Block : public Tx4Block, public IMetaData {
+public:
+  explicit Md4Block(const std::string &text);
   Md4Block() = default;
 
-  void GetBlockProperty(BlockPropertyList& dest) const override;
+  void GetBlockProperty(BlockPropertyList &dest) const override;
 
-  void TxComment(const std::string& tx_comment);
+  void TxComment(const std::string &tx_comment);
   [[nodiscard]] std::string TxComment() const override;
 
-  void XmlSnippet(const std::string& text) override;
-  [[nodiscard]] const std::string& XmlSnippet() const override;
-
-
+  void XmlSnippet(const std::string &text) override;
+  [[nodiscard]] const std::string &XmlSnippet() const override;
 };
-}
-
+} // namespace mdf::detail

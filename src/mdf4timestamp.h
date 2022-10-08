@@ -3,20 +3,19 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <cstdio>
-#include "mdf/mdfhelper.h"
 #include "iblock.h"
-
+#include "mdf/mdfhelper.h"
+#include <cstdio>
 
 namespace mdf::detail {
 
 namespace TimestampFlag {
 constexpr uint8_t kLocalTimestamp = 0x01;
 constexpr uint8_t kTimeOffsetValid = 0x02;
-}
+} // namespace TimestampFlag
 
 class Mdf4Timestamp : public IBlock {
- public:
+public:
   void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;
@@ -24,14 +23,14 @@ class Mdf4Timestamp : public IBlock {
   [[nodiscard]] uint64_t NsSince1970() const;
   void NsSince1970(uint64_t utc);
 
- private:
-  uint64_t time_ = MdfHelper::NowNs();      ///< Time in nanoseconds since 1970 also known as UNIX time
-  int16_t tz_offset_ = 0;  ///< Time zone offsets in minutes. Best practice is to always use UTC.
-  int16_t dst_offset_ = 0; ///< DST offset in minutes. Best practice is to always use UTC.
+private:
+  uint64_t time_ = MdfHelper::NowNs(); ///< Time in nanoseconds since 1970 also
+                                       ///< known as UNIX time
+  int16_t tz_offset_ =
+      0; ///< Time zone offsets in minutes. Best practice is to always use UTC.
+  int16_t dst_offset_ =
+      0; ///< DST offset in minutes. Best practice is to always use UTC.
   uint8_t flags_ = 0;
 };
 
 } // Namespace mdf::detail
-
-
-

@@ -7,8 +7,8 @@
 #include "mdf/ichannelarray.h"
 namespace mdf::detail {
 
-class Ca4Block : public IBlock , public IChannelArray {
- public:
+class Ca4Block : public IBlock, public IChannelArray {
+public:
   Ca4Block();
 
   [[nodiscard]] int64_t Index() const override;
@@ -22,10 +22,10 @@ class Ca4Block : public IBlock , public IChannelArray {
   void Flags(uint32_t flags) override;
   [[nodiscard]] uint32_t Flags() const override;
 
-  void GetBlockProperty(BlockPropertyList& dest) const override;
+  void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
 
- private:
+private:
   uint8_t type_ = 0;
   uint8_t storage_ = 0;
   uint16_t dimension_ = 0;
@@ -36,9 +36,4 @@ class Ca4Block : public IBlock , public IChannelArray {
   std::vector<double> axis_value_list_;
   std::vector<uint16_t> cycle_count_list_;
 };
-}
-
-
-
-
-
+} // namespace mdf::detail

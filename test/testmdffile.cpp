@@ -2,13 +2,13 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string_view>
-#include <gtest/gtest.h>
-#include "mdf/mdffactory.h"
 #include "mdf/imetadata.h"
+#include "mdf/mdffactory.h"
+#include <gtest/gtest.h>
+#include <string_view>
 
 namespace {
-  constexpr std::string_view  kFileName  = "c:/olle.dat";
+constexpr std::string_view kFileName = "c:/olle.dat";
 }
 
 namespace mdf::test {
@@ -17,8 +17,8 @@ TEST(TestMdf, Mdf3File) { // NOLINT
   auto mdf = MdfFactory::CreateMdfFile(MdfFileType::Mdf3FileType);
   ASSERT_TRUE(mdf);
   std::cout << "MDF Version: " << mdf->Version() << std::endl;
-  EXPECT_TRUE(mdf->Version() > "3.00" && mdf->Version() < "4.00" );
-  EXPECT_EQ(mdf->MainVersion(), 3 );
+  EXPECT_TRUE(mdf->Version() > "3.00" && mdf->Version() < "4.00");
+  EXPECT_EQ(mdf->MainVersion(), 3);
   EXPECT_TRUE(mdf->MinorVersion() >= 0 && mdf->MinorVersion() <= 30);
 
   mdf->MinorVersion(-10);
@@ -45,7 +45,7 @@ TEST(TestMdf, Mdf3File) { // NOLINT
   AttachmentList attachment_list;
   mdf->Attachments(attachment_list);
   EXPECT_TRUE(attachment_list.empty());
-  auto* at_group = mdf->CreateAttachment();
+  auto *at_group = mdf->CreateAttachment();
   EXPECT_TRUE(at_group == nullptr);
   attachment_list.clear();
   mdf->Attachments(attachment_list);
@@ -54,7 +54,7 @@ TEST(TestMdf, Mdf3File) { // NOLINT
   DataGroupList meas_list;
   mdf->DataGroups(meas_list);
   EXPECT_TRUE(meas_list.empty());
-  auto* dg_group = mdf->CreateDataGroup();
+  auto *dg_group = mdf->CreateDataGroup();
   EXPECT_TRUE(dg_group != nullptr);
   meas_list.clear();
   mdf->DataGroups(meas_list);
@@ -83,18 +83,18 @@ TEST(TestMdf, Mdf3File) { // NOLINT
   EXPECT_FALSE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 1);
   EXPECT_EQ(custom_flags, 2);
-  mdf->IsFinalized(true,nullptr,0,0);
+  mdf->IsFinalized(true, nullptr, 0, 0);
   EXPECT_TRUE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 0);
   EXPECT_EQ(custom_flags, 0);
 }
 
-TEST(TestMdf, Mdf4File) { //NOLINT
+TEST(TestMdf, Mdf4File) { // NOLINT
   auto mdf = MdfFactory::CreateMdfFile(MdfFileType::Mdf4FileType);
   ASSERT_TRUE(mdf);
   std::cout << "MDF Version: " << mdf->Version() << std::endl;
-  EXPECT_TRUE(mdf->Version() > "4.00" && mdf->Version() < "5.00" );
-  EXPECT_EQ(mdf->MainVersion(), 4 );
+  EXPECT_TRUE(mdf->Version() > "4.00" && mdf->Version() < "5.00");
+  EXPECT_EQ(mdf->MainVersion(), 4);
   EXPECT_TRUE(mdf->MinorVersion() >= 0 && mdf->MinorVersion() <= 99);
 
   mdf->MinorVersion(-10);
@@ -121,7 +121,7 @@ TEST(TestMdf, Mdf4File) { //NOLINT
   AttachmentList attachment_list;
   mdf->Attachments(attachment_list);
   EXPECT_TRUE(attachment_list.empty());
-  auto* at_group = mdf->CreateAttachment();
+  auto *at_group = mdf->CreateAttachment();
   EXPECT_TRUE(at_group != nullptr);
   attachment_list.clear();
   mdf->Attachments(attachment_list);
@@ -130,7 +130,7 @@ TEST(TestMdf, Mdf4File) { //NOLINT
   DataGroupList meas_list;
   mdf->DataGroups(meas_list);
   EXPECT_TRUE(meas_list.empty());
-  auto* dg_group = mdf->CreateDataGroup();
+  auto *dg_group = mdf->CreateDataGroup();
   EXPECT_TRUE(dg_group != nullptr);
   meas_list.clear();
   mdf->DataGroups(meas_list);
@@ -159,16 +159,16 @@ TEST(TestMdf, Mdf4File) { //NOLINT
   EXPECT_FALSE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 1);
   EXPECT_EQ(custom_flags, 2);
-  mdf->IsFinalized(true,nullptr,0,0);
+  mdf->IsFinalized(true, nullptr, 0, 0);
   EXPECT_TRUE(mdf->IsFinalized(standard_flags, custom_flags));
   EXPECT_EQ(standard_flags, 0);
   EXPECT_EQ(custom_flags, 0);
 
-  auto* header = mdf->Header();
+  auto *header = mdf->Header();
   ASSERT_TRUE(header != nullptr);
-  auto* meta_data = header->MetaData();
+  auto *meta_data = header->MetaData();
   ASSERT_TRUE(meta_data != nullptr);
   std::cout << meta_data->XmlSnippet() << std::endl;
 }
 
-} // end namespace
+} // namespace mdf::test

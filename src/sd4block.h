@@ -6,11 +6,10 @@
 #include "datablock.h"
 namespace mdf::detail {
 class Sd4Block : public DataBlock {
- public:
+public:
   size_t Read(std::FILE *file) override;
- protected:
+
+protected:
   size_t DataSize() const override;
 };
-}
-
-
+} // namespace mdf::detail

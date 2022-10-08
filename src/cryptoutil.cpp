@@ -2,38 +2,33 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <filesystem>
+#include "mdf/cryptoutil.h"
+#include "mdf/mdflogstream.h"
 #include <array>
 #include <cstdio>
 #include <cstring>
-#include "mdf/cryptoutil.h"
-#include "mdf/mdflogstream.h"
+#include <filesystem>
 
 namespace {
 
-#define F(x, y, z)   ((z) ^ ((x) & ((y) ^ (z))))
-#define G(x, y, z)   ((y) ^ ((z) & ((x) ^ (y))))
-#define H(x, y, z)   ((x) ^ (y) ^ (z))
-#define I(x, y, z)   ((y) ^ ((x) | ~(z)))
-#define STEP(f, a, b, c, d, x, t, s) \
-		(a) += f((b), (c), (d)) + (x) + (t); \
-		(a) = (((a) << (s)) | (((a) & 0xffffffff) >> (32 - (s)))); \
-		(a) += (b);
+#define F(x, y, z) ((z) ^ ((x) & ((y) ^ (z))))
+#define G(x, y, z) ((y) ^ ((z) & ((x) ^ (y))))
+#define H(x, y, z) ((x) ^ (y) ^ (z))
+#define I(x, y, z) ((y) ^ ((x) | ~(z)))
+#define STEP(f, a, b, c, d, x, t, s)                                           \
+  (a) += f((b), (c), (d)) + (x) + (t);                                         \
+  (a) = (((a) << (s)) | (((a)&0xffffffff) >> (32 - (s))));                     \
+  (a) += (b);
 
 #if defined(__i386__) || defined(__x86_64__) || defined(__vax__)
-#define SET(n) \
-			(*(MD5_u32 *)&ptr[(n) * 4])
-		#define GET(n) \
-			SET(n)
+#define SET(n) (*(MD5_u32 *)&ptr[(n)*4])
+#define GET(n) SET(n)
 #else
-#define SET(n) \
-			(ctx->block[(n)] = \
-			(MD5_u32)ptr[(n) * 4] | \
-			((MD5_u32)ptr[(n) * 4 + 1] << 8) | \
-			((MD5_u32)ptr[(n) * 4 + 2] << 16) | \
-			((MD5_u32)ptr[(n) * 4 + 3] << 24))
-#define GET(n) \
-			(ctx->block[(n)])
+#define SET(n)                                                                 \
+  (ctx->block[(n)] = (MD5_u32)ptr[(n)*4] | ((MD5_u32)ptr[(n)*4 + 1] << 8) |    \
+                     ((MD5_u32)ptr[(n)*4 + 2] << 16) |                         \
+                     ((MD5_u32)ptr[(n)*4 + 3] << 24))
+#define GET(n) (ctx->block[(n)])
 #endif
 
 typedef unsigned int MD5_u32;
@@ -49,12 +44,12 @@ void MD5_Init(MD5_CTX *ctx);
 void MD5_Update(MD5_CTX *ctx, const void *data, unsigned long size);
 void MD5_Final(unsigned char *result, MD5_CTX *ctx);
 
-const void *body(MD5_CTX *ctx, const void *data, unsigned long size){
+const void *body(MD5_CTX *ctx, const void *data, unsigned long size) {
   const unsigned char *ptr;
   MD5_u32 a, b, c, d;
   MD5_u32 saved_a, saved_b, saved_c, saved_d;
 
-  ptr = (const unsigned char*)data;
+  ptr = (const unsigned char *)data;
 
   a = ctx->a;
   b = ctx->b;
@@ -148,7 +143,7 @@ const void *body(MD5_CTX *ctx, const void *data, unsigned long size){
   return ptr;
 }
 
-void MD5_Init(MD5_CTX *ctx){
+void MD5_Init(MD5_CTX *ctx) {
   ctx->a = 0x67452301;
   ctx->b = 0xefcdab89;
   ctx->c = 0x98badcfe;
@@ -158,7 +153,7 @@ void MD5_Init(MD5_CTX *ctx){
   ctx->hi = 0;
 }
 
-void MD5_Update(MD5_CTX *ctx, const void *data, unsigned long size){
+void MD5_Update(MD5_CTX *ctx, const void *data, unsigned long size) {
   MD5_u32 saved_lo;
   unsigned long used, free;
 
@@ -168,7 +163,7 @@ void MD5_Update(MD5_CTX *ctx, const void *data, unsigned long size){
   ctx->hi += size >> 29;
   used = saved_lo & 0x3f;
 
-  if (used){
+  if (used) {
     free = 64 - used;
     if (size < free) {
       memcpy(&ctx->buffer[used], data, size);
@@ -189,7 +184,7 @@ void MD5_Update(MD5_CTX *ctx, const void *data, unsigned long size){
   memcpy(ctx->buffer, data, size);
 }
 
-void MD5_Final(unsigned char *result, MD5_CTX *ctx){
+void MD5_Final(unsigned char *result, MD5_CTX *ctx) {
   unsigned long used, free;
   used = ctx->lo & 0x3f;
   ctx->buffer[used++] = 0x80;
@@ -232,7 +227,7 @@ void MD5_Final(unsigned char *result, MD5_CTX *ctx){
   result[15] = ctx->d >> 24;
   memset(ctx, 0, sizeof(*ctx));
 }
-}
+} // namespace
 
 namespace mdf {
 
@@ -251,7 +246,8 @@ bool CreateMd5FileChecksum(const std::string &file, std::vector<uint8_t> &md5) {
         std::array<uint8_t, 10000> temp{};
         MD5_CTX ctx{};
         MD5_Init(&ctx);
-        for (auto bytes = std::fread(temp.data(), sizeof(uint8_t), temp.size(), f);
+        for (auto bytes =
+                 std::fread(temp.data(), sizeof(uint8_t), temp.size(), f);
              bytes > 0;
              bytes = std::fread(temp.data(), sizeof(uint8_t), temp.size(), f)) {
           MD5_Update(&ctx, temp.data(), bytes);
@@ -261,34 +257,33 @@ bool CreateMd5FileChecksum(const std::string &file, std::vector<uint8_t> &md5) {
         ok = true;
       } else {
         MDF_ERROR() << "Failed to create MD5 file checksum. File: " << file
-                         << ". Error: Failed to open the file";
+                    << ". Error: Failed to open the file";
       }
 
     } else {
       MDF_ERROR() << "Failed to create MD5 file checksum. File: " << file
-                       << ". Error: The file doesn't exist";
+                  << ". Error: The file doesn't exist";
     }
 
   } catch (const std::exception &error) {
     MDF_ERROR() << "Failed to create MD5 file checksum. File: " << file
-                     << ". Error: " << error.what();
+                << ". Error: " << error.what();
     ok = false;
   }
   return ok;
 }
 
-std::string CreateMd5FileString(const std::string& file) {
-  std::vector<uint8_t> checksum(16,0);
+std::string CreateMd5FileString(const std::string &file) {
+  std::vector<uint8_t> checksum(16, 0);
   const auto ok = CreateMd5FileChecksum(file, checksum);
   std::ostringstream temp;
   if (ok) {
-    for (auto byte : checksum ) {
-      temp << std::uppercase <<  std::setfill('0')
-        << std::setw(2) << std::hex << static_cast<uint16_t>(byte);
+    for (auto byte : checksum) {
+      temp << std::uppercase << std::setfill('0') << std::setw(2) << std::hex
+           << static_cast<uint16_t>(byte);
     }
   }
   return temp.str();
 }
 
-}
-
+} // namespace mdf

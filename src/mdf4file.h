@@ -55,8 +55,14 @@ class Mdf4File : public MdfFile {
 
   bool Write(std::FILE* file) override;
 
+  [[nodiscard]] const IDataGroup* FindParentDataGroup(
+      const IChannel& channel) const  override;
+
  private:
   std::unique_ptr<IdBlock> id_block_;
   std::unique_ptr<Hd4Block> hd_block_;
+
+  bool finalized_done_ = false;
+  bool FinalizeFile(std::FILE* file);
 };
 }  // namespace mdf::detail

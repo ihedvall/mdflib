@@ -22,6 +22,7 @@ class Md4Block;
 using BlockPropertyList = std::vector<BlockProperty>;
 
 int64_t GetFilePosition(std::FILE *file);
+int64_t GetLastFilePosition(std::FILE *file);
 void SetFilePosition(std::FILE *file, int64_t position);
 void SetFirstFilePosition(std::FILE *file);
 

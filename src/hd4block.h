@@ -117,6 +117,9 @@ class Hd4Block : public IBlock, public IHeader {
       const override;
   IDataGroup *CreateDataGroup() override;
 
+  bool UpdateDtBlocks(std::FILE* file);
+  bool UpdateCgBlocks(std::FILE* file);
+  bool UpdateVlsdBlocks(std::FILE* file);
  private:
   Mdf4Timestamp timestamp_;
 

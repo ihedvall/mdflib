@@ -329,15 +329,24 @@ size_t Cn4Block::Read(std::FILE *file) {
     SetFilePosition(file, Link(kIndexCx));
     auto block_type = ReadBlockType(file);
 
-    SetFilePosition(file, Link(kIndexCx));
-    if (block_type == "CA") {
-      cx_block_ = std::make_unique<Ca4Block>();
-      cx_block_->Init(*this);
-      cx_block_->Read(file);
-    } else if (block_type == "CN") {
-      cx_block_ = std::make_unique<Cn4Block>();
-      cx_block_->Init(*this);
-      cx_block_->Read(file);
+    if (cx_list_.empty() && (Link(kIndexCx) > 0)) {
+      for (auto link = Link(kIndexCx); link > 0; /* No ++ here*/) {
+        if (block_type == "CA") {
+          auto ca_block = std::make_unique<Ca4Block>();
+          ca_block->Init(*this);
+          SetFilePosition(file, link);
+          ca_block->Read(file);
+          link = ca_block->Link(0);
+          cx_list_.emplace_back(std::move(ca_block));
+        } else if (block_type == "CN") {
+          auto cn_block = std::make_unique<Cn4Block>();
+          cn_block->Init(*this);
+          SetFilePosition(file, link);
+          cn_block->Read(file);
+          link = cn_block->Link(0);
+          cx_list_.emplace_back(std::move(cn_block));
+        }
+      };
     }
   }
 
@@ -387,7 +396,7 @@ size_t Cn4Block::Write(std::FILE *file) {
   }
   block_length_ += 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 1 + 1 + 2 + (6 * 8);
   link_list_.resize(8 + nof_attachments_ + (default_x ? 1 : 0), 0);
-  WriteBlock4(file, cx_block_, kIndexCx);
+  WriteLink4List(file, cx_list_, kIndexCx, 0);
   WriteTx4(file, kIndexName, name_);
   WriteBlock4(file, si_block_, kIndexSi);
   WriteBlock4(file, cc_block_, kIndexCc);
@@ -454,8 +463,11 @@ const IBlock *Cn4Block::Find(int64_t index) const {
     }
   }
 
-  if (cx_block_) {
-    const auto *p = cx_block_->Find(index);
+  for (const auto& cx : cx_list_) {
+    if (!cx) {
+      continue;
+    }
+    const auto* p = cx->Find(index);
     if (p != nullptr) {
       return p;
     }
@@ -488,6 +500,7 @@ void Cn4Block::ReadData(std::FILE *file) const {
     }
   }
 }
+
 size_t Cn4Block::BitCount() const { return bit_count_; }
 size_t Cn4Block::BitOffset() const { return bit_offset_; }
 size_t Cn4Block::ByteOffset() const { return byte_offset_; }
@@ -495,6 +508,12 @@ size_t Cn4Block::ByteOffset() const { return byte_offset_; }
 bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
                             std::string &dest) const {
   auto offset = ByteOffset();
+  auto nof_bytes = BitCount() / 8;
+  if (Type() == ChannelType::VariableLength && CgRecordId() > 0) {
+    offset = 0;
+    nof_bytes = record_buffer.size();
+  }
+
   std::vector<uint8_t> temp;
   bool valid = true;
   dest.clear();
@@ -513,6 +532,7 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
     offset = 0;
   } else {
     temp = record_buffer;
+    temp.resize(nof_bytes);
   }
 
   switch (DataType()) {
@@ -653,5 +673,7 @@ std::optional<std::pair<double, double>> Cn4Block::ExtLimit() const {
              ? std::optional(std::pair(limit_ext_min_, limit_ext_max_))
              : IChannel::Limit();
 }
+
+
 
 }  // namespace mdf::detail

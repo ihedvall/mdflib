@@ -34,6 +34,8 @@ class Dg3Block : public DataListBlock, public IDataGroup {
 
   void ReadData(std::FILE* file) const;
 
+  [[nodiscard]] const IChannelGroup *FindParentChannelGroup(
+      const IChannel &channel) const override;
  private:
   uint16_t nof_cg_blocks_ = 0;
   uint16_t nof_record_id_ = 0;

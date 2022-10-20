@@ -12,6 +12,7 @@ class Dt4Block : public DataBlock {
   void GetBlockProperty(BlockPropertyList& dest) const override;
   size_t Read(std::FILE* file) override;
   [[nodiscard]] size_t DataSize() const override;
+  void UpdateDataSize(std::FILE* file);
 };
 
 }  // namespace mdf::detail

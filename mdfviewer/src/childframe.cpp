@@ -11,6 +11,7 @@
 #include "hl4block.h"
 #include "dl4block.h"
 #include "windowid.h"
+#include "ca4block.h"
 
 namespace {
 #include "img/sub.xpm"
@@ -498,10 +499,14 @@ void ChildFrame::RedrawCnList(const detail::Cg4Block &cg, const wxTreeItemId &ro
     if (!cn) {
       continue;
     }
-
+    RedrawCnBlock(*cn, root);
+  }
+}
+void ChildFrame::RedrawCnBlock(const detail::Cn4Block &cn,
+                               const wxTreeItemId &root) {
     std::ostringstream sub_string;
-    std::string cn_name = cn->Name();
-    std::string cn_unit = cn->Unit();
+    std::string cn_name = cn.Name();
+    std::string cn_unit = cn.Unit();
 
     sub_string << cn_name;
     if (!cn_unit.empty()) {
@@ -509,30 +514,20 @@ void ChildFrame::RedrawCnList(const detail::Cg4Block &cg, const wxTreeItemId &ro
     }
 
     std::ostringstream cn_string;
-    cn_string << cn->BlockType() << " (" << sub_string.str() << ")";
+    cn_string << cn.BlockType() << " (" << sub_string.str() << ")";
 
     auto cn_root = left_->AppendItem(root, wxString::FromUTF8(cn_string.str()),
-                      TREE_CN, TREE_CN, new BlockAddress(cn->FilePosition()));
-    const auto* si = cn->Si();
+                      TREE_CN, TREE_CN, new BlockAddress(cn.FilePosition()));
+    const auto* si = cn.Si();
     if (si != nullptr) {
       RedrawSiBlock(*si,cn_root);
     }
-    const auto* cc = cn->Cc();
+    const auto* cc = cn.Cc();
     if (cc != nullptr) {
       RedrawCcBlock(*cc,cn_root);
     }
-
-    if (const auto* cx = cn->Cx(); cx != nullptr) {
-      if (cx->BlockType() == "CA") {
-        left_->AppendItem(cn_root, cx->BlockType(),
-                                  TREE_CA, TREE_CA, new BlockAddress(cx->FilePosition()));
-      } else if (cx->BlockType() == "CN") {
-        left_->AppendItem(cn_root, cx->BlockType(),
-                          TREE_CN, TREE_CN, new BlockAddress(cx->FilePosition()));
-      }
-    }
-    RedrawDataList(*cn, cn_root);
-  }
+    RedrawCxList(cn, cn_root);
+    RedrawDataList(cn, cn_root);
 }
 
 void ChildFrame::RedrawCnList(const detail::Cg3Block &cg3, const wxTreeItemId &root) {
@@ -696,6 +691,35 @@ void ChildFrame::RedrawCcBlock(const detail::Cc4Block &cc, const wxTreeItemId &r
     const auto* cc4 = dynamic_cast<const mdf::detail::Cc4Block*>(ref.get());
     if (cc4 != nullptr) {
       RedrawCcBlock(*cc4, cc_root);
+    }
+  }
+}
+
+void ChildFrame::RedrawCxList(const detail::Cn4Block &cn,
+                               const wxTreeItemId &root) {
+  if (cn.Cx4().empty()) {
+    return;
+  }
+
+  for (const auto& cx4 : cn.Cx4()) {
+    if (!cx4) {
+      continue;
+    }
+    if (cx4->BlockType() == "CA") {
+      const auto* ca_block = dynamic_cast<const detail::Ca4Block*>(cx4.get());
+      if (ca_block == nullptr) {
+        continue;
+      }
+      std::ostringstream label;
+      label << ca_block->BlockType();
+      left_->AppendItem(root, label.str(),
+                    TREE_CA, TREE_CA, new BlockAddress(ca_block->FilePosition()));
+    } else if (cx4->BlockType() == "CN") {
+      const auto* cn_block = dynamic_cast<const detail::Cn4Block*>(cx4.get());
+      if (cn_block == nullptr) {
+        continue;
+      }
+      RedrawCnBlock(*cn_block, root);
     }
   }
 }

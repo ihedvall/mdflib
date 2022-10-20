@@ -184,41 +184,77 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
   }
   memset(data_buffer.data(), 0, data_buffer.size());
 
-  if (BitOffset() == 0) {
+  if (BitOffset() == 0 && (BitCount() % 8) == 0) {
     // This is the preferred way of doing business
     memcpy(data_buffer.data(), record_buffer.data() + ByteOffset(),
            data_buffer.size());
   } else if (BitCount() == 1) {
     // This is OK for boolean and bits
-    uint8_t in_bit = 0x01 << (BitOffset() - 1);
-    data_buffer[0] = (record_buffer[ByteOffset()] & in_bit) ? 0x01 : 0x00;
+    uint8_t in_mask = 0x01 << BitOffset();
+    data_buffer[0] = (record_buffer[ByteOffset()] & in_mask) != 0
+                         ? 0x01 : 0x00;
   } else {
-    uint8_t in_offset = BitOffset();
-    uint32_t in_byte = ByteOffset();
-    for (auto ii = BitCount(); ii < BitCount(); ++ii) {
-      uint8_t in_bit = 0x01 << (in_offset - 1);
-      auto out_byte = ii / 8;
-      if (record_buffer[in_byte] & in_bit) {
-        data_buffer[out_byte] |= 0x01;
-      }
-      if (ii < (BitCount() - 1)) {
-        data_buffer[out_byte] <<= 1;
+    // Need to bit mask copy everything.
+    // | In[0] | In[1] |  <-- in_byte index
+    //    <-- BitOffset() (0.7)
+    //    <-- BitCount() number of bits
+    uint8_t in_offset = BitOffset(); // Bit inside 1 byte
+    size_t in_byte = ByteOffset();
+    uint8_t out_offset = 0;
+    size_t out_byte = 0;
+    uint8_t last_bit = 0; // Needed for signed integer
+
+    for (auto ii = 0; ii < BitCount(); ++ii) {
+      const uint8_t in_mask = 0x01 << in_offset;
+      const uint8_t out_mask = 0x01 << out_offset;
+
+      if (record_buffer[in_byte] & in_mask) {
+        data_buffer[out_byte] |= out_mask;
+        last_bit = out_mask;
+      } else {
+        last_bit = 0x00;
       }
 
-      --in_offset;
-      if (in_offset == 0) {
-        in_offset = 8;
+      if (in_offset == 7) {
+        in_offset = 0;
         ++in_byte;
+      } else {
+        ++in_offset;
+      }
+
+      if (out_offset == 7) {
+        out_offset = 0;
+        ++out_byte;
+      } else {
+        ++out_offset;
+      }
+    }
+
+    // Fix for signed integer
+    const bool signed_int = DataType() == ChannelDataType::SignedIntegerLe ||
+                            DataType() == ChannelDataType::SignedIntegerBe;
+    if (signed_int && last_bit != 0) {
+      // Negative value. Need to ill remaining bits in byte with 1
+      while (out_offset > 0 && out_offset < 8) {
+        data_buffer[out_byte] |= 0x01 << out_offset;
+        ++out_offset;
       }
     }
   }
+
 }
 
 bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
                                 uint64_t &dest) const {
   // Copy to a temp data buffer, so we can get rid of this bit offset nonsense
+
   std::vector<uint8_t> data_buffer;
   CopyToDataBuffer(record_buffer, data_buffer);
+  if (Type() == ChannelType::VariableLength) {
+    dest = ConvertUnsignedLe(data_buffer);
+    return true;
+  }
+
   switch (DataType()) {
     case ChannelDataType::StringUTF16Le:
     case ChannelDataType::StringUTF16Be:
@@ -281,6 +317,10 @@ bool IChannel::GetFloatValue(const std::vector<uint8_t> &record_buffer,
 bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer,
                             std::string &dest) const {
   auto offset = ByteOffset();
+  size_t nof_bytes = BitCount() / 8 + ((BitCount() % 8) != 0 ? 1 : 0);
+
+
+
   bool valid = true;
   dest.clear();
 
@@ -288,8 +328,10 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::StringAscii: {
       // Convert ASCII to UTF8
       std::ostringstream s;
-      for (size_t ii = offset; ii < record_buffer.size(); ++ii) {
-        char in = static_cast<char>(record_buffer[ii]);
+      for (size_t ii = 0;
+           ii < nof_bytes && ii + offset < record_buffer.size();
+           ++ii) {
+        char in = static_cast<char>(record_buffer[ii + offset]);
         if (in == '\0') {
           break;
         }
@@ -359,13 +401,18 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer,
 
 bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
                                  std::vector<uint8_t> &dest) const {
-  if (dest.size() != DataBytes()) {
-    dest.resize(DataBytes());
+
+  if (Type() == ChannelType::VariableLength && CgRecordId() > 0) {
+    dest = record_buffer;
+  } else {
+    if (dest.size() != DataBytes()) {
+      dest.resize(DataBytes());
+    }
+    if (dest.empty()) {
+      return true;
+    }
+    memcpy(dest.data(), record_buffer.data() + ByteOffset(), DataBytes());
   }
-  if (dest.empty()) {
-    return true;
-  }
-  memcpy(dest.data(), record_buffer.data() + ByteOffset(), DataBytes());
   return true;
 }
 
@@ -859,5 +906,7 @@ void IChannel::ExtLimit(double min, double max) {}
 std::optional<std::pair<double, double>> IChannel::ExtLimit() const {
   return {};
 }
+
+
 
 }  // end namespace mdf

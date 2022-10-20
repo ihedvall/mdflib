@@ -345,32 +345,39 @@ void MdfDocument::OnUpdateShowGroupData(wxUpdateUIEvent &event) {
 }
 
 void MdfDocument::OnShowChannelData(wxCommandEvent &event) {
-  const IDataGroup* dg = nullptr;
-  const IChannelGroup* cg = nullptr;
-  const IChannel* cn = nullptr;
+  if (!reader_) {
+    return;
+  }
+  const auto* mdf_file = reader_->GetFile();
+  if (mdf_file == nullptr) {
+    return;
+  }
 
+
+
+  const IChannel* channel = nullptr;
   const auto selected_id = GetSelectedBlockId();
   const auto *selected_block = GetBlock(selected_id);
   if (selected_block != nullptr && selected_block->BlockType() == "CN") {
-    cn = dynamic_cast<const IChannel*>(selected_block);
+    channel = dynamic_cast<const IChannel*>(selected_block);
   }
-
-  const auto parent_id = GetParentBlockId();
-  const auto *parent_block = GetBlock(parent_id);
-  if (parent_block != nullptr && parent_block->BlockType() == "CG") {
-    cg = dynamic_cast<const IChannelGroup*>(parent_block);
-  }
-
-  const auto grand_parent_id = GetGrandParentBlockId();
-  const auto *grand_parent_block = GetBlock(grand_parent_id);
-  if (grand_parent_block != nullptr && grand_parent_block->BlockType() == "DG") {
-    dg = dynamic_cast<const IDataGroup*>(grand_parent_block);
-  }
-
-  if (dg == nullptr || cg == nullptr || cn == nullptr) {
+  if (channel == nullptr) {
     return;
   }
-  const auto* x_axis = cg->GetXChannel(*cn); // Need to show the master channel as well as the data channel
+
+  const auto *data_group = mdf_file->FindParentDataGroup(*channel);
+  if (data_group == nullptr) {
+    return;
+  }
+
+  const auto *channel_group = data_group->FindParentChannelGroup(*channel);
+  if (channel_group == nullptr) {
+    return;
+  }
+
+  // Need to show the master channel as well as the data channel
+  const auto* x_axis = channel_group->GetXChannel(*channel);
+  // Need to show the master channel as well as the data channel
 
   auto* view = GetFirstView();
   if (view == nullptr) {
@@ -383,22 +390,22 @@ void MdfDocument::OnShowChannelData(wxCommandEvent &event) {
   }
 
   std::ostringstream title;
-  if (!cn->Name().empty()) {
-    title << cn->Name();
+  if (!channel->Name().empty()) {
+    title << channel->Name();
   }
 
-  if (!cg->Name().empty()) {
+  if (!channel_group->Name().empty()) {
     if (!title.str().empty()) {
       title << "/";
     }
-    title << cg->Name();
+    title << channel_group->Name();
   }
 
-  if (!dg->Description().empty()) {
+  if (!data_group->Description().empty()) {
     if (!title.str().empty()) {
       title << "/";
     }
-    title << dg->Description();
+    title << data_group->Description();
   }
 
   if (!title.str().empty()) {
@@ -407,12 +414,14 @@ void MdfDocument::OnShowChannelData(wxCommandEvent &event) {
   title << reader_->ShortName();
 
   auto observer_list = std::make_unique<mdf::ChannelObserverList>();
-  if (x_axis != nullptr && x_axis->Index() != cn->Index()) {
-    observer_list->emplace_back(std::move(mdf::CreateChannelObserver(*dg, *cg, *x_axis)));
+  if (x_axis != nullptr && x_axis->Index() != channel->Index()) {
+    observer_list->emplace_back(std::move(mdf::CreateChannelObserver(
+        *data_group, *channel_group, *x_axis)));
   }
-  observer_list->emplace_back(std::move(mdf::CreateChannelObserver(*dg, *cg, *cn)));
+  observer_list->emplace_back(std::move(mdf::CreateChannelObserver(
+      *data_group, *channel_group, *channel)));
 
-  const bool read = reader_->ReadData(*dg);
+  const bool read = reader_->ReadData(*data_group);
   if (!read) {
     wxMessageBox("The read failed.\nMore information in the log file.",
                  "Failed to Read Data Block", wxCENTRE | wxICON_ERROR);

@@ -31,6 +31,15 @@ void Mdf4File::ReadHeader(std::FILE *file) {
     SetFilePosition(file, 64);
     hd_block_->Read(file);
   }
+
+  uint16_t standard_flags = 0;
+  uint16_t custom_flags = 0;
+  if (!finalized_done_ && id_block_ &&
+      !id_block_->IsFinalized(standard_flags, custom_flags)) {
+    finalized_done_ = true;
+    // Try to finalize the last DG block.
+    const auto finalize = FinalizeFile(file);
+  }
 }
 
 void Mdf4File::ReadMeasurementInfo(std::FILE *file) {
@@ -178,6 +187,61 @@ bool Mdf4File::IsFinalized(uint16_t &standard_flags,
     custom_flags = 0;
   }
   return finalized;
+}
+
+bool Mdf4File::FinalizeFile(std::FILE* file) {
+  uint16_t standard_flags = 0;
+  uint16_t custom_flags = 0;
+  const auto finalized = IsFinalized(standard_flags, custom_flags);
+  if (finalized || standard_flags == 0 || !hd_block_) {
+    MDF_DEBUG()
+        << "The files standard flags are OK. Cannot finalize the file. File: "
+        << Name();
+    return false;
+  }
+  ReadEverythingButData(file);
+
+  // 1. Update DL block
+  // 2. Update DT  block
+  // 3. Update RD block
+  // 4. Update CG (CA) block
+  const bool update_cg_blocks = (standard_flags & 0x01) != 0;
+  const bool update_sr_blocks = (standard_flags & 0x02) != 0;
+  const bool update_dt_blocks = (standard_flags & 0x04) != 0;
+  const bool update_rd_blocks = (standard_flags & 0x08) != 0;
+  const bool update_dl_blocks = (standard_flags & 0x10) != 0;
+  const bool update_vlsd_bytes = (standard_flags & 0x20) != 0;
+  const bool update_vlsd_offset = (standard_flags & 0x40) != 0;
+  bool updated = true;
+  if (update_dl_blocks) {
+    updated = false;
+  }
+  if (update_dt_blocks && !hd_block_->UpdateDtBlocks(file)) {
+    updated = false;
+  }
+  if (update_rd_blocks) {
+    updated = false;
+  }
+  if (update_cg_blocks && !hd_block_->UpdateCgBlocks(file)) {
+    updated = false;
+  }
+  if (update_cg_blocks && !hd_block_->UpdateVlsdBlocks(file)) {
+    updated = false;
+  }
+  return updated;
+}
+
+const IDataGroup *Mdf4File::FindParentDataGroup(const IChannel &channel) const {
+  const auto channel_index = channel.Index();
+  if (!hd_block_ || channel_index <= 0) {
+    return nullptr;
+  }
+  const auto &dg_list = hd_block_->Dg4();
+  const auto itr = std::ranges::find_if(dg_list, [&](const auto &dg_block) {
+    return dg_block && dg_block->Find(channel_index) != nullptr;
+    });
+
+  return itr != dg_list.cend() ? itr->get() : nullptr;
 }
 
 }  // namespace mdf::detail

@@ -52,6 +52,8 @@ class Mdf3File : public MdfFile {
   Mdf3File &operator=(const Mdf3File &) = delete;
   Mdf3File &operator=(Mdf3File &&) = delete;
 
+  [[nodiscard]] const IDataGroup* FindParentDataGroup(
+      const IChannel& channel) const  override;
  private:
   std::unique_ptr<IdBlock> id_block_;
   std::unique_ptr<Hd3Block> hd_block_;

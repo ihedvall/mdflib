@@ -90,3 +90,4 @@ fabric.properties
 
 # ODS models
 odsconfigurator/model/*_?.xml
+.vs/

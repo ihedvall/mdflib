@@ -161,4 +161,17 @@ bool Mdf3File::IsFinalized(uint16_t &standard_flags,
   return finalized;
 }
 
+const IDataGroup *Mdf3File::FindParentDataGroup(const IChannel &channel) const {
+  const auto channel_index = channel.Index();
+  if (!hd_block_ || channel_index <= 0) {
+    return nullptr;
+  }
+  const auto &dg_list = hd_block_->Dg3();
+  const auto itr = std::ranges::find_if(dg_list, [&](const auto &dg_block) {
+    return dg_block && dg_block->Find(channel_index) != nullptr;
+  });
+
+  return itr != dg_list.cend() ? itr->get() : nullptr;
+}
+
 }  // namespace mdf::detail

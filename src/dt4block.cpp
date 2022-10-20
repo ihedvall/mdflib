@@ -21,5 +21,12 @@ size_t Dt4Block::Read(std::FILE *file) {
 size_t Dt4Block::DataSize() const {
   return block_length_ > 24 ? block_length_ - 24 : 0;
 }
+void Dt4Block::UpdateDataSize(std::FILE *file) {
+  int64_t last_file_position = mdf::detail::GetLastFilePosition(file);
+  const auto data_size = last_file_position - data_position_;
+  if (data_size > 0) {
+    block_length_ = 24 + static_cast<uint64_t>(data_size);
+  }
+}
 
 }  // namespace mdf::detail

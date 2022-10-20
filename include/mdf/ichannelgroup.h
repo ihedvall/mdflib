@@ -35,7 +35,7 @@ class IChannelGroup {
   [[nodiscard]] virtual uint64_t NofSamples() const = 0;
   virtual void NofSamples(uint64_t nof_samples) = 0;
 
-  [[nodiscard]] virtual uint16_t Flags();
+  [[nodiscard]] virtual uint16_t Flags() const;
   virtual void Flags(uint16_t flags);
 
   [[nodiscard]] virtual char16_t PathSeparator();

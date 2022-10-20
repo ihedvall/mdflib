@@ -8,6 +8,8 @@
 #include <ranges>
 
 #include "ixmlfile.h"
+#include "dt4block.h"
+#include "mdf/mdflogstream.h"
 
 namespace {
 // LINK index
@@ -454,6 +456,30 @@ size_t Hd4Block::Write(std::FILE* file) {
   WriteLink4List(file, ev_list_, kIndexEv, 0);
 
   return bytes;
+}
+
+bool Hd4Block::UpdateDtBlocks(std::FILE *file) {
+  if (dg_list_.empty()) {
+    return true;
+  }
+  auto* last_dg = dg_list_.back().get();
+  return last_dg != nullptr && last_dg->UpdateDtBlocks(file);
+}
+
+bool Hd4Block::UpdateCgBlocks(std::FILE* file) {
+  if (dg_list_.empty()) {
+    return true;
+  }
+  auto* last_dg = dg_list_.back().get();
+  return last_dg != nullptr && last_dg->UpdateCgBlocks(file);
+}
+
+bool Hd4Block::UpdateVlsdBlocks(std::FILE* file) {
+  if (dg_list_.empty()) {
+    return true;
+  }
+  auto* last_dg = dg_list_.back().get();
+  return last_dg != nullptr && last_dg->UpdateVlsdBlocks(file);
 }
 
 }  // namespace mdf::detail

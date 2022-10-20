@@ -126,7 +126,12 @@ class IChannel {
     }
     return DataType() <= ChannelDataType::FloatBe;
   }
-
+  void CgRecordId(uint64_t record_id) const {
+    cg_record_id_ = record_id;
+  }
+  [[nodiscard]] uint64_t CgRecordId() const {
+    return cg_record_id_;
+  }
   template <typename T>
   bool GetChannelValue(const std::vector<uint8_t> &record_buffer,
                        T &dest) const;
@@ -215,6 +220,9 @@ class IChannel {
   template <typename T = std::vector<uint8_t>>
   void SetChannelValue(const std::vector<uint8_t> &value, bool valid = true);
 
+  virtual bool GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
+                                uint64_t &dest) const;
+
  protected:
   [[nodiscard]] virtual size_t BitCount()
       const = 0;  ///< Returns number of bits in value.
@@ -225,8 +233,7 @@ class IChannel {
 
   virtual void CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
                                 std::vector<uint8_t> &data_buffer) const;
-  virtual bool GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
-                                uint64_t &dest) const;
+
   virtual bool GetSignedValue(const std::vector<uint8_t> &record_buffer,
                               int64_t &dest) const;
   virtual bool GetFloatValue(const std::vector<uint8_t> &record_buffer,
@@ -253,6 +260,8 @@ class IChannel {
   void SetTextValue(const std::string &value, bool valid);
   void SetByteArray(const std::vector<uint8_t> &value, bool valid);
   std::vector<uint8_t> NsToDateArray(uint64_t ns_since_1970) const;
+ private:
+  mutable uint64_t cg_record_id_ = 0; ///< Used to fix the VLSD CG block.
 };
 
 template <typename T>

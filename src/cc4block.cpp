@@ -146,7 +146,8 @@ void Cc4Block::GetBlockProperty(BlockPropertyList& dest) const {
   dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), name_,
                     BlockItemType::LinkItem);
   dest.emplace_back("Unit TX/MD", ToHexString(Link(kIndexUnit)),
-                    unit_->TxComment(), BlockItemType::LinkItem);
+                    unit_ ? unit_->TxComment() : std::string() ,
+                    BlockItemType::LinkItem);
   dest.emplace_back("Comment MD", ToHexString(Link(kIndexMd)), Comment(),
                     BlockItemType::LinkItem);
   dest.emplace_back("Inverse CC", ToHexString(Link(kIndexMd)),

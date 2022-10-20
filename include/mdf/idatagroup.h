@@ -42,6 +42,9 @@ class IDataGroup {
   }
   [[nodiscard]] bool IsRead() const { return mark_as_read_; }
 
+  [[nodiscard]] virtual const IChannelGroup *FindParentChannelGroup(
+      const IChannel &channel) const = 0;
+
  protected:
   mutable std::vector<ISampleObserver*> observer_list;
   virtual ~IDataGroup() = default;

@@ -10,6 +10,7 @@
 #include "dt4block.h"
 #include "dz4block.h"
 #include "hl4block.h"
+#include "mdf/mdflogstream.h"
 
 namespace {
 constexpr size_t kIndexCg = 1;
@@ -128,18 +129,47 @@ void Dg4Block::ReadData(std::FILE* file) const {
   if (block_list.empty()) {
     return;
   }
-  // First scan through all CN blocks and read in any VLSD data related data
+
+  // First scan through all CN blocks and read in any SD VLSD data related data
   // bytes into memory.
 
   for (const auto& cg : cg_list_) {
     if (!cg) {
       continue;
     }
-    for (const auto& cn : cg->Cn4()) {
-      if (!cn) {
+    const auto channel_list = cg->Channels();
+    for (const auto* channel :channel_list) {
+      if (channel == nullptr) {
         continue;
       }
-      cn->ReadData(file);
+      const auto* cn_block = dynamic_cast<const Cn4Block*>(channel);
+      if (cn_block == nullptr) {
+        continue;
+      }
+      const auto data_link = cn_block->DataLink();
+      if (data_link == 0) {
+        continue; // No data to read into the system
+      }
+      const auto* block = Find(data_link);
+      if (block == nullptr) {
+        MDF_DEBUG() << "Missing data block in channel. Channel :"
+                    << cn_block->Name()
+                    << ", Data Link: " << data_link;
+
+        continue; // Strange that the block doesn't exist
+      }
+
+      // Check if it relate to a VLSD CG block or a SD block
+      if (cn_block->Type() == ChannelType::VariableLength &&
+          block->BlockType() == "CG") {
+        const auto* cg_block = dynamic_cast<const Cg4Block*>(block);
+        if (cg_block != nullptr) {
+          cn_block->CgRecordId(cg_block->RecordId());
+        }
+        // No meaning to read in the data as it is inside this DG/DT block
+        continue;
+      }
+      cn_block->ReadData(file);
     }
   }
 
@@ -325,5 +355,106 @@ std::string Dg4Block::Description() const {
 void Dg4Block::RecordIdSize(uint8_t id_size) { rec_id_size_ = id_size; }
 
 uint8_t Dg4Block::RecordIdSize() const { return rec_id_size_; }
+
+bool Dg4Block::UpdateDtBlocks(std::FILE *file) {
+  auto& block_list = DataBlockList();
+  if (block_list.empty()) {
+    // No data blocks to update
+    MDF_DEBUG() << "No last data block to update.";
+    return true;
+  }
+  auto* last_block = block_list.back().get();
+  if (last_block == nullptr || last_block->BlockType() != "DT") {
+    MDF_DEBUG() << "Last data block is not a DT block.";
+    return true;
+  }
+  auto* dt_block = dynamic_cast<Dt4Block*>(last_block);
+  if (dt_block == nullptr) {
+    MDF_ERROR() << "Invalid DT block type-cast.";
+    return false;
+  }
+  dt_block->UpdateDataSize(file);
+  return true;
+}
+
+bool Dg4Block::UpdateCgBlocks(std::FILE *file) {
+  auto& block_list = DataBlockList();
+  if (block_list.empty()) {
+    // No data blocks to update
+    MDF_DEBUG() << "No last data block to update.";
+    return true;
+  }
+  auto* last_block = block_list.back().get();
+  if (last_block == nullptr || last_block->BlockType() != "DT") {
+    MDF_DEBUG() << "Last data block is not a DT block.";
+    return true;
+  }
+  auto* dt_block = dynamic_cast<Dt4Block*>(last_block);
+  if (dt_block == nullptr) {
+    MDF_ERROR() << "Invalid DT block type-cast.";
+    return false;
+  }
+  mdf::detail::SetFilePosition(file, dt_block->DataPosition());
+  size_t count = 0;
+  while (count < dt_block->DataSize()) {
+    uint64_t record_id = 0;
+    count += ReadRecordId(file,record_id);
+    const auto* cg_block = FindCgRecordId(record_id);
+    if (cg_block == nullptr) {
+      break;
+    }
+    auto* temp = const_cast<Cg4Block*>(cg_block);
+    if (temp == nullptr) {
+      break;
+    }
+    count += temp->UpdateCycleCounter(file);
+  }
+  return true;
+}
+
+bool Dg4Block::UpdateVlsdBlocks(std::FILE *file) {
+  auto& block_list = DataBlockList();
+  if (block_list.empty()) {
+    // No data blocks to update
+    MDF_DEBUG() << "No last data block to update.";
+    return true;
+  }
+  auto* last_block = block_list.back().get();
+  if (last_block == nullptr || last_block->BlockType() != "DT") {
+    MDF_DEBUG() << "Last data block is not a DT block.";
+    return true;
+  }
+  auto* dt_block = dynamic_cast<Dt4Block*>(last_block);
+  if (dt_block == nullptr) {
+    MDF_ERROR() << "Invalid DT block type-cast.";
+    return false;
+  }
+  mdf::detail::SetFilePosition(file, dt_block->DataPosition());
+  size_t count = 0;
+  while (count < dt_block->DataSize()) {
+    uint64_t record_id = 0;
+    count += ReadRecordId(file,record_id);
+    const auto* cg_block = FindCgRecordId(record_id);
+    if (cg_block == nullptr) {
+      break;
+    }
+    auto* temp = const_cast<Cg4Block*>(cg_block);
+    if (temp == nullptr) {
+      break;
+    }
+    count += temp->UpdateVlsdSize(file);
+  }
+  return true;
+}
+
+const IChannelGroup* Dg4Block::FindParentChannelGroup(const IChannel&
+                                                      channel) const {
+  const auto channel_index = channel.Index();
+  const auto &cg_list = Cg4();
+  const auto itr = std::ranges::find_if(cg_list, [&](const auto &cg_block) {
+    return cg_block && cg_block->Find(channel_index) != nullptr;
+  });
+  return itr != cg_list.cend() ? itr->get() : nullptr;
+}
 
 }  // namespace mdf::detail

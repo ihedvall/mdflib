@@ -43,7 +43,7 @@ class Cg4Block : public IBlock, public IChannelGroup {
   [[nodiscard]] uint64_t RecordId() const override;
   void RecordId(uint64_t record_id) override;
 
-  uint16_t Flags() override;
+  uint16_t Flags() const override;
   void Flags(uint16_t flags) override;
 
   char16_t PathSeparator() override;
@@ -65,6 +65,10 @@ class Cg4Block : public IBlock, public IChannelGroup {
   ISourceInformation* CreateSourceInformation() override;
   const ISourceInformation* SourceInformation() const override;
 
+  size_t UpdateCycleCounter(std::FILE *file);
+  size_t UpdateVlsdSize(std::FILE *file);
+
+
  private:
   uint64_t record_id_ = 0;
   uint64_t nof_samples_ = 0;
@@ -78,6 +82,8 @@ class Cg4Block : public IBlock, public IChannelGroup {
   std::unique_ptr<Si4Block> si_block_;
   Cn4List cn_list_;
   Sr4List sr_list_;
+
+
 };
 
 }  // namespace mdf::detail

@@ -23,7 +23,7 @@ void IChannelGroup::IncrementSample() const { ++sample_; }
 
 size_t IChannelGroup::Sample() const { return sample_; }
 
-uint16_t IChannelGroup::Flags() { return 0; }
+uint16_t IChannelGroup::Flags() const { return 0; }
 
 void IChannelGroup::Flags(uint16_t flags) {}
 

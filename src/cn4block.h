@@ -18,6 +18,8 @@ class Cg4Block;
 
 class Cn4Block : public DataListBlock, public IChannel {
  public:
+  using Cx4List = std::vector<std::unique_ptr<IBlock>>;
+
   Cn4Block();
   [[nodiscard]] int64_t Index() const override;
 
@@ -59,7 +61,7 @@ class Cn4Block : public DataListBlock, public IChannel {
 
   void Init(const IBlock& id_block) override;
 
-  [[nodiscard]] const IBlock* Cx() const { return cx_block_.get(); }
+  [[nodiscard]] const Cx4List& Cx4() const { return cx_list_; }
 
   [[nodiscard]] const Si4Block* Si() const { return si_block_.get(); }
   void AddCc4(std::unique_ptr<Cc4Block>& cc4);
@@ -80,6 +82,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   std::optional<std::pair<double, double>> Limit() const override;
   void ExtLimit(double min, double max) override;
   std::optional<std::pair<double, double>> ExtLimit() const override;
+
 
  protected:
   size_t BitCount() const override;    ///< Returns number of bits in value.
@@ -112,7 +115,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   std::unique_ptr<Si4Block> si_block_;
   std::unique_ptr<Cc4Block> cc_block_;
   std::unique_ptr<Md4Block> unit_;
-  std::unique_ptr<IBlock> cx_block_;
+  Cx4List cx_list_;
   std::vector<const IAttachment*> attachment_list_;
   ElementLink default_x_;
 

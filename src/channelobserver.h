@@ -55,6 +55,9 @@ class ChannelObserver : public IChannelObserver {
         record_id_(group.RecordId()),
         value_list_(group.NofSamples(), T{}),
         valid_list_(group.NofSamples(), false) {
+    if (channel_.Type() == ChannelType::VariableLength) {
+      index_list_.resize(group.NofSamples());
+    }
     data_group_.AttachSampleObserver(this);
   }
   virtual ~ChannelObserver() { data_group_.DetachSampleObserver(this); }
@@ -71,39 +74,66 @@ class ChannelObserver : public IChannelObserver {
 
   void OnSample(size_t sample, uint64_t record_id,
                 const std::vector<uint8_t>& record) override {
-    if (record_id_ != record_id) {
-      return;
-    }
+
     switch (channel_.Type()) {
+
       case ChannelType::VirtualMaster:
-      case ChannelType::VirtualData: {
-        T value{};
-        const bool valid = GetVirtualSample(sample, value);
-        if (sample < value_list_.size()) {
-          value_list_[sample] = value;
-        }
-        if (sample < valid_list_.size()) {
-          valid_list_[sample] = valid;
+      case ChannelType::VirtualData:
+        if (record_id_ == record_id) {
+          T value{};
+          const bool valid = GetVirtualSample(sample, value);
+          if (sample < value_list_.size()) {
+            value_list_[sample] = value;
+          }
+          if (sample < valid_list_.size()) {
+            valid_list_[sample] = valid;
+          }
         }
         break;
+
+        // This channel may reference a CG blocks another record id
+      case ChannelType::VariableLength: {
+        if (record_id_ == record_id) {
+          uint64_t index = 0;
+          const bool valid = channel_.GetUnsignedValue(record, index);
+          if (sample < index_list_.size()) {
+            index_list_[sample] = index;
+          }
+          if (sample < valid_list_.size()) {
+            valid_list_[sample] = valid;
+          }
+        } else if (channel_.CgRecordId() > 0 &&
+                   record_id == channel_.CgRecordId()) {
+          // Add the VLSD sample data to this channel
+          T value{};
+          const bool valid = channel_.GetChannelValue(record, value);
+          if (sample < value_list_.size()) {
+            value_list_[sample] = value;
+          }
+          if (sample < valid_list_.size()) {
+            valid_list_[sample] = valid;
+          }
+        }
       }
+        break;
+
 
       case ChannelType::MaxLength:
       case ChannelType::Sync:
-      case ChannelType::VariableLength:
       case ChannelType::Master:
       case ChannelType::FixedLength:
-      default: {
-        T value{};
-        const bool valid = channel_.GetChannelValue(record, value);
-        if (sample < value_list_.size()) {
-          value_list_[sample] = value;
-        }
-        if (sample < valid_list_.size()) {
-          valid_list_[sample] = valid;
+      default:
+        if (record_id_ == record_id) {
+          T value{};
+          const bool valid = channel_.GetChannelValue(record, value);
+          if (sample < value_list_.size()) {
+            value_list_[sample] = value;
+          }
+          if (sample < valid_list_.size()) {
+            valid_list_[sample] = valid;
+          }
         }
         break;
-      }
     }
   }
 };

@@ -42,6 +42,12 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   size_t Write(std::FILE* file) override;
   size_t DataSize() const override;
 
+  bool UpdateDtBlocks(std::FILE *file);
+  bool UpdateCgBlocks(std::FILE *file);
+  bool UpdateVlsdBlocks(std::FILE *file);
+
+  [[nodiscard]] const IChannelGroup *FindParentChannelGroup(
+      const IChannel &channel) const override;
  private:
   uint8_t rec_id_size_ = 0;
   /* 7 byte reserved */

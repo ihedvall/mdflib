@@ -229,4 +229,14 @@ const Cg3Block *Dg3Block::FindCgRecordId(const uint64_t record_id) const {
   return nullptr;
 }
 
+const IChannelGroup* Dg3Block::FindParentChannelGroup(const IChannel&
+                                                          channel) const {
+  const auto channel_index = channel.Index();
+  const auto &cg_list = Cg3();
+  const auto itr = std::ranges::find_if(cg_list, [&](const auto &cg_block) {
+    return cg_block && cg_block->Find(channel_index) != nullptr;
+  });
+  return itr != cg_list.cend() ? itr->get() : nullptr;
+}
+
 }  // end namespace mdf::detail

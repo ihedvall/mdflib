@@ -29,6 +29,15 @@ int64_t GetFilePosition(std::FILE *file) {
   return pos;
 }
 
+int64_t GetLastFilePosition(std::FILE *file) {
+  Platform::fseek64(file, 0, SEEK_END);
+  const auto pos = Platform::ftell64(file);
+  if (pos == -1) {
+    throw std::ios_base::failure("Failed to get a file position");
+  }
+  return pos;
+}
+
 void SetFilePosition(std::FILE *file, int64_t position) {
   // To check if we are able to get a file position
   auto pos = GetFilePosition(file);

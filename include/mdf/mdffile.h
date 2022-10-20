@@ -14,6 +14,7 @@ namespace mdf {
 
 class IAttachment;
 class IDataGroup;
+class IChannel;
 
 /** \typedef AttachmentList
  * \brief List of pointers to attachments.
@@ -211,6 +212,8 @@ class MdfFile {
   [[nodiscard]] virtual bool IsFinalized(uint16_t& standard_flags,
                                          uint16_t& custom_flags) const = 0;
 
+  [[nodiscard]] virtual const IDataGroup* FindParentDataGroup(
+      const IChannel &channel) const = 0;
  protected:
   MdfFile() = default;  ///< Default constructor
  private:

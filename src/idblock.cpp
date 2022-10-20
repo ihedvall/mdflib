@@ -43,13 +43,33 @@ void IdBlock::GetBlockProperty(BlockPropertyList &dest) const {
 #else
     dest.emplace_back("Code Page", std::to_string(code_page_number_));
 #endif
-    dest.emplace_back("Version Number", std::to_string(version_));
-    dest.emplace_back("Update CG count",
-                      (standard_flags_ & 0x1) != 0 ? "True" : "False");
-    dest.emplace_back("Update SR Count",
-                      (standard_flags_ & 0x1) != 0 ? "True" : "False");
+  }
+  dest.emplace_back("Version Number", std::to_string(version_));
+  if (standard_flags_ & 0x01) {
+    dest.emplace_back("Update CG count","True");
+  }
+  if (standard_flags_ & 0x02) {
+    dest.emplace_back("Update SR Count","True");
+  }
+  if (standard_flags_ & 0x04) {
+    dest.emplace_back("Update length of last DT Block", "True");
+  }
+  if (standard_flags_ & 0x08) {
+    dest.emplace_back("Update length of last RD Block", "True");
+  }
+  if (standard_flags_ & 0x10) {
+    dest.emplace_back("Update length of last DL Block", "True");
+  }
+  if (standard_flags_ & 0x20) {
+    dest.emplace_back("Update length of data VLSD Block", "True");
+  }
+  if (standard_flags_ & 0x40) {
+    dest.emplace_back("Update length of offset VLSD Block", "True");
+  }
+  if (custom_flags_ != 0) {
     dest.emplace_back("Custom Flags", std::to_string(custom_flags_));
   }
+
 }
 
 size_t IdBlock::Read(std::FILE *file) {

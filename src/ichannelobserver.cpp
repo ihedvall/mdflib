@@ -29,4 +29,74 @@ bool IChannelObserver::IsMaster() const {
          channel_.Type() == ChannelType::Master;
 }
 
+template <>
+bool IChannelObserver::GetChannelValue(uint64_t sample, std::string& value) const {
+  bool valid = false;
+  value.clear();
+  switch (channel_.DataType()) {
+    case ChannelDataType::UnsignedIntegerLe:
+    case ChannelDataType::UnsignedIntegerBe: {
+      uint64_t v = 0;
+      valid = GetSampleUnsigned(sample, v);
+      value = std::to_string(v);
+      break;
+    }
+
+    case ChannelDataType::SignedIntegerLe:
+    case ChannelDataType::SignedIntegerBe: {
+      int64_t v = 0;
+      valid = GetSampleSigned(sample, v);
+      value = std::to_string(v);
+      break;
+    }
+
+    case ChannelDataType::FloatLe:
+    case ChannelDataType::FloatBe: {
+      double v = 0.0;
+      valid = GetSampleFloat(sample, v);
+      value = MdfHelper::FormatDouble(
+          v, channel_.IsDecimalUsed() ? channel_.Decimals() : 6);
+      break;
+    }
+
+    case ChannelDataType::StringAscii:
+    case ChannelDataType::StringUTF8:
+    case ChannelDataType::StringUTF16Le:
+    case ChannelDataType::StringUTF16Be:
+    case ChannelDataType::MimeStream:
+    case ChannelDataType::MimeSample:
+    case ChannelDataType::ByteArray: {
+      valid = GetSampleText(sample, value);
+      break;
+    }
+
+    case ChannelDataType::CanOpenDate:
+    case ChannelDataType::CanOpenTime: {
+      uint64_t ns_since_1970 = 0;
+      valid = GetSampleUnsigned(sample, ns_since_1970);
+      value = MdfHelper::NsToLocalIsoTime(ns_since_1970);
+      break;
+    }
+    default:
+      break;
+  }
+  return valid;
+}
+
+template <>
+bool IChannelObserver::GetChannelValue(uint64_t sample, std::vector<uint8_t>& value) const {
+  bool valid = false;
+  value.clear();
+  switch (channel_.DataType()) {
+    case ChannelDataType::ByteArray: {
+      valid = GetSampleByteArray(sample, value);
+      break;
+    }
+
+    default:
+      break;
+  }
+  return valid;
+}
+
 }  // namespace mdf

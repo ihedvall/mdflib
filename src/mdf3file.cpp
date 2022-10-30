@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <memory>
 #include <stdexcept>
+#include <ranges>
 
 #include "mdf/mdflogstream.h"
 

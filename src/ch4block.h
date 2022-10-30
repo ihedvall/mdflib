@@ -6,20 +6,22 @@
 #include <string>
 #include <vector>
 
-#include "iblock.h"
 #include "mdf/ichannelhierarchy.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
 class Hd4Block;
 
-class Ch4Block : public IBlock, public IChannelHierarchy {
+class Ch4Block : public MdfBlock, public IChannelHierarchy {
  public:
   using Ch4List = std::vector<std::unique_ptr<Ch4Block>>;
   using RefList = std::vector<int64_t>;
 
   Ch4Block();
   [[nodiscard]] int64_t Index() const override;
-
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   [[nodiscard]] const std::string &Name() const override;
   void Name(const std::string &name) override;
 
@@ -29,7 +31,7 @@ class Ch4Block : public IBlock, public IChannelHierarchy {
   [[nodiscard]] std::string Description() const override;
   void Description(const std::string &desc) override;
 
-  IMetaData *MetaData() override;
+  IMetaData *CreateMetaData() override;
   [[nodiscard]] const IMetaData *MetaData() const override;
 
   void AddElementLink(const ElementLink &element) override;
@@ -37,7 +39,7 @@ class Ch4Block : public IBlock, public IChannelHierarchy {
 
   [[nodiscard]] const Ch4List &Ch() const { return ch_list_; }
 
-  [[nodiscard]] const IBlock *Find(int64_t index) const override;
+  [[nodiscard]] const MdfBlock *Find(int64_t index) const override;
 
   void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;

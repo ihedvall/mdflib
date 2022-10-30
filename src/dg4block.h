@@ -18,7 +18,9 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   Dg4Block();
 
   [[nodiscard]] int64_t Index() const override;
-
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Description(const std::string& desc) override;
   [[nodiscard]] std::string Description() const override;
 
@@ -29,13 +31,13 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   [[nodiscard]] const Cg4List& Cg4() const { return cg_list_; }
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  const IBlock* Find(int64_t index) const override;
+  const MdfBlock* Find(int64_t index) const override;
 
   size_t Read(std::FILE* file) override;
   void ReadCgList(std::FILE* file);
 
   void ReadData(std::FILE* file) const;
-  IMetaData* MetaData() override;
+  IMetaData* CreateMetaData() override;
   const IMetaData* MetaData() const override;
   void RecordIdSize(uint8_t id_size) override;
   uint8_t RecordIdSize() const override;

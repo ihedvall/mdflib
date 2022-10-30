@@ -11,6 +11,8 @@
 
 #include "mdf/ichannelconversion.h"
 #include "mdf/mdfhelper.h"
+#include "mdf/iblock.h"
+#include "mdf/imetadata.h"
 
 namespace mdf {
 
@@ -70,9 +72,8 @@ constexpr uint32_t EventSignal = 0x2000;
 constexpr uint32_t VlsdDataStream = 0x4000;
 }  // namespace CnFlag
 
-class IChannel {
+class IChannel : public IBlock  {
  public:
-  [[nodiscard]] virtual int64_t Index() const = 0;
 
   virtual void Name(const std::string &name) = 0;
   [[nodiscard]] virtual std::string Name() const = 0;
@@ -126,6 +127,9 @@ class IChannel {
     }
     return DataType() <= ChannelDataType::FloatBe;
   }
+
+  [[nodiscard]] virtual IMetaData* CreateMetaData();
+  [[nodiscard]] virtual const IMetaData* MetaData() const;
   void CgRecordId(uint64_t record_id) const {
     cg_record_id_ = record_id;
   }

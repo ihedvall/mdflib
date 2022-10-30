@@ -21,7 +21,7 @@ namespace mdf::detail {
 Ch4Block::Ch4Block() { block_type_ = "##CH"; }
 
 void Ch4Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next CH", ToHexString(Link(kIndexNext)), "",
@@ -72,7 +72,7 @@ size_t Ch4Block::Write(std::FILE *file) {  // NOLINT
     WriteLink4List(file, ch_list_, kIndexCh, 0);
     return block_length_;
   }
-  nof_elements_ = element_list_.size();
+  nof_elements_ = static_cast<uint32_t>(element_list_.size());
   block_type_ = "##CH";
   block_length_ = 24 + ((4 + (nof_elements_ * 3)) * 8) + 8 + 1 + 3;
   link_list_.resize(4 + (nof_elements_ * 3), 0);
@@ -91,7 +91,7 @@ size_t Ch4Block::Write(std::FILE *file) {  // NOLINT
   WriteMdComment(file, kIndexMd);
   WriteLink4List(file, ch_list_, kIndexCh, 0);
 
-  size_t bytes = IBlock::Write(file);
+  size_t bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, nof_elements_);
   bytes += WriteNumber(file, type_);
   bytes += WriteBytes(file, 3);
@@ -99,7 +99,7 @@ size_t Ch4Block::Write(std::FILE *file) {  // NOLINT
 
   return bytes;
 }
-const IBlock *Ch4Block::Find(int64_t index) const {  // NOLINT
+const MdfBlock *Ch4Block::Find(int64_t index) const {  // NOLINT
   for (const auto &ch : ch_list_) {
     if (!ch) {
       continue;
@@ -109,7 +109,7 @@ const IBlock *Ch4Block::Find(int64_t index) const {  // NOLINT
       return p;
     }
   }
-  return IBlock::Find(index);
+  return MdfBlock::Find(index);
 }
 
 int64_t Ch4Block::Index() const { return FilePosition(); }
@@ -128,13 +128,12 @@ void Ch4Block::Description(const std::string &description) {
 
 std::string Ch4Block::Description() const { return MdText(); }
 
-IMetaData *Ch4Block::MetaData() {
-  CreateMd4Block();
-  return dynamic_cast<IMetaData *>(md_comment_.get());
+IMetaData *Ch4Block::CreateMetaData() {
+  return MdfBlock::CreateMetaData();
 }
 
 const IMetaData *Ch4Block::MetaData() const {
-  return !md_comment_ ? nullptr : dynamic_cast<IMetaData *>(md_comment_.get());
+  return MdfBlock::MetaData();
 }
 
 void Ch4Block::AddElementLink(const ElementLink &element) {

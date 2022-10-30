@@ -6,9 +6,9 @@
 #include <memory>
 #include <vector>
 
-#include "iblock.h"
 #include "md4block.h"
 #include "mdf/iattachment.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
 namespace At4Flags {
@@ -16,9 +16,24 @@ constexpr uint16_t kEmbeddedData = 0x01;
 constexpr uint16_t kCompressedData = 0x02;
 constexpr uint16_t kUsingMd5 = 0x04;
 }  // namespace At4Flags
-class At4Block : public IBlock, public IAttachment {
+class At4Block : public MdfBlock, public IAttachment {
  public:
   At4Block();
+  [[nodiscard]] int64_t Index() const override {
+      return MdfBlock::Index();
+  };
+
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  };
+
+  [[nodiscard]] IMetaData* CreateMetaData() override {
+    return MdfBlock::CreateMetaData();
+  };
+
+  [[nodiscard]] const IMetaData* MetaData() const override {
+    return MdfBlock::MetaData();
+  };
 
   void FileName(const std::string& filename) override;
   [[nodiscard]] const std::string& FileName() const override;
@@ -42,7 +57,6 @@ class At4Block : public IBlock, public IAttachment {
 
   size_t Write(std::FILE* file) override;
   [[nodiscard]] std::optional<std::string> Md5() const override;
-  [[nodiscard]] int64_t Index() const override;
 
  private:
   uint16_t flags_ = 0;

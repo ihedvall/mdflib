@@ -6,6 +6,7 @@
 #pragma once
 #include <mdf/iattachment.h>
 #include <mdf/imetadata.h>
+#include <mdf/iblock.h>
 
 #include <cstdint>
 #include <string>
@@ -44,10 +45,8 @@ enum class EventCause : uint8_t {
   CauseUser = 4,    ///< A user generated this event.
 };
 
-class IEvent {
+class IEvent : public IBlock {
  public:
-  [[nodiscard]] virtual int64_t Index() const = 0;
-
   virtual void Name(const std::string& name) = 0;
   [[nodiscard]] virtual const std::string& Name() const = 0;
 
@@ -96,7 +95,7 @@ class IEvent {
    *
    * @return Pointer to a meta data block.
    */
-  [[nodiscard]] virtual IMetaData* MetaData() = 0;
+  [[nodiscard]] virtual IMetaData* CreateMetaData() = 0;
 
   /** \brief Returns an constant interface against a MD4 block
    *

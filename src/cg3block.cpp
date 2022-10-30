@@ -63,7 +63,7 @@ const IChannel *Cg3Block::GetXChannel(const IChannel &) const {
 }
 
 void Cg3Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next CG", ToHexString(Link(kIndexNext)),
@@ -132,7 +132,7 @@ size_t Cg3Block::Write(std::FILE *file) {
     }
   }
 
-  auto bytes = update ? IBlock::Update(file) : IBlock::Write(file);
+  auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
   if (!update) {
     bytes += WriteNumber(file, record_id_);
     bytes += WriteNumber(file, nof_channels_);
@@ -204,7 +204,7 @@ void Cg3Block::ReadSrList(std::FILE *file) {
   }
 }
 
-const IBlock *Cg3Block::Find(int64_t index) const {
+const MdfBlock *Cg3Block::Find(int64_t index) const {
   for (const auto &p : cn_list_) {
     if (!p) {
       continue;
@@ -214,7 +214,7 @@ const IBlock *Cg3Block::Find(int64_t index) const {
       return pp;
     }
   }
-  return IBlock::Find(index);
+  return MdfBlock::Find(index);
 }
 
 std::string Cg3Block::Comment() const { return comment_; }
@@ -229,7 +229,7 @@ void Cg3Block::PrepareForWriting() {
   size_of_data_record_ = 0;
   for (auto &cn3 : cn_list_) {
     cn3->ByteOffset(size_of_data_record_);
-    size_of_data_record_ += cn3->DataBytes();
+    size_of_data_record_ += static_cast<uint16_t>(cn3->DataBytes());
   }
   sample_buffer_.resize(size_of_data_record_);
 }

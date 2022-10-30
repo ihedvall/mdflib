@@ -152,7 +152,7 @@ std::string MakeFlagString(uint32_t flag) {
 
 ///< Helper function that recursively copies all data bytes to a
 /// destination buffer.
-size_t CopyDataToBuffer(const mdf::detail::IBlock *data, std::FILE *from_file,
+size_t CopyDataToBuffer(const mdf::detail::MdfBlock *data, std::FILE *from_file,
                         std::vector<uint8_t> &buffer, size_t &buffer_index) {
   if (data == nullptr) {
     return 0;
@@ -218,7 +218,7 @@ ChannelDataType Cn4Block::DataType() const {
 }
 ChannelType Cn4Block::Type() const { return static_cast<ChannelType>(type_); }
 size_t Cn4Block::DataBytes() const {
-  return (bit_count_ / 8) + (bit_count_ % 8 > 0 ? 1 : 0);
+  return (static_cast<size_t>(bit_count_) / 8) + (bit_count_ % 8 > 0 ? 1 : 0);
 }
 uint8_t Cn4Block::Decimals() const {
   auto max = static_cast<uint8_t>(
@@ -241,7 +241,7 @@ std::string Cn4Block::Unit() const {
 }
 
 void Cn4Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next CN", ToHexString(Link(kIndexNext)),
@@ -385,12 +385,12 @@ size_t Cn4Block::Write(std::FILE *file) {
   if (update) {
     return block_length_;
   }
-  nof_attachments_ = attachment_list_.size();
+  nof_attachments_ = static_cast<uint16_t>(attachment_list_.size());
   const auto default_x = (flags_ & CnFlag::DefaultX) != 0;
 
   block_type_ = "##CN";
-  block_length_ = 24 + (8 * 8);
-  block_length_ += nof_attachments_ * 8;
+  block_length_ = static_cast<uint64_t>(24 + 8 * 8);
+  block_length_ += static_cast<uint64_t>(nof_attachments_) * 8;
   if (default_x) {
     block_length_ += 3 * 8;
   }
@@ -418,7 +418,7 @@ size_t Cn4Block::Write(std::FILE *file) {
     link_list_[index] = cn4 != nullptr ? cn4->Index() : 0;
   }
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, type_);
   bytes += WriteNumber(file, sync_type_);
   bytes += WriteNumber(file, data_type_);
@@ -441,7 +441,7 @@ size_t Cn4Block::Write(std::FILE *file) {
   return bytes;
 }
 
-const IBlock *Cn4Block::Find(int64_t index) const {
+const MdfBlock *Cn4Block::Find(int64_t index) const {
   if (si_block_) {
     const auto *p = si_block_->Find(index);
     if (p != nullptr) {
@@ -621,8 +621,8 @@ double Cn4Block::SamplingRate() const { return 0; }
 std::vector<uint8_t> &Cn4Block::SampleBuffer() const {
   return cg_block_->SampleBuffer();
 }
-void Cn4Block::Init(const IBlock &id_block) {
-  IBlock::Init(id_block);
+void Cn4Block::Init(const MdfBlock &id_block) {
+  MdfBlock::Init(id_block);
   cg_block_ = dynamic_cast<const Cg4Block *>(&id_block);
 }
 

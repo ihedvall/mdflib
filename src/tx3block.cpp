@@ -42,10 +42,10 @@ std::string Tx3Block::Text() const {
 }
 size_t Tx3Block::Write(std::FILE *file) {
   block_type_ = "TX";
-  block_size_ = (2 + 2) + text_.size() + 1;
+  block_size_ = static_cast<uint16_t>((2 + 2) + text_.size() + 1);
   link_list_.clear();
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   bytes += std::fwrite(text_.data(), 1, text_.size(), file);
   constexpr char blank = '\0';
   bytes += std::fwrite(&blank, 1, 1, file);

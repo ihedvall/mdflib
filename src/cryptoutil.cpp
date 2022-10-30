@@ -250,7 +250,7 @@ bool CreateMd5FileChecksum(const std::string &file, std::vector<uint8_t> &md5) {
                  std::fread(temp.data(), sizeof(uint8_t), temp.size(), f);
              bytes > 0;
              bytes = std::fread(temp.data(), sizeof(uint8_t), temp.size(), f)) {
-          MD5_Update(&ctx, temp.data(), bytes);
+          MD5_Update(&ctx, temp.data(), static_cast<unsigned long>(bytes));
         }
         fclose(f);
         MD5_Final(md5.data(), &ctx);

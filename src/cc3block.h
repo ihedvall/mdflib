@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "iblock.h"
 #include "mdf/ichannelconversion.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
 
@@ -24,10 +24,12 @@ struct TextRangeConversion {
   std::string text;
 };
 
-class Cc3Block : public IBlock, public IChannelConversion {
+class Cc3Block : public MdfBlock, public IChannelConversion {
  public:
   [[nodiscard]] int64_t Index() const override;
-
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Unit(const std::string& unit) override;
   [[nodiscard]] std::string Unit() const override;
 

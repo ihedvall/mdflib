@@ -10,13 +10,13 @@
 namespace mdf::detail {
 
 void Dt3Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Data Size [byte]", std::to_string(DataSize()));
 }
-void Dt3Block::Init(const IBlock &id_block) {
+void Dt3Block::Init(const MdfBlock &id_block) {
   dg_block_ = dynamic_cast<const Dg3Block *>(&id_block);
-  IBlock::Init(id_block);
+  MdfBlock::Init(id_block);
 }
 
 size_t Dt3Block::Read(std::FILE *file) {

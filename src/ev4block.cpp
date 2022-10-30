@@ -100,7 +100,7 @@ namespace mdf::detail {
 Ev4Block::Ev4Block() { block_type_ = "##EV"; }
 
 void Ev4Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next EV", ToHexString(Link(kIndexNext)),
@@ -172,8 +172,8 @@ size_t Ev4Block::Write(std::FILE *file) {
   if (update) {
     return block_length_;
   }
-  length_m_ = scope_list_.size();
-  length_n_ = attachment_list_.size();
+  length_m_ = static_cast<uint32_t>(scope_list_.size());
+  length_n_ = static_cast<uint16_t>(attachment_list_.size());
 
   const auto group = !group_name_.empty();
   if (group) {
@@ -191,7 +191,7 @@ size_t Ev4Block::Write(std::FILE *file) {
   link_list_[kIndexRange] = range_event_ != nullptr ? range_event_->Index() : 0;
   for (size_t index_m = 0; index_m < length_m_; ++index_m) {
     const auto index = 5 + index_m;
-    const auto *block = reinterpret_cast<const IBlock *>(scope_list_[index_m]);
+    const auto *block = reinterpret_cast<const MdfBlock *>(scope_list_[index_m]);
     link_list_[index] = block != nullptr ? block->FilePosition() : 0;
   }
   for (size_t index_n = 0; index_n < length_n_; ++index_n) {
@@ -205,7 +205,7 @@ size_t Ev4Block::Write(std::FILE *file) {
   }
   WriteMdComment(file, kIndexMd);
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, type_);
   bytes += WriteNumber(file, sync_type_);
   bytes += WriteNumber(file, range_type_);
@@ -258,7 +258,7 @@ void Ev4Block::Cause(EventCause cause) { cause_ = static_cast<uint8_t>(cause); }
 
 EventCause Ev4Block::Cause() const { return static_cast<EventCause>(cause_); }
 
-void Ev4Block::CreatorIndex(size_t index) { creator_index_ = index; }
+void Ev4Block::CreatorIndex(size_t index) { creator_index_ = static_cast<uint16_t>(index); }
 
 size_t Ev4Block::CreatorIndex() const { return creator_index_; }
 
@@ -300,13 +300,12 @@ const std::vector<const IAttachment *> &Ev4Block::Attachments() const {
   return attachment_list_;
 }
 
-IMetaData *Ev4Block::MetaData() {
-  CreateMd4Block();
-  return dynamic_cast<IMetaData *>(md_comment_.get());
+IMetaData *Ev4Block::CreateMetaData() {
+  return MdfBlock::CreateMetaData();
 }
 
 const IMetaData *Ev4Block::MetaData() const {
-  return !md_comment_ ? nullptr : dynamic_cast<IMetaData *>(md_comment_.get());
+  return MdfBlock::MetaData();
 }
 
 void Ev4Block::FindReferencedBlocks(const Hd4Block &hd4) {

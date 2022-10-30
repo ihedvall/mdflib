@@ -21,7 +21,7 @@ include("script/googletest.cmake")
 include("script/doxygen.cmake")
 
 add_library(mdf STATIC
-        src/iblock.cpp src/iblock.h
+        src/mdfblock.cpp src/mdfblock.h
         src/mdffile.cpp include/mdf/mdffile.h
         src/idblock.cpp src/idblock.h
         src/hd3block.cpp src/hd3block.h
@@ -97,8 +97,11 @@ add_library(mdf STATIC
         src/writexml.cpp src/writexml.h
         src/xmlnode.cpp src/xmlnode.h
         src/expatxml.cpp src/expatxml.h
-        src/mdflogstream.cpp include/mdf/mdflogstream.h src/littlebuffer.cpp src/littlebuffer.h src/bigbuffer.cpp src/bigbuffer.h
-        src/platform.cpp
+        src/mdflogstream.cpp include/mdf/mdflogstream.h
+        src/littlebuffer.cpp src/littlebuffer.h
+        src/bigbuffer.cpp src/bigbuffer.h
+        src/platform.cpp src/platform.h
+        src/iblock.cpp include/mdf/iblock.h
     )
 
 target_link_libraries(mdf ${ZLIB_LIBRARIES} expat)
@@ -151,6 +154,7 @@ endif()
 if (wxWidgets_FOUND AND MDF_BUILD_TOOL)
     add_subdirectory(mdfviewer)
 endif()
+
 
 if (GTEST_FOUND AND MDF_BUILD_TEST)
     enable_testing()

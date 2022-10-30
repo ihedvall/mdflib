@@ -8,7 +8,7 @@
 namespace mdf::detail {
 
 void Dv4Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Data Size [byte]", std::to_string(DataSize()));
 }

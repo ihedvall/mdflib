@@ -156,7 +156,7 @@ uint8_t Cc3Block::Decimals() const {
 }
 
 void Cc3Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Range Valid", range_valid_ ? "True" : "False");
@@ -290,7 +290,7 @@ size_t Cc3Block::Write(std::FILE *file) {
                 2;  // Will be updated at the end of the block write
   link_list_.clear();
 
-  size_t bytes = IBlock::Write(file);
+  size_t bytes = MdfBlock::Write(file);
   bytes += WriteBool(file, range_valid_);
   bytes += WriteNumber(file, min_);
   bytes += WriteNumber(file, max_);

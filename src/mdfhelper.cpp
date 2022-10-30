@@ -82,7 +82,7 @@ std::vector<uint8_t> MdfHelper::NsToCanOpenDateArray(uint64_t ns_since_1970) {
   date_array[4] |= (day_in_week << 5);
   date_array[5] = 1 + bt->tm_mon;
   date_array[6] = bt->tm_year % 100;
-  return std::move(date_array);
+  return date_array;
 }
 
 std::vector<uint8_t> MdfHelper::NsToCanOpenTimeArray(uint64_t ns_since_1970) {

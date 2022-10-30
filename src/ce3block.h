@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "iblock.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
-class Ce3Block : public IBlock {
+class Ce3Block : public MdfBlock {
  public:
   size_t Read(std::FILE *file) override;
 

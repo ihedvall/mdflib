@@ -75,7 +75,7 @@ bool MdfViewer::OnInit() {
   log_config.CreateDefaultLogger();
   LOG_INFO() << "Log File created. Path: " << log_config.GetLogFile();
 
-  MdfLogStream::SetLogFunction(LogFunc);
+  MdfLogStream::SetLogFunction1(LogFunc);
   notepad_ = util::log::FindNotepad();
 
   // Find the path to the 'gnuplot.exe'
@@ -138,7 +138,7 @@ int MdfViewer::OnExit() {
     LOG_ERROR() << "Failed to remove temporary directory. Path: " << my_temp_dir_;
   }
 
-  MdfLogStream::SetLogFunction(NoLog);
+  MdfLogStream::SetLogFunction1(NoLog);
   auto& log_config = LogConfig::Instance();
   log_config.DeleteLogChain();
   return wxApp::OnExit();

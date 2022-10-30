@@ -64,7 +64,7 @@ class BlockAddress : public wxTreeItemData {
   int64_t block_address_ = 0;
 };
 
-wxString CreateBlockText(const mdf::detail::IBlock &block) {
+wxString CreateBlockText(const mdf::detail::MdfBlock&block) {
   std::ostringstream block_string;
   block_string << block.BlockType();
   const auto comment = block.Comment();
@@ -917,7 +917,7 @@ void ChildFrame::OnListItemActivated(wxListEvent& event) {
     return;
   }
 
-  const mdf::detail::IBlock* block = nullptr;
+  const mdf::detail::MdfBlock* block = nullptr;
   if (file->IsMdf4()) {
     const auto* file4 = dynamic_cast<const mdf::detail::Mdf4File*>(file);
     if (file4 != nullptr) {

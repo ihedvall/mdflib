@@ -6,10 +6,10 @@
 #include <cstdio>
 #include <string>
 
-#include "iblock.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
-class Pr3Block : public IBlock {
+class Pr3Block : public MdfBlock {
  public:
   Pr3Block() = default;
   explicit Pr3Block(const std::string &meta_data);

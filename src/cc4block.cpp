@@ -84,7 +84,7 @@ std::string Cc4Block::Unit() const {
 }
 
 void Cc4Block::Description(const std::string& desc) {
-  auto* metadata = MetaData();
+  auto* metadata = CreateMetaData();
   if (metadata != nullptr) {
     metadata->StringProperty("TX", desc);
   }
@@ -140,7 +140,7 @@ const IChannelConversion* Cc4Block::Inverse() const {
 }
 
 void Cc4Block::GetBlockProperty(BlockPropertyList& dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), name_,
@@ -231,7 +231,7 @@ size_t Cc4Block::Read(std::FILE* file) {  // NOLINT
   if (ref_list_.empty() && nof_references_ > 0) {
     for (uint16_t ii = 0; ii < nof_references_; ++ii) {
       if (Link(kIndexRef + ii) <= 0) {
-        ref_list_.emplace_back(std::unique_ptr<IBlock>());
+        ref_list_.emplace_back(std::unique_ptr<MdfBlock>());
         continue;
       }
       SetFilePosition(file, Link(kIndexRef + ii));
@@ -250,7 +250,7 @@ size_t Cc4Block::Read(std::FILE* file) {  // NOLINT
         cc->Read(file);
         ref_list_.emplace_back(std::move(cc));
       } else {
-        ref_list_.emplace_back(std::unique_ptr<IBlock>());
+        ref_list_.emplace_back(std::unique_ptr<MdfBlock>());
       }
     }
   }
@@ -263,8 +263,8 @@ size_t Cc4Block::Write(std::FILE* file) {  // NOLINT
     return block_length_;
   }
 
-  nof_references_ = ref_list_.size();
-  nof_values_ = value_list_.size();
+  nof_references_ = static_cast<uint16_t>(ref_list_.size());
+  nof_values_ = static_cast<uint16_t>(value_list_.size());
 
   block_type_ = "##CC";
   block_length_ = 24 + (4 * 8) + (nof_references_ * 8) + 1 + 1 + 2 + 2 + 2 + 8 +
@@ -280,7 +280,7 @@ size_t Cc4Block::Write(std::FILE* file) {  // NOLINT
     link_list_[index] = block != nullptr ? block->FilePosition() : 0;
   }
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, type_);
   bytes += WriteNumber(file, precision_);
   bytes += WriteNumber(file, flags_);
@@ -296,7 +296,7 @@ size_t Cc4Block::Write(std::FILE* file) {  // NOLINT
   return bytes;
 }
 
-const IBlock* Cc4Block::Find(int64_t index) const {  // NOLINT
+const MdfBlock* Cc4Block::Find(int64_t index) const {  // NOLINT
   if (cc_block_) {
     const auto* p = cc_block_->Find(index);
     if (p != nullptr) {
@@ -317,7 +317,7 @@ const IBlock* Cc4Block::Find(int64_t index) const {  // NOLINT
       }
     }
   }
-  return IBlock::Find(index);
+  return MdfBlock::Find(index);
 }
 
 bool Cc4Block::ConvertValueToText(double channel_value,

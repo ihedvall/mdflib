@@ -3,16 +3,18 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include "iblock.h"
 #include "mdf/ichannelarray.h"
+#include "mdfblock.h"
 namespace mdf::detail {
 
-class Ca4Block : public IBlock, public IChannelArray {
+class Ca4Block : public MdfBlock, public IChannelArray {
  public:
   Ca4Block();
 
   [[nodiscard]] int64_t Index() const override;
-
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Type(ArrayType type) override;
   [[nodiscard]] ArrayType Type() const override;
 

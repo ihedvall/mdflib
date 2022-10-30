@@ -7,7 +7,8 @@
 
 namespace {
 
-mdf::MdfLogFunction LogFunction;
+mdf::MdfLogFunction1 LogFunction1;
+mdf::MdfLogFunction2 LogFunction2;
 
 }  // end namespace
 
@@ -22,13 +23,21 @@ MdfLogStream::~MdfLogStream() {
 
 void MdfLogStream::LogString(const Loc &location, MdfLogSeverity severity,
                              const std::string &text) {
-  if (LogFunction) {
-    LogFunction(location, severity, text);
+  if (LogFunction1) {
+    LogFunction1(location, severity, text);
+  }
+  if (LogFunction2) {
+    std::ostringstream func;
+    func << location.file_name() << ":" << location.function_name();
+    LogFunction2(severity, func.str(), text);
   }
 }
 
-void MdfLogStream::SetLogFunction(const MdfLogFunction &func) {
-  LogFunction = func;
+void MdfLogStream::SetLogFunction1(const MdfLogFunction1 &func) {
+  LogFunction1 = func;
 }
 
+void MdfLogStream::SetLogFunction2(const MdfLogFunction2 &func) {
+  LogFunction2 = func;
+}
 }  // namespace mdf

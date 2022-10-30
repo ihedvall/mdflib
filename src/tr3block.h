@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "iblock.h"
+#include "mdfblock.h"
 #include "tx3block.h"
 
 namespace mdf::detail {
@@ -16,7 +16,7 @@ struct Tr3Event {
   double post_time = 0;
 };
 
-class Tr3Block : public IBlock {
+class Tr3Block : public MdfBlock {
  public:
   [[nodiscard]] std::string Comment() const override;
   size_t Read(std::FILE *file) override;

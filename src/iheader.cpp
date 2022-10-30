@@ -27,7 +27,7 @@ void IHeader::StartDistance(double distance) {}
 
 std::optional<double> IHeader::StartDistance() const { return {}; }
 
-IMetaData *IHeader::MetaData() { return nullptr; }
+IMetaData *IHeader::CreateMetaData() { return nullptr; }
 
 const IMetaData *IHeader::MetaData() const { return nullptr; }
 

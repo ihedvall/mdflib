@@ -49,7 +49,7 @@ size_t Tr3Block::Write(std::FILE *file) {
     link_list_[kIndexTx] = tx.FilePosition();
   }
 
-  size_t bytes = IBlock::Write(file);
+  size_t bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, nof_events_);
 
   for (const auto &ev : event_list_) {

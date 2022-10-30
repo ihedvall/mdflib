@@ -32,7 +32,7 @@ size_t Sr3Block::Write(std::FILE *file) {
   block_type_ = "SR";
   block_size_ = (2 + 2) + (2 * 4) + 4 + 8;
   link_list_.resize(2, 0);
-  size_t bytes = IBlock::Write(file);
+  size_t bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, nof_reduced_samples_);
   bytes += WriteNumber(file, time_interval_);
 

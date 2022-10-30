@@ -8,6 +8,10 @@
 
 #include "ichannel.h"
 #include "samplerecord.h"
+
+#include "mdf/iblock.h"
+#include "mdf/imetadata.h"
+
 namespace mdf {
 namespace CgFlag {
 constexpr uint16_t VlsdChannel = 0x0001;
@@ -19,9 +23,8 @@ constexpr uint16_t EventSignal = 0x00010;
 
 class ISourceInformation;
 
-class IChannelGroup {
+class IChannelGroup : public IBlock {
  public:
-  [[nodiscard]] virtual int64_t Index() const = 0;
 
   virtual void RecordId(uint64_t record_id) = 0;
   [[nodiscard]] virtual uint64_t RecordId() const = 0;
@@ -53,7 +56,8 @@ class IChannelGroup {
   void ResetSample() const;
   void IncrementSample() const;
   [[nodiscard]] size_t Sample() const;
-
+  [[nodiscard]] virtual IMetaData* CreateMetaData();
+  [[nodiscard]] virtual const IMetaData* MetaData() const;
  protected:
   mutable std::vector<uint8_t>
       sample_buffer_;  ///< Temporary record when saving samples.

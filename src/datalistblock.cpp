@@ -163,7 +163,7 @@ void DataListBlock::ReadLinkList(std::FILE* file, size_t data_index,
   }
 }
 
-const IBlock* DataListBlock::Find(int64_t index) const {
+const MdfBlock* DataListBlock::Find(int64_t index) const {
   for (const auto& p : block_list_) {
     if (!p) {
       continue;
@@ -173,7 +173,7 @@ const IBlock* DataListBlock::Find(int64_t index) const {
       return pp;
     }
   }
-  return IBlock::Find(index);
+  return MdfBlock::Find(index);
 }
 
 size_t DataListBlock::DataSize() const {  // NOLINT

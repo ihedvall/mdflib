@@ -8,21 +8,21 @@
 #include <vector>
 
 #include "cn4block.h"
-#include "iblock.h"
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
+#include "mdfblock.h"
 #include "si4block.h"
 #include "sr4block.h"
 
 namespace mdf::detail {
 
-class Cg4Block : public IBlock, public IChannelGroup {
+class Cg4Block : public MdfBlock, public IChannelGroup {
  public:
   using Cn4List = std::vector<std::unique_ptr<Cn4Block>>;
   using Sr4List = std::vector<std::unique_ptr<Sr4Block>>;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  const IBlock* Find(int64_t index) const override;
+  const MdfBlock* Find(int64_t index) const override;
 
   void AddCn4(std::unique_ptr<Cn4Block>& cn3);
   [[nodiscard]] const Cn4List& Cn4() const { return cn_list_; }
@@ -30,6 +30,9 @@ class Cg4Block : public IBlock, public IChannelGroup {
   [[nodiscard]] const Sr4List& Sr4() const { return sr_list_; }
 
   [[nodiscard]] int64_t Index() const override;
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Name(const std::string& name) override;
 
   [[nodiscard]] std::string Name() const override;
@@ -68,6 +71,12 @@ class Cg4Block : public IBlock, public IChannelGroup {
   size_t UpdateCycleCounter(std::FILE *file);
   size_t UpdateVlsdSize(std::FILE *file);
 
+  [[nodiscard]] IMetaData* CreateMetaData() override {
+    return MdfBlock::CreateMetaData();
+  }
+  [[nodiscard]] const IMetaData* MetaData() const override {
+    return MdfBlock::MetaData();
+  }
 
  private:
   uint64_t record_id_ = 0;

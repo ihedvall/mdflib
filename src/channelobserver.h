@@ -141,7 +141,8 @@ class ChannelObserver : public IChannelObserver {
 template <class T>
 bool ChannelObserver<T>::GetSampleUnsigned(size_t sample,
                                            uint64_t& value) const {
-  value = sample < value_list_.size() ? value_list_[sample] : T{};
+  value = sample < value_list_.size() ? 
+      static_cast<uint64_t>(value_list_[sample]) : static_cast<uint64_t>(T{});
   return sample < valid_list_.size() && valid_list_[sample];
 }
 
@@ -156,7 +157,7 @@ bool ChannelObserver<std::string>::GetSampleUnsigned(size_t sample,
 template <class T>
 bool ChannelObserver<T>::GetSampleSigned(uint64_t sample,
                                          int64_t& value) const {
-  value = sample < value_list_.size() ? value_list_[sample] : 0;
+  value = sample < value_list_.size() ? static_cast<int64_t>(value_list_[sample]) : 0;
   return sample < valid_list_.size() && valid_list_[sample];
 }
 
@@ -170,7 +171,7 @@ bool ChannelObserver<std::string>::GetSampleSigned(size_t sample,
 
 template <class T>
 bool ChannelObserver<T>::GetSampleFloat(uint64_t sample, double& value) const {
-  value = sample < value_list_.size() ? value_list_[sample] : 0;
+  value = sample < value_list_.size() ? static_cast<double>(value_list_[sample]) : 0;
   return sample < valid_list_.size() && valid_list_[sample];
 }
 
@@ -185,7 +186,12 @@ bool ChannelObserver<std::string>::GetSampleFloat(size_t sample,
 template <class T>
 bool ChannelObserver<T>::GetSampleText(uint64_t sample,
                                        std::string& value) const {
-  value = sample < value_list_.size() ? value_list_[sample] : 0;
+  std::ostringstream temp;
+  if (sample < value_list_.size()) {
+    temp << value_list_[sample];
+  }
+
+  value =  temp.str();
   return sample < valid_list_.size() && valid_list_[sample];
 }
 

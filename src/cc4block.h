@@ -8,21 +8,23 @@
 #include <variant>
 #include <vector>
 
-#include "iblock.h"
 #include "md4block.h"
 #include "mdf/ichannelconversion.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
 
-class Cc4Block : public IBlock, public IChannelConversion {
+class Cc4Block : public MdfBlock, public IChannelConversion {
  public:
-  using RefList = std::vector<std::unique_ptr<IBlock>>;
+  using RefList = std::vector<std::unique_ptr<MdfBlock>>;
   using ParameterList = std::vector<std::variant<uint64_t, double>>;
 
   Cc4Block();
 
   [[nodiscard]] int64_t Index() const override;
-  ;
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Name(const std::string& name) override;
 
   [[nodiscard]] std::string Name() const override;
@@ -51,11 +53,18 @@ class Cc4Block : public IBlock, public IChannelConversion {
   void Flags(uint16_t flags) override;
   [[nodiscard]] uint16_t Flags() const override;
 
+  [[nodiscard]] IMetaData* CreateMetaData() override {
+    return MdfBlock::CreateMetaData();
+  }
+  [[nodiscard]] const IMetaData* MetaData() const override {
+    return MdfBlock::MetaData();
+  }
+
   [[nodiscard]] const Cc4Block* Cc() const { return cc_block_.get(); }
 
   [[nodiscard]] const RefList& References() const { return ref_list_; }
 
-  [[nodiscard]] const IBlock* Find(int64_t index) const override;
+  [[nodiscard]] const MdfBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
 
   size_t Read(std::FILE* file) override;

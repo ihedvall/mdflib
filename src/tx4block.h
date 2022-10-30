@@ -5,13 +5,13 @@
 #pragma once
 #include <string>
 
-#include "iblock.h"
 #include "mdf/imetadata.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
 std::string FixCommentToLine(const std::string& comment, size_t max);
 
-class Tx4Block : public IBlock {
+class Tx4Block : public MdfBlock {
  public:
   Tx4Block() = default;
   Tx4Block(const std::string& text);

@@ -97,7 +97,7 @@ namespace mdf::detail {
 At4Block::At4Block() { block_type_ = "##AT"; }
 
 void At4Block::GetBlockProperty(BlockPropertyList& dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next AT", ToHexString(Link(kIndexNext)),
@@ -205,7 +205,7 @@ size_t At4Block::Write(std::FILE* file) {
   WriteTx4(file, kIndexType, file_type_);
   WriteMdComment(file, kIndexMd);
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, flags_);
   bytes += WriteNumber(file, creator_index_);
   bytes += WriteBytes(file, 4);
@@ -237,8 +237,7 @@ void At4Block::ReadData(std::FILE* file, const std::string& dest_file) const {
     }
     const bool error = IsCompressed() ? !Inflate(file, dest, nof_bytes_)
                                       : !CopyBytes(file, dest, nof_bytes_);
-    fclose(dest);
-    if (error) {
+    if (const int close = fclose(dest); error || close != 0) {
       throw std::ios_base::failure("Failed to copy correct number of bytes");
     }
   } else {
@@ -293,7 +292,5 @@ std::optional<std::string> At4Block::Md5() const {
 
 void At4Block::CreatorIndex(uint16_t creator) { creator_index_ = creator; }
 uint16_t At4Block::CreatorIndex() const { return creator_index_; }
-
-int64_t At4Block::Index() const { return FilePosition(); }
 
 }  // namespace mdf::detail

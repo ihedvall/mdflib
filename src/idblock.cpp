@@ -25,7 +25,7 @@ IdBlock::IdBlock() {
 }
 
 void IdBlock::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("File ID", FileId());
   dest.emplace_back("Version", VersionString());
@@ -80,7 +80,7 @@ size_t IdBlock::Read(std::FILE *file) {
   size_t bytes = ReadStr(file, file_identifier_, 8);
   bytes += ReadStr(file, format_identifier_, 8);
   bytes += ReadStr(file, program_identifier_, 8);
-  bytes += ReadNumber(file, byte_order_);  // Note defined in IBlock class
+  bytes += ReadNumber(file, byte_order_);  // Note defined in MdfBlock class
   bytes += ReadNumber(file, floating_point_format_);
   bytes += ReadNumber(file, version_);
   bytes += ReadNumber(file, code_page_number_);
@@ -97,7 +97,7 @@ size_t IdBlock::Write(std::FILE *file) {
     return 64;
   }
 
-  //  Do not call IBlock::Write(file) as the other block writes do
+  //  Do not call MdfBlock::Write(file) as the other block writes do
   if (file == nullptr) {
     throw std::runtime_error("File pointer is null");
   }

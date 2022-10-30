@@ -12,6 +12,7 @@
 #include <string>
 
 #include "mdf/imetadata.h"
+#include "mdf/iblock.h"
 
 namespace mdf {
 
@@ -22,18 +23,8 @@ namespace mdf {
  * one history block that defines it creation. Each time the file is modified,
  * there should be a new history block appended.
  */
-class IFileHistory {
+class IFileHistory : public IBlock {
  public:
-  /** \brief Returns the file position.
-   *
-   * Returns the file position of the block. This index is updated when
-   * the block is saved onto the file. The index is also used to indicate
-   * if the block has been written to the file. Note that file history blocks
-   * are not updated once written to the file.
-   * @return File position
-   */
-  [[nodiscard]] virtual int64_t Index() const = 0;
-
   /** \brief Sets the time when the history block was created.
    *
    * Sets the absolute start time for the measurement file. It is default
@@ -53,7 +44,7 @@ class IFileHistory {
    *
    * @return Pointer to an meta data block.
    */
-  [[nodiscard]] virtual IMetaData* MetaData() = 0;
+  [[nodiscard]] virtual IMetaData* CreateMetaData() = 0;
 
   /** \brief Returns an constant interface against a MD4 block
    *
@@ -68,7 +59,7 @@ class IFileHistory {
    * @param description Description of history block.
    */
   void Description(const std::string& description) {
-    auto* md4 = MetaData();
+    auto* md4 = CreateMetaData();
     if (md4 != nullptr) {
       md4->StringProperty("TX", description);
     }
@@ -90,7 +81,7 @@ class IFileHistory {
    * @param tool_name Name of the tool.
    */
   void ToolName(const std::string& tool_name) {
-    auto* md4 = MetaData();
+    auto* md4 = CreateMetaData();
     if (md4 != nullptr) {
       md4->StringProperty("tool_id", tool_name);
     }
@@ -111,7 +102,7 @@ class IFileHistory {
    * @param tool_vendor Vendor name.
    */
   void ToolVendor(const std::string& tool_vendor) {
-    auto* md4 = MetaData();
+    auto* md4 = CreateMetaData();
     if (md4 != nullptr) {
       md4->StringProperty("tool_vendor", tool_vendor);
     }
@@ -132,7 +123,7 @@ class IFileHistory {
    * @param tool_version Version string.
    */
   void ToolVersion(const std::string& tool_version) {
-    auto* md4 = MetaData();
+    auto* md4 = CreateMetaData();
     if (md4 != nullptr) {
       md4->StringProperty("tool_version", tool_version);
     }
@@ -153,7 +144,7 @@ class IFileHistory {
    * @param user User name.
    */
   void UserName(const std::string& user) {
-    auto* md4 = MetaData();
+    auto* md4 = CreateMetaData();
     if (md4 != nullptr) {
       md4->StringProperty("user_name", user);
     }

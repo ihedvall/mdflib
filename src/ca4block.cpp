@@ -70,7 +70,7 @@ std::string MakeFlagString(uint16_t flag) {
 namespace mdf::detail {
 
 void Ca4Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Array Type", MakeTypeString(type_));

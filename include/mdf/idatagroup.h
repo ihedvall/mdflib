@@ -8,15 +8,16 @@
 
 #include "ichannelgroup.h"
 #include "isampleobserver.h"
+#include "mdf/iblock.h"
 
 namespace mdf {
 
 class IMetaData;
 
-class IDataGroup {
+class IDataGroup : public IBlock {
  public:
-  [[nodiscard]] virtual int64_t Index() const = 0;
 
+  
   virtual void Description(const std::string& desc);
   [[nodiscard]] virtual std::string Description() const;
 
@@ -26,7 +27,7 @@ class IDataGroup {
   [[nodiscard]] virtual std::vector<IChannelGroup*> ChannelGroups() const = 0;
   [[nodiscard]] virtual IChannelGroup* CreateChannelGroup() = 0;
 
-  [[nodiscard]] virtual IMetaData* MetaData();
+  [[nodiscard]] virtual IMetaData* CreateMetaData();
   [[nodiscard]] virtual const IMetaData* MetaData() const;
 
   // Implement an observer/subject interface for the reading of samples

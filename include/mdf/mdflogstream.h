@@ -4,7 +4,7 @@
  */
 
 #pragma once
-#include <functional>
+
 #include <sstream>
 #include <string>
 #if __has_include(<source_location>)
@@ -12,6 +12,9 @@
 #else
 #include <experimental/source_location>
 #endif
+
+#include "mdf/mdffactory.h"
+
 namespace mdf {
 
 #if __has_include(<source_location>)
@@ -29,20 +32,8 @@ using Loc = std::experimental::source_location;
 #define MDF_ERROR() \
   MdfLogStream(Loc::current(), MdfLogSeverity::kError)  ///< Error log message
 
-///< Defines the log severity level
-enum class MdfLogSeverity : uint8_t {
-  kTrace = 0,  ///< Trace or listen message
-  kDebug,      ///< Debug message
-  kInfo,       ///< Informational message
-  kNotice,     ///< Notice message. Notify the user.
-  kWarning,    ///< Warning message
-  kError,      ///< Error message
-  kCritical,   ///< Critical message (device error)
-  kAlert,      ///< Alert or alarm message
-  kEmergency   ///< Fatal error message
-};
-using MdfLogFunction = std::function<void(
-    const Loc& location, MdfLogSeverity severity, const std::string& text)>;
+using MdfLogFunction1 = std::function<void(const Loc &location,
+  MdfLogSeverity severity, const std::string &text)>;
 
 class MdfLogStream : public std::ostringstream {
  public:
@@ -55,8 +46,9 @@ class MdfLogStream : public std::ostringstream {
   MdfLogStream& operator=(const MdfLogStream&) = delete;
   MdfLogStream& operator=(MdfLogStream&&) = delete;
 
-  static void SetLogFunction(const MdfLogFunction& func);
-
+  static void SetLogFunction1(const MdfLogFunction1& func);
+  static void SetLogFunction2(const MdfLogFunction2& func);
+  
  protected:
   Loc location_;             ///< File and function location.
   MdfLogSeverity severity_;  ///< Log level of the stream

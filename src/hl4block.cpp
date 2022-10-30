@@ -29,7 +29,7 @@ std::string MakeZipTypeString(uint8_t type) {
 
 namespace mdf::detail {
 void Hl4Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("First DL", ToHexString(Link(kIndexData)),

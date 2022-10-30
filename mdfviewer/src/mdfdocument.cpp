@@ -178,13 +178,13 @@ bool MdfDocument::OnOpenDocument(const wxString &filename) {
   return parse && wxDocument::OnOpenDocument(filename);
 }
 
-const mdf::detail::IBlock *MdfDocument::GetBlock(int64_t id) const {
+const mdf::detail::MdfBlock*MdfDocument::GetBlock(int64_t id) const {
   const auto *file = GetFile();
   if (file == nullptr || id < 0) {
     return nullptr;
   }
 
-  const mdf::detail::IBlock *block = nullptr;
+  const mdf::detail::MdfBlock*block = nullptr;
   if (file->IsMdf4()) {
     const auto *file4 = dynamic_cast<const mdf::detail::Mdf4File *>(file);
     if (file4 != nullptr) {

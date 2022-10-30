@@ -8,6 +8,7 @@
 #include <string>
 
 #include "mdf/imetadata.h"
+#include "mdf/iblock.h"
 
 namespace mdf {
 
@@ -36,10 +37,8 @@ namespace SiFlag {
 constexpr uint8_t Simulated = 0x01;
 }
 
-class ISourceInformation {
+class ISourceInformation : public IBlock {
  public:
-  [[nodiscard]] virtual int64_t Index() const = 0;
-
   virtual void Name(const std::string& name) = 0;
   [[nodiscard]] virtual const std::string& Name() const = 0;
 
@@ -58,7 +57,7 @@ class ISourceInformation {
   virtual void Flags(uint8_t flags) = 0;
   [[nodiscard]] virtual uint8_t Flags() const = 0;
 
-  [[nodiscard]] virtual IMetaData* MetaData() = 0;
+  [[nodiscard]] virtual IMetaData* CreateMetaData() = 0;
   [[nodiscard]] virtual const IMetaData* MetaData() const = 0;
 };
 

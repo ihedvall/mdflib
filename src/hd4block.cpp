@@ -69,7 +69,7 @@ namespace mdf::detail {
 
 Hd4Block::Hd4Block() { block_type_ = "##HD"; }
 
-const IBlock* Hd4Block::Find(int64_t index) const {
+const MdfBlock* Hd4Block::Find(int64_t index) const {
   if (index <= 0) {
     return nullptr;
   }
@@ -123,11 +123,11 @@ const IBlock* Hd4Block::Find(int64_t index) const {
     }
   }
 
-  return IBlock::Find(index);
+  return MdfBlock::Find(index);
 }
 
 void Hd4Block::GetBlockProperty(BlockPropertyList& dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("First DG", ToHexString(Link(kIndexDg)),
@@ -300,13 +300,12 @@ void Hd4Block::StartTime(uint64_t ns_since_1970) {
 
 uint64_t Hd4Block::StartTime() const { return timestamp_.NsSince1970(); }
 
-IMetaData* Hd4Block::MetaData() {
-  CreateMd4Block();
-  return dynamic_cast<IMetaData*>(md_comment_.get());
+IMetaData* Hd4Block::CreateMetaData() {
+  return MdfBlock::CreateMetaData();
 }
 
 const IMetaData* Hd4Block::MetaData() const {
-  return md_comment_ ? dynamic_cast<IMetaData*>(md_comment_.get()) : nullptr;
+  return MdfBlock::MetaData();
 }
 
 IDataGroup* Hd4Block::LastDataGroup() const {
@@ -435,7 +434,7 @@ size_t Hd4Block::Write(std::FILE* file) {
     block_length_ = 24 + (6 * 8) + 8 + 4 + 4 + 1 + 1 + 1 + 1 + 8 + 8;
     link_list_.resize(6, 0);
   }
-  auto bytes = update ? IBlock::Update(file) : IBlock::Write(file);
+  auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
 
   // These values may change after the initial write
   bytes += timestamp_.Write(file);

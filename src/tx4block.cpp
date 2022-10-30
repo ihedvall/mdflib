@@ -63,10 +63,10 @@ size_t Tx4Block::Write(std::FILE *file) {
   }
   const bool is_xml = !text_.empty() && text_[0] == '<';
   block_type_ = is_xml ? "##MD" : "##TX";
-  block_size_ = 24 + text_.size() + 1;
+  block_size_ = static_cast<uint16_t>(24 + text_.size() + 1);
   link_list_.clear();
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   bytes += WriteStr(file, text_, text_.size());
   bytes += WriteBytes(file, 1);
   UpdateBlockSize(file, bytes);

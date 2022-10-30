@@ -8,20 +8,22 @@
 #include <vector>
 
 #include "dg3block.h"
-#include "iblock.h"
 #include "mdf/iheader.h"
+#include "mdfblock.h"
 #include "pr3block.h"
 
 namespace mdf::detail {
 
-class Hd3Block : public IBlock, public IHeader {
+class Hd3Block : public MdfBlock, public IHeader {
  public:
   using Dg3List = std::vector<std::unique_ptr<Dg3Block>>;
   Hd3Block() = default;
   ~Hd3Block() override = default;
 
   [[nodiscard]] int64_t Index() const override;
-
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Author(const std::string &author) override;
   [[nodiscard]] std::string Author() const override;
 
@@ -48,7 +50,7 @@ class Hd3Block : public IBlock, public IHeader {
   [[nodiscard]] const Dg3List &Dg3() const;
 
   [[nodiscard]] std::string Comment() const override;
-  [[nodiscard]] const IBlock *Find(int64_t index) const override;
+  [[nodiscard]] const MdfBlock *Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;

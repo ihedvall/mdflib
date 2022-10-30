@@ -52,7 +52,7 @@ IChannelGroup* Dg4Block::CreateChannelGroup() {
   return cg_list_.empty() ? nullptr : cg_list_.back().get();
 }
 
-const IBlock* Dg4Block::Find(int64_t index) const {
+const MdfBlock* Dg4Block::Find(int64_t index) const {
   for (const auto& cg : cg_list_) {
     if (!cg) {
       continue;
@@ -66,7 +66,7 @@ const IBlock* Dg4Block::Find(int64_t index) const {
 }
 
 void Dg4Block::GetBlockProperty(BlockPropertyList& dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next DG", ToHexString(Link(kIndexNext)),
@@ -109,7 +109,7 @@ size_t Dg4Block::Write(std::FILE* file) {
   WriteLink4List(file, cg_list_, kIndexCg, 0);
   WriteMdComment(file, kIndexMd);
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, rec_id_size_);
   bytes += WriteBytes(file, 7);
   UpdateBlockSize(file, bytes);
@@ -332,17 +332,16 @@ void Dg4Block::AddCg4(std::unique_ptr<Cg4Block>& cg4) {
 
 int64_t Dg4Block::Index() const { return FilePosition(); }
 
-IMetaData* Dg4Block::MetaData() {
-  CreateMd4Block();
-  return dynamic_cast<IMetaData*>(md_comment_.get());
+IMetaData* Dg4Block::CreateMetaData() {
+  return MdfBlock::CreateMetaData();
 }
 
 const IMetaData* Dg4Block::MetaData() const {
-  return !md_comment_ ? nullptr : dynamic_cast<IMetaData*>(md_comment_.get());
+  return MdfBlock::MetaData();
 }
 
 void Dg4Block::Description(const std::string& desc) {
-  auto* md4 = MetaData();
+  auto* md4 = CreateMetaData();
   if (md4 != nullptr) {
     md4->StringProperty("TX", desc);
   }

@@ -5,12 +5,14 @@
 #pragma once
 #include <optional>
 #include <string>
-#include <vector>
-
+#include "mdf/iblock.h"
+#include "mdf/imetadata.h"
 namespace mdf {
 
-class IAttachment {
+class IAttachment : public IBlock {
  public:
+  virtual ~IAttachment() = default;
+  
   /** \brief Returns the file position.
    *
    * Returns the file position of the block. This index is updated when
@@ -19,8 +21,6 @@ class IAttachment {
    * are not updated once written to the file.
    * @return File position
    */
-  [[nodiscard]] virtual int64_t Index() const = 0;
-
   virtual void CreatorIndex(uint16_t creator) = 0;
   [[nodiscard]] virtual uint16_t CreatorIndex() const = 0;
 
@@ -37,6 +37,9 @@ class IAttachment {
 
   virtual void FileType(const std::string& file_type) = 0;
   [[nodiscard]] virtual const std::string& FileType() const = 0;
+
+  [[nodiscard]] virtual IMetaData* CreateMetaData() = 0;
+  [[nodiscard]] virtual const IMetaData* MetaData() const = 0;
 };
 
 }  // namespace mdf

@@ -15,7 +15,7 @@ class MdfHelper {
   /** \brief Adds the time zone offset to the time stamp.
    *
    * Adds the time zone offset to the UTC nanoseconds since 1970.
-   * @param [in] ns_since_1970
+   * @param [in] ns_since_1970 Nano-seconds since 1970
    * @return local time = system time + time zone offset
    */
   static uint64_t NanoSecToLocal(uint64_t ns_since_1970);
@@ -23,7 +23,7 @@ class MdfHelper {
   /** \brief return the time zone offset in seconds.
    *
    * Returns the current used time zone offset in seconds
-   * @return
+   * @return Time offset in seconds
    */
   static int64_t TimeZoneOffset();
 

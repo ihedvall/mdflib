@@ -5,8 +5,8 @@
 #pragma once
 #include <cstdio>
 
-#include "iblock.h"
 #include "mdf/mdfhelper.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
 
@@ -15,7 +15,7 @@ constexpr uint8_t kLocalTimestamp = 0x01;
 constexpr uint8_t kTimeOffsetValid = 0x02;
 }  // namespace TimestampFlag
 
-class Mdf4Timestamp : public IBlock {
+class Mdf4Timestamp : public MdfBlock {
  public:
   void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;

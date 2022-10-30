@@ -4,7 +4,7 @@
  */
 #pragma once
 #include <cstdio>
-#include <memory>
+
 #include <string>
 #include <vector>
 
@@ -201,9 +201,11 @@ class MdfFile {
    * @return File name with path and extension.
    */
   [[nodiscard]] const std::string& FileName() const { return filename_; }
+  
   /** \brief Sets the file name.
+   *
    * Sets the file name and the short name of the object.
-   * @param filename
+   * @param filename File name with path and extension.
    */
   void FileName(const std::string& filename);
 

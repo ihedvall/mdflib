@@ -10,7 +10,7 @@ constexpr size_t kIndexMd = 1;
 namespace mdf::detail {
 Fh4Block::Fh4Block() { block_type_ = "##FH"; }
 void Fh4Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next FH", ToHexString(Link(kIndexNext)), "",
@@ -44,7 +44,7 @@ size_t Fh4Block::Write(std::FILE *file) {
   block_length_ = 24 + (2 * 8) + 8 + 2 + 2 + 1 + 3;
   link_list_.resize(2, 0);
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   bytes += timestamp_.Write(file);
   bytes += WriteBytes(file, 3);
   UpdateBlockSize(file, bytes);
@@ -52,13 +52,12 @@ size_t Fh4Block::Write(std::FILE *file) {
   return bytes;
 }
 
-IMetaData *Fh4Block::MetaData() {
-  CreateMd4Block();
-  return dynamic_cast<IMetaData *>(md_comment_.get());
+IMetaData *Fh4Block::CreateMetaData() {
+  return MdfBlock::CreateMetaData();
 }
 
 const IMetaData *Fh4Block::MetaData() const {
-  return !md_comment_ ? nullptr : dynamic_cast<IMetaData *>(md_comment_.get());
+  return MdfBlock::MetaData();
 }
 
 int64_t Fh4Block::Index() const { return FilePosition(); }

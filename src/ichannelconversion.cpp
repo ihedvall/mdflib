@@ -317,5 +317,7 @@ void IChannelConversion::Description(const std::string &desc) {}
 std::string IChannelConversion::Description() const { return {}; }
 
 void IChannelConversion::Decimals(uint8_t decimals) {}
+IMetaData *IChannelConversion::CreateMetaData() { return nullptr; }
+const IMetaData *IChannelConversion::MetaData() const { return nullptr; }
 
 }  // end namespace mdf

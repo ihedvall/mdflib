@@ -3,20 +3,23 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include "iblock.h"
 #include "mdf/ifilehistory.h"
 #include "mdf4timestamp.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
-class Fh4Block : public IBlock, public IFileHistory {
+class Fh4Block : public MdfBlock, public IFileHistory {
  public:
   Fh4Block();
   [[nodiscard]] int64_t Index() const override;
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Time(uint64_t ns_since_1970) override;
   [[nodiscard]] uint64_t Time() const override;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  [[nodiscard]] IMetaData* MetaData() override;
+  [[nodiscard]] IMetaData* CreateMetaData() override;
   [[nodiscard]] const IMetaData* MetaData() const override;
   size_t Read(std::FILE* file) override;
   size_t Write(std::FILE* file) override;

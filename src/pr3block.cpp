@@ -35,10 +35,10 @@ size_t Pr3Block::Read(std::FILE *file) {
 
 size_t Pr3Block::Write(std::FILE *file) {
   block_type_ = "PR";
-  block_size_ = (2 + 2) + text_.size();
+  block_size_ = static_cast<uint16_t>((2 + 2) + text_.size());
   link_list_.clear();
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   if (!text_.empty()) {
     bytes += std::fwrite(text_.data(), 1, text_.size(), file);
   }

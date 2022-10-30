@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "mdf/iblock.h"
 #include "bigbuffer.h"
 #include "blockproperty.h"
 #include "littlebuffer.h"
@@ -74,18 +75,17 @@ std::string ToMd5String(const std::vector<uint8_t> &md5);
 bool OpenMdfFile(std::FILE *&file, const std::string &filename,
                  const std::string &mode);
 
-class IBlock {
+class MdfBlock {
  public:
-  virtual ~IBlock() = default;
+  virtual ~MdfBlock() = default;
+  [[nodiscard]] int64_t Index() const;
+  [[nodiscard]] int64_t FilePosition() const;
+  [[nodiscard]] std::string BlockType() const;
 
   virtual void GetBlockProperty(BlockPropertyList &dest) const;
-  [[nodiscard]] virtual const IBlock *Find(int64_t index) const;
-
-  [[nodiscard]] int64_t FilePosition() const { return file_position_; }
+  [[nodiscard]] virtual const MdfBlock *Find(int64_t index) const;
 
   void SetLastFilePosition(std::FILE *file) const;
-
-  [[nodiscard]] std::string BlockType() const;
 
   [[nodiscard]] uint64_t BlockLength() const {
     return block_size_ + block_length_;
@@ -96,7 +96,7 @@ class IBlock {
    * Note that MDF4 always uses little endian byte order.
    * @param id_block ID or parent block
    */
-  virtual void Init(const IBlock &id_block);
+  virtual void Init(const MdfBlock &id_block);
 
   [[nodiscard]] bool IsBigEndian() const;
 
@@ -117,6 +117,9 @@ class IBlock {
   [[nodiscard]] virtual std::string Comment() const;
 
  protected:
+  int64_t file_position_ = 0;  ///< 64-bit file position.
+  std::string block_type_;   ///< MDF header. MDF3 has 2 characters. MDF4 has 4
+                               ///< characters.
   /**
    * The MDF3 has big or little endian byte order while MDF4 always uses little
    * endian byte order.
@@ -124,18 +127,15 @@ class IBlock {
   uint16_t byte_order_ = 0;  ///< Default set to Intel (little) byte order.
   uint16_t version_ = 420;   ///< Default set to 4.2.
 
-  int64_t file_position_ = 0;  ///< 64-bit file position.
-  std::string block_type_;   ///< MDF header. MDF3 has 2 characters. MDF4 has 4
-                             ///< characters.
   uint16_t block_size_ = 0;  ///< MDF3 16-bit block size.
   uint64_t block_length_ = 0;       ///< MDF4 64-bit block size.
   uint64_t link_count_ = 0;         ///< MDF4 number of links.
   std::vector<int64_t> link_list_;  ///< MDF link list
 
-  std::unique_ptr<IBlock>
+  std::unique_ptr<MdfBlock>
       md_comment_;  ///< Most MDF4 block has a MD block referenced
 
-  IBlock() = default;
+  MdfBlock() = default;
 
   [[nodiscard]] bool IsMdf4() const;
   size_t ReadHeader3(std::FILE *file);  ///< Reads a MDF3 block header.
@@ -157,7 +157,7 @@ class IBlock {
 
   [[nodiscard]] std::string MdText() const;
 
-  [[nodiscard]] virtual IMetaData *MetaData();
+  [[nodiscard]] virtual IMetaData *CreateMetaData();
   [[nodiscard]] virtual const IMetaData *MetaData() const;
 
   void UpdateBlockSize(std::FILE *file, size_t bytes);
@@ -240,7 +240,7 @@ class IBlock {
 };
 
 template <typename T>
-void IBlock::ReadLink4List(std::FILE *file,
+void MdfBlock::ReadLink4List(std::FILE *file,
                            std::vector<std::unique_ptr<T>> &block_list,
                            size_t link_index) {
   if (block_list.empty() && (Link(link_index) > 0))
@@ -255,7 +255,7 @@ void IBlock::ReadLink4List(std::FILE *file,
 }
 
 template <typename T>
-void IBlock::WriteBlock4(std::FILE *file, std::unique_ptr<T> &block,
+void MdfBlock::WriteBlock4(std::FILE *file, std::unique_ptr<T> &block,
                          size_t link_index) {
   if (!block || block->FilePosition() > 0) {
     return;
@@ -265,7 +265,7 @@ void IBlock::WriteBlock4(std::FILE *file, std::unique_ptr<T> &block,
 }
 
 template <typename T>
-void IBlock::WriteLink4List(std::FILE *file,
+void MdfBlock::WriteLink4List(std::FILE *file,
                             std::vector<std::unique_ptr<T>> &block_list,
                             size_t link_index, size_t update_option) {
   for (size_t index = 0; index < block_list.size(); ++index) {

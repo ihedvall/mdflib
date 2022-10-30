@@ -4,10 +4,10 @@
  */
 #pragma once
 
-#include "iblock.h"
+#include "mdfblock.h"
 namespace mdf::detail {
 
-class DataBlock : public IBlock {
+class DataBlock : public MdfBlock {
  public:
   [[nodiscard]] int64_t DataPosition() const { return data_position_; }
   [[nodiscard]] virtual size_t DataSize() const = 0;

@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "mdf/etag.h"
+#include "mdf/iblock.h"
 
 namespace mdf {
 
@@ -23,7 +24,7 @@ namespace mdf {
  * Interface class against an meta data block in a MDF4 file. In reality is the
  * block just an interface against an XML snippets
  */
-class IMetaData {
+class IMetaData : public IBlock {
  public:
   /** \brief Initiate the MD block.
    *

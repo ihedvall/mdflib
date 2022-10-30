@@ -81,7 +81,7 @@ class MdfReader {
   /// blocks. \return Pointer to the MDF file object. Note it may return a null
   /// pointer.
   [[nodiscard]] const MdfFile* GetFile() const { return instance_.get(); }
-
+  [[nodiscard]] const IHeader* GetHeader() const;
   [[nodiscard]] const IDataGroup* GetDataGroup(size_t order) const;
 
   [[nodiscard]] std::string ShortName()
@@ -94,12 +94,6 @@ class MdfReader {
   bool ReadMeasurementInfo();    ///< Reads everything but not CG and raw data.
   bool ReadEverythingButData();  ///< Reads all blocks but not raw data.
 
-  /** \brief Saves the attached data into a destination file.
-   *
-   * @param attachment
-   * @param dest_file
-   * @return
-   */
   bool ExportAttachmentData(const IAttachment& attachment,
                             const std::string& dest_file);
 

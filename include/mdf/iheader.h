@@ -12,6 +12,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include "mdf/iblock.h"
 
 namespace mdf {
 
@@ -28,17 +29,8 @@ class IDataGroup;
  * Interface class against a header block (HD) in a MDF file. The header
  * block is the main root that holds all other blocks except the ID block.
  */
-class IHeader {
+class IHeader : public IBlock {
  public:
-  /** \brief Returns the file position.
-   *
-   * Returns the file position of the block. This index is updated when
-   * the block is saved onto the file. The index is also used to indicate
-   * if the block has been written to the file.
-   * @return File position
-   */
-  [[nodiscard]] virtual int64_t Index() const = 0;
-
   /** \brief Sets the author of the file.
    *
    * Sets the author of the files.
@@ -173,7 +165,7 @@ class IHeader {
    * Note that this function also creates the MD block if it is missing.
    * @return Returns meta data.
    */
-  [[nodiscard]] virtual IMetaData* MetaData();
+  [[nodiscard]] virtual IMetaData* CreateMetaData();
 
   /** \brief Returns meta data information object.
    *
@@ -195,7 +187,7 @@ class IHeader {
   /** \brief Returns a list of attachments.
    *
    * Returns a list of attachments in the measurement file.
-   * @return
+   * @return list of attachments
    */
   [[nodiscard]] virtual std::vector<IAttachment*> Attachments() const;
 

@@ -13,10 +13,10 @@
 #include "dg4block.h"
 #include "ev4block.h"
 #include "fh4block.h"
-#include "iblock.h"
 #include "md4block.h"
 #include "mdf/iheader.h"
 #include "mdf4timestamp.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
 
@@ -31,7 +31,7 @@ constexpr uint8_t kStartAngleValid = 0x01;
 constexpr uint8_t kStartDistanceValid = 0x02;
 }  // namespace Hd4Flags
 
-class Hd4Block : public IBlock, public IHeader {
+class Hd4Block : public MdfBlock, public IHeader {
  public:
   using Dg4List = std::vector<std::unique_ptr<Dg4Block>>;
   using Fh4List = std::vector<std::unique_ptr<Fh4Block>>;
@@ -42,7 +42,9 @@ class Hd4Block : public IBlock, public IHeader {
   Hd4Block();
 
   [[nodiscard]] int64_t Index() const override;
-
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Author(const std::string &author) override;
   [[nodiscard]] std::string Author() const override;
 
@@ -70,7 +72,7 @@ class Hd4Block : public IBlock, public IHeader {
   void StartTime(uint64_t ns_since_1970) override;
   [[nodiscard]] uint64_t StartTime() const override;
 
-  [[nodiscard]] IMetaData *MetaData() override;
+  [[nodiscard]] IMetaData *CreateMetaData() override;
   [[nodiscard]] const IMetaData *MetaData() const override;
 
   [[nodiscard]] IAttachment *CreateAttachment() override;
@@ -100,7 +102,7 @@ class Hd4Block : public IBlock, public IHeader {
 
   [[nodiscard]] const Ev4List &Ev4() const { return ev_list_; }
 
-  [[nodiscard]] const IBlock *Find(int64_t index) const override;
+  [[nodiscard]] const MdfBlock *Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList &dest) const override;
 
   size_t Read(std::FILE *file) override;

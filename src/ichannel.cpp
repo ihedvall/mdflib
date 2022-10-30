@@ -198,7 +198,7 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
     // | In[0] | In[1] |  <-- in_byte index
     //    <-- BitOffset() (0.7)
     //    <-- BitCount() number of bits
-    uint8_t in_offset = BitOffset(); // Bit inside 1 byte
+    uint8_t in_offset = static_cast<uint8_t>(BitOffset()); // Bit inside 1 byte
     size_t in_byte = ByteOffset();
     uint8_t out_offset = 0;
     size_t out_byte = 0;
@@ -906,7 +906,7 @@ void IChannel::ExtLimit(double min, double max) {}
 std::optional<std::pair<double, double>> IChannel::ExtLimit() const {
   return {};
 }
-
-
+IMetaData *IChannel::CreateMetaData() { return nullptr; }
+const IMetaData *IChannel::MetaData() const { return nullptr; }
 
 }  // end namespace mdf

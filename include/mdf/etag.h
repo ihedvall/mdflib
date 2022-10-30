@@ -15,6 +15,18 @@
 #include <vector>
 namespace mdf {
 
+
+enum class ETagDataType : uint8_t {
+  StringType = 0,
+  DecimalType = 1,
+  IntegerType = 2,
+  FloatType = 3,
+  BooleanType = 4,
+  DateType = 5,
+  TimeType = 6,
+  DateTimeType = 7
+};
+
 /** \class ETag etag.h "mdf/etag.h"
  * \brief Helper class for meta data items in an MDF file.
  *
@@ -80,12 +92,15 @@ class ETag {
    */
   [[nodiscard]] const std::string& UnitRef() const { return unit_ref_; }
 
+  void DataType(ETagDataType type);
+  [[nodiscard]] ETagDataType DataType() const;
+  
   /** \brief Data type of the value.
    *
    * The data type is default set to a string. Standard types are according to
    * the XML standard primitive types. Standard types are 'string', 'decimal',
    * 'integer', 'float', 'boolean', 'date', 'time' and 'dateTime'.
-   * @param type
+   * @param type Data type string
    */
   void Type(const std::string& type) { type_ = type; }
 

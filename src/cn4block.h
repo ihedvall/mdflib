@@ -18,10 +18,13 @@ class Cg4Block;
 
 class Cn4Block : public DataListBlock, public IChannel {
  public:
-  using Cx4List = std::vector<std::unique_ptr<IBlock>>;
+  using Cx4List = std::vector<std::unique_ptr<MdfBlock>>;
 
   Cn4Block();
   [[nodiscard]] int64_t Index() const override;
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
 
   void Name(const std::string& name) override;
   [[nodiscard]] std::string Name() const override;
@@ -55,11 +58,11 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] bool IsDecimalUsed() const override;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  [[nodiscard]] const IBlock* Find(int64_t index) const override;
+  [[nodiscard]] const MdfBlock* Find(int64_t index) const override;
   size_t Read(std::FILE* file) override;
   size_t Write(std::FILE* file) override;
 
-  void Init(const IBlock& id_block) override;
+  void Init(const MdfBlock& id_block) override;
 
   [[nodiscard]] const Cx4List& Cx4() const { return cx_list_; }
 
@@ -83,6 +86,12 @@ class Cn4Block : public DataListBlock, public IChannel {
   void ExtLimit(double min, double max) override;
   std::optional<std::pair<double, double>> ExtLimit() const override;
 
+  IMetaData *CreateMetaData() override {
+    return MdfBlock::CreateMetaData();
+  }
+  [[nodiscard]] const IMetaData *MetaData() const override {
+    return MdfBlock::MetaData();
+  }
 
  protected:
   size_t BitCount() const override;    ///< Returns number of bits in value.

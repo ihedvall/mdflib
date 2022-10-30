@@ -5,7 +5,7 @@
 #pragma once
 #include <vector>
 
-#include "iblock.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
 struct Dependency {
@@ -14,7 +14,7 @@ struct Dependency {
   uint32_t link_cn = 0;
 };
 
-class Cd3Block : public IBlock {
+class Cd3Block : public MdfBlock {
  public:
   size_t Read(std::FILE *file) override;
 

@@ -1181,7 +1181,7 @@ unsigned int float2half_impl(T value, ...) {
     value = std::ldexp(value, 12 - exp);
     hbits |= ((exp + 13) << 10);
   }
-  T ival, frac = std::modf(value, &ival);
+  T ival {}, frac = std::modf(value, &ival);
   int m = std::abs(static_cast<int>(ival));
   return rounded<R, false>(hbits + (m >> 1), m & 1, frac != T());
 }
@@ -5237,7 +5237,7 @@ inline HALF_CONSTEXPR bool isnan(half arg) {
 /// \retval true if normal number
 /// \retval false if either subnormal, zero, infinity or NaN
 inline HALF_CONSTEXPR bool isnormal(half arg) {
-  return ((arg.data_ & 0x7C00) != 0) & ((arg.data_ & 0x7C00) != 0x7C00);
+  return ((arg.data_ & 0x7C00) != 0) && ((arg.data_ & 0x7C00) != 0x7C00);
 }
 
 /// Check sign.

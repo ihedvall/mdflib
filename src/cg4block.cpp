@@ -106,7 +106,7 @@ const IChannel *Cg4Block::GetXChannel(const IChannel &reference) const {
 }
 
 void Cg4Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next CG", ToHexString(Link(kIndexNext)),
@@ -188,7 +188,7 @@ size_t Cg4Block::Write(std::FILE *file) {
   WriteMdComment(file, kIndexMd);
   // ToDo: Remote master handling
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, record_id_);
   bytes += WriteNumber(file, nof_samples_);
   bytes += WriteNumber(file, flags_);
@@ -208,7 +208,7 @@ void Cg4Block::ReadSrList(std::FILE *file) {
   ReadLink4List(file, sr_list_, kIndexSr);
 }
 
-const IBlock *Cg4Block::Find(int64_t index) const {
+const MdfBlock *Cg4Block::Find(int64_t index) const {
   if (si_block_) {
     const auto *p = si_block_->Find(index);
     if (p != nullptr) {
@@ -235,7 +235,7 @@ const IBlock *Cg4Block::Find(int64_t index) const {
     }
   }
 
-  return IBlock::Find(index);
+  return MdfBlock::Find(index);
 }
 
 size_t Cg4Block::ReadDataRecord(std::FILE *file,

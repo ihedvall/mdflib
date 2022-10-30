@@ -26,7 +26,7 @@ const Hd3Block::Dg3List &Hd3Block::Dg3() const { return dg_list_; }
 
 std::string Hd3Block::Comment() const { return comment_; }
 
-const IBlock *Hd3Block::Find(int64_t index) const {
+const MdfBlock *Hd3Block::Find(int64_t index) const {
   if (pr_block_) {
     const auto *p = pr_block_->Find(index);
     if (p != nullptr) {
@@ -42,11 +42,11 @@ const IBlock *Hd3Block::Find(int64_t index) const {
       return p;
     }
   }
-  return IBlock::Find(index);
+  return MdfBlock::Find(index);
 }
 
 void Hd3Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("First DG", ToHexString(Link(kIndexDg)),
@@ -158,7 +158,7 @@ size_t Hd3Block::Write(std::FILE *file) {
     link_list_.resize(3, 0);
   }
 
-  auto bytes = update ? IBlock::Update(file) : IBlock::Write(file);
+  auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
 
   nof_dg_blocks_ = static_cast<uint16_t>(dg_list_.size());
 

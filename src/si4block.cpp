@@ -67,7 +67,7 @@ std::string MakeFlagString(uint16_t flag) {
 namespace mdf::detail {
 
 void Si4Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), name_,
@@ -115,7 +115,7 @@ size_t Si4Block::Write(std::FILE *file) {
   WriteTx4(file, kIndexPath, path_);
   WriteMdComment(file, kIndexMd);
 
-  auto bytes = IBlock::Write(file);
+  auto bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, type_);
   bytes += WriteNumber(file, bus_type_);
   bytes += WriteNumber(file, flags_);
@@ -135,7 +135,7 @@ void Si4Block::Path(const std::string &path) { path_ = path; }
 const std::string &Si4Block::Path() const { return path_; }
 
 void Si4Block::Description(const std::string &desc) {
-  auto *metadata = MetaData();
+  auto *metadata = CreateMetaData();
   if (metadata != nullptr) {
     metadata->StringProperty("TX", desc);
   }
@@ -158,13 +158,12 @@ void Si4Block::Flags(uint8_t flags) { flags_ = flags; }
 
 uint8_t Si4Block::Flags() const { return flags_; }
 
-IMetaData *Si4Block::MetaData() {
-  CreateMd4Block();
-  return dynamic_cast<IMetaData *>(md_comment_.get());
+IMetaData *Si4Block::CreateMetaData() {
+  return MdfBlock::CreateMetaData();
 }
 
 const IMetaData *Si4Block::MetaData() const {
-  return !md_comment_ ? nullptr : dynamic_cast<IMetaData *>(md_comment_.get());
+  return MdfBlock::MetaData();
 }
 
 }  // namespace mdf::detail

@@ -5,19 +5,21 @@
 #include <vector>
 
 #include "cn3block.h"
-#include "iblock.h"
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
+#include "mdfblock.h"
 #include "sr3block.h"
 #include "tx3block.h"
 namespace mdf::detail {
-class Cg3Block : public IBlock, public IChannelGroup {
+class Cg3Block : public MdfBlock, public IChannelGroup {
  public:
   using Cn3List = std::vector<std::unique_ptr<Cn3Block>>;
   using Sr3List = std::vector<std::unique_ptr<Sr3Block>>;
 
   [[nodiscard]] int64_t Index() const override;
-
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Name(const std::string& name) override;
   [[nodiscard]] std::string Name() const override;
 
@@ -35,7 +37,7 @@ class Cg3Block : public IBlock, public IChannelGroup {
       const IChannel& reference) const override;
 
   [[nodiscard]] std::string Comment() const override;
-  const IBlock* Find(int64_t index) const override;
+  const MdfBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
   size_t Read(std::FILE* file) override;
   size_t Write(std::FILE* file) override;

@@ -40,7 +40,7 @@ void IDataGroup::ResetSample() const {
                         [](const auto *cg) { cg->ResetSample(); });
 }
 
-IMetaData *IDataGroup::MetaData() { return nullptr; }
+IMetaData *IDataGroup::CreateMetaData() { return nullptr; }
 
 const IMetaData *IDataGroup::MetaData() const { return nullptr; }
 

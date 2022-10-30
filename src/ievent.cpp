@@ -8,7 +8,7 @@
 namespace mdf {
 
 void IEvent::Description(const std::string& description) {
-  auto* metadata = MetaData();
+  auto* metadata = CreateMetaData();
   if (metadata != nullptr) {
     metadata->StringProperty("TX", description);
   }
@@ -20,7 +20,7 @@ std::string IEvent::Description() const {
 }
 
 void IEvent::PreTrig(double pre_trig) {
-  auto* metadata = MetaData();
+  auto* metadata = CreateMetaData();
   if (metadata != nullptr) {
     metadata->FloatProperty("pre_trigger_interval", pre_trig);
   }
@@ -33,7 +33,7 @@ double IEvent::PreTrig() const {
 }
 
 void IEvent::PostTrig(double post_trig) {
-  auto* metadata = MetaData();
+  auto* metadata = CreateMetaData();
   if (metadata != nullptr) {
     metadata->FloatProperty("post_trigger_interval", post_trig);
   }

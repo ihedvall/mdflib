@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include "iblock.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
-class Tx3Block : public IBlock {
+class Tx3Block : public MdfBlock {
  public:
   explicit Tx3Block(const std::string &text);
   Tx3Block() = default;

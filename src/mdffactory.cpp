@@ -9,6 +9,7 @@
 #include "mdf3writer.h"
 #include "mdf4file.h"
 #include "mdf4writer.h"
+#include "mdf/mdflogstream.h"
 
 using namespace mdf::detail;
 
@@ -57,4 +58,9 @@ std::unique_ptr<MdfFile> MdfFactory::CreateMdfFile(MdfFileType type) {
   }
   return file;
 }
+
+void MdfFactory::SetLogFunction2(const MdfLogFunction2& func) {
+  MdfLogStream::SetLogFunction2(func);
+}
+
 }  // namespace mdf

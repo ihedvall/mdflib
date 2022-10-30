@@ -94,7 +94,7 @@ bool Deflate(const std::string& filename, ByteArray& buf_out) {
       buf_out.resize(buf_in.size(), 0);
     }
     return Deflate(buf_in, buf_out);
-  } catch (const std::exception& err) {
+  } catch (const std::exception& ) {
   }
   return false;
 }

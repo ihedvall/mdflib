@@ -5,6 +5,8 @@
 
 #pragma once
 #include <cstdint>
+#include "mdf/iblock.h"
+
 namespace mdf {
 
 enum class ArrayType : uint8_t {
@@ -33,9 +35,8 @@ constexpr uint32_t LeftOpenInterval = 0x0080;
 constexpr uint32_t StandardAxis = 0x0100;
 }  // namespace CaFlag
 
-class IChannelArray {
+class IChannelArray : public IBlock {
  public:
-  [[nodiscard]] virtual int64_t Index() const = 0;
 
   virtual void Type(ArrayType type) = 0;
   [[nodiscard]] virtual ArrayType Type() const = 0;

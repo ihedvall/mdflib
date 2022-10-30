@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include "iblock.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
-class IdBlock : public IBlock {
+class IdBlock : public MdfBlock {
  public:
   IdBlock();
   void GetBlockProperty(BlockPropertyList &dest) const override;
@@ -37,9 +37,9 @@ class IdBlock : public IBlock {
   std::string format_identifier_ = "4.20";
   std::string program_identifier_ = "MdfWrite";
   /* uint16_t byte_order_ = 0; Default 0 = Little endian (Intel byte order).
-   * Defined in IBlock class. */
+   * Defined in MdfBlock class. */
   uint16_t floating_point_format_ = 0;  ///< Default IEEE standard
-  /* uint16_t version_ = 420;   Defined in IBlock class. */
+  /* uint16_t version_ = 420;   Defined in MdfBlock class. */
   uint16_t code_page_number_ = 0;
   /* 2 byte reserved */
   /* 26 byte reserved */

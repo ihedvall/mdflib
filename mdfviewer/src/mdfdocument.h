@@ -3,14 +3,16 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <memory>
-#include <wx/wx.h>
 #include <wx/docview.h>
-#include "mdf/mdfreader.h"
+#include <wx/wx.h>
+
+#include <memory>
+
 #include "mdf/mdffile.h"
-#include "iblock.h"
+#include "mdf/mdfreader.h"
 #include "mdf3file.h"
 #include "mdf4file.h"
+#include "mdfblock.h"
 
 namespace mdf::viewer {
 
@@ -46,7 +48,7 @@ class MdfDocument : public wxDocument {
     return grand_parent_id_;
   }
 
-  [[nodiscard]] const mdf::detail::IBlock* GetBlock(int64_t id) const; ///< Returns a block pointer by block index.
+  [[nodiscard]] const mdf::detail::MdfBlock* GetBlock(int64_t id) const; ///< Returns a block pointer by block index.
 
  private:
   std::unique_ptr<mdf::MdfReader> reader_;

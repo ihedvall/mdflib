@@ -12,7 +12,7 @@ namespace mdf::detail {
 class Dg3Block;
 class Dt3Block : public DataBlock {
  public:
-  void Init(const IBlock &id_block) override;
+  void Init(const MdfBlock &id_block) override;
   void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;

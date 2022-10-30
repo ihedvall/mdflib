@@ -20,7 +20,7 @@ std::string MakeFlagString(uint8_t flag) {
 namespace mdf::detail {
 
 void Dl4Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next DL", ToHexString(Link(kIndexNext)),

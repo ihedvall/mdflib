@@ -60,7 +60,7 @@ ChannelObserverPtr CreateChannelObserver(const IDataGroup &data_group,
                                          const IChannelGroup &group,
                                          const IChannel &channel) {
   std::unique_ptr<IChannelObserver> observer;
-  const uint32_t bytes = channel.DataBytes();
+  const auto bytes = channel.DataBytes();
 
   switch (channel.DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
@@ -388,6 +388,11 @@ bool MdfReader::ReadData(const IDataGroup &data_group) {
     Close();
   }
   return no_error;
+}
+
+const IHeader* MdfReader::GetHeader() const {
+  const auto *file = GetFile();
+  return file != nullptr ? file->Header() : nullptr;
 }
 
 const IDataGroup *MdfReader::GetDataGroup(size_t order) const {

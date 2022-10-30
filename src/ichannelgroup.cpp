@@ -36,5 +36,7 @@ ISourceInformation *IChannelGroup::CreateSourceInformation() { return nullptr; }
 const ISourceInformation *IChannelGroup::SourceInformation() const {
   return nullptr;
 }
+IMetaData *IChannelGroup::CreateMetaData() { return nullptr; }
+const IMetaData *IChannelGroup::MetaData() const { return nullptr; }
 
 }  // namespace mdf

@@ -123,7 +123,7 @@ ChannelType Cn3Block::Type() const {
 }
 
 size_t Cn3Block::DataBytes() const {
-  return (nof_bits_ / 8) + (nof_bits_ % 8 > 0 ? 1 : 0);
+  return (static_cast<size_t>(nof_bits_) / 8) + (nof_bits_ % 8 > 0 ? 1 : 0);
 }
 
 uint8_t Cn3Block::Decimals() const {
@@ -152,7 +152,7 @@ std::string Cn3Block::Unit() const {
 }
 
 void Cn3Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next CN", ToHexString(Link(kIndexNext)),
@@ -278,7 +278,7 @@ size_t Cn3Block::Write(std::FILE *file) {
     }
   }
 
-  size_t bytes = update ? block_size_ : IBlock::Write(file);
+  size_t bytes = update ? block_size_ : MdfBlock::Write(file);
   if (!update) {
     bytes += WriteNumber(file, channel_type_);
     bytes += WriteStr(file, short_name_, 32);
@@ -323,7 +323,7 @@ size_t Cn3Block::Write(std::FILE *file) {
 size_t Cn3Block::BitCount() const { return nof_bits_; }
 size_t Cn3Block::BitOffset() const { return start_offset_ % 8; }
 size_t Cn3Block::ByteOffset() const {
-  return (start_offset_ / 8) + byte_offset_;
+  return (static_cast<size_t>(start_offset_) / 8) + byte_offset_;
 }
 
 void Cn3Block::ByteOffset(uint16_t byte_offset) {
@@ -338,7 +338,7 @@ void Cn3Block::ByteOffset(uint16_t byte_offset) {
 
 std::string Cn3Block::Comment() const { return comment_; }
 
-const IBlock *Cn3Block::Find(int64_t index) const {
+const MdfBlock *Cn3Block::Find(int64_t index) const {
   if (cc_block_) {
     const auto *p = cc_block_->Find(index);
     if (p != nullptr) {
@@ -463,7 +463,7 @@ void Cn3Block::DataType(ChannelDataType type) {
 }
 
 void Cn3Block::DataBytes(size_t nof_bytes) {
-  nof_bits_ = nof_bytes * 8;
+  nof_bits_ = static_cast<uint16_t>(nof_bytes * 8);
   if (nof_bytes == 8 &&
       (signal_type_ == 2 || signal_type_ == 11 || signal_type_ == 15)) {
     ++signal_type_;  // Making it a double type instead.
@@ -484,8 +484,8 @@ std::vector<uint8_t> &Cn3Block::SampleBuffer() const {
   return cg3_block->SampleBuffer();
 }
 
-void Cn3Block::Init(const IBlock &id_block) {
-  IBlock::Init(id_block);
+void Cn3Block::Init(const MdfBlock &id_block) {
+  MdfBlock::Init(id_block);
   cg3_block = dynamic_cast<const Cg3Block *>(&id_block);
 }
 

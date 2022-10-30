@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include "iblock.h"
 #include "mdf/iattachment.h"
 #include "mdf/ievent.h"
+#include "mdfblock.h"
 
 namespace mdf::detail {
 class Hd4Block;
 
-class Ev4Block : public IBlock, public IEvent {
+class Ev4Block : public MdfBlock, public IEvent {
  public:
   Ev4Block();
 
@@ -20,7 +20,9 @@ class Ev4Block : public IBlock, public IEvent {
   void FindReferencedBlocks(const Hd4Block &hd4);
 
   [[nodiscard]] int64_t Index() const override;
-
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Name(const std::string &name) override;
   [[nodiscard]] const std::string &Name() const override;
 
@@ -60,7 +62,7 @@ class Ev4Block : public IBlock, public IEvent {
   void AddAttachment(const IAttachment *attachment) override;
   [[nodiscard]] const std::vector<const IAttachment *> &Attachments()
       const override;
-  IMetaData *MetaData() override;
+  IMetaData *CreateMetaData() override;
   [[nodiscard]] const IMetaData *MetaData() const override;
 
  private:
@@ -78,7 +80,7 @@ class Ev4Block : public IBlock, public IEvent {
 
   const IEvent *parent_event_ = nullptr;
   const IEvent *range_event_ = nullptr;
-  std::vector<const void *> scope_list_;  ///< List of IBlock pointers
+  std::vector<const void *> scope_list_;  ///< List of MdfBlock pointers
   std::vector<const IAttachment *> attachment_list_;
 
   std::string name_;

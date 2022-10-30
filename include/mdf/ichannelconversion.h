@@ -9,6 +9,9 @@
 #include <vector>
 
 #include "mdf/mdfhelper.h"
+#include "mdf/iblock.h"
+#include "mdf/imetadata.h"
+
 namespace mdf {
 
 enum class ConversionType : uint8_t {
@@ -35,10 +38,10 @@ enum class ConversionType : uint8_t {
 namespace CcFlag {
 constexpr uint16_t PrecisionValid = 0x0001;
 constexpr uint16_t RangeValid = 0x0002;
-constexpr uint16_t StatusString = 0x0002;
+constexpr uint16_t StatusString = 0x0004;
 }  // namespace CcFlag
 
-class IChannelConversion {
+class IChannelConversion : public IBlock {
  protected:
   uint16_t nof_values_ = 0;
   std::vector<double> value_list_;
@@ -73,8 +76,8 @@ class IChannelConversion {
                                   double& eng_value) const;
 
  public:
-  [[nodiscard]] virtual int64_t Index() const = 0;
-
+  ~IChannelConversion() override = default;
+  
   virtual void Name(const std::string& name);
   [[nodiscard]] virtual std::string Name() const;
 
@@ -101,216 +104,231 @@ class IChannelConversion {
   virtual void Flags(uint16_t flags);
   [[nodiscard]] virtual uint16_t Flags() const;
 
+  [[nodiscard]] virtual IMetaData* CreateMetaData();
+  [[nodiscard]] virtual const IMetaData* MetaData() const;
+
   void Parameter(size_t index, double parameter);
 
   void ChannelDataType(uint8_t channel_data_type);
 
   template <typename T, typename V>
-  bool Convert(const T& channel_value, V& eng_value) const {
-    bool valid = false;
-    double value = 0.0;
-    switch (Type()) {
-      case ConversionType::Linear: {
-        valid = ConvertLinear(static_cast<double>(channel_value), value);
-        eng_value = static_cast<V>(value);
-        break;
-      }
-
-      case ConversionType::Rational: {
-        valid = ConvertRational(static_cast<double>(channel_value), value);
-        eng_value = static_cast<V>(value);
-        break;
-      }
-
-      case ConversionType::Algebraic: {
-        valid = ConvertAlgebraic(static_cast<double>(channel_value), value);
-        eng_value = static_cast<V>(value);
-        break;
-      }
-
-      case ConversionType::ValueToValueInterpolation: {
-        valid = ConvertValueToValueInterpolate(
-            static_cast<double>(channel_value), value);
-        eng_value = static_cast<V>(value);
-        break;
-      }
-
-      case ConversionType::ValueToValue: {
-        valid = ConvertValueToValue(static_cast<double>(channel_value), value);
-        eng_value = static_cast<V>(value);
-        break;
-      }
-
-      case ConversionType::ValueRangeToValue: {
-        valid =
-            ConvertValueRangeToValue(static_cast<double>(channel_value), value);
-        eng_value = static_cast<V>(value);
-        break;
-      }
-
-      case ConversionType::ValueToText: {
-        std::string text;
-        valid = ConvertValueToText(static_cast<double>(channel_value), text);
-        std::istringstream s(text);
-        s >> eng_value;
-        break;
-      }
-
-      case ConversionType::ValueRangeToText: {
-        std::string text;
-        valid =
-            ConvertValueRangeToText(static_cast<double>(channel_value), text);
-        std::istringstream s(text);
-        s >> eng_value;
-        break;
-      }
-
-      case ConversionType::Polynomial: {
-        valid = ConvertPolynomial(static_cast<double>(channel_value), value);
-        eng_value = static_cast<V>(value);
-        break;
-      }
-
-      case ConversionType::Exponential: {
-        valid = ConvertExponential(static_cast<double>(channel_value), value);
-        eng_value = static_cast<V>(value);
-        break;
-      }
-
-      case ConversionType::Logarithmic: {
-        valid = ConvertLogarithmic(static_cast<double>(channel_value), value);
-        eng_value = static_cast<V>(value);
-        break;
-      }
-      case ConversionType::NoConversion:
-      default: {
-        eng_value = static_cast<V>(channel_value);
-        valid = true;
-        break;
-      }
-    }
-    return valid;
-  }
+  bool Convert(const T& channel_value, V& eng_value) const;
 
   template <typename T, typename V = std::string>
-  bool Convert(const T& channel_value, std::string& eng_value) const {
-    bool valid = false;
-    double value = 0.0;
-    switch (Type()) {
-      case ConversionType::Linear: {
-        valid = ConvertLinear(static_cast<double>(channel_value), value);
-        eng_value =
-            MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
-        break;
-      }
-
-      case ConversionType::Rational: {
-        valid = ConvertRational(static_cast<double>(channel_value), value);
-        eng_value =
-            MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
-        break;
-      }
-
-      case ConversionType::Algebraic: {
-        valid = ConvertAlgebraic(static_cast<double>(channel_value), value);
-        eng_value =
-            MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
-        break;
-      }
-
-      case ConversionType::ValueToValueInterpolation: {
-        valid = ConvertValueToValueInterpolate(
-            static_cast<double>(channel_value), value);
-        eng_value =
-            MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
-        break;
-      }
-
-      case ConversionType::ValueToValue: {
-        valid = ConvertValueToValue(static_cast<double>(channel_value), value);
-        eng_value =
-            MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
-        break;
-      }
-
-      case ConversionType::ValueRangeToValue: {
-        valid =
-            ConvertValueRangeToValue(static_cast<double>(channel_value), value);
-        eng_value =
-            MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
-        break;
-      }
-
-      case ConversionType::ValueToText: {
-        valid =
-            ConvertValueToText(static_cast<double>(channel_value), eng_value);
-        break;
-      }
-
-      case ConversionType::ValueRangeToText: {
-        valid = ConvertValueRangeToText(static_cast<double>(channel_value),
-                                        eng_value);
-        break;
-      }
-
-      case ConversionType::Polynomial: {
-        valid = ConvertPolynomial(static_cast<double>(channel_value), value);
-        eng_value =
-            MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
-        ;
-        break;
-      }
-
-      case ConversionType::Exponential: {
-        valid = ConvertExponential(static_cast<double>(channel_value), value);
-        eng_value =
-            MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
-        ;
-        break;
-      }
-
-      case ConversionType::Logarithmic: {
-        valid = ConvertLogarithmic(static_cast<double>(channel_value), value);
-        eng_value =
-            MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
-        ;
-        break;
-      }
-
-      case ConversionType::NoConversion:
-      default: {
-        eng_value = MdfHelper::FormatDouble(static_cast<double>(channel_value),
-                                            IsDecimalUsed() ? Decimals() : 6);
-        valid = true;
-        break;
-      }
-    }
-    return valid;
-  }
+  bool Convert(const T& channel_value, std::string& eng_value) const;
 
   template <typename T = std::string, typename V = double>
-  bool Convert(const std::string& channel_value, double& eng_value) const {
-    if (Type() == ConversionType::TextToValue) {
-      ConvertTextToValue(channel_value, eng_value);
-    } else if (Type() == ConversionType::NoConversion) {
-      eng_value = std::stod(channel_value);
-    } else {
-      return false;
-    }
-    return true;
-  }
+  bool Convert(const std::string& channel_value, double& eng_value) const;
 
   template <typename T = std::string, typename V = std::string>
   bool Convert(const std::string& channel_value, std::string& eng_value) const {
     if (Type() == ConversionType::TextToTranslation) {
       ConvertTextToTranslation(channel_value, eng_value);
     } else if (Type() == ConversionType::NoConversion) {
-      eng_value = std::stod(channel_value);
+      eng_value = channel_value;
     } else {
       return false;
     }
     return true;
   }
 };
+
+template <typename T, typename V>
+inline bool IChannelConversion::Convert(const T& channel_value,
+  V& eng_value) const {
+  bool valid = false;
+  double value = 0.0;
+  switch (Type()) {
+    case ConversionType::Linear: {
+      valid = ConvertLinear(static_cast<double>(channel_value), value);
+      eng_value = static_cast<V>(value);
+      break;
+    }
+
+    case ConversionType::Rational: {
+      valid = ConvertRational(static_cast<double>(channel_value), value);
+      eng_value = static_cast<V>(value);
+      break;
+    }
+
+    case ConversionType::Algebraic: {
+      valid = ConvertAlgebraic(static_cast<double>(channel_value), value);
+      eng_value = static_cast<V>(value);
+      break;
+    }
+
+    case ConversionType::ValueToValueInterpolation: {
+      valid = ConvertValueToValueInterpolate(
+          static_cast<double>(channel_value), value);
+      eng_value = static_cast<V>(value);
+      break;
+    }
+
+    case ConversionType::ValueToValue: {
+      valid = ConvertValueToValue(static_cast<double>(channel_value), value);
+      eng_value = static_cast<V>(value);
+      break;
+    }
+
+    case ConversionType::ValueRangeToValue: {
+      valid =
+          ConvertValueRangeToValue(static_cast<double>(channel_value), value);
+      eng_value = static_cast<V>(value);
+      break;
+    }
+
+    case ConversionType::ValueToText: {
+      std::string text;
+      valid = ConvertValueToText(static_cast<double>(channel_value), text);
+      std::istringstream s(text);
+      s >> eng_value;
+      break;
+    }
+
+    case ConversionType::ValueRangeToText: {
+      std::string text;
+      valid =
+          ConvertValueRangeToText(static_cast<double>(channel_value), text);
+      std::istringstream s(text);
+      s >> eng_value;
+      break;
+    }
+
+    case ConversionType::Polynomial: {
+      valid = ConvertPolynomial(static_cast<double>(channel_value), value);
+      eng_value = static_cast<V>(value);
+      break;
+    }
+
+    case ConversionType::Exponential: {
+      valid = ConvertExponential(static_cast<double>(channel_value), value);
+      eng_value = static_cast<V>(value);
+      break;
+    }
+
+    case ConversionType::Logarithmic: {
+      valid = ConvertLogarithmic(static_cast<double>(channel_value), value);
+      eng_value = static_cast<V>(value);
+      break;
+    }
+    case ConversionType::NoConversion:
+    default: {
+      eng_value = static_cast<V>(channel_value);
+      valid = true;
+      break;
+    }
+  }
+  return valid;
+}
+
+template <typename T, typename V>
+inline bool IChannelConversion::Convert(const T& channel_value,
+    std::string& eng_value) const {
+  bool valid = false;
+  double value = 0.0;
+  switch (Type()) {
+    case ConversionType::Linear: {
+      valid = ConvertLinear(static_cast<double>(channel_value), value);
+      eng_value =
+          MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+      break;
+    }
+
+    case ConversionType::Rational: {
+      valid = ConvertRational(static_cast<double>(channel_value), value);
+      eng_value =
+          MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+      break;
+    }
+
+    case ConversionType::Algebraic: {
+      valid = ConvertAlgebraic(static_cast<double>(channel_value), value);
+      eng_value =
+          MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+      break;
+    }
+
+    case ConversionType::ValueToValueInterpolation: {
+      valid = ConvertValueToValueInterpolate(
+          static_cast<double>(channel_value), value);
+      eng_value =
+          MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+      break;
+    }
+
+    case ConversionType::ValueToValue: {
+      valid = ConvertValueToValue(static_cast<double>(channel_value), value);
+      eng_value =
+          MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+      break;
+    }
+
+    case ConversionType::ValueRangeToValue: {
+      valid =
+          ConvertValueRangeToValue(static_cast<double>(channel_value), value);
+      eng_value =
+          MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+      break;
+    }
+
+    case ConversionType::ValueToText: {
+      valid =
+          ConvertValueToText(static_cast<double>(channel_value), eng_value);
+      break;
+    }
+
+    case ConversionType::ValueRangeToText: {
+      valid = ConvertValueRangeToText(static_cast<double>(channel_value),
+                                      eng_value);
+      break;
+    }
+
+    case ConversionType::Polynomial: {
+      valid = ConvertPolynomial(static_cast<double>(channel_value), value);
+      eng_value =
+          MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+      ;
+      break;
+    }
+
+    case ConversionType::Exponential: {
+      valid = ConvertExponential(static_cast<double>(channel_value), value);
+      eng_value =
+          MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+      ;
+      break;
+    }
+
+    case ConversionType::Logarithmic: {
+      valid = ConvertLogarithmic(static_cast<double>(channel_value), value);
+      eng_value =
+          MdfHelper::FormatDouble(value, IsDecimalUsed() ? Decimals() : 6);
+      ;
+      break;
+    }
+
+    case ConversionType::NoConversion:
+    default: {
+      eng_value = MdfHelper::FormatDouble(static_cast<double>(channel_value),
+                                          IsDecimalUsed() ? Decimals() : 6);
+      valid = true;
+      break;
+    }
+  }
+  return valid;
+}
+
+template <typename T, typename V>
+bool IChannelConversion::Convert(const std::string& channel_value,
+    double& eng_value) const {
+  if (Type() == ConversionType::TextToValue) {
+    ConvertTextToValue(channel_value, eng_value);
+  } else if (Type() == ConversionType::NoConversion) {
+    eng_value = std::stod(channel_value);
+  } else {
+    return false;
+  }
+  return true;
+}
 
 }  // namespace mdf

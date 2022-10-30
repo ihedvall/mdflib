@@ -3,14 +3,16 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include "iblock.h"
 #include "mdf/isourceinformation.h"
+#include "mdfblock.h"
 namespace mdf::detail {
 
-class Si4Block : public IBlock, public ISourceInformation {
+class Si4Block : public MdfBlock, public ISourceInformation {
  public:
   [[nodiscard]] int64_t Index() const override;
-
+  [[nodiscard]] std::string BlockType() const override {
+    return MdfBlock::BlockType();
+  }
   void Name(const std::string &name) override;
   [[nodiscard]] const std::string &Name() const override;
 
@@ -29,7 +31,7 @@ class Si4Block : public IBlock, public ISourceInformation {
   void Flags(uint8_t flags) override;
   [[nodiscard]] uint8_t Flags() const override;
 
-  IMetaData *MetaData() override;
+  IMetaData *CreateMetaData() override;
   [[nodiscard]] const IMetaData *MetaData() const override;
 
   void GetBlockProperty(BlockPropertyList &dest) const override;

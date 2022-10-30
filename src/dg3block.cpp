@@ -13,7 +13,7 @@ constexpr size_t kIndexData = 3;
 }  // namespace
 namespace mdf::detail {
 
-const IBlock *Dg3Block::Find(int64_t index) const {
+const MdfBlock *Dg3Block::Find(int64_t index) const {
   if (tr_block_) {
     const auto *pos = tr_block_->Find(index);
     if (pos != nullptr) {
@@ -33,7 +33,7 @@ const IBlock *Dg3Block::Find(int64_t index) const {
 }
 
 void Dg3Block::GetBlockProperty(BlockPropertyList &dest) const {
-  IBlock::GetBlockProperty(dest);
+  MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Next DG", ToHexString(Link(kIndexNext)),
@@ -96,7 +96,7 @@ size_t Dg3Block::Write(std::FILE *file) {
     link_list_.resize(4, 0);
   }
 
-  size_t bytes = update ? IBlock::Update(file) : IBlock::Write(file);
+  size_t bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
   bytes += WriteNumber(file, nof_cg_blocks_);
   bytes += WriteNumber(file, nof_record_id_);
   const std::vector<uint8_t> reserved(4, 0);

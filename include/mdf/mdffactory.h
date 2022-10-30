@@ -4,7 +4,7 @@
  */
 #pragma once
 #include <functional>
-
+#include <cstdint>
 namespace mdf {
 
 enum class MdfWriterType : int { Mdf3Basic = 0, Mdf4Basic = 1 };

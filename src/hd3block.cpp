@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <ranges>
 
 #include "pr3block.h"
 

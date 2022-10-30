@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 #include "mdf4file.h"
-
+#include <ranges>
 #include "mdf/mdflogstream.h"
 
 namespace mdf::detail {

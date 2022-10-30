@@ -17,6 +17,7 @@
 #include "mdf/ifilehistory.h"
 #include "mdf/mdffactory.h"
 #include "mdf/mdfreader.h"
+#include "mdf/mdfwriter.h"
 #include "util/logconfig.h"
 #include "util/logstream.h"
 #include "util/timestamp.h"

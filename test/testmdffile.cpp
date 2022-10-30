@@ -8,6 +8,7 @@
 
 #include "mdf/imetadata.h"
 #include "mdf/mdffactory.h"
+#include "mdf/mdffile.h"
 
 namespace {
 constexpr std::string_view kFileName = "c:/olle.dat";

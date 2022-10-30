@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <cstring>
-
+#include <ranges>
 #include "mdf/mdfhelper.h"
 #include "xmlnode.h"
 

@@ -5,6 +5,7 @@
 #include "dg4block.h"
 
 #include <stdexcept>
+#include <ranges>
 
 #include "dl4block.h"
 #include "dt4block.h"

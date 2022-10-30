@@ -5,7 +5,7 @@
 #include "mdf/idatagroup.h"
 
 #include <algorithm>
-
+#include <ranges>
 namespace mdf {
 
 void IDataGroup::AttachSampleObserver(ISampleObserver *observer) const {

@@ -5,6 +5,8 @@
 #include "dg3block.h"
 
 #include <algorithm>
+#include <ranges>
+
 namespace {
 constexpr size_t kIndexNext = 0;
 constexpr size_t kIndexCg = 1;

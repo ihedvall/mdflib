@@ -5,6 +5,9 @@
 #pragma once
 #include <functional>
 #include <cstdint>
+#include <string>
+#include <memory>
+
 namespace mdf {
 
 enum class MdfWriterType : int { Mdf3Basic = 0, Mdf4Basic = 1 };
@@ -26,8 +29,10 @@ enum class MdfLogSeverity : uint8_t {
 
 using MdfLogFunction2 = std::function<void(MdfLogSeverity severity,
   const std::string& function, const std::string& text)>;
+
 class MdfWriter;
 class MdfFile;
+
 class MdfFactory {
  public:
   static std::unique_ptr<MdfWriter> CreateMdfWriter(MdfWriterType type);

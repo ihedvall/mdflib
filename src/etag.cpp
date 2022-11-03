@@ -24,6 +24,11 @@ template <>
          value_[0] == 'y' || value_[0] == '1';
 }
 
+template <>
+[[nodiscard]] std::string ETag::Value() const {
+  return value_;
+}
+
 void ETag::DataType(ETagDataType type) {
   switch (type) {
     case ETagDataType::DecimalType:

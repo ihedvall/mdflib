@@ -9,6 +9,10 @@ using namespace msclr::interop;
 
 namespace MdfLibrary {
 
+int64_t MdfDataGroup::Index::get() {
+  return group_ != nullptr ? group_->Index() : 0; 
+}
+
 String^ MdfDataGroup::Description::get() {
   const auto temp = group_ != nullptr ?
   group_->Description() : std::string();
@@ -64,7 +68,7 @@ MdfMetaData^ MdfDataGroup::CreateMetaData() {
   return gcnew MdfMetaData(temp);  
 }
 
-bool MdfDataGroup::IsRead() {
+bool MdfDataGroup::IsRead::get() {
   return group_ != nullptr ? group_->IsRead() : false;
 }
 

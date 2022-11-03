@@ -38,15 +38,13 @@ public:
   }
   property array<MdfEvent^>^ Events { array<MdfEvent^>^ get(); }
   property array<MdfDataGroup^>^ DataGroups { array<MdfDataGroup^>^ get(); }
-
+  property bool IsStartAngleUsed { bool get(); }
+  property bool IsStartDistanceUsed { bool get(); }
+  property MdfDataGroup^ LastDataGroup { MdfDataGroup^ get(); }  
   MdfAttachment^ CreateAttachment();
   MdfFileHistory^ CreateFileHistory();
-  MdfEvent^ CreateEvent();
+  MdfEvent^ CreateMdfEvent();
   MdfDataGroup^ CreateDataGroup();
-  MdfDataGroup^ LastDataGroup();
-
-  bool IsStartAngleUsed();
-  bool IsStartDistanceUsed();
   
 private:
   MdfHeader() {};

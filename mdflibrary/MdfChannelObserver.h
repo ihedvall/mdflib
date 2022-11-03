@@ -23,11 +23,17 @@ public:
 
   bool IsMaster();
   
-  template <class T>
-  bool GetChannelValue(size_t sample, T% value);
-  
-  template <class T>
-  bool GetEngValue(size_t sample, T% value);
+  bool GetChannelValueAsUnsigned(size_t sample, uint64_t% value);
+  bool GetChannelValueAsSigned(size_t sample, int64_t% value);
+  bool GetChannelValueAsFloat(size_t sample, double% value);  
+  bool GetChannelValueAsString(size_t sample, String^% value);    
+  bool GetChannelValueAsArray(size_t sample,  array<Byte>^% value);
+
+   bool GetEngValueAsUnsigned(size_t sample, uint64_t% value);
+   bool GetEngValueAsSigned(size_t sample, int64_t% value);
+   bool GetEngValueAsFloat(size_t sample, double% value);  
+   bool GetEngValueAsString(size_t sample, String^% value);    
+   bool GetEngValueAsArray(size_t sample,  array<Byte>^% value);
   
 protected:
   !MdfChannelObserver();
@@ -39,37 +45,4 @@ internal:
   MdfChannelObserver(mdf::IChannelObserver *observer);
 };
 
-template <class T>
-inline bool MdfChannelObserver::GetChannelValue(size_t sample, T% value) {
-  if (observer_ == nullptr ) {
-    return false;
-  }
-  T temp {};
-  const auto valid = observer_->GetChannelValue(sample, temp);
-  value = temp;
-  return valid;
-}
-
-template <>
-bool MdfChannelObserver::GetChannelValue(size_t sample, String^% value);
-
-template <>
-bool MdfChannelObserver::GetChannelValue(size_t sample, array<Byte>^% value);
-
-template <class T>
-inline bool MdfChannelObserver::GetEngValue(size_t sample, T% value) {
-  if (observer_ == nullptr ) {
-    return false;
-  }
-  T temp {};
-  const auto valid = observer_->GetEngValue(sample, temp);
-  value = temp;
-  return valid;
-}
-
-template <>
-bool MdfChannelObserver::GetEngValue(size_t sample, String^% value);
-
-template <>
-bool MdfChannelObserver::GetEngValue(size_t sample, array<Byte>^% value);
 }

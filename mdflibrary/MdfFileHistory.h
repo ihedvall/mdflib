@@ -19,8 +19,8 @@ public:
   }
   property String^ Description { String^ get(); void set(String^ desc); }
   property String^ ToolName { String^ get(); void set(String^ name); }
-  property String^ TooVendor { String^ get(); void set(String^ vendor); }
-  property String^ TooVersion { String^ get(); void set(String^ version); }
+  property String^ ToolVendor { String^ get(); void set(String^ vendor); }
+  property String^ ToolVersion { String^ get(); void set(String^ version); }
   property String^ UserName { String^ get(); void set(String^ user); }
 private:
   MdfFileHistory() {}

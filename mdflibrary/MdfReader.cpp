@@ -54,13 +54,13 @@ MdfHeader^ MdfReader::Header::get() {
    return header != nullptr ? gcnew MdfHeader(header) : nullptr; 
 }
 
-MdfDataGroup^ MdfReader::DataGroup::get(unsigned long long index) {
+MdfDataGroup^ MdfReader::DataGroup::get(size_t index) {
    auto* data_group = reader_ != nullptr ?
      const_cast<mdf::IDataGroup*>(reader_->GetDataGroup(index)) : nullptr;
    return data_group != nullptr ? gcnew MdfDataGroup(data_group) : nullptr;   
 }
 
-bool MdfReader::IsOk() {
+bool MdfReader::IsOk::get() {
   return reader_ != nullptr ? reader_->IsOk() : false;
 }
 

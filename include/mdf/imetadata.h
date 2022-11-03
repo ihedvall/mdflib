@@ -87,7 +87,13 @@ class IMetaData : public IBlock {
    * @return All common properties.
    */
   [[nodiscard]] std::vector<ETag> CommonProperties() const;
-
+  
+  /** \brief Returns all properties without children
+   *
+   * @return All properties.
+   */
+  [[nodiscard]] std::vector<ETag> Properties() const;
+  
   /** \brief Stores the XML as a string..
    *
    * @param text The XML string.

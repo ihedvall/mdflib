@@ -47,6 +47,20 @@ void MdfMetaData::PropertyAsFloat::set(String^ index, double prop) {
   }  
 }
 
+array<MdfETag^>^ MdfMetaData::Properties::get() {
+  if (meta_data_ == nullptr) {
+    return gcnew array<MdfETag^>(0);    
+  }
+  const auto list = meta_data_->Properties();
+  array<MdfETag^>^ temp_list =
+    gcnew array<MdfETag^>(static_cast<int>(list.size()));
+  for (size_t index = 0; index < list.size(); ++index) {
+    const auto& temp = list[index];
+    temp_list[static_cast<int>(index)] = gcnew MdfETag(temp);
+  }
+  return temp_list;
+}
+
 array<MdfETag^>^ MdfMetaData::CommonProperties::get() {
   if (meta_data_ == nullptr) {
     return gcnew array<MdfETag^>(0);    

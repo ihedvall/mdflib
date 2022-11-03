@@ -59,13 +59,13 @@ void MdfFileHistory::ToolName::set(String^ name) {
   }
 }
 
-String^ MdfFileHistory::TooVendor::get() {
+String^ MdfFileHistory::ToolVendor::get() {
   const auto temp = history_ != nullptr ?
     history_->ToolVendor() : std::string();
   return gcnew String( temp.c_str()); 
 }
 
-void MdfFileHistory::TooVendor::set(String^ vendor) {
+void MdfFileHistory::ToolVendor::set(String^ vendor) {
   const auto temp = String::IsNullOrEmpty(vendor) ?
     std::string() : marshal_as<std::string>(vendor);
   if (history_ != nullptr) {
@@ -73,13 +73,13 @@ void MdfFileHistory::TooVendor::set(String^ vendor) {
   }  
 }
 
-String^ MdfFileHistory::TooVersion::get() {
+String^ MdfFileHistory::ToolVersion::get() {
   const auto temp = history_ != nullptr ?
     history_->ToolVersion() : std::string();
   return gcnew String( temp.c_str());   
 }
 
-void MdfFileHistory::TooVersion::set(String^ version) {
+void MdfFileHistory::ToolVersion::set(String^ version) {
   const auto temp = String::IsNullOrEmpty(version) ?
     std::string() : marshal_as<std::string>(version);
   if (history_ != nullptr) {

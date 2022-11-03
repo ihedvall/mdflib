@@ -22,6 +22,10 @@ public:
     void set(String^ index, double prop);
   }
   
+  property array<MdfETag^>^ Properties {
+    array<MdfETag^>^ get();
+  }
+  
   property array<MdfETag^>^ CommonProperties {
     array<MdfETag^>^ get();
     void set(array<MdfETag^>^ prop_list);

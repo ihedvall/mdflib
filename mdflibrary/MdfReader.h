@@ -25,14 +25,13 @@ public:
   }
 
   property String^ Name {String^ get();}
-
   property MdfFile^ File { MdfFile^ get(); }
   property MdfHeader^ Header { MdfHeader^ get(); }
-  property MdfDataGroup^ DataGroup [UInt64] {
-    MdfDataGroup^ get(UInt64 index);
+  property MdfDataGroup^ DataGroup[size_t] {
+    MdfDataGroup^ get(size_t index);
   }
+  property bool IsOk {bool get();}
   
-  bool IsOk();
   bool Open();
   void Close();
   bool ReadHeader();

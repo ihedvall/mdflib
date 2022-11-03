@@ -78,9 +78,9 @@ bool OpenMdfFile(std::FILE *&file, const std::string &filename,
 class MdfBlock {
  public:
   virtual ~MdfBlock() = default;
-  [[nodiscard]] int64_t Index() const;
+  [[nodiscard]] virtual int64_t Index() const;
   [[nodiscard]] int64_t FilePosition() const;
-  [[nodiscard]] std::string BlockType() const;
+  [[nodiscard]] virtual std::string BlockType() const;
 
   virtual void GetBlockProperty(BlockPropertyList &dest) const;
   [[nodiscard]] virtual const MdfBlock *Find(int64_t index) const;

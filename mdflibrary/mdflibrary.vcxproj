@@ -95,7 +95,7 @@
     <Link>
       <AdditionalDependencies>zlibstaticd.lib;libexpatd.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>K:\zlib\master\lib;K:\expat\master\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>

@@ -16,37 +16,6 @@
 #include "mdf/mdfhelper.h"
 #include "platform.h"
 
-namespace {
-template <typename T>
-T XValue(const std::string &value) {
-  std::string v(value);
-  mdf::MdfHelper::Trim(v);
-  std::istringstream temp(v);
-  T out = {};
-  temp >> out;
-  return out;
-}
-
-template <>
-bool XValue(const std::string &value) {
-  std::string v(value);
-  mdf::MdfHelper::Trim(v);
-
-  return Platform::stricmp(v.c_str(), "1") == 0 ||
-         Platform::stricmp(v.c_str(), "ON") == 0 ||
-         Platform::strnicmp(v.c_str(), "T", 1) == 0      // True/False
-         || Platform::strnicmp(v.c_str(), "Y", 1) == 0;  // Yes/No
-}
-
-template <>
-std::string XValue(const std::string &value) {
-  std::string v(value);
-  mdf::MdfHelper::Trim(v);
-  return v;
-}
-
-}  // end namespace
-
 namespace mdf {
 
 /** \class IXmlNode ixmlnode.h "xmlnode.h"
@@ -96,7 +65,7 @@ class IXmlNode {
    * Tests if an attribute exist.
    * @param key Attribute name
    * @param value Attribute vallue
-   * @return
+   * @return True if the attribute exist
    */
   [[nodiscard]] bool IsAttribute(const std::string &key,
                                  const std::string &value) const;
@@ -110,14 +79,7 @@ class IXmlNode {
    * @return Returns the attribute value or default value..
    */
   template <typename T>
-  [[nodiscard]] T Attribute(const std::string &key, const T &def = {}) const {
-    for (const auto &p : attribute_list_) {
-      if (Platform::stricmp(p.first.c_str(), key.c_str()) == 0) {
-        return XValue<T>(p.second);
-      }
-    }
-    return def;
-  }
+  [[nodiscard]] T Attribute(const std::string &key, const T &def = {}) const;
 
   /** \brief Sets an attribute
    *
@@ -135,9 +97,7 @@ class IXmlNode {
    * @return Returns the tag value
    */
   template <typename T>
-  [[nodiscard]] T Value() const {
-    return XValue<T>(value_);
-  }
+  [[nodiscard]] T Value() const; 
 
   /** \brief Sets a tag value
    *
@@ -212,6 +172,9 @@ class IXmlNode {
 
   virtual void Write(std::ostream &dest,
                      size_t level);  ///< Write the node to the stream
+  [[nodiscard]] bool HasChildren() const {
+    return !node_list_.empty();
+  }
  protected:
   std::string tag_name_;  ///< Name of this tag.
   std::string value_;     ///< String value of this tag.
@@ -255,12 +218,82 @@ template <>
 void IXmlNode::Value(const std::string &value);
 
 template <typename T>
+T IXmlNode::Attribute(const std::string& key, const T& def) const {
+  for (const auto &p : attribute_list_) {
+    if (Platform::stricmp(p.first.c_str(), key.c_str()) == 0) {
+      std::string v(p.second);
+      mdf::MdfHelper::Trim(v);
+      std::istringstream temp(v);
+      T out = {};
+      temp >> out;
+      return out;  
+    }
+  }
+  return def;
+}
+
+template <>
+inline bool IXmlNode::Attribute(const std::string& key, const bool& def) const {
+  for (const auto &p : attribute_list_) {
+    if (Platform::stricmp(p.first.c_str(), key.c_str()) == 0) {
+      std::string v(p.second);
+      mdf::MdfHelper::Trim(v);
+
+      return Platform::stricmp(v.c_str(), "1") == 0 ||
+             Platform::stricmp(v.c_str(), "ON") == 0 ||
+             Platform::strnicmp(v.c_str(), "T", 1) == 0      // True/False
+             || Platform::strnicmp(v.c_str(), "Y", 1) == 0;  // Yes/No
+    }
+  }
+  return def;
+}
+
+template <>
+inline std::string IXmlNode::Attribute(const std::string& key,
+  const std::string& def) const {
+  for (const auto &p : attribute_list_) {
+    if (Platform::stricmp(p.first.c_str(), key.c_str()) == 0) {
+      std::string v(p.second);
+      mdf::MdfHelper::Trim(v);
+      return v;
+    }
+  }
+  return def;
+}
+template <typename T>
 void IXmlNode::SetAttribute(const std::string &key, const T &value) {
   std::ostringstream temp;
   temp << value;
   attribute_list_.insert({key, temp.str()});
 }
 
+template <typename T>
+T IXmlNode::Value() const {
+  std::string v(value_);
+  mdf::MdfHelper::Trim(v);
+  std::istringstream temp(v);
+  T out = {};
+  temp >> out;
+  return out;  
+}
+
+template <>
+inline bool IXmlNode::Value() const {
+  std::string v(value_);
+  mdf::MdfHelper::Trim(v);
+
+  return Platform::stricmp(v.c_str(), "1") == 0 ||
+         Platform::stricmp(v.c_str(), "ON") == 0 ||
+         Platform::strnicmp(v.c_str(), "T", 1) == 0      // True/False
+         || Platform::strnicmp(v.c_str(), "Y", 1) == 0;  // Yes/No 
+}
+
+template <>
+inline std::string IXmlNode::Value() const {
+  std::string v(value_);
+  mdf::MdfHelper::Trim(v);
+  return v;
+}
 /** \brief Sets a boolean attribute
  *
  * @param key Attribute name

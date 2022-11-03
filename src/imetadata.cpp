@@ -50,6 +50,7 @@ void InsertETag(const mdf::ETag& e_tag, mdf::IXmlNode& root) {  // NOLINT
     if (!e_tag.UnitRef().empty()) {
       tag.SetAttribute("unit_ref", e_tag.UnitRef());
     }
+    tag.Value(e_tag.Value<std::string>());
   }
 }
 
@@ -62,6 +63,7 @@ void FetchETag(const mdf::IXmlNode& root, mdf::ETag& e_tag) {  // NOLINT
   e_tag.ReadOnly(root.Attribute("ro", false));
   e_tag.Unit(root.Attribute<std::string>("unit"));
   e_tag.UnitRef(root.Attribute<std::string>("unit_ref"));
+  e_tag.Value(root.Value<std::string>());
 
   mdf::IXmlNode::ChildList list;
   root.GetChildList(list);
@@ -146,6 +148,7 @@ ETag IMetaData::CommonProperty(const std::string& name) const {
   return tag;
 }
 
+
 void IMetaData::CommonProperties(const std::vector<ETag>& tag_list) {
   auto xml = CreateXmlFile();
   xml->ParseString(XmlSnippet());
@@ -155,6 +158,27 @@ void IMetaData::CommonProperties(const std::vector<ETag>& tag_list) {
     InsertETag(tag, common);
   }
   XmlSnippet(xml->WriteString());
+}
+
+std::vector<ETag> IMetaData::Properties() const {
+  std::vector<ETag> tag_list;
+  auto xml = CreateXmlFile();
+  xml->ParseString(XmlSnippet());
+  IXmlNode::ChildList list;
+  xml->GetChildList(list);
+  for (const auto* child : list) {
+    if (child == nullptr) {
+      continue;
+    }
+    if (child->HasChildren()) {
+      continue;
+    }
+    ETag temp;
+    temp.Name(child->TagName());
+    temp.Value(child->Value<std::string>());
+    tag_list.emplace_back(temp);
+  }
+  return tag_list;
 }
 
 std::vector<ETag> IMetaData::CommonProperties() const {
@@ -182,4 +206,5 @@ std::vector<ETag> IMetaData::CommonProperties() const {
   }
   return tag_list;
 }
+
 }  // namespace mdf

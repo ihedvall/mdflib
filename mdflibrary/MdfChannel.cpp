@@ -299,11 +299,11 @@ void MdfChannel::SamplingRate::set(double rate) {
 }
 
 MdfChannelConversion^ MdfChannel::ChannelConversion::get() {
-  auto* conversion = channel_ != nullptr ?
-    const_cast<mdf::IChannelConversion*>(channel_->ChannelConversion())
-    : nullptr;
+  const auto* conversion = channel_ != nullptr ?
+    channel_->ChannelConversion() : nullptr;
   return conversion != nullptr ?
-    gcnew MdfChannelConversion(conversion) : nullptr;
+    gcnew MdfChannelConversion(const_cast<mdf::IChannelConversion*>(conversion))
+    : nullptr;
 }
 
 MdfChannel::MdfChannel(mdf::IChannel* channel) {

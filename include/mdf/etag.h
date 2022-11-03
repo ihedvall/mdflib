@@ -216,4 +216,7 @@ T ETag::Value() const {
 
 template <>
 [[nodiscard]] bool ETag::Value() const;
+
+template <>
+[[nodiscard]] std::string ETag::Value() const;
 }  // namespace mdf

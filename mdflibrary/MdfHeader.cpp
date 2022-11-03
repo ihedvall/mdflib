@@ -220,7 +220,7 @@ MdfFileHistory^ MdfHeader::CreateFileHistory() {
   return gcnew MdfFileHistory(temp);  
 }
 
-MdfEvent^ MdfHeader::CreateEventW() {
+MdfEvent^ MdfHeader::CreateMdfEvent() {
   auto* temp = header_ != nullptr ?
     header_->CreateEvent() : nullptr;
   return gcnew MdfEvent(temp);    
@@ -232,17 +232,17 @@ MdfDataGroup^ MdfHeader::CreateDataGroup() {
   return gcnew MdfDataGroup(temp);   
 }
 
-MdfDataGroup^ MdfHeader::LastDataGroup() {
+MdfDataGroup^ MdfHeader::LastDataGroup::get() {
   auto* temp = header_ != nullptr ?
     header_->LastDataGroup() : nullptr;
   return temp != nullptr ? gcnew MdfDataGroup(temp) : nullptr;
 }
 
-bool MdfHeader::IsStartAngleUsed() {
+bool MdfHeader::IsStartAngleUsed::get() {
   return header_ != nullptr ? header_->StartAngle().has_value() : false;
 }
 
-bool MdfHeader::IsStartDistanceUsed() {
+bool MdfHeader::IsStartDistanceUsed::get() {
   return header_ != nullptr ? header_->StartDistance().has_value() : false;
 }
 

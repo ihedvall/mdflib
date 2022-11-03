@@ -124,7 +124,16 @@ MdfDataGroup^ MdfFile::CreateDataGroup() {
   return gcnew MdfDataGroup(data_group);  
 }
 
-bool MdfFile::IsMdf4() {
+MdfDataGroup^ MdfFile::FindParentDataGroup(const MdfChannel^ channel) {
+  
+  const auto* data_group = mdf_file_ != nullptr && channel != nullptr &&
+    channel->channel_ != nullptr ?
+    mdf_file_->FindParentDataGroup(*channel->channel_) : nullptr;
+  return data_group != nullptr ?
+    gcnew MdfDataGroup(const_cast<mdf::IDataGroup*>(data_group)) : nullptr; 
+}
+
+bool MdfFile::IsMdf4::get() {
   return mdf_file_ != nullptr ? mdf_file_->IsMdf4() : false;
 };
 

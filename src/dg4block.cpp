@@ -377,7 +377,8 @@ bool Dg4Block::UpdateDtBlocks(std::FILE *file) {
   return true;
 }
 
-bool Dg4Block::UpdateCgBlocks(std::FILE *file) {
+bool Dg4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
+                                     bool update_vlsd) {
   auto& block_list = DataBlockList();
   if (block_list.empty()) {
     // No data blocks to update
@@ -407,42 +408,14 @@ bool Dg4Block::UpdateCgBlocks(std::FILE *file) {
     if (temp == nullptr) {
       break;
     }
-    count += temp->UpdateCycleCounter(file);
-  }
-  return true;
-}
-
-bool Dg4Block::UpdateVlsdBlocks(std::FILE *file) {
-  auto& block_list = DataBlockList();
-  if (block_list.empty()) {
-    // No data blocks to update
-    MDF_DEBUG() << "No last data block to update.";
-    return true;
-  }
-  auto* last_block = block_list.back().get();
-  if (last_block == nullptr || last_block->BlockType() != "DT") {
-    MDF_DEBUG() << "Last data block is not a DT block.";
-    return true;
-  }
-  auto* dt_block = dynamic_cast<Dt4Block*>(last_block);
-  if (dt_block == nullptr) {
-    MDF_ERROR() << "Invalid DT block type-cast.";
-    return false;
-  }
-  mdf::detail::SetFilePosition(file, dt_block->DataPosition());
-  size_t count = 0;
-  while (count < dt_block->DataSize()) {
-    uint64_t record_id = 0;
-    count += ReadRecordId(file,record_id);
-    const auto* cg_block = FindCgRecordId(record_id);
-    if (cg_block == nullptr) {
-      break;
+    const auto vlsd = (temp->Flags() & CgFlag::VlsdChannel) != 0;
+    if (!vlsd && update_cg) {
+      count += temp->UpdateCycleCounter(file);
+    } else if (vlsd && update_vlsd) {
+      count += temp->UpdateVlsdSize(file);
+    } else {
+      count += temp->StepRecord(file);
     }
-    auto* temp = const_cast<Cg4Block*>(cg_block);
-    if (temp == nullptr) {
-      break;
-    }
-    count += temp->UpdateVlsdSize(file);
   }
   return true;
 }

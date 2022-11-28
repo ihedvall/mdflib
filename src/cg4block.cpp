@@ -352,11 +352,19 @@ size_t Cg4Block::UpdateVlsdSize(std::FILE *file) {
     vlsd_size += count;
     nof_data_bytes_ = static_cast<uint32_t>(vlsd_size & 0xFFFFFFFF);
     nof_invalid_bytes_ = static_cast<uint32_t>(vlsd_size >> 32);
+    ++nof_samples_;
   } else {
     // Normal fixed length records
     size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
     count += StepFilePosition(file, record_size);
+    ++nof_samples_;
   }
   return count;
 }
+
+size_t Cg4Block::StepRecord(std::FILE *file) const {
+  const size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
+  return  StepFilePosition(file, record_size);
+}
+
 }  // namespace mdf::detail

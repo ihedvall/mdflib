@@ -222,10 +222,9 @@ bool Mdf4File::FinalizeFile(std::FILE* file) {
   if (update_rd_blocks) {
     updated = false;
   }
-  if (update_cg_blocks && !hd_block_->UpdateCgBlocks(file)) {
-    updated = false;
-  }
-  if (update_cg_blocks && !hd_block_->UpdateVlsdBlocks(file)) {
+  if ((update_cg_blocks || update_vlsd_bytes || update_vlsd_offset ) &&
+      !hd_block_->UpdateCgAndVlsdBlocks(file, update_cg_blocks,
+                                update_vlsd_bytes || update_vlsd_offset)) {
     updated = false;
   }
   return updated;

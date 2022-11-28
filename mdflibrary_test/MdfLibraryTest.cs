@@ -8,7 +8,8 @@ using System;
 public class MdfLibraryTest
 {
     private const string TestFile1 = "K:/test/mdf/mdf4_1/Simple/ETAS_SimpleSorted.mf4";
-    private const string TestFile2 = "K:/test/mdf/50B8FE41-00000040-00000002-6329B255.MF4";
+    private const string TestFile2 = "K:/test/mdf/50B8FE41-00000040-00000002-6329B255.MF4"; 
+    private const string TestFile3 = "K:/test/mdf/50B8FE41-00000043-00000008-632AFF18.MF4";
     private const string InvalidFile = "K:/test/dbc/Backbone1.CEA2p.dbc";
     
     [TestMethod]
@@ -421,7 +422,7 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestCanMessage()
     {
-        var reader = new MdfReader(TestFile2);
+        var reader = new MdfReader(TestFile3);
         Assert.IsTrue(reader.ReadEverythingButData());
         reader.Close();
 

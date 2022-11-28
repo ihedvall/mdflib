@@ -45,8 +45,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   size_t DataSize() const override;
 
   bool UpdateDtBlocks(std::FILE *file);
-  bool UpdateCgBlocks(std::FILE *file);
-  bool UpdateVlsdBlocks(std::FILE *file);
+  bool UpdateCgAndVlsdBlocks(std::FILE *file, bool update_cg, bool update_vlsd);
 
   [[nodiscard]] const IChannelGroup *FindParentChannelGroup(
       const IChannel &channel) const override;

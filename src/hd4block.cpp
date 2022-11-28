@@ -465,20 +465,15 @@ bool Hd4Block::UpdateDtBlocks(std::FILE *file) {
   return last_dg != nullptr && last_dg->UpdateDtBlocks(file);
 }
 
-bool Hd4Block::UpdateCgBlocks(std::FILE* file) {
+bool Hd4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
+                                     bool update_vlsd) {
   if (dg_list_.empty()) {
     return true;
   }
   auto* last_dg = dg_list_.back().get();
-  return last_dg != nullptr && last_dg->UpdateCgBlocks(file);
+  return last_dg != nullptr && last_dg->UpdateCgAndVlsdBlocks(file,update_cg,
+                                                              update_vlsd);
 }
 
-bool Hd4Block::UpdateVlsdBlocks(std::FILE* file) {
-  if (dg_list_.empty()) {
-    return true;
-  }
-  auto* last_dg = dg_list_.back().get();
-  return last_dg != nullptr && last_dg->UpdateVlsdBlocks(file);
-}
 
 }  // namespace mdf::detail

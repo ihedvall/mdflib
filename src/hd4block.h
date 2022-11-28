@@ -120,7 +120,7 @@ class Hd4Block : public MdfBlock, public IHeader {
   IDataGroup *CreateDataGroup() override;
 
   bool UpdateDtBlocks(std::FILE* file);
-  bool UpdateCgBlocks(std::FILE* file);
+  bool UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg, bool update_vlsd);
   bool UpdateVlsdBlocks(std::FILE* file);
  private:
   Mdf4Timestamp timestamp_;

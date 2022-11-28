@@ -70,6 +70,7 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
 
   size_t UpdateCycleCounter(std::FILE *file);
   size_t UpdateVlsdSize(std::FILE *file);
+  size_t StepRecord(std::FILE *file) const;
 
   [[nodiscard]] IMetaData* CreateMetaData() override {
     return MdfBlock::CreateMetaData();

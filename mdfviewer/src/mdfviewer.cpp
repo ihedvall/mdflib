@@ -28,16 +28,18 @@ using namespace util::log;
 wxIMPLEMENT_APP(mdf::viewer::MdfViewer);
 namespace {
 
-void LogFunc(const Loc& location, mdf::MdfLogSeverity severity, const std::string& text) {
+void LogFunc(const MdfLocation& location, mdf::MdfLogSeverity severity,
+             const std::string& text) {
   auto &log_config = LogConfig::Instance();
   LogMessage message;
   message.message = text;
   message.severity = static_cast<LogSeverity>(severity);
-  message.location = location;
+
   log_config.AddLogMessage(message);
 }
 
-void NoLog(const Loc& location, mdf::MdfLogSeverity severity, const std::string& text) {
+void NoLog(const MdfLocation& location, mdf::MdfLogSeverity severity,
+           const std::string& text) {
 }
 
 } // end namespace

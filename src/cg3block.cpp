@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <ranges>
 
 #include "mdf/idatagroup.h"
 
@@ -46,14 +45,15 @@ uint64_t Cg3Block::RecordId() const { return record_id_; }
 
 std::vector<IChannel *> Cg3Block::Channels() const {
   std::vector<IChannel *> channel_list;
-  std::ranges::for_each(
-      cn_list_, [&](const auto &cn) { channel_list.push_back(cn.get()); });
+  std::for_each(cn_list_.begin(), cn_list_.end(),
+                [&](const auto &cn) { channel_list.push_back(cn.get()); });
   return channel_list;
 }
 
 const IChannel *Cg3Block::GetXChannel(const IChannel &) const {
   // Search for the master channel in the group
-  auto master = std::ranges::find_if(cn_list_, [&](const auto &cn3) {
+  auto master = std::find_if(cn_list_.cbegin(), cn_list_.cend(),
+                             [&](const auto &cn3) {
     return !cn3 ? false
                 : cn3->Type() == ChannelType::Master ||
                       cn3->Type() == ChannelType::VirtualMaster;

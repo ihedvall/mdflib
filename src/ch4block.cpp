@@ -5,8 +5,6 @@
 #include "ch4block.h"
 
 #include <algorithm>
-#include <ranges>
-
 #include "hd4block.h"
 namespace {
 
@@ -181,7 +179,7 @@ IChannelHierarchy *Ch4Block::CreateChannelHierarchy() {
 
 std::vector<IChannelHierarchy *> Ch4Block::ChannelHierarchies() const {
   std::vector<IChannelHierarchy *> list;
-  std::ranges::transform(ch_list_, std::back_inserter(list),
+  std::transform(ch_list_.cbegin(), ch_list_.cend(), std::back_inserter(list),
                          [](const auto &ch4) { return ch4.get(); });
   return list;
 }

@@ -5,7 +5,6 @@
 
 #pragma once
 #include <array>
-#include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -29,7 +28,8 @@ class LittleBuffer {
 
 template <typename T>
 LittleBuffer<T>::LittleBuffer(const T& value) {
-  if (std::endian::native == std::endian::big) {
+  constexpr int num = 1;
+  if (*(char*) &num == 0) { // Big endian
     std::array<uint8_t, sizeof(T)> temp = {0};
     memcpy(temp.data(), &value, sizeof(T));
     for (size_t index = sizeof(T); index > 0; --index) {
@@ -43,7 +43,8 @@ LittleBuffer<T>::LittleBuffer(const T& value) {
 template <typename T>
 LittleBuffer<T>::LittleBuffer(const std::vector<uint8_t>& buffer,
                               size_t offset) {
-  if (std::endian::native == std::endian::big) {
+  constexpr int num = 1;
+  if (*(char*) &num == 0) {
     std::array<uint8_t, sizeof(T)> temp = {0};
     memcpy(temp.data(), buffer.data() + offset, sizeof(T));
     for (size_t index = sizeof(T); index > 0; --index) {
@@ -70,8 +71,9 @@ size_t LittleBuffer<T>::size() const {
 
 template <typename T>
 T LittleBuffer<T>::value() const {
+  constexpr int num = 1;
   std::array<uint8_t, sizeof(T)> temp = {0};
-  if (std::endian::native == std::endian::big) {
+  if (*(char*) &num == 0) {
     for (size_t index = sizeof(T); index > 0; --index) {
       temp[sizeof(T) - index] = buffer_[index - 1];
     }

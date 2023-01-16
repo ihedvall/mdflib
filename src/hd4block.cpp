@@ -5,7 +5,6 @@
 #include "hd4block.h"
 
 #include <algorithm>
-#include <ranges>
 
 #include "ixmlfile.h"
 #include "dt4block.h"
@@ -321,7 +320,7 @@ IAttachment* Hd4Block::CreateAttachment() {
 
 std::vector<IAttachment*> Hd4Block::Attachments() const {
   std::vector<IAttachment*> list;
-  std::ranges::transform(at_list_, std::back_inserter(list),
+  std::transform(at_list_.cbegin(), at_list_.cend(), std::back_inserter(list),
                          [](const auto& at4) { return at4.get(); });
   return list;
 }
@@ -334,7 +333,7 @@ IFileHistory* Hd4Block::CreateFileHistory() {
 
 std::vector<IFileHistory*> Hd4Block::FileHistories() const {
   std::vector<IFileHistory*> list;
-  std::ranges::transform(fh_list_, std::back_inserter(list),
+  std::transform(fh_list_.cbegin(), fh_list_.cend(), std::back_inserter(list),
                          [](const auto& fh4) { return fh4.get(); });
   return list;
 }
@@ -348,7 +347,7 @@ IEvent* Hd4Block::CreateEvent() {
 
 std::vector<IEvent*> Hd4Block::Events() const {
   std::vector<IEvent*> list;
-  std::ranges::transform(ev_list_, std::back_inserter(list),
+  std::transform(ev_list_.cbegin(),ev_list_.cend(), std::back_inserter(list),
                          [](const auto& ev4) { return ev4.get(); });
   return list;
 }
@@ -362,7 +361,7 @@ IChannelHierarchy* Hd4Block::CreateChannelHierarchy() {
 
 std::vector<IChannelHierarchy*> Hd4Block::ChannelHierarchies() const {
   std::vector<IChannelHierarchy*> list;
-  std::ranges::transform(ch_list_, std::back_inserter(list),
+  std::transform(ch_list_.cbegin(), ch_list_.cend(), std::back_inserter(list),
                          [](const auto& ch4) { return ch4.get(); });
   return list;
 }
@@ -376,7 +375,7 @@ IDataGroup* Hd4Block::CreateDataGroup() {
 
 std::vector<IDataGroup*> Hd4Block::DataGroups() const {
   std::vector<IDataGroup*> list;
-  std::ranges::transform(dg_list_, std::back_inserter(list),
+  std::transform(dg_list_.cbegin(), dg_list_.cend(), std::back_inserter(list),
                          [](const auto& dg) { return dg.get(); });
   return list;
 }

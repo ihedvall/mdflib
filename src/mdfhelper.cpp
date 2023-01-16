@@ -13,6 +13,7 @@
 #include <ctime>
 #include <filesystem>
 #include <iomanip>
+#include <sstream>
 
 #include "littlebuffer.h"
 

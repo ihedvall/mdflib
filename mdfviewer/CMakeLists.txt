@@ -6,6 +6,8 @@ project(MdfViewer
         DESCRIPTION "Simple MDF file browser"
         LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 20)
+
 include("../script/boost.cmake")
 include("../script/utillib.cmake")
 

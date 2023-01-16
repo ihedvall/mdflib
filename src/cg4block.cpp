@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cuchar>
-#include <ranges>
 
 namespace {
 
@@ -81,7 +80,8 @@ const IChannel *Cg4Block::GetXChannel(const IChannel &reference) const {
   // this group
   if (x_axis_list.size() == 3 && x_axis_list[1] == Index() && x_axis_list[2]) {
     const auto channel_index = x_axis_list[2];
-    auto find = std::ranges::find_if(cn_list_, [&](const auto &p) {
+    auto find = std::find_if(cn_list_.cbegin(), cn_list_.cend(),
+                             [&](const auto &p) {
       if (!p) {
         return false;
       }
@@ -94,7 +94,8 @@ const IChannel *Cg4Block::GetXChannel(const IChannel &reference) const {
   }
 
   // Search for the master channel in the group
-  auto master = std::ranges::find_if(cn_list_, [&](const auto &x) {
+  auto master = std::find_if(cn_list_.cbegin(), cn_list_.cend(),
+                             [&](const auto &x) {
     if (!x) {
       return false;
     }

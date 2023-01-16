@@ -16,7 +16,6 @@
 #include <cstring>
 #include <filesystem>
 #include <memory>
-#include <ranges>
 
 #include "mdfblock.h"
 #include "platform.h"
@@ -331,8 +330,8 @@ void MdfWriter::IncrementNofSamples(uint64_t record_id) const {
   if (data_group == nullptr) {
     return;
   }
-
-  std::ranges::for_each(data_group->ChannelGroups(), [&](auto* group) {
+  const auto list = data_group->ChannelGroups();
+  std::for_each(list.cbegin(), list.cend(), [&](auto* group) {
     if (group != nullptr && group->RecordId() == record_id) {
       group->IncrementSample();
       group->NofSamples(group->Sample());

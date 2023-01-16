@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <vector>
-#include <ranges>
 
 #include "pr3block.h"
 
@@ -295,7 +294,7 @@ IDataGroup *Hd3Block::LastDataGroup() const {
 
 std::vector<IDataGroup *> Hd3Block::DataGroups() const {
   std::vector<IDataGroup *> list;
-  std::ranges::for_each(dg_list_,
+  std::for_each(dg_list_.begin(), dg_list_.end(),
                         [&](const auto &dg3) { list.push_back(dg3.get()); });
   return list;
 }

@@ -11,7 +11,7 @@ option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." O
 option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." ON)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." ON)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_DEBUG_POSTFIX d)
 
 include("script/zlib.cmake")

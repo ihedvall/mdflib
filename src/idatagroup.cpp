@@ -5,7 +5,7 @@
 #include "mdf/idatagroup.h"
 
 #include <algorithm>
-#include <ranges>
+
 namespace mdf {
 
 void IDataGroup::AttachSampleObserver(ISampleObserver *observer) const {
@@ -36,7 +36,8 @@ void IDataGroup::NotifySampleObservers(
 }
 
 void IDataGroup::ResetSample() const {
-  std::ranges::for_each(ChannelGroups(),
+  auto list = ChannelGroups();
+  std::for_each(list.begin(),list.end(),
                         [](const auto *cg) { cg->ResetSample(); });
 }
 

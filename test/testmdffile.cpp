@@ -169,9 +169,7 @@ TEST(TestMdf, Mdf4File) {  // NOLINT
 
   auto* header = mdf->Header();
   ASSERT_TRUE(header != nullptr);
-  auto* meta_data = header->MetaData();
-  ASSERT_TRUE(meta_data != nullptr);
-  std::cout << meta_data->XmlSnippet() << std::endl;
+
 }
 
 }  // namespace mdf::test

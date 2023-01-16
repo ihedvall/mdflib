@@ -8,7 +8,7 @@
 #include <cstdio>
 #include <memory>
 #include <stdexcept>
-#include <ranges>
+#include <algorithm>
 
 #include "mdf/mdflogstream.h"
 
@@ -168,7 +168,8 @@ const IDataGroup *Mdf3File::FindParentDataGroup(const IChannel &channel) const {
     return nullptr;
   }
   const auto &dg_list = hd_block_->Dg3();
-  const auto itr = std::ranges::find_if(dg_list, [&](const auto &dg_block) {
+  const auto itr = std::find_if(dg_list.cbegin(), dg_list.cend(),
+                                [&](const auto &dg_block) {
     return dg_block && dg_block->Find(channel_index) != nullptr;
   });
 

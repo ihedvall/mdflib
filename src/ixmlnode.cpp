@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <cstring>
-#include <ranges>
+
 #include "mdf/mdfhelper.h"
 #include "xmlnode.h"
 
@@ -62,15 +62,17 @@ IXmlNode &IXmlNode::AddNode(const std::string &name) {
 }
 
 IXmlNode &IXmlNode::AddUniqueNode(const std::string &name) {
-  auto itr = std::ranges::find_if(
-      node_list_, [&](const auto &ptr) { return ptr && ptr->IsTagName(name); });
+  auto itr = std::find_if(node_list_.begin(), node_list_.end(),
+                          [&](const auto &ptr)
+                          { return ptr && ptr->IsTagName(name); });
   return itr != node_list_.end() ? *(itr->get()) : AddNode(name);
 }
 
 IXmlNode &IXmlNode::AddUniqueNode(const std::string &name,
                                   const std::string &key,
                                   const std::string &attr) {
-  auto itr = std::ranges::find_if(node_list_, [&](const auto &ptr) {
+  auto itr = std::find_if(node_list_.begin(), node_list_.end(),
+                          [&](const auto &ptr) {
     return ptr && ptr->IsTagName(name) && ptr->IsAttribute(key, attr);
   });
   if (itr != node_list_.end()) {
@@ -86,15 +88,17 @@ std::unique_ptr<IXmlNode> IXmlNode::CreateNode(const std::string &name) const {
 }
 
 const IXmlNode *IXmlNode::GetNode(const std::string &tag) const {
-  const auto itr = std::ranges::find_if(
-      node_list_, [&](const auto &ptr) { return ptr && ptr->IsTagName(tag); });
+  const auto itr = std::find_if(node_list_.cbegin(), node_list_.cend(),
+                                [&](const auto &ptr) {
+                                  return ptr && ptr->IsTagName(tag); });
   return itr == node_list_.cend() ? nullptr : itr->get();
 }
 
 const IXmlNode *IXmlNode::GetNode(const std::string &tag,
                                   const std::string &key,
                                   const std::string &value) const {
-  const auto itr = std::ranges::find_if(node_list_, [&](const auto &ptr) {
+  const auto itr = std::find_if(node_list_.cbegin(), node_list_.cend(),
+                                [&](const auto &ptr) {
     return ptr && ptr->IsTagName(tag) && ptr->IsAttribute(key, value);
   });
   return itr == node_list_.cend() ? nullptr : itr->get();
@@ -126,7 +130,8 @@ bool IXmlNode::IsTagName(const std::string &tag) const {
 
 bool IXmlNode::IsAttribute(const std::string &key,
                            const std::string &value) const {
-  return std::ranges::any_of(attribute_list_, [&](const auto &itr) {
+  return std::any_of(attribute_list_.cbegin(), attribute_list_.cend(),
+                     [&](const auto &itr) {
     return Platform::stricmp(itr.first.c_str(), key.c_str()) == 0 &&
            Platform::stricmp(itr.second.c_str(), value.c_str()) == 0;
   });

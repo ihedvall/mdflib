@@ -14,21 +14,21 @@ mdf::MdfLogFunction2 LogFunction2;
 
 namespace mdf {
 
-MdfLogStream::MdfLogStream(const Loc &location, MdfLogSeverity severity)
-    : location_(location), severity_(severity) {}
+MdfLogStream::MdfLogStream(MdfLocation location, MdfLogSeverity severity)
+    : location_(std::move(location)), severity_(severity) {}
 
 MdfLogStream::~MdfLogStream() {
   MdfLogStream::LogString(location_, severity_, str());
 }
 
-void MdfLogStream::LogString(const Loc &location, MdfLogSeverity severity,
+void MdfLogStream::LogString(const MdfLocation &location, MdfLogSeverity severity,
                              const std::string &text) {
   if (LogFunction1) {
     LogFunction1(location, severity, text);
   }
   if (LogFunction2) {
     std::ostringstream func;
-    func << location.file_name() << ":" << location.function_name();
+    func << location.file << ":" << location.function;
     LogFunction2(severity, func.str(), text);
   }
 }

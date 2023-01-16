@@ -5,7 +5,7 @@
 #include "dg3block.h"
 
 #include <algorithm>
-#include <ranges>
+
 
 namespace {
 constexpr size_t kIndexNext = 0;
@@ -149,7 +149,8 @@ void Dg3Block::AddCg3(std::unique_ptr<Cg3Block> &cg3) {
   nof_cg_blocks_ = static_cast<uint16_t>(cg_list_.size());
   nof_record_id_ = cg_list_.size() > 1 ? 1 : 0;
   uint8_t id3 = cg_list_.size() < 2 ? 0 : 1;
-  std::ranges::for_each(cg_list_, [&](auto &group) { group->RecordId(id3++); });
+  std::for_each(cg_list_.begin(), cg_list_.end(),
+                [&](auto &group) { group->RecordId(id3++); });
 }
 
 const Dg3Block::Cg3List &Dg3Block::Cg3() const { return cg_list_; }
@@ -235,7 +236,8 @@ const IChannelGroup* Dg3Block::FindParentChannelGroup(const IChannel&
                                                           channel) const {
   const auto channel_index = channel.Index();
   const auto &cg_list = Cg3();
-  const auto itr = std::ranges::find_if(cg_list, [&](const auto &cg_block) {
+  const auto itr = std::find_if(cg_list.cbegin(), cg_list.cend(),
+                                [&](const auto &cg_block) {
     return cg_block && cg_block->Find(channel_index) != nullptr;
   });
   return itr != cg_list.cend() ? itr->get() : nullptr;

@@ -5,7 +5,7 @@
 #include "dg4block.h"
 
 #include <stdexcept>
-#include <ranges>
+#include <algorithm>
 
 #include "dl4block.h"
 #include "dt4block.h"
@@ -405,9 +405,6 @@ bool Dg4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
       break;
     }
     auto* temp = const_cast<Cg4Block*>(cg_block);
-    if (temp == nullptr) {
-      break;
-    }
     const auto vlsd = (temp->Flags() & CgFlag::VlsdChannel) != 0;
     if (!vlsd && update_cg) {
       count += temp->UpdateCycleCounter(file);
@@ -424,7 +421,8 @@ const IChannelGroup* Dg4Block::FindParentChannelGroup(const IChannel&
                                                       channel) const {
   const auto channel_index = channel.Index();
   const auto &cg_list = Cg4();
-  const auto itr = std::ranges::find_if(cg_list, [&](const auto &cg_block) {
+  const auto itr = std::find_if(cg_list.cbegin(), cg_list.cend(),
+                                [&](const auto &cg_block) {
     return cg_block && cg_block->Find(channel_index) != nullptr;
   });
   return itr != cg_list.cend() ? itr->get() : nullptr;

@@ -5,10 +5,10 @@
 
 #pragma once
 #include <array>
-#include <bit>
 #include <cstdint>
 #include <cstring>
 #include <vector>
+
 namespace mdf {
 
 template <typename T>
@@ -29,7 +29,8 @@ class BigBuffer {
 
 template <typename T>
 BigBuffer<T>::BigBuffer(const T& value) {
-  if (std::endian::native == std::endian::little) {
+  constexpr int num = 1;
+  if (*(char*) &num == 1) { // Little endian
     std::array<uint8_t, sizeof(T)> temp = {0};
     memcpy(temp.data(), &value, sizeof(T));
     for (size_t index = sizeof(T); index > 0; --index) {
@@ -42,7 +43,8 @@ BigBuffer<T>::BigBuffer(const T& value) {
 
 template <typename T>
 BigBuffer<T>::BigBuffer(const std::vector<uint8_t>& buffer, size_t offset) {
-  if (std::endian::native == std::endian::little) {
+  constexpr int num = 1;
+  if (*(char*) &num == 1) {
     std::array<uint8_t, sizeof(T)> temp = {0};
     memcpy(temp.data(), buffer.data() + offset, sizeof(T));
     for (size_t index = sizeof(T); index > 0; --index) {
@@ -70,8 +72,9 @@ size_t BigBuffer<T>::size() const {
 
 template <typename T>
 T BigBuffer<T>::value() const {
+  constexpr int num = 1;
   std::array<uint8_t, sizeof(T)> temp = {0};
-  if (std::endian::native == std::endian::little) {
+  if (*(char*) &num == 1) {
     for (size_t index = sizeof(T); index > 0; --index) {
       temp[sizeof(T) - index] = buffer_[index - 1];
     }

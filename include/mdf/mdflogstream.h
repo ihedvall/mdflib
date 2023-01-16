@@ -7,37 +7,37 @@
 
 #include <sstream>
 #include <string>
-#if __has_include(<source_location>)
-#include <source_location>
-#else
-#include <experimental/source_location>
-#endif
+
+struct MdfLocation {
+  int line = 0;
+  int column = 0;
+  std::string file;
+  std::string function;
+};
 
 #include "mdf/mdffactory.h"
 
 namespace mdf {
 
-#if __has_include(<source_location>)
-using Loc = std::source_location;
-#else
-using Loc = std::experimental::source_location;
-#endif
-
 #define MDF_TRACE() \
-  MdfLogStream(Loc::current(), MdfLogSeverity::kTrace)  ///< Trace log message
+  MdfLogStream({__LINE__,0,__FILE__,__func__}, \
+               MdfLogSeverity::kTrace)  ///< Trace log message
 #define MDF_DEBUG() \
-  MdfLogStream(Loc::current(), MdfLogSeverity::kDebug)  ///< Debug log message
+  MdfLogStream({__LINE__,0,__FILE__,__func__}, \
+               MdfLogSeverity::kDebug)  ///< Debug log message
 #define MDF_INFO() \
-  MdfLogStream(Loc::current(), MdfLogSeverity::kInfo)  ///< Info log message
+  MdfLogStream({__LINE__,0,__FILE__,__func__}, \
+               MdfLogSeverity::kInfo)  ///< Info log message
 #define MDF_ERROR() \
-  MdfLogStream(Loc::current(), MdfLogSeverity::kError)  ///< Error log message
+  MdfLogStream({__LINE__,0,__FILE__,__func__}, \
+               MdfLogSeverity::kError)  ///< Error log message
 
-using MdfLogFunction1 = std::function<void(const Loc &location,
+using MdfLogFunction1 = std::function<void(const MdfLocation &location,
   MdfLogSeverity severity, const std::string &text)>;
 
 class MdfLogStream : public std::ostringstream {
  public:
-  MdfLogStream(const Loc& location, MdfLogSeverity severity);  ///< Constructor
+  MdfLogStream(MdfLocation location, MdfLogSeverity severity);  ///< Constructor
   ~MdfLogStream() override;                                    ///< Destructor
 
   MdfLogStream() = delete;
@@ -50,10 +50,10 @@ class MdfLogStream : public std::ostringstream {
   static void SetLogFunction2(const MdfLogFunction2& func);
   
  protected:
-  Loc location_;             ///< File and function location.
+  MdfLocation location_;     ///< File and function location.
   MdfLogSeverity severity_;  ///< Log level of the stream
 
-  virtual void LogString(const Loc& location, MdfLogSeverity severity,
+  virtual void LogString(const MdfLocation& location, MdfLogSeverity severity,
                          const std::string& text);
 };
 

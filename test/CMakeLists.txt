@@ -6,6 +6,8 @@ project(TestMdf
         DESCRIPTION "Google unit tests for the mdf library"
         LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 20)
+
 include("../script/boost.cmake")
 include("../script/utillib.cmake")
 

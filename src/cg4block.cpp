@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cuchar>
+#include <climits>
 
 namespace {
 

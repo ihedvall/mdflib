@@ -77,8 +77,8 @@ std::size_t ReadByte(std::FILE *file, std::vector<uint8_t> &dest,
     return 0;
   }
   dest.resize(size, 0);
-  std::fread(dest.data(), 1, size, file);
-  return size;
+  const auto ret = std::fread(dest.data(), 1, size, file);
+  return ret;
 }
 
 std::size_t WriteByte(std::FILE *file, const std::vector<uint8_t> &source) {

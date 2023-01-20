@@ -7,5 +7,5 @@ project(mdfTestReadExample
 find_package(MdfLib REQUIRED)
 
 add_executable(TestMDFCMake ../../docs/mdfreaderexample.cpp)
-target_link_libraries(TestMDFCMake Upstream::mdf Upstream::expat)
+target_link_libraries(TestMDFCMake Upstream::mdf)
 target_include_directories(TestMDFCMake PRIVATE ${MdfLibTargets_INCLUDE_DIR})

@@ -4,6 +4,8 @@ project(mdfTestReadExample
         DESCRIPTION "Test find_package mdf"
         LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+
 find_package(MdfLib REQUIRED)
 
 add_executable(TestMDFCMake ../../docs/mdfreaderexample.cpp)

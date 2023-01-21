@@ -117,7 +117,9 @@ target_include_directories(mdf PRIVATE ${expat_SOURCE_DIR}/expat/lib)
 target_compile_definitions(mdf PRIVATE XML_STATIC)
 
 set(MDF_PUBLIC_HEADERS
+        include/mdf/etag.h
         include/mdf/iattachment.h
+        include/mdf/iblock.h
         include/mdf/ichannel.h
         include/mdf/ichannelconversion.h
         include/mdf/ichannelgroup.h
@@ -129,6 +131,7 @@ set(MDF_PUBLIC_HEADERS
         include/mdf/mdffile.h
         include/mdf/mdfreader.h
         include/mdf/mdfhelper.h # TODO: is there a possibility to get this away?
+        include/mdf/imetadata.h
 )
 
 set_target_properties(mdf PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")

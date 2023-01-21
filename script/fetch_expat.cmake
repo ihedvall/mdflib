@@ -3,6 +3,7 @@
 include(FetchContent)
 include(CMakePrintHelpers)
 
+include(FindEXPAT)
 if (NOT EXPAT_FOUND)
     FetchContent_Declare(expat
         GIT_REPOSITORY https://github.com/libexpat/libexpat.git

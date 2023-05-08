@@ -435,13 +435,24 @@ bool IChannel::GetCanOpenTime(const std::vector<uint8_t> &record_buffer,
 }
 
 void IChannel::SetValid(bool) {
-  // Only MDF4 have this functionality
+  // Only MDF 4 have this functionality;
+
 }
 
 void IChannel::SetUnsignedValueLe(uint64_t value, bool valid) {
-  SetValid(valid);
   auto &buffer = SampleBuffer();
+  if (buffer.empty()) {
+    return; // Invalid use of function
+  }
+
   const size_t bytes = BitCount() / 8;
+  const auto max_bytes = bytes + ByteOffset();
+  if (max_bytes > buffer.size()) {
+    SetValid(false);
+    return;
+  }
+
+  SetValid(valid);
   switch (bytes) {
     case 1: {
       const LittleBuffer data(static_cast<uint8_t>(value));
@@ -869,6 +880,15 @@ void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid) {
       SetByteArray(value, valid);
       break;
 
+    case ChannelDataType::CanOpenTime:
+    case ChannelDataType::CanOpenDate:
+      if (value.size() == DataBytes()) {
+        SetByteArray(value, valid);
+      } else {
+        SetValid(false);
+      }
+      break;
+
     case ChannelDataType::UnsignedIntegerLe:
     case ChannelDataType::UnsignedIntegerBe:
     case ChannelDataType::SignedIntegerLe:
@@ -879,8 +899,6 @@ void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid) {
     case ChannelDataType::StringAscii:
     case ChannelDataType::StringUTF16Le:
     case ChannelDataType::StringUTF16Be:
-    case ChannelDataType::CanOpenDate:
-    case ChannelDataType::CanOpenTime:
     case ChannelDataType::MimeStream:
     case ChannelDataType::MimeSample:
     default:
@@ -908,5 +926,17 @@ std::optional<std::pair<double, double>> IChannel::ExtLimit() const {
 }
 IMetaData *IChannel::CreateMetaData() { return nullptr; }
 const IMetaData *IChannel::MetaData() const { return nullptr; }
+
+const ISourceInformation *IChannel::SourceInformation() const {
+  // Only supported by MDF4
+  return nullptr;
+}
+ISourceInformation *IChannel::CreateSourceInformation() {
+  // Only supported by MDF4
+  return nullptr;
+}
+
+void IChannel::Flags(uint32_t flags) {}
+uint32_t IChannel::Flags() const { return 0; }
 
 }  // end namespace mdf

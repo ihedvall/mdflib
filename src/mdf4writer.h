@@ -12,16 +12,25 @@ namespace mdf::detail {
 class Mdf4Writer : public MdfWriter {
  public:
   Mdf4Writer() = default;
-  virtual ~Mdf4Writer();
+  ~Mdf4Writer() override;
 
-  IChannel* CreateChannel(IChannelGroup* parent) override;
+  bool InitMeasurement() override;
+
   IChannelConversion* CreateChannelConversion(IChannel* parent) override;
 
  protected:
   void CreateMdfFile() override;
   void SetLastPosition(std::FILE* file) override;
-
+  bool PrepareForWriting() override;
+  void SaveQueue(std::unique_lock<std::mutex>& lock) override;
+  void CleanQueue(std::unique_lock<std::mutex>& lock) override;
+  void SetDataPosition(std::FILE* file) override;
  private:
+  time_t save_timer_ = 0;
+  uint64_t offset_ = 0;
+  [[nodiscard]] size_t CalculateNofDzBlocks();
+  void SaveQueueCompressed(std::unique_lock<std::mutex>& lock);
+  void CleanQueueCompressed(std::unique_lock<std::mutex>& lock);
 };
 
 }  // namespace mdf::detail

@@ -29,8 +29,7 @@ class BigBuffer {
 
 template <typename T>
 BigBuffer<T>::BigBuffer(const T& value) {
-  constexpr int num = 1;
-  if (*(char*) &num == 1) { // Little endian
+  if (constexpr int num = 1;*(char*) &num == 1) { // If computer using Little endian
     std::array<uint8_t, sizeof(T)> temp = {0};
     memcpy(temp.data(), &value, sizeof(T));
     for (size_t index = sizeof(T); index > 0; --index) {
@@ -43,16 +42,7 @@ BigBuffer<T>::BigBuffer(const T& value) {
 
 template <typename T>
 BigBuffer<T>::BigBuffer(const std::vector<uint8_t>& buffer, size_t offset) {
-  constexpr int num = 1;
-  if (*(char*) &num == 1) {
-    std::array<uint8_t, sizeof(T)> temp = {0};
-    memcpy(temp.data(), buffer.data() + offset, sizeof(T));
-    for (size_t index = sizeof(T); index > 0; --index) {
-      buffer_[sizeof(T) - index] = temp[index - 1];
-    }
-  } else {
-    memcpy(buffer_.data(), buffer.data() + offset, sizeof(T));
-  }
+  memcpy(buffer_.data(), buffer.data() + offset, sizeof(T));
 }
 
 template <typename T>
@@ -72,9 +62,8 @@ size_t BigBuffer<T>::size() const {
 
 template <typename T>
 T BigBuffer<T>::value() const {
-  constexpr int num = 1;
   std::array<uint8_t, sizeof(T)> temp = {0};
-  if (*(char*) &num == 1) {
+  if (constexpr int num = 1; *(char*) &num == 1) { // Computer uses little endian
     for (size_t index = sizeof(T); index > 0; --index) {
       temp[sizeof(T) - index] = buffer_[index - 1];
     }

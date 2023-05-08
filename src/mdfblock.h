@@ -116,6 +116,13 @@ class MdfBlock {
 
   [[nodiscard]] virtual std::string Comment() const;
 
+  template <typename T>
+  std::size_t ReadNumber(std::FILE *file, T &dest) const;
+
+  template <typename T>
+  std::size_t WriteNumber(std::FILE *file, const T &source) const;
+
+  void UpdateBlockSize(std::FILE *file, size_t bytes);
  protected:
   int64_t file_position_ = 0;  ///< 64-bit file position.
   std::string block_type_;   ///< MDF header. MDF3 has 2 characters. MDF4 has 4
@@ -160,51 +167,11 @@ class MdfBlock {
   [[nodiscard]] virtual IMetaData *CreateMetaData();
   [[nodiscard]] virtual const IMetaData *MetaData() const;
 
-  void UpdateBlockSize(std::FILE *file, size_t bytes);
+
   void CreateMd4Block();  ///< Helper function that creates an MD4 block to this
                           ///< block
 
-  template <typename T>
-  std::size_t ReadNumber(std::FILE *file, T &dest) const {
-    if (IsBigEndian()) {
-      BigBuffer<T> buff;
-      auto count = std::fread(buff.data(), sizeof(T), 1, file);
-      if (count != 1) {
-        throw std::ios_base::failure("Invalid number of bytes read");
-      }
-      dest = buff.value();
-    } else {
-      LittleBuffer<T> buff;
-      auto count = std::fread(buff.data(), sizeof(T), 1, file);
-      if (count != 1) {
-        throw std::ios_base::failure("Invalid number of bytes read");
-      }
-      dest = buff.value();
-    }
-    return sizeof(T);
-  }
 
-  template <typename T>
-  std::size_t WriteNumber(std::FILE *file, const T &source) const {
-    if (file == nullptr) {
-      throw std::runtime_error(
-          "File pointer is null. Invalid use of function.");
-    }
-    if (IsBigEndian()) {
-      const BigBuffer buff(source);
-      auto count = std::fwrite(buff.data(), 1, sizeof(T), file);
-      if (count != sizeof(T)) {
-        throw std::runtime_error("Invalid number of bytes written");
-      }
-    } else {
-      const LittleBuffer buff(source);
-      auto count = std::fwrite(buff.data(), 1, sizeof(T), file);
-      if (count != sizeof(T)) {
-        throw std::runtime_error("Invalid number of bytes written");
-      }
-    }
-    return sizeof(T);
-  }
 
   /** \brief Reads in a list of blocks from the file.
    *
@@ -238,6 +205,47 @@ class MdfBlock {
   void WriteBlock4(std::FILE *file, std::unique_ptr<T> &block,
                    size_t link_index);
 };
+
+template <typename T>
+std::size_t MdfBlock::ReadNumber(std::FILE *file, T &dest) const {
+  if (IsBigEndian()) {
+    BigBuffer<T> buff;
+    auto count = std::fread(buff.data(), sizeof(T), 1, file);
+    if (count != 1) {
+      throw std::ios_base::failure("Invalid number of bytes read");
+    }
+    dest = buff.value();
+  } else {
+    LittleBuffer<T> buff;
+    auto count = std::fread(buff.data(), sizeof(T), 1, file);
+    if (count != 1) {
+      throw std::ios_base::failure("Invalid number of bytes read");
+    }
+    dest = buff.value();
+  }
+  return sizeof(T);
+}
+template <typename T>
+std::size_t MdfBlock::WriteNumber(std::FILE *file, const T &source) const {
+  if (file == nullptr) {
+    throw std::runtime_error(
+        "File pointer is null. Invalid use of function.");
+  }
+  if (IsBigEndian()) {
+    const BigBuffer buff(source);
+    auto count = std::fwrite(buff.data(), 1, sizeof(T), file);
+    if (count != sizeof(T)) {
+      throw std::runtime_error("Invalid number of bytes written");
+    }
+  } else {
+    const LittleBuffer buff(source);
+    auto count = std::fwrite(buff.data(), 1, sizeof(T), file);
+    if (count != sizeof(T)) {
+      throw std::runtime_error("Invalid number of bytes written");
+    }
+  }
+  return sizeof(T);
+}
 
 template <typename T>
 void MdfBlock::ReadLink4List(std::FILE *file,

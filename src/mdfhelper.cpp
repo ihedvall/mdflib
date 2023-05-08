@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <array>
-#include <bit>
+
 #include <cmath>
 #include <codecvt>
 #include <cstring>
@@ -285,4 +285,10 @@ std::string MdfHelper::Utf16ToUtf8(const std::wstring &utf16) {
   const auto utf8 = convert.to_bytes(u16str);
   return utf8;
 }
+
+bool MdfHelper::ComputerUseLittleEndian() {
+  constexpr int num = 1;
+  return *(reinterpret_cast<const char*>(&num)) == 1;
+}
+
 }  // namespace mdf

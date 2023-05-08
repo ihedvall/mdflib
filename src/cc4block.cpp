@@ -129,9 +129,8 @@ uint16_t Cc4Block::Flags() const { return flags_; }
 void Cc4Block::Flags(uint16_t flags) { flags_ = flags; }
 
 IChannelConversion* Cc4Block::CreateInverse() {
-  auto cc4 = std::make_unique<Cc4Block>();
-  cc4->Init(*this);
-  cc_block_ = std::move(cc4);
+  cc_block_= std::make_unique<Cc4Block>();
+  cc_block_->Init(*this);
   return cc_block_.get();
 }
 

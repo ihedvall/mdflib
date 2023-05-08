@@ -100,7 +100,10 @@ bool Deflate(const std::string& filename, ByteArray& buf_out) {
 }
 
 bool Deflate(const ByteArray& buf_in, ByteArray& buf_out) {
-  if (buf_in.empty() || buf_out.empty()) {
+  if (buf_out.empty()) {
+    buf_out.resize(buf_in.size() + 100);
+  }
+  if (buf_in.empty()) {
     return false;
   }
   if (buf_out.size() < 100) {

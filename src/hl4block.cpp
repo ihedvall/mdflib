@@ -5,7 +5,7 @@
 #include "hl4block.h"
 namespace {
 
-constexpr size_t kIndexData = 0;
+constexpr size_t kIndexNext = 0; ///< First DL block
 
 std::string MakeFlagString(uint16_t flag) {
   std::ostringstream s;
@@ -32,7 +32,7 @@ void Hl4Block::GetBlockProperty(BlockPropertyList &dest) const {
   MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
-  dest.emplace_back("First DL", ToHexString(Link(kIndexData)),
+  dest.emplace_back("First DL", ToHexString(Link(kIndexNext)),
                     "Link to next attach", BlockItemType::LinkItem);
   dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
@@ -48,7 +48,29 @@ size_t Hl4Block::Read(std::FILE *file) {
   bytes += ReadNumber(file, type_);
   std::vector<uint8_t> reserved;
   bytes += ReadByte(file, reserved, 5);
-  ReadBlockList(file, kIndexData);
+  ReadBlockList(file, kIndexNext);
+  return bytes;
+}
+
+size_t Hl4Block::Write(std::FILE *file) {
+  const bool update =
+      FilePosition() > 0;  // Write or update the values inside the block
+  if (update) {
+    // Note that the block_list is used for the dl_list
+    WriteLink4List(file, block_list_,kIndexNext, 0); // Only save non-updated
+    return block_length_;
+  }
+
+  block_type_ = "##HL";
+  block_length_ = 24 + (1*8) + 2;
+  link_list_.resize(1, 0);
+
+  auto bytes = MdfBlock::Write(file);
+  bytes += WriteNumber(file,flags_);
+
+  UpdateBlockSize(file, bytes);
+
+  WriteLink4List(file, block_list_,kIndexNext, 0); // Only save non-updated
   return bytes;
 }
 }  // namespace mdf::detail

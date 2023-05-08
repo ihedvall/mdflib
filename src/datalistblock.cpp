@@ -163,6 +163,22 @@ void DataListBlock::ReadLinkList(std::FILE* file, size_t data_index,
   }
 }
 
+void DataListBlock::WriteBlockList(std::FILE* file, size_t first_index) {
+
+  for (size_t index = 0; index < block_list_.size(); ++index) {
+    auto* block = block_list_[index].get();
+    if (block == nullptr) {
+      continue;
+    }
+    if (block->FilePosition() > 0) {
+      continue;
+    }
+
+    block->Write(file);
+    UpdateLink(file, first_index + index, block->FilePosition());
+  }
+}
+
 const MdfBlock* DataListBlock::Find(int64_t index) const {
   for (const auto& p : block_list_) {
     if (!p) {
@@ -178,19 +194,32 @@ const MdfBlock* DataListBlock::Find(int64_t index) const {
 
 size_t DataListBlock::DataSize() const {  // NOLINT
   size_t count = 0;
-  for (const auto& p : block_list_) {
-    if (!p) {
+  for (const auto& block : block_list_) {
+    if (!block) {
       continue;
     }
-    const auto* list = dynamic_cast<const DataListBlock*>(p.get());
-    const auto* block = dynamic_cast<const DataBlock*>(p.get());
-    if (list != nullptr) {
-      count += list->DataSize();
-    } else if (block != nullptr) {
-      count += block->DataSize();
+    const auto* data_list = dynamic_cast<const DataListBlock*>(block.get());
+    const auto* data_block = dynamic_cast<const DataBlock*>(block.get());
+    if (data_list != nullptr) {
+      count += data_list->DataSize();
+    } else if (data_block != nullptr) {
+      count += data_block->DataSize();
     }
   }
   return count;
+}
+
+void DataListBlock::ClearData() { // NOLINT
+  for ( auto& block : block_list_) {
+    if (auto* data_block = dynamic_cast<DataBlock*>(block.get());
+        data_block != nullptr) {
+      data_block->ClearData();
+    }
+    if (auto* data_list_block = dynamic_cast<DataListBlock*>(block.get());
+        data_list_block != nullptr) {
+      data_list_block->ClearData();
+    }
+  }
 }
 
 }  // namespace mdf::detail

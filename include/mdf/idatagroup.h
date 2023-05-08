@@ -17,7 +17,6 @@ class IMetaData;
 class IDataGroup : public IBlock {
  public:
 
-  
   virtual void Description(const std::string& desc);
   [[nodiscard]] virtual std::string Description() const;
 

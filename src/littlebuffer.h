@@ -17,6 +17,14 @@ class LittleBuffer {
   explicit LittleBuffer(const T& value);
   LittleBuffer(const std::vector<uint8_t>& buffer, size_t offset);
 
+
+  [[nodiscard]] auto cbegin() const {
+    return buffer_.cbegin();
+  }
+  [[nodiscard]] auto cend() const {
+    return buffer_.cend();
+  }
+
   [[nodiscard]] const uint8_t* data() const;
   [[nodiscard]] uint8_t* data();
   [[nodiscard]] size_t size() const;
@@ -24,12 +32,12 @@ class LittleBuffer {
 
  private:
   std::array<uint8_t, sizeof(T)> buffer_;
+
 };
 
 template <typename T>
 LittleBuffer<T>::LittleBuffer(const T& value) {
-  constexpr int num = 1;
-  if (*(char*) &num == 0) { // Big endian
+  if (constexpr int num = 1;*(char*) &num == 0) { // Computer uses big endian
     std::array<uint8_t, sizeof(T)> temp = {0};
     memcpy(temp.data(), &value, sizeof(T));
     for (size_t index = sizeof(T); index > 0; --index) {
@@ -43,16 +51,7 @@ LittleBuffer<T>::LittleBuffer(const T& value) {
 template <typename T>
 LittleBuffer<T>::LittleBuffer(const std::vector<uint8_t>& buffer,
                               size_t offset) {
-  constexpr int num = 1;
-  if (*(char*) &num == 0) {
-    std::array<uint8_t, sizeof(T)> temp = {0};
-    memcpy(temp.data(), buffer.data() + offset, sizeof(T));
-    for (size_t index = sizeof(T); index > 0; --index) {
-      buffer_[sizeof(T) - index] = temp[index - 1];
-    }
-  } else {
     memcpy(buffer_.data(), buffer.data() + offset, sizeof(T));
-  }
 }
 
 template <typename T>
@@ -71,9 +70,9 @@ size_t LittleBuffer<T>::size() const {
 
 template <typename T>
 T LittleBuffer<T>::value() const {
-  constexpr int num = 1;
   std::array<uint8_t, sizeof(T)> temp = {0};
-  if (*(char*) &num == 0) {
+  if (constexpr int num = 1; *(char*) &num == 0) {
+
     for (size_t index = sizeof(T); index > 0; --index) {
       temp[sizeof(T) - index] = buffer_[index - 1];
     }

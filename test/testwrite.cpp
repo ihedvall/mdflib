@@ -5,31 +5,25 @@
 #include "testwrite.h"
 
 #include <algorithm>
-#include <chrono>
 #include <filesystem>
 #include <string>
 #include <thread>
 
+#include <util/logconfig.h>
+#include <util/logstream.h>
+#include <util/timestamp.h>
+
+#include "mdf/isourceinformation.h"
 #include "mdf/iattachment.h"
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
 #include "mdf/ievent.h"
 #include "mdf/ifilehistory.h"
+
 #include "mdf/mdffactory.h"
 #include "mdf/mdfreader.h"
 #include "mdf/mdfwriter.h"
-#include "util/logconfig.h"
-#include "util/logstream.h"
-#include "util/timestamp.h"
-
-namespace {
-
-constexpr std::string_view kLogRootDir = "o:/test";
-constexpr std::string_view kLogFile = "mdf_write.log";
-constexpr std::string_view kTestDir = "o:/test/mdf/write";
-
-bool kSkipTest = false;
-}  // namespace
+#include "mdf/mdflogstream.h"
 
 using namespace std::this_thread;
 using namespace std::chrono_literals;
@@ -37,35 +31,113 @@ using namespace util::log;
 using namespace util::time;
 using namespace std::filesystem;
 using namespace mdf;
+
+namespace {
+
+std::string kTestRootDir; ///< Test root directory
+std::string kTestDir; ///<  <Test Root Dir>/mdf/write";
+bool kSkipTest = false;
+
+/**
+ * Function that connect the MDF library to the UTIL library log functionality.
+ * @param location Source file and line location
+ * @param severity Severity code
+ * @param text Log text
+ */
+void LogFunc(const MdfLocation& location, mdf::MdfLogSeverity severity,
+             const std::string& text) {
+  auto &log_config = LogConfig::Instance();
+  LogMessage message;
+  message.message = text;
+  message.severity = static_cast<LogSeverity>(severity);
+
+  log_config.AddLogMessage(message);
+}
+/**
+ * Function that stops logging of MDF logs
+ * @param location Source file and line location
+ * @param severity Severity code
+ * @param text Log text
+ */
+void NoLog(const MdfLocation& location, mdf::MdfLogSeverity severity,
+           const std::string& text) {
+}
+
+}  // namespace
+
+
 namespace mdf::test {
 
 void TestWrite::SetUpTestSuite() {
-  auto& log_config = LogConfig::Instance();
-  log_config.RootDir(kLogRootDir.data());
-  log_config.BaseName(kLogFile.data());
-  log_config.Type(util::log::LogType::LogToFile);
-  log_config.CreateDefaultLogger();
 
-  LOG_DEBUG() << "Created the log file";
+
   try {
+    // Create the root asn log directory. Note that this directory
+    // exists in the temp dir of the operating system and is not
+    // deleted by this test program. May be deleted at restart
+    // of the operating system.
+    auto temp_dir = temp_directory_path();
+    temp_dir.append("test");
+    kTestRootDir = temp_dir.string();
+    create_directories(temp_dir); // Not deleted
+
+
+    // Log to a file as this file is used as attachment file
+    auto& log_config = LogConfig::Instance();
+    log_config.RootDir(kTestRootDir);
+    log_config.BaseName("mdf_write");
+    log_config.Type(LogType::LogToFile);
+    log_config.CreateDefaultLogger();
+
+    remove(log_config.GetLogFile()); // Remove any old log files
+
+    // Connect MDF library to the util logging functionality
+    MdfLogStream::SetLogFunction1(LogFunc);
+
+
+    // Add console logging
+    log_config.AddLogger("Console",LogType::LogToConsole, {});
+    LOG_TRACE() << "Log file created. File: " << log_config.GetLogFile();
+
+    // Create the test directory. Note that this directory is deleted before
+    // running the test, not after. This give the
+    temp_dir.append("mdf");
+    temp_dir.append("write");
     std::error_code err;
-    remove_all(kTestDir, err);
-    create_directories(kTestDir);
-    for (size_t log = 0; log < 60'000; ++log) {
-      if (exists(log_config.GetLogFile())) {
+    remove_all(temp_dir, err);
+    if (err) {
+      LOG_TRACE() << "Remove error. Message: " << err.message();
+    }
+    create_directories(temp_dir);
+    kTestDir = temp_dir.string();
+
+
+    LOG_TRACE() << "Created the test directory. Dir: " << kTestDir;
+    kSkipTest = false;
+    // The log file is actually not created directly. So wait until the log
+    // file exist, otherwise the attachment test will fail.
+
+    for (size_t log = 0; log < 600; ++log) {
+      if (exists(log_config.GetLogFile()) ) {
+        LOG_TRACE() << "Waited for log file. Ticks: " << log;
         break;
       }
-      std::this_thread::sleep_for(1ms);
+      LOG_INFO() << "Fill with dummy messages for the attachment test.";
+      std::this_thread::sleep_for(100ms);
     }
-  } catch (const std::exception& error) {
-    LOG_ERROR() << "Failed to create directories. Error: " << error.what();
+
+  } catch (const std::exception& err) {
+    LOG_ERROR() << "Failed to create test directories. Error: " << err.what();
     kSkipTest = true;
   }
 }
 
 void TestWrite::TearDownTestSuite() {
+  LOG_TRACE() << "Tear down the test suite.";
+  MdfLogStream::SetLogFunction1(NoLog);
   LogConfig& log_config = LogConfig::Instance();
   log_config.DeleteLogChain();
+
 }
 
 TEST_F(TestWrite, Mdf3WriteHD) {
@@ -355,7 +427,7 @@ TEST_F(TestWrite, Mdf4WriteHD) {  // NOLINT
 
   EXPECT_EQ(header->Project(), header1->Project());
 
-  EXPECT_EQ(header->StartTime(), header1->StartTime());
+  EXPECT_EQ(header->StartTime(), header1->StartTime()) << start_time1;
   EXPECT_EQ(header1->StartTime(), start_time1);
 
   EXPECT_EQ(header->Subject(), header1->Subject());
@@ -438,6 +510,7 @@ TEST_F(TestWrite, Mdf4WriteAT) {  // NOLINT
 
   const auto& log_config = LogConfig::Instance();
   const auto log_file = log_config.GetLogFile();
+
 
   for (size_t count = 0; count < 3; ++count) {
     auto* attachment = header->CreateAttachment();
@@ -531,7 +604,7 @@ TEST_F(TestWrite, Mdf4WriteEV) {  // NOLINT
   ASSERT_EQ(ev_list.size(), 1);
 }
 
-TEST_F(TestWrite, Mdf4WriteDG) {  // NOLINT
+TEST_F(TestWrite, Mdf4WriteDG_CG_SI) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
@@ -554,17 +627,42 @@ TEST_F(TestWrite, Mdf4WriteDG) {  // NOLINT
   auto* data_group = header->CreateDataGroup();
   ASSERT_TRUE(data_group != nullptr);
   EXPECT_EQ(data_group->Index(), 0);
-  data_group->Description("Olle Meas");
-  EXPECT_STREQ(data_group->Description().c_str(), "Olle Meas");
+  data_group->Description("DG-Desc");
+  EXPECT_STREQ(data_group->Description().c_str(), "DG-Desc");
+  EXPECT_EQ(data_group->RecordIdSize(),0);
+  EXPECT_FALSE(data_group->IsRead());
 
+  // Test CG4 block
   auto* channel_group = data_group->CreateChannelGroup();
   ASSERT_TRUE(channel_group != nullptr);
   EXPECT_EQ(channel_group->Index(), 0);
+  EXPECT_STREQ(channel_group->BlockType().c_str(), "CG");
 
-  channel_group->Name("Groupie");
-  EXPECT_STREQ(channel_group->Name().c_str(), "Groupie");
-  channel_group->Description("Groupie desc");
-  EXPECT_STREQ(channel_group->Description().c_str(), "Groupie desc");
+  channel_group->Name("Group1");
+  EXPECT_STREQ(channel_group->Name().c_str(), "Group1");
+  channel_group->Description("Group1 desc");
+  EXPECT_STREQ(channel_group->Description().c_str(), "Group1 desc");
+
+  // Test SI4 block
+  auto* source_info = channel_group->CreateSourceInformation();
+  ASSERT_TRUE(source_info != nullptr);
+  EXPECT_EQ(source_info->Index(), 0);
+  EXPECT_STREQ(source_info->BlockType().c_str(), "SI");
+
+  source_info->Name("SI-Name");
+  EXPECT_STREQ(source_info->Name().c_str(), "SI-Name");
+
+  source_info->Path("SI-Path");
+  EXPECT_STREQ(source_info->Path().c_str(), "SI-Path");
+
+  source_info->Description("SI-Desc");
+  EXPECT_STREQ(source_info->Description().c_str(), "SI-Desc");
+
+  source_info->Type(SourceType::Bus);
+  EXPECT_EQ(source_info->Type(), SourceType::Bus);
+
+  source_info->Bus(BusType::Can);
+  EXPECT_EQ(source_info->Bus(), BusType::Can);
 
   writer->InitMeasurement();
   writer->FinalizeMeasurement();
@@ -582,10 +680,765 @@ TEST_F(TestWrite, Mdf4WriteDG) {  // NOLINT
   EXPECT_GT(header1->Index(), 0);
 
   const auto dg_list = header1->DataGroups();
-  ASSERT_EQ(dg_list.size(), 1);
+  EXPECT_EQ(dg_list.size(), 1);
+  for (auto* dg4 : dg_list) {
+    ASSERT_TRUE(dg4 != nullptr);
+    EXPECT_GT(dg4->Index(),0);
+    EXPECT_STREQ(dg4->BlockType().c_str(), "DG");
+    EXPECT_STREQ(dg4->Description().c_str(), "DG-Desc");
+    EXPECT_EQ(dg4->RecordIdSize(), 0);
+    EXPECT_TRUE(dg4->MetaData() != nullptr); // Description in MD block
+    EXPECT_FALSE(dg4->IsRead());  // Check if data is read
 
-  const auto cg_list = dg_list[0]->ChannelGroups();
-  ASSERT_EQ(cg_list.size(), 1);
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      ASSERT_TRUE(cg4 != nullptr);
+      EXPECT_GT(cg4->Index(), 0);
+      EXPECT_STREQ(cg4->BlockType().c_str(),"CG");
+      EXPECT_STREQ(cg4->Name().c_str(), "Group1");
+      EXPECT_STREQ(cg4->Description().c_str(), "Group1 desc");
+      EXPECT_TRUE(cg4->MetaData() != nullptr); // Description in MD block
+
+      const auto* si4 = cg4->SourceInformation();
+      ASSERT_TRUE(si4 != nullptr);
+      EXPECT_GT(si4->Index(), 0);
+      EXPECT_STREQ(si4->BlockType().c_str(),"SI");
+      EXPECT_STREQ(si4->Name().c_str(), "SI-Name");
+      EXPECT_STREQ(si4->Path().c_str(), "SI-Path");
+      EXPECT_STREQ(si4->Description().c_str(), "SI-Desc"); // Desc in MD block
+      EXPECT_EQ(si4->Type(), SourceType::Bus);
+      EXPECT_EQ(si4->Bus(), BusType::Can);
+      EXPECT_EQ(si4->Flags(), 0);
+      EXPECT_TRUE(si4->MetaData() != nullptr); // Desc in MD block
+
+    }
+  }
+}
+
+TEST_F(TestWrite, Mdf4WriteCN_SI_CC) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("cn4.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* header = writer->Header();
+  ASSERT_TRUE(header != nullptr);
+
+  auto* history = header->CreateFileHistory();
+  ASSERT_TRUE(history != nullptr);
+  history->Description("Created");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+  ASSERT_TRUE(data_group != nullptr);
+
+  // Test CG4 block
+  auto* channel_group = data_group->CreateChannelGroup();
+  ASSERT_TRUE(channel_group != nullptr);
+  channel_group->Name("Group1");
+
+  // Add channel
+  auto* ch1 = channel_group->CreateChannel();
+  ASSERT_TRUE(ch1 != nullptr);
+  EXPECT_EQ(ch1->Index(),0);
+  EXPECT_STREQ(ch1->BlockType().c_str(), "CN");
+  ch1->Name("Ch1-Name");
+  ch1->DisplayName("Ch1-DisplayName");
+  ch1->Description("Ch1-Desc");
+  ch1->Unit("Ch1-Unit");
+  ch1->Type(ChannelType::FixedLength);
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::UnsignedIntegerLe);
+  ch1->DataBytes(8);
+  // Todo: Check why no set function ch1->Decimals();
+  ch1->Range(0,10);
+  ch1->Limit(1,9);
+  ch1->ExtLimit(2,8);
+  // ch1->SamplingRate(1.33); Not supported in MDF4
+
+  auto* source_info = ch1->CreateSourceInformation();
+  ASSERT_TRUE(source_info != nullptr);
+  source_info->Name("SI-Name");
+  source_info->Path("SI-Path");
+  source_info->Description("SI-Desc");
+  source_info->Type(SourceType::Bus);
+  source_info->Bus(BusType::Can);
+
+  auto* conv = ch1->CreateChannelConversion();
+  ASSERT_TRUE(conv != nullptr);
+  EXPECT_EQ(conv->Index(),0);
+  EXPECT_STREQ(conv->BlockType().c_str(), "CC");
+  conv->Name("Cc1-Name");
+  conv->Description("Cc1-Desc");
+  conv->Unit("Cc1-Unit");
+  conv->Type(ConversionType::Linear);
+  conv->Decimals(3);
+  conv->Parameter(0, 0.0);
+  conv->Parameter(1,1.0);
+  conv->Range(0,10);
+
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  uint64_t value;
+  for (size_t sample = 0; sample < 10; ++sample) {
+    value = sample;
+    ch1->SetChannelValue(value);
+    writer->SaveSample(*channel_group,tick_time);
+    tick_time += 1'000'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+
+  writer->FinalizeMeasurement();
+
+  EXPECT_GT(header->Index(), 0);
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  ASSERT_TRUE(file1 != nullptr);
+
+  const auto* header1 = file1->Header();
+  ASSERT_TRUE(header1 != nullptr);
+
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+  for (auto* dg4 : dg_list) {
+    ASSERT_TRUE(dg4 != nullptr);
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      ASSERT_TRUE(cg4 != nullptr);
+      EXPECT_EQ(cg4->NofSamples(),10);
+      EXPECT_EQ(cg4->RecordId(),0);
+
+      const auto cn_list = cg4->Channels();
+      EXPECT_EQ(cn_list.size(),1);
+      for (auto* cn4 : cn_list) {
+        ASSERT_TRUE(cn4 != nullptr);
+        EXPECT_GT(cn4->Index(),0);
+        EXPECT_STREQ(cn4->BlockType().c_str(), "CN");
+        EXPECT_STREQ(cn4->Name().c_str(), "Ch1-Name");
+        EXPECT_STREQ(cn4->DisplayName().c_str(), "");
+        EXPECT_STREQ(cn4->Description().c_str(), "Ch1-Desc");
+        EXPECT_STREQ(cn4->Unit().c_str(), "Ch1-Unit");
+        EXPECT_TRUE(cn4->IsUnitValid());
+        EXPECT_EQ(cn4->Type(),ChannelType::FixedLength);
+        EXPECT_EQ(cn4->Sync(),ChannelSyncType::None);
+        EXPECT_EQ(cn4->DataType(),ChannelDataType::UnsignedIntegerLe);
+        EXPECT_EQ(cn4->DataBytes(), 8);
+        // EXPECT_DOUBLE_EQ(cn4->SamplingRate(), 1.33); Not supported in MDF4
+        const auto range = cn4->Range();
+        EXPECT_TRUE(range.has_value());
+        EXPECT_DOUBLE_EQ(range.value().first, 0);
+        EXPECT_DOUBLE_EQ(range.value().second, 10);
+        const auto limit = cn4->Limit();
+        EXPECT_TRUE(limit.has_value());
+        EXPECT_DOUBLE_EQ(limit.value().first, 1);
+        EXPECT_DOUBLE_EQ(limit.value().second, 9);
+        const auto ext_limit = cn4->ExtLimit();
+        EXPECT_TRUE(ext_limit.has_value());
+        EXPECT_DOUBLE_EQ(ext_limit.value().first, 2);
+        EXPECT_DOUBLE_EQ(ext_limit.value().second, 8);
+
+        const auto* si4 = cn4->SourceInformation();
+        ASSERT_TRUE(si4 != nullptr);
+        EXPECT_GT(si4->Index(), 0);
+        EXPECT_STREQ(si4->BlockType().c_str(),"SI");
+        EXPECT_STREQ(si4->Name().c_str(), "SI-Name");
+        EXPECT_STREQ(si4->Path().c_str(), "SI-Path");
+        EXPECT_STREQ(si4->Description().c_str(), "SI-Desc"); // Desc in MD block
+        EXPECT_EQ(si4->Type(), SourceType::Bus);
+        EXPECT_EQ(si4->Bus(), BusType::Can);
+        EXPECT_EQ(si4->Flags(), 0);
+        EXPECT_TRUE(si4->MetaData() != nullptr); // Desc in MD block
+
+        const auto* cc4 = ch1->ChannelConversion();
+        ASSERT_TRUE(cc4 != nullptr);
+        EXPECT_GT(cc4->Index(),0);
+        EXPECT_STREQ(cc4->BlockType().c_str(), "CC");
+        EXPECT_STREQ(cc4->Name().c_str(),"Cc1-Name");
+        EXPECT_STREQ(cc4->Description().c_str(),"Cc1-Desc");
+        EXPECT_STREQ(cc4->Unit().c_str(),"Cc1-Unit");
+        EXPECT_EQ(cc4->Type(),ConversionType::Linear);
+        EXPECT_EQ(cc4->Decimals(),3);
+        const auto range1 = cc4->Range();
+        EXPECT_TRUE(range1.has_value());
+        EXPECT_DOUBLE_EQ(range1.value().first, 0);
+        EXPECT_DOUBLE_EQ(range1.value().second, 10);
+      }
+    }
+  }
+}
+
+TEST_F(TestWrite, Mdf4Unsigned) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("unsigned.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("Unsigned");
+
+
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("Intel8");
+  ch1->Type(ChannelType::FixedLength);
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::UnsignedIntegerLe);
+  ch1->DataBytes(1);
+
+  auto* ch2 = group1->CreateChannel();
+  ch2->Name("Intel16");
+  ch2->Type(ChannelType::FixedLength);
+  ch2->Sync(ChannelSyncType::None);
+  ch2->DataType(ChannelDataType::UnsignedIntegerLe);
+  ch2->DataBytes(2);
+
+  auto* ch3 = group1->CreateChannel();
+  ch3->Name("Intel32");
+  ch3->Type(ChannelType::FixedLength);
+  ch3->Sync(ChannelSyncType::None);
+  ch3->DataType(ChannelDataType::UnsignedIntegerLe);
+  ch3->DataBytes(4);
+
+  auto* ch4 = group1->CreateChannel();
+  ch4->Name("Intel64");
+  ch4->Type(ChannelType::FixedLength);
+  ch4->Sync(ChannelSyncType::None);
+  ch4->DataType(ChannelDataType::UnsignedIntegerLe);
+  ch4->DataBytes(8);
+
+  auto* ch5 = group1->CreateChannel();
+  ch5->Name("Motorola8");
+  ch5->Type(ChannelType::FixedLength);
+  ch5->Sync(ChannelSyncType::None);
+  ch5->DataType(ChannelDataType::UnsignedIntegerBe);
+  ch5->DataBytes(1);
+
+  auto* ch6 = group1->CreateChannel();
+  ch6->Name("Motorola16");
+  ch6->Type(ChannelType::FixedLength);
+  ch6->Sync(ChannelSyncType::None);
+  ch6->DataType(ChannelDataType::UnsignedIntegerBe);
+  ch6->DataBytes(2);
+
+  auto* ch7 = group1->CreateChannel();
+  ch7->Name("Motorola32");
+  ch7->Type(ChannelType::FixedLength);
+  ch7->Sync(ChannelSyncType::None);
+  ch7->DataType(ChannelDataType::UnsignedIntegerBe);
+  ch7->DataBytes(4);
+
+  auto* ch8 = group1->CreateChannel();
+  ch8->Name("Motorola64");
+  ch8->Type(ChannelType::FixedLength);
+  ch8->Sync(ChannelSyncType::None);
+  ch8->DataType(ChannelDataType::UnsignedIntegerBe);
+  ch8->DataBytes(8);
+
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+
+  uint64_t value;
+  for (size_t sample = 0; sample < 100; ++sample) {
+    value = static_cast<uint64_t>(sample);
+    ch1->SetChannelValue(value);
+    ch2->SetChannelValue(value);
+    ch3->SetChannelValue(value);
+    ch4->SetChannelValue(value);
+    ch5->SetChannelValue(value);
+    ch6->SetChannelValue(value);
+    ch7->SetChannelValue(value);
+    ch8->SetChannelValue(value);
+    writer->SaveSample(*group1,tick_time);
+    tick_time += 1'000'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    ASSERT_EQ(observer->NofSamples(), 100);
+    for (size_t sample = 0; sample < 100; ++sample) {
+      uint64_t channel_value = 0;
+      const auto valid = observer->GetChannelValue(sample, channel_value);
+      EXPECT_TRUE(valid);
+      EXPECT_EQ(channel_value, static_cast<uint64_t>(sample))
+          << observer->Name();
+    }
+  }
+
+}
+
+TEST_F(TestWrite, Mdf4Signed) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("signed.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("Signed");
+
+
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("Intel8");
+  ch1->Type(ChannelType::FixedLength);
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::SignedIntegerLe);
+  ch1->DataBytes(1);
+
+  auto* ch2 = group1->CreateChannel();
+  ch2->Name("Intel16");
+  ch2->Type(ChannelType::FixedLength);
+  ch2->Sync(ChannelSyncType::None);
+  ch2->DataType(ChannelDataType::SignedIntegerLe);
+  ch2->DataBytes(2);
+
+  auto* ch3 = group1->CreateChannel();
+  ch3->Name("Intel32");
+  ch3->Type(ChannelType::FixedLength);
+  ch3->Sync(ChannelSyncType::None);
+  ch3->DataType(ChannelDataType::SignedIntegerLe);
+  ch3->DataBytes(4);
+
+  auto* ch4 = group1->CreateChannel();
+  ch4->Name("Intel64");
+  ch4->Type(ChannelType::FixedLength);
+  ch4->Sync(ChannelSyncType::None);
+  ch4->DataType(ChannelDataType::SignedIntegerLe);
+  ch4->DataBytes(8);
+
+  auto* ch5 = group1->CreateChannel();
+  ch5->Name("Motorola8");
+  ch5->Type(ChannelType::FixedLength);
+  ch5->Sync(ChannelSyncType::None);
+  ch5->DataType(ChannelDataType::SignedIntegerBe);
+  ch5->DataBytes(1);
+
+  auto* ch6 = group1->CreateChannel();
+  ch6->Name("Motorola16");
+  ch6->Type(ChannelType::FixedLength);
+  ch6->Sync(ChannelSyncType::None);
+  ch6->DataType(ChannelDataType::SignedIntegerBe);
+  ch6->DataBytes(2);
+
+  auto* ch7 = group1->CreateChannel();
+  ch7->Name("Motorola32");
+  ch7->Type(ChannelType::FixedLength);
+  ch7->Sync(ChannelSyncType::None);
+  ch7->DataType(ChannelDataType::SignedIntegerBe);
+  ch7->DataBytes(4);
+
+  auto* ch8 = group1->CreateChannel();
+  ch8->Name("Motorola64");
+  ch8->Type(ChannelType::FixedLength);
+  ch8->Sync(ChannelSyncType::None);
+  ch8->DataType(ChannelDataType::SignedIntegerBe);
+  ch8->DataBytes(8);
+
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+
+  int64_t value;
+  for (int64_t sample = -99; sample < 100; ++sample) {
+    value = static_cast<int64_t>(sample);
+    ch1->SetChannelValue(value);
+    ch2->SetChannelValue(value);
+    ch3->SetChannelValue(value);
+    ch4->SetChannelValue(value);
+    ch5->SetChannelValue(value);
+    ch6->SetChannelValue(value);
+    ch7->SetChannelValue(value);
+    ch8->SetChannelValue(value);
+    writer->SaveSample(*group1,tick_time);
+    tick_time += 1'000'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    ASSERT_EQ(observer->NofSamples(), 199);
+    for (int64_t sample = -99; sample < 100; ++sample) {
+      int64_t channel_value = 0;
+      const auto valid = observer->GetChannelValue(sample + 99, channel_value);
+      EXPECT_TRUE(valid);
+      EXPECT_EQ(channel_value, static_cast<int64_t>(sample))
+          << observer->Name();
+    }
+  }
+}
+
+TEST_F(TestWrite, Mdf4Float) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("float.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("Float");
+
+
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("Intel32");
+  ch1->Type(ChannelType::FixedLength);
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::FloatLe);
+  ch1->DataBytes(4);
+
+  auto* ch2 = group1->CreateChannel();
+  ch2->Name("Intel64");
+  ch2->Type(ChannelType::FixedLength);
+  ch2->Sync(ChannelSyncType::None);
+  ch2->DataType(ChannelDataType::FloatLe);
+  ch2->DataBytes(8);
+
+  auto* ch3 = group1->CreateChannel();
+  ch3->Name("Motorola32");
+  ch3->Type(ChannelType::FixedLength);
+  ch3->Sync(ChannelSyncType::None);
+  ch3->DataType(ChannelDataType::FloatBe);
+  ch3->DataBytes(4);
+
+  auto* ch4 = group1->CreateChannel();
+  ch4->Name("Motorola64");
+  ch4->Type(ChannelType::FixedLength);
+  ch4->Sync(ChannelSyncType::None);
+  ch4->DataType(ChannelDataType::FloatBe);
+  ch4->DataBytes(8);
+
+
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+
+  for (size_t sample = 0; sample < 100; ++sample) {
+    double value = static_cast<double>(sample) + 0.23;
+    ch1->SetChannelValue(value);
+    ch2->SetChannelValue(value);
+    ch3->SetChannelValue(value);
+    ch4->SetChannelValue(value);
+
+    writer->SaveSample(*group1,tick_time);
+    tick_time += 1'000'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    ASSERT_EQ(observer->NofSamples(), 100);
+    for (size_t sample = 0; sample < 100; ++sample) {
+      double channel_value = 0;
+      const auto valid = observer->GetChannelValue(sample, channel_value);
+      EXPECT_TRUE(valid);
+      EXPECT_FLOAT_EQ(channel_value, static_cast<double>(sample) + 0.23)
+          << observer->Name();
+    }
+  }
+}
+TEST_F(TestWrite, Mdf4TimeAndDate) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("time_and_date.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("TimeAndDate");
+
+
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("CanDate");
+  ch1->Type(ChannelType::FixedLength);
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::CanOpenDate);
+  ch1->DataBytes(7);
+
+  auto* ch2 = group1->CreateChannel();
+  ch2->Name("CanTime");
+  ch2->Type(ChannelType::FixedLength);
+  ch2->Sync(ChannelSyncType::None);
+  ch2->DataType(ChannelDataType::CanOpenTime);
+  ch2->DataBytes(6);
+
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+
+  const auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  auto temp_time = tick_time;
+
+  for (size_t sample = 0; sample < 100; ++sample) {
+    double value = static_cast<double>(sample) + 0.23;
+    ch1->SetChannelValue(temp_time);
+    ch2->SetChannelValue(temp_time);
+    writer->SaveSample(*group1,temp_time);
+    temp_time += 1'000'000'000;
+  }
+  writer->StopMeasurement(temp_time);
+  writer->FinalizeMeasurement();
+
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    ASSERT_EQ(observer->NofSamples(), 100);
+    for (size_t sample = 0; sample < 100; ++sample) {
+      auto temp1_time = tick_time + (sample * 1'000'000'000);
+      temp1_time /= 1'000'000; // Only ms resolution in storage
+      temp1_time *= 1'000'000;
+      uint64_t channel_value = 0;
+      const auto valid = observer->GetChannelValue(sample, channel_value);
+      EXPECT_TRUE(valid);
+      EXPECT_EQ(channel_value, temp1_time) << observer->Name();
+    }
+  }
+}
+
+TEST_F(TestWrite, CompressData) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("compress.mf4");
+
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  writer->CompressData(true);
+
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test compress");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("Float");
+
+
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("Intel32");
+  ch1->Type(ChannelType::FixedLength);
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::FloatLe);
+  ch1->DataBytes(4);
+
+  auto* ch2 = group1->CreateChannel();
+  ch2->Name("Intel64");
+  ch2->Type(ChannelType::FixedLength);
+  ch2->Sync(ChannelSyncType::None);
+  ch2->DataType(ChannelDataType::FloatLe);
+  ch2->DataBytes(8);
+
+  auto* ch3 = group1->CreateChannel();
+  ch3->Name("Motorola32");
+  ch3->Type(ChannelType::FixedLength);
+  ch3->Sync(ChannelSyncType::None);
+  ch3->DataType(ChannelDataType::FloatBe);
+  ch3->DataBytes(4);
+
+  auto* ch4 = group1->CreateChannel();
+  ch4->Name("Motorola64");
+  ch4->Type(ChannelType::FixedLength);
+  ch4->Sync(ChannelSyncType::None);
+  ch4->DataType(ChannelDataType::FloatBe);
+  ch4->DataBytes(8);
+
+
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+
+  for (size_t sample = 0; sample < 1'000'000; ++sample) {
+    double value = static_cast<double>(sample) + 0.23;
+    ch1->SetChannelValue(value);
+    ch2->SetChannelValue(value);
+    ch3->SetChannelValue(value);
+    ch4->SetChannelValue(value);
+
+    writer->SaveSample(*group1,tick_time);
+    tick_time += 100'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    ASSERT_EQ(observer->NofSamples(), 1'000'000);
+    for (size_t sample = 0; sample < 100; ++sample) {
+      double channel_value = 0;
+      const auto valid = observer->GetChannelValue(sample, channel_value);
+      EXPECT_TRUE(valid);
+      EXPECT_FLOAT_EQ(channel_value, static_cast<double>(sample) + 0.23)
+          << observer->Name();
+    }
+  }
 }
 
 }  // end namespace mdf::test

@@ -65,6 +65,9 @@ std::string MakeFlagString(uint16_t flag) {
 
 }  // namespace
 namespace mdf::detail {
+Si4Block::Si4Block() {
+  block_type_ = "##SI";
+}
 
 void Si4Block::GetBlockProperty(BlockPropertyList &dest) const {
   MdfBlock::GetBlockProperty(dest);
@@ -165,5 +168,6 @@ IMetaData *Si4Block::CreateMetaData() {
 const IMetaData *Si4Block::MetaData() const {
   return MdfBlock::MetaData();
 }
+
 
 }  // namespace mdf::detail

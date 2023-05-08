@@ -33,6 +33,8 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
   [[nodiscard]] uint64_t RecordId() const override;
 
   [[nodiscard]] std::vector<IChannel*> Channels() const override;
+  [[nodiscard]] IChannel* CreateChannel() override;
+
   [[nodiscard]] const IChannel* GetXChannel(
       const IChannel& reference) const override;
 
@@ -55,7 +57,7 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
     return sample_buffer_;
   }
   size_t ReadDataRecord(std::FILE* file, const IDataGroup& notifier) const;
-
+  void PrepareForWriting();
  private:
   uint16_t record_id_ = 0;
   uint16_t nof_channels_ = 0;
@@ -66,6 +68,6 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
   Cn3List cn_list_;
   Sr3List sr_list_;
 
-  void PrepareForWriting();
+
 };
 }  // namespace mdf::detail

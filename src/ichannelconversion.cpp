@@ -302,7 +302,7 @@ bool IChannelConversion::ConvertTextToTranslation(
 }
 
 void IChannelConversion::Parameter(size_t index, double parameter) {
-  while (index + 1 < value_list_.size()) {
+  while (index >= value_list_.size()) {
     value_list_.push_back(0.0);
   }
   value_list_[index] = parameter;

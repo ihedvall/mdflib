@@ -45,6 +45,8 @@ class IChannelGroup : public IBlock {
   virtual void PathSeparator(char16_t path_separator);
 
   [[nodiscard]] virtual std::vector<IChannel*> Channels() const = 0;
+  [[nodiscard]] virtual IChannel* CreateChannel() = 0;
+
   [[nodiscard]] virtual const IChannel* GetXChannel(
       const IChannel& reference) const = 0;
 

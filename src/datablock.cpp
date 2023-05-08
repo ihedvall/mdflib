@@ -54,4 +54,16 @@ size_t DataBlock::CopyDataToBuffer(std::FILE *from_file,
   return reads;
 }
 
+bool DataBlock::Data(const std::vector<uint8_t> &data) {
+  data_ = data;
+  return true;
+}
+
+size_t DataBlock::ReadData(std::FILE *file) {
+  if (data_position_ <= 0 || file == nullptr) {
+    return 0;
+  }
+  return ReadByte(file, data_,DataSize());
+}
+
 }  // namespace mdf::detail

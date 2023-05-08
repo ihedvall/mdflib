@@ -387,10 +387,11 @@ size_t MdfBlock::Update(std::FILE *file) {
   if (file == nullptr) {
     throw std::runtime_error("File pointer is null");
   }
-
+  size_t bytes = 0;
   SetFilePosition(file, FilePosition());
-  return IsMdf4()
-             ? StepFilePosition(file, 24 + (link_count_ * sizeof(int64_t)))
+
+  return IsMdf4() ?
+               StepFilePosition(file, 24 + (link_count_ * sizeof(int64_t)))
              : StepFilePosition(file, 4 + (link_count_ * sizeof(uint32_t)));
 }
 

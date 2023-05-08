@@ -21,6 +21,7 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   using Cn4List = std::vector<std::unique_ptr<Cn4Block>>;
   using Sr4List = std::vector<std::unique_ptr<Sr4Block>>;
 
+  Cg4Block();
   void GetBlockProperty(BlockPropertyList& dest) const override;
   const MdfBlock* Find(int64_t index) const override;
 
@@ -53,6 +54,8 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   void PathSeparator(char16_t path_separator) override;
 
   [[nodiscard]] std::vector<IChannel*> Channels() const override;
+  [[nodiscard]] IChannel* CreateChannel() override;
+
   [[nodiscard]] const IChannel* GetXChannel(
       const IChannel& reference) const override;
 
@@ -65,6 +68,7 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   size_t ReadDataRecord(std::FILE* file, const IDataGroup& notifier) const;
   std::vector<uint8_t>& SampleBuffer() const { return sample_buffer_; }
   size_t Write(std::FILE* file) override;
+
   ISourceInformation* CreateSourceInformation() override;
   const ISourceInformation* SourceInformation() const override;
 
@@ -78,6 +82,8 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   [[nodiscard]] const IMetaData* MetaData() const override {
     return MdfBlock::MetaData();
   }
+  void PrepareForWriting();
+
 
  private:
   uint64_t record_id_ = 0;
@@ -92,6 +98,8 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   std::unique_ptr<Si4Block> si_block_;
   Cn4List cn_list_;
   Sr4List sr_list_;
+
+  int64_t nof_samples_position_ = 0;
 
 
 };

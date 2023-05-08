@@ -56,7 +56,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
 
   void ParseDataRecords(std::FILE* file, size_t nof_data_bytes) const;
   size_t ReadRecordId(std::FILE* file, uint64_t& record_id) const;
-  const Cg4Block* FindCgRecordId(const uint64_t record_id) const;
+  const Cg4Block* FindCgRecordId(uint64_t record_id) const;
 };
 
 }  // namespace mdf::detail

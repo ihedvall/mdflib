@@ -45,6 +45,7 @@ class Cn3Block : public DataListBlock, public IChannel {
   [[nodiscard]] size_t DataBytes() const override;
 
   [[nodiscard]] const IChannelConversion* ChannelConversion() const override;
+  IChannelConversion *CreateChannelConversion() override;
 
   void SamplingRate(double sampling_rate) override;
   [[nodiscard]] double SamplingRate() const override;

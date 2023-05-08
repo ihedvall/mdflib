@@ -9,6 +9,8 @@ namespace mdf::detail {
 
 class Si4Block : public MdfBlock, public ISourceInformation {
  public:
+  Si4Block();
+
   [[nodiscard]] int64_t Index() const override;
   [[nodiscard]] std::string BlockType() const override {
     return MdfBlock::BlockType();

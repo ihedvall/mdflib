@@ -18,8 +18,10 @@ class DataListBlock : public MdfBlock {
   [[nodiscard]] virtual size_t DataSize() const;
   [[nodiscard]] const MdfBlock* Find(int64_t index) const override;
   void ReadBlockList(std::FILE* file, size_t data_index);
-  void ReadLinkList(std::FILE* file, size_t data_index, uint32_t nof_link);
+  void WriteBlockList(std::FILE* file, size_t data_index);
 
+  void ReadLinkList(std::FILE* file, size_t data_index, uint32_t nof_link);
+  void ClearData();
  protected:
   BlockList block_list_;
 };

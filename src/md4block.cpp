@@ -271,6 +271,7 @@ Md4Block::Md4Block(const std::string &text) {
 }
 
 void Md4Block::TxComment(const std::string &tx_comment) {
+  block_type_ = "##MD";
   auto xml = CreateXmlFile();
   xml->ParseString(XmlSnippet());
   StringProperty("TX", tx_comment);

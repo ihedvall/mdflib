@@ -200,12 +200,22 @@ void Cn4Block::Name(const std::string &name) { name_ = name; }
 
 std::string Cn4Block::Name() const { return name_; }
 
-void Cn4Block::DisplayName(const std::string &name) {}
+void Cn4Block::DisplayName(const std::string &name) {
+  // No support in MDF4
+}
 
-std::string Cn4Block::DisplayName() const { return std::string(); }
+std::string Cn4Block::DisplayName() const {
+  // No support in MDF4
+  return {};
+}
 
 void Cn4Block::Description(const std::string &description) {
-  md_comment_ = std::make_unique<Md4Block>(description);
+  if (!md_comment_) {
+    md_comment_ = std::make_unique<Md4Block>(description);
+  } else if (auto* md4_block = dynamic_cast<Md4Block*>(md_comment_.get());
+        md4_block != nullptr) {
+    md4_block->TxComment(description);
+  }
 }
 
 std::string Cn4Block::Description() const { return MdText(); }
@@ -477,26 +487,19 @@ const MdfBlock *Cn4Block::Find(int64_t index) const {
 }
 
 void Cn4Block::ReadData(std::FILE *file) const {
-  size_t count = 0;
-  for (const auto &b : DataBlockList()) {
-    const auto *dl = dynamic_cast<const DataListBlock *>(b.get());
-    const auto *db = dynamic_cast<const DataBlock *>(b.get());
-    if (dl != nullptr) {
-      count += dl->DataSize();
-    } else if (db != nullptr) {
-      count += db->DataSize();
-    }
-  }
+  const size_t count = DataSize();
 
   size_t index = 0;
   data_list_.resize(count, 0);
-  for (const auto &block : DataBlockList()) {
-    const auto *dl = dynamic_cast<const DataListBlock *>(block.get());
-    const auto *db = dynamic_cast<const DataBlock *>(block.get());
-    if (dl != nullptr) {
-      CopyDataToBuffer(dl, file, data_list_, index);
-    } else if (db != nullptr) {
-      db->CopyDataToBuffer(file, data_list_, index);
+  // The block list should only contain one block.
+  // A SD block is uncompressed data block
+  for (const auto &block : block_list_) {
+    const auto *data_list = dynamic_cast<const DataListBlock *>(block.get());
+    const auto *data_block = dynamic_cast<const DataBlock *>(block.get());
+    if (data_list != nullptr) {
+      CopyDataToBuffer(data_list, file, data_list_, index);
+    } else if (data_block != nullptr) {
+      data_block->CopyDataToBuffer(file, data_list_, index);
     }
   }
 }
@@ -509,6 +512,7 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
                             std::string &dest) const {
   auto offset = ByteOffset();
   auto nof_bytes = BitCount() / 8;
+
   if (Type() == ChannelType::VariableLength && CgRecordId() > 0) {
     offset = 0;
     nof_bytes = record_buffer.size();
@@ -611,10 +615,45 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
   return valid;
 }
 
-void Cn4Block::Unit(const std::string &unit) {}
-void Cn4Block::Type(ChannelType type) {}
-void Cn4Block::DataType(ChannelDataType type) {}
-void Cn4Block::DataBytes(size_t nof_bytes) {}
+void Cn4Block::Unit(const std::string &unit) {
+  if (unit.empty()) {
+    unit_.reset();
+  } else {
+    unit_ = std::make_unique<Md4Block>(unit);
+  }
+}
+
+void Cn4Block::Type(ChannelType type) {
+  type_ = static_cast<uint8_t>(type);
+}
+
+void Cn4Block::DataType(ChannelDataType type) {
+  data_type_ = static_cast<uint8_t>(type);
+  switch(DataType()) {
+    case ChannelDataType::UnsignedIntegerLe:
+    case ChannelDataType::UnsignedIntegerBe:
+    case ChannelDataType::SignedIntegerLe:
+    case ChannelDataType::SignedIntegerBe:
+    case ChannelDataType::FloatLe:
+    case ChannelDataType::FloatBe:
+      if (DataBytes() == 0) {
+        DataBytes(4);
+      }
+      break;
+
+    case ChannelDataType::CanOpenDate:
+      DataBytes(7);
+      break;
+
+    case ChannelDataType::CanOpenTime:
+      DataBytes(6);
+      break;
+  }
+}
+
+void Cn4Block::DataBytes(size_t nof_bytes) {
+  bit_count_ = nof_bytes * 8;
+}
 void Cn4Block::SamplingRate(double sampling_rate) {}
 double Cn4Block::SamplingRate() const { return 0; }
 
@@ -674,6 +713,153 @@ std::optional<std::pair<double, double>> Cn4Block::ExtLimit() const {
              : IChannel::Limit();
 }
 
+const ISourceInformation *Cn4Block::SourceInformation() const {
+  return si_block_.get();
+}
 
+ISourceInformation *Cn4Block::CreateSourceInformation() {
+  if (!si_block_) {
+    si_block_ = std::make_unique<Si4Block>();
+    si_block_->Init(*this);
+  }
+  return si_block_.get();
+}
+
+IChannelConversion *Cn4Block::CreateChannelConversion() {
+  if (!cc_block_) {
+    cc_block_ = std::make_unique<Cc4Block>();
+    cc_block_->Init(*this);
+  }
+  cc_block_->ChannelDataType(data_type_);
+  return cc_block_.get();
+}
+void Cn4Block::Flags(uint32_t flags) {flags_ = flags; }
+uint32_t Cn4Block::Flags() const { return flags_; }
+
+void Cn4Block::PrepareForWriting(size_t offset) {
+  bit_offset_ = 0;
+  byte_offset_ = offset;
+  // The bit count may be set by the user.
+  bool use_index = false;
+  switch (Type()) {
+    case ChannelType::MaxLength:
+    case ChannelType::Sync:
+    case ChannelType::Master:
+    case ChannelType::FixedLength:
+      // Length fixed below or by user
+      // Always store invalid bit
+      flags_ |= CnFlag::InvalidValid;
+      break;
+
+    case ChannelType::VariableLength:
+      // Store 32-bit index to variable block
+      flags_ |= CnFlag::InvalidValid;
+      bit_count_ = 8 * 4;
+      return;
+
+    case ChannelType::VirtualData:
+    case ChannelType::VirtualMaster:
+      // Sample index * CC sets the channel value. No valid bits
+      bit_count_ = 0;
+      flags_ &= ~CnFlag::InvalidValid;
+      return;
+  }
+
+  switch (DataType()) {
+    case ChannelDataType::UnsignedIntegerLe:
+    case ChannelDataType::UnsignedIntegerBe:
+    case ChannelDataType::SignedIntegerLe:
+    case ChannelDataType::SignedIntegerBe:
+      if (bit_count_ == 0) {
+        bit_count_ = 64; // Assume 64-bit size
+      } else {
+        switch (bit_count_) {
+          case 8:
+          case 16:
+          case 32:
+          case 64:
+            break;
+
+          default: // No supported sizes
+            bit_count_ = 64;
+            break;
+        }
+      }
+      break;
+
+    case ChannelDataType::FloatLe:
+    case ChannelDataType::FloatBe:
+      if (DataBytes() == 0) {
+        bit_count_ = 64; // Assume double
+      } else {
+        switch (DataBytes()) {
+          case 32:
+          case 64:
+            break;
+
+          default: // No supported sizes
+            bit_count_ = 64;
+            break;
+        }
+      }
+      break;
+
+    case ChannelDataType::StringAscii:
+    case ChannelDataType::StringUTF8:
+    case ChannelDataType::StringUTF16Le:
+    case ChannelDataType::StringUTF16Be:
+    case ChannelDataType::ByteArray:
+    case ChannelDataType::MimeSample:
+    case ChannelDataType::MimeStream:
+      // The bit count must be > 0 and align to 8 or 16
+      break;
+
+    case ChannelDataType::CanOpenDate:
+      bit_count_ = 7 * 8;
+      break;
+
+    case ChannelDataType::CanOpenTime:
+      bit_count_ = 6 * 8;
+      break;
+
+    case ChannelDataType::ComplexLe:
+    case ChannelDataType::ComplexBe:
+      if (bit_count_ == 0) {
+        bit_count_ = 128; // Assume 2 double
+      } else {
+        switch (DataBytes()) {
+          case 64: // 2 float
+          case 128:// 2 double
+            break;
+
+          default: // No supported sizes
+            bit_count_ = 128; // 2 double
+            break;
+        }
+      }
+      break;
+    default:
+      if (DataBytes() == 0) {
+        DataBytes(4);
+      }
+      break;
+  }
+}
+
+void Cn4Block::SetValid(bool valid) {
+  if (Flags() & CnFlag::InvalidValid) {
+    auto& buffer = SampleBuffer();
+    const auto byte_offset = invalid_bit_pos_ / 8;
+    const auto bit_offset = invalid_bit_pos_ % 8;
+    const uint8_t mask = 0x01 << bit_offset;
+    if (byte_offset < buffer.size()) {
+      if (valid) {
+        buffer[byte_offset] &= ~mask;
+      } else {
+        buffer[byte_offset] |= mask;
+      }
+    }
+  }
+}
 
 }  // namespace mdf::detail

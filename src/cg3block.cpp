@@ -106,7 +106,7 @@ size_t Cg3Block::Write(std::FILE *file) {
   const bool update =
       FilePosition() > 0;  // Write or update the values inside the block
   nof_channels_ = static_cast<uint16_t>(cn_list_.size());
-  PrepareForWriting();
+
   if (!update) {
     block_type_ = "CG";
     block_size_ = (2 + 2) + (3 * 4) + 2 + 2 + 2 + 4 + 4;
@@ -249,6 +249,13 @@ size_t Cg3Block::ReadDataRecord(std::FILE *file,
   }
 
   return count;
+}
+
+IChannel *Cg3Block::CreateChannel() {
+  auto cn3 = std::make_unique<detail::Cn3Block>();
+  cn3->Init(*this);
+  AddCn3(cn3);
+  return cn_list_.empty() ? nullptr : cn_list_.back().get();
 }
 
 }  // namespace mdf::detail

@@ -100,20 +100,28 @@ size_t Dg4Block::Read(std::FILE* file) {
 
 size_t Dg4Block::Write(std::FILE* file) {
   const bool update = FilePosition() > 0;  // True if already written to file
-  if (update) {
-    return block_length_;
+  if (!update) {
+    block_type_ = "##DG";
+    block_length_ = 24 + (4 * 8) + 8;
+    link_list_.resize(4, 0);
   }
-  block_type_ = "##DG";
-  block_length_ = 24 + (4 * 8) + 8;
-  link_list_.resize(4, 0);
 
-  WriteLink4List(file, cg_list_, kIndexCg, 0);
+  WriteLink4List(file, cg_list_, kIndexCg, 2); // Save nof samples in CG block
   WriteMdComment(file, kIndexMd);
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file, rec_id_size_);
-  bytes += WriteBytes(file, 7);
-  UpdateBlockSize(file, bytes);
+
+  auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
+  if (update) {
+    bytes = block_length_;
+  } else {
+    bytes += WriteNumber(file, rec_id_size_);
+    bytes += WriteBytes(file, 7);
+    UpdateBlockSize(file, bytes);
+  }
+  // Need to write any data block so it is positioned last in the file
+  // as any DT block should be appended with data bytes. The DT block must be
+  // last in the file
+  WriteLink4List(file, block_list_, kIndexData, 2); // Update last HL or DT
   return bytes;
 }
 size_t Dg4Block::DataSize() const { return DataListBlock::DataSize(); }
@@ -282,7 +290,7 @@ size_t Dg4Block::ReadRecordId(std::FILE* file, uint64_t& record_id) const {
   return count;
 }
 
-const Cg4Block* Dg4Block::FindCgRecordId(const uint64_t record_id) const {
+const Cg4Block* Dg4Block::FindCgRecordId(uint64_t record_id) const {
   if (cg_list_.size() == 1) {
     return cg_list_[0].get();
   }
@@ -311,6 +319,7 @@ void Dg4Block::AddCg4(std::unique_ptr<Cg4Block>& cg4) {
   cg4->Init(*this);
   cg4->RecordId(0);
   cg_list_.push_back(std::move(cg4));
+
   if (cg_list_.size() < 2) {
     rec_id_size_ = 0;
   } else if (cg_list_.size() < 0x100) {

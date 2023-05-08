@@ -52,6 +52,9 @@ void AddCxChannels(const mdf::detail::Cn4Block &cn_block, // NOLINT
 }  // end namespace
 
 namespace mdf::detail {
+Cg4Block::Cg4Block() {
+  block_type_ = "##CG";
+}
 
 int64_t Cg4Block::Index() const { return FilePosition(); }
 
@@ -172,16 +175,16 @@ size_t Cg4Block::Read(std::FILE *file) {
 
 size_t Cg4Block::Write(std::FILE *file) {
   const bool update = FilePosition() > 0;  // True if already written to file
-  if (update) {
-    return block_length_;
-  }
   const auto master = (flags_ & CgFlag::RemoteMaster) != 0;
-  block_type_ = "##CG";
-  block_length_ = 24 + (6 * 8) + 8 + 8 + 2 + 2 + 4 + 4 + 4;
-  if (master) {
-    block_length_ += 8;  // Add one more link for master
+  if (!update) {
+    block_type_ = "##CG";
+    block_length_ = 24 + (6 * 8) + 8 + 8 + 2 + 2 + 4 + 4 + 4;
+    if (master) {
+      block_length_ += 8;  // Add one more link for master
+    }
+    link_list_.resize(master ? 7 : 6, 0);
   }
-  link_list_.resize(master ? 7 : 6, 0);
+
 
   WriteLink4List(file, cn_list_, kIndexCn, 0);
   WriteTx4(file, kIndexName, acquisition_name_);
@@ -190,15 +193,24 @@ size_t Cg4Block::Write(std::FILE *file) {
   WriteMdComment(file, kIndexMd);
   // ToDo: Remote master handling
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file, record_id_);
-  bytes += WriteNumber(file, nof_samples_);
-  bytes += WriteNumber(file, flags_);
-  bytes += WriteNumber(file, path_separator_);
-  bytes += WriteBytes(file, 4);
-  bytes += WriteNumber(file, nof_data_bytes_);
-  bytes += WriteNumber(file, nof_invalid_bytes_);
-  UpdateBlockSize(file, bytes);
+  auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
+  if (update) {
+    if (nof_samples_position_ > 0) {
+      SetFilePosition(file, nof_samples_position_);
+      WriteNumber(file, nof_samples_);
+    }
+    bytes = block_length_;
+  } else {
+    bytes += WriteNumber(file, record_id_);
+    nof_samples_position_ = GetFilePosition(file);
+    bytes += WriteNumber(file, nof_samples_);
+    bytes += WriteNumber(file, flags_);
+    bytes += WriteNumber(file, path_separator_);
+    bytes += WriteBytes(file, 4);
+    bytes += WriteNumber(file, nof_data_bytes_);
+    bytes += WriteNumber(file, nof_invalid_bytes_);
+    UpdateBlockSize(file, bytes);
+  }
   return bytes;
 }
 
@@ -368,5 +380,52 @@ size_t Cg4Block::StepRecord(std::FILE *file) const {
   const size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
   return  StepFilePosition(file, record_size);
 }
+
+IChannel *Cg4Block::CreateChannel() {
+  auto cn4 = std::make_unique<detail::Cn4Block>();
+  cn4->Init(*this);
+  AddCn4(cn4);
+  return cn_list_.empty() ? nullptr : cn_list_.back().get();
+}
+
+void Cg4Block::PrepareForWriting() {
+  // Calculates number of data bytes
+  nof_data_bytes_ = 0;
+  size_t byte_offset = 0;
+  for (auto &channel1 : cn_list_) {
+    if (!channel1) {
+      continue;
+    }
+    channel1->PrepareForWriting(byte_offset);
+    const auto bytes = channel1->DataBytes();
+    nof_data_bytes_ += channel1->DataBytes();
+    byte_offset += channel1->DataBytes();
+  }
+
+  size_t bit_offset = byte_offset * 8;
+  for (auto &channel2 : cn_list_) {
+    if (!channel2) {
+      continue;
+    }
+    if (channel2->Flags() & CnFlag::InvalidValid) {
+      channel2->SetInvalidOffset(bit_offset);
+      ++bit_offset;
+    }
+  }
+
+  const auto temp = cn_list_.size() % 8;
+  nof_invalid_bytes_ = cn_list_.size() / 8;
+  if (temp > 0) {
+    ++nof_invalid_bytes_;
+  }
+
+  if (const auto total_size = nof_invalid_bytes_ + nof_data_bytes_;
+      total_size > 0) {
+    sample_buffer_.resize(total_size);
+  } else {
+    sample_buffer_.clear();
+  }
+}
+
 
 }  // namespace mdf::detail

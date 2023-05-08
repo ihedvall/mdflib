@@ -6,7 +6,6 @@
 
 #include <chrono>
 #include <cstdio>
-#include <ranges>
 
 #include "cc3block.h"
 #include "cg3block.h"
@@ -22,24 +21,8 @@ namespace mdf::detail {
 
 Mdf3Writer::~Mdf3Writer() { StopWorkThread(); }
 
-IChannel *Mdf3Writer::CreateChannel(IChannelGroup *parent) {
-  auto *cg3 = dynamic_cast<detail::Cg3Block *>(parent);
-  if (cg3 != nullptr) {
-    auto cn3 = std::make_unique<detail::Cn3Block>();
-    cn3->Init(*cg3);
-    cg3->AddCn3(cn3);
-  }
-  return cg3 != nullptr ? cg3->Cn3().back().get() : nullptr;
-}
-
 IChannelConversion *Mdf3Writer::CreateChannelConversion(IChannel *parent) {
-  auto *cn3 = dynamic_cast<detail::Cn3Block *>(parent);
-  if (cn3 != nullptr) {
-    auto cc3 = std::make_unique<detail::Cc3Block>();
-    cc3->Init(*cn3);
-    cn3->AddCc3(cc3);
-  }
-  return cn3 != nullptr ? cn3->Cc3() : nullptr;
+  return parent != nullptr ? parent->CreateChannelConversion() : nullptr;
 }
 
 void Mdf3Writer::CreateMdfFile() {
@@ -72,5 +55,31 @@ void Mdf3Writer::SetLastPosition(std::FILE *file) {
   dg3->UpdateLink(file, 3, position);
   dg3->SetLastFilePosition(file);
 }
+
+bool Mdf3Writer::PrepareForWriting() {
+  auto *header = Header();
+  if (header == nullptr) {
+    MDF_ERROR() << "No header  found. Invalid use of the function.";
+    return false;
+  }
+
+  auto *last_dg = header->LastDataGroup();
+  if (last_dg == nullptr) {
+    return true;
+  }
+
+  auto cg_list = last_dg->ChannelGroups();
+  for (auto* group : cg_list) {
+    if (group == nullptr) {
+      continue;
+    }
+    auto* cg3 = dynamic_cast<Cg3Block*>(group);
+    if (cg3 != nullptr) {
+      cg3->PrepareForWriting();
+    }
+  }
+  return true;
+}
+
 
 }  // namespace mdf::detail

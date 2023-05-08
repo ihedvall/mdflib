@@ -360,7 +360,7 @@ std::string Cn3Block::Description() const { return description_; }
 
 void Cn3Block::Unit(const std::string &unit) {
   if (!cc_block_) {
-    cc_block_ = std::make_unique<Cc3Block>();
+    CreateChannelConversion();
     cc_block_->Type(ConversionType::NoConversion);
     cc_block_->Unit(unit);
   } else {
@@ -439,7 +439,7 @@ void Cn3Block::DataType(ChannelDataType type) {
       signal_type_ = 8;  // Byte Array
       DataBytes(7);
       if (!cc_block_) {
-        cc_block_ = std::make_unique<Cc3Block>();
+        CreateChannelConversion();
       }
       cc_block_->Type(ConversionType::DateConversion);
       break;
@@ -448,7 +448,7 @@ void Cn3Block::DataType(ChannelDataType type) {
       signal_type_ = 8;  // Byte Array
       DataBytes(6);
       if (!cc_block_) {
-        cc_block_ = std::make_unique<Cc3Block>();
+        CreateChannelConversion();
       }
       cc_block_->Type(ConversionType::TimeConversion);
       break;
@@ -487,6 +487,14 @@ std::vector<uint8_t> &Cn3Block::SampleBuffer() const {
 void Cn3Block::Init(const MdfBlock &id_block) {
   MdfBlock::Init(id_block);
   cg3_block = dynamic_cast<const Cg3Block *>(&id_block);
+}
+
+IChannelConversion *Cn3Block::CreateChannelConversion() {
+  if (!cc_block_) {
+    cc_block_ = std::make_unique<Cc3Block>();
+    cc_block_->Init(*this);
+  }
+  return cc_block_.get();
 }
 
 }  // namespace mdf::detail

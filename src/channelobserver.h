@@ -95,12 +95,17 @@ class ChannelObserver : public IChannelObserver {
       case ChannelType::VariableLength: {
         if (record_id_ == record_id) {
           uint64_t index = 0;
-          const bool valid = channel_.GetUnsignedValue(record, index);
+          bool valid = channel_.GetUnsignedValue(record, index);
           if (sample < index_list_.size()) {
             index_list_[sample] = index;
           }
+          T value;
+          valid = channel_.GetChannelValue(record, value);
           if (sample < valid_list_.size()) {
             valid_list_[sample] = valid;
+          }
+          if (sample < value_list_.size()) {
+            value_list_[sample] = value;
           }
         } else if (channel_.CgRecordId() > 0 &&
                    record_id == channel_.CgRecordId()) {

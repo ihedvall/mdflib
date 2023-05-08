@@ -39,7 +39,11 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] std::string Unit() const override;
   [[nodiscard]] bool IsUnitValid() const override;
 
+  void Flags(uint32_t flags) override;
+  uint32_t Flags() const override;
+
   [[nodiscard]] const IChannelConversion* ChannelConversion() const override;
+  [[nodiscard]] IChannelConversion* CreateChannelConversion() override;
 
   void Type(ChannelType type) override;
   [[nodiscard]] ChannelType Type() const override;
@@ -77,6 +81,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] int64_t DataLink() const;
   [[nodiscard]] std::vector<int64_t> AtLinkList() const;
   [[nodiscard]] std::vector<int64_t> XAxisLinkList() const;
+
   void Sync(ChannelSyncType type) override;
   ChannelSyncType Sync() const override;
   void Range(double min, double max) override;
@@ -93,6 +98,14 @@ class Cn4Block : public DataListBlock, public IChannel {
     return MdfBlock::MetaData();
   }
 
+  [[nodiscard]] const ISourceInformation *SourceInformation() const override;
+  [[nodiscard]] ISourceInformation* CreateSourceInformation() override;
+
+  void PrepareForWriting(size_t offset);
+  void SetInvalidOffset(size_t bit_offset) {
+    invalid_bit_pos_ = static_cast<uint32_t>(bit_offset);
+  }
+  void SetValid(bool valid) override;
  protected:
   size_t BitCount() const override;    ///< Returns number of bits in value.
   size_t BitOffset() const override;   ///< Returns bit offset (0..7).
@@ -124,10 +137,14 @@ class Cn4Block : public DataListBlock, public IChannel {
   std::unique_ptr<Si4Block> si_block_;
   std::unique_ptr<Cc4Block> cc_block_;
   std::unique_ptr<Md4Block> unit_;
+  // The block_list_ points to either a SD/DL/DZ block but can also
+  // be a reference to an VLSD CG block
   Cx4List cx_list_;
   std::vector<const IAttachment*> attachment_list_;
   ElementLink default_x_;
 
+  // The data_list_ is a temporary buffer that holds
+  // uncompressed signal data
   mutable std::vector<uint8_t> data_list_;
   const Cg4Block* cg_block_ = nullptr;
 };

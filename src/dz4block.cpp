@@ -49,6 +49,30 @@ size_t Dz4Block::Read(std::FILE *file) {
   return bytes;
 }
 
+size_t Dz4Block::Write(std::FILE *file) {
+  const bool update = FilePosition() > 0;
+  if (update) {
+    // The DZ block properties cannot be changed after it has been written
+    return block_length_;
+  }
+
+  block_type_ = "##DZ";
+  link_list_.clear();
+  block_length_ = 24 + 2 + 1 + 1 + 4 + 8 + 8 + data_length_;
+
+  auto bytes = MdfBlock::Write(file);
+  bytes += WriteStr(file, orig_block_type_, 2);
+  bytes += WriteNumber(file, type_);
+  bytes += WriteBytes(file, 1);
+  bytes += WriteNumber(file, parameter_);
+  bytes += WriteNumber(file, orig_data_length_);
+  bytes += WriteNumber(file, data_length_);
+  bytes += WriteByte(file,data_);
+  UpdateBlockSize(file, bytes);
+
+  return bytes;
+}
+
 size_t Dz4Block::CopyDataToFile(std::FILE *from_file,
                                 std::FILE *to_file) const {
   if (data_position_ == 0 || orig_data_length_ == 0 || data_length_ == 0) {
@@ -122,6 +146,48 @@ size_t Dz4Block::CopyDataToBuffer(std::FILE *from_file,
       break;
   }
   return count;
+}
+
+bool Dz4Block::Data(const std::vector<uint8_t> &uncompressed_data) {
+  bool compress = true;
+  if (Type() == Dz4ZipType::TransposeAndDeflate) {
+    if (Parameter() == 0) {
+      Type(Dz4ZipType::Deflate);
+    }
+  } else {
+    Type(Dz4ZipType::Deflate);
+    Parameter(0);
+  }
+  if (uncompressed_data.empty()) {
+    orig_data_length_ = 0;
+    data_length_ = 0;
+    data_.clear();
+    return compress;
+  }
+
+  switch (Type()) {
+    case Dz4ZipType::TransposeAndDeflate: {
+      ByteArray temp = uncompressed_data;
+      Transpose(temp, static_cast<size_t>(parameter_));
+
+      data_.clear();
+      data_.reserve(uncompressed_data.size());
+
+      compress = Deflate(temp,data_);
+      break;
+    }
+
+    case Dz4ZipType::Deflate:
+    default:
+      data_.clear();
+      data_.reserve(uncompressed_data.size());
+      compress = Deflate(uncompressed_data,data_);
+      break;
+  }
+  orig_data_length_ = static_cast<uint64_t>(uncompressed_data.size()) ;
+  data_length_ = static_cast<uint64_t>(data_.size());
+
+  return compress;
 }
 
 }  // namespace mdf::detail

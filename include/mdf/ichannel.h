@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "mdf/isourceinformation.h"
 #include "mdf/ichannelconversion.h"
 #include "mdf/mdfhelper.h"
 #include "mdf/iblock.h"
@@ -35,7 +36,7 @@ enum class ChannelSyncType : uint8_t {
 };
 
 enum class ChannelDataType : uint8_t {
-  UnsignedIntegerLe = 0,
+  UnsignedIntegerLe= 0,
   UnsignedIntegerBe = 1,
   SignedIntegerLe = 2,
   SignedIntegerBe = 3,
@@ -51,7 +52,7 @@ enum class ChannelDataType : uint8_t {
   CanOpenDate = 13,
   CanOpenTime = 14,
   ComplexLe = 15,
-  ComplexBE = 16
+  ComplexBe = 16
 };
 
 namespace CnFlag {
@@ -87,6 +88,9 @@ class IChannel : public IBlock  {
   virtual void Unit(const std::string &unit) = 0;
   [[nodiscard]] virtual std::string Unit() const = 0;
 
+  virtual void Flags(uint32_t flags);
+  [[nodiscard]] virtual uint32_t Flags() const;
+
   [[nodiscard]] virtual bool IsUnitValid() const = 0;
 
   virtual void Type(ChannelType type) = 0;
@@ -117,12 +121,16 @@ class IChannel : public IBlock  {
   virtual void SamplingRate(double sampling_rate) = 0;
   [[nodiscard]] virtual double SamplingRate() const = 0;
 
+  [[nodiscard]] virtual const ISourceInformation *SourceInformation() const;
+  [[nodiscard]] virtual ISourceInformation* CreateSourceInformation();
+
   [[nodiscard]] virtual const IChannelConversion *ChannelConversion() const = 0;
+  [[nodiscard]] virtual IChannelConversion *CreateChannelConversion() = 0;
 
   [[nodiscard]] bool IsNumber() const {
     // Need to check the cc at well if it is a value to text conversion
-    const auto *cc = ChannelConversion();
-    if (cc != nullptr && cc->Type() <= ConversionType::ValueRangeToValue) {
+    if (const auto *cc = ChannelConversion();
+        cc != nullptr && cc->Type() <= ConversionType::ValueRangeToValue) {
       return true;
     }
     return DataType() <= ChannelDataType::FloatBe;
@@ -141,92 +149,12 @@ class IChannel : public IBlock  {
                        T &dest) const;
 
   template <typename T>
-  void SetChannelValue(const T &value, bool valid = true) {
-    switch (DataType()) {
-      case ChannelDataType::UnsignedIntegerLe:
-        SetUnsignedValueLe(static_cast<uint64_t>(value), valid);
-        break;
-
-      case ChannelDataType::UnsignedIntegerBe:
-        SetUnsignedValueBe(static_cast<uint64_t>(value), valid);
-        break;
-
-      case ChannelDataType::SignedIntegerLe:
-        SetSignedValueLe(static_cast<int64_t>(value), valid);
-        break;
-
-      case ChannelDataType::SignedIntegerBe:
-        SetSignedValueBe(static_cast<int64_t>(value), valid);
-        break;
-
-      case ChannelDataType::FloatLe:
-        SetFloatValueLe(static_cast<double>(value), valid);
-        break;
-
-      case ChannelDataType::FloatBe:
-        SetFloatValueBe(static_cast<double>(value), valid);
-        break;
-
-      case ChannelDataType::StringUTF8:
-      case ChannelDataType::StringAscii:
-        SetTextValue(std::to_string(value), valid);
-        break;
-
-      case ChannelDataType::ByteArray:
-        if (typeid(T) == typeid(uint64_t)) {
-          if (DataBytes() == 7) {
-            auto date_array =
-                MdfHelper::NsToCanOpenDateArray(static_cast<uint64_t>(value));
-            SetByteArray(date_array, valid);
-          } else if (DataBytes() == 6) {
-            auto time_array =
-                MdfHelper::NsToCanOpenTimeArray(static_cast<uint64_t>(value));
-            SetByteArray(time_array, valid);
-          }
-        } else {
-          SetValid(false);
-        }
-        break;
-
-      case ChannelDataType::CanOpenDate:
-        if (typeid(T) == typeid(uint64_t) && DataBytes() == 7) {
-          const auto date_array =
-              MdfHelper::NsToCanOpenDateArray(static_cast<uint64_t>(value));
-          SetByteArray(date_array, valid);
-        } else {
-          SetValid(false);
-        }
-        break;
-
-      case ChannelDataType::CanOpenTime:
-        if (typeid(T) == typeid(uint64_t) && DataBytes() == 6) {
-          const auto time_array =
-              MdfHelper::NsToCanOpenTimeArray(static_cast<uint64_t>(value));
-          SetByteArray(time_array, valid);
-        } else {
-          SetValid(false);
-        }
-        break;
-
-      case ChannelDataType::StringUTF16Le:
-      case ChannelDataType::StringUTF16Be:
-      case ChannelDataType::MimeStream:
-      case ChannelDataType::MimeSample:
-      default:
-        SetValid(false);
-        break;
-    }
-  };
-
-  template <typename T = std::string>
-  void SetChannelValue(const std::string &value, bool valid = true);
-
-  template <typename T = std::vector<uint8_t>>
-  void SetChannelValue(const std::vector<uint8_t> &value, bool valid = true);
+  void SetChannelValue(const T &value, bool valid = true);
 
   virtual bool GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
                                 uint64_t &dest) const;
-
+  virtual bool GetTextValue(const std::vector<uint8_t> &record_buffer,
+                            std::string &dest) const;
  protected:
   [[nodiscard]] virtual size_t BitCount()
       const = 0;  ///< Returns number of bits in value.
@@ -242,8 +170,7 @@ class IChannel : public IBlock  {
                               int64_t &dest) const;
   virtual bool GetFloatValue(const std::vector<uint8_t> &record_buffer,
                              double &dest) const;
-  virtual bool GetTextValue(const std::vector<uint8_t> &record_buffer,
-                            std::string &dest) const;
+
   virtual bool GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
                                  std::vector<uint8_t> &dest) const;
   virtual bool GetCanOpenDate(const std::vector<uint8_t> &record_buffer,
@@ -343,4 +270,76 @@ template <>
 bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
                                std::string &dest) const;
 
+template <typename T>
+void IChannel::SetChannelValue(const T &value, bool valid) {
+  switch (DataType()) {
+    case ChannelDataType::UnsignedIntegerLe:
+      SetUnsignedValueLe(static_cast<uint64_t>(value), valid);
+      break;
+
+    case ChannelDataType::UnsignedIntegerBe:
+      SetUnsignedValueBe(static_cast<uint64_t>(value), valid);
+      break;
+
+    case ChannelDataType::SignedIntegerLe:
+      SetSignedValueLe(static_cast<int64_t>(value), valid);
+      break;
+
+    case ChannelDataType::SignedIntegerBe:
+      SetSignedValueBe(static_cast<int64_t>(value), valid);
+      break;
+
+    case ChannelDataType::FloatLe:
+      SetFloatValueLe(static_cast<double>(value), valid);
+      break;
+
+    case ChannelDataType::FloatBe:
+      SetFloatValueBe(static_cast<double>(value), valid);
+      break;
+
+    case ChannelDataType::StringUTF8:
+    case ChannelDataType::StringAscii:
+    case ChannelDataType::StringUTF16Be:
+    case ChannelDataType::StringUTF16Le:
+      SetTextValue(std::to_string(value), valid);
+      break;
+
+    case ChannelDataType::MimeStream:
+    case ChannelDataType::MimeSample:
+    case ChannelDataType::ByteArray:
+      // SetByteArray(value, valid);
+      break;
+
+    case ChannelDataType::CanOpenDate:
+      if (typeid(T) == typeid(uint64_t) && DataBytes() == 7) {
+        const auto date_array =
+            MdfHelper::NsToCanOpenDateArray(static_cast<uint64_t>(value));
+        SetByteArray(date_array, valid);
+      } else {
+        SetValid(false);
+      }
+      break;
+
+    case ChannelDataType::CanOpenTime:
+      if (typeid(T) == typeid(uint64_t) && DataBytes() == 6) {
+        const auto time_array =
+            MdfHelper::NsToCanOpenTimeArray(static_cast<uint64_t>(value));
+        SetByteArray(time_array, valid);
+      } else {
+        SetValid(false);
+      }
+      break;
+
+
+    default:
+      SetValid(false);
+      break;
+  }
+};
+
+template <>
+void IChannel::SetChannelValue(const std::string &value, bool valid);
+
+template <>
+void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid);
 }  // namespace mdf

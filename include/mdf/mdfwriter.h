@@ -55,16 +55,20 @@ class MdfWriter {
   IHeader* Header() const;
   IDataGroup* CreateDataGroup();
 
-  static IChannelGroup* CreateChannelGroup(IDataGroup* parent);
+  [[nodiscard]] static IChannelGroup* CreateChannelGroup(IDataGroup* parent);
 
-  virtual IChannel* CreateChannel(IChannelGroup* parent) = 0;
+  [[nodiscard]] static IChannel* CreateChannel(IChannelGroup* parent);
+
   virtual IChannelConversion* CreateChannelConversion(IChannel* parent) = 0;
 
-  bool InitMeasurement();
+  virtual bool InitMeasurement();
   void SaveSample(IChannelGroup& group, uint64_t time);
   void StartMeasurement(uint64_t start_time);
   void StopMeasurement(uint64_t stop_time);
   bool FinalizeMeasurement();
+
+  void CompressData(bool compress) {compress_data_ = compress;}
+  [[nodiscard]] bool CompressData() const { return compress_data_;}
 
  protected:
   enum class WriteState : uint8_t {
@@ -93,17 +97,20 @@ class MdfWriter {
   SampleQueue sample_queue_;
 
   virtual void CreateMdfFile() = 0;
+  virtual bool PrepareForWriting() = 0;
+  virtual void SetDataPosition(std::FILE* file);
 
   void StopWorkThread();
   void WorkThread();
   void TrimQueue();
-  void SaveQueue(std::unique_lock<std::mutex>& lock);
-  void CleanQueue(std::unique_lock<std::mutex>& lock);
+  virtual void SaveQueue(std::unique_lock<std::mutex>& lock);
+  virtual void CleanQueue(std::unique_lock<std::mutex>& lock);
 
   void IncrementNofSamples(uint64_t record_id) const;
   virtual void SetLastPosition(std::FILE* file) = 0;
 
  private:
+  bool compress_data_ = false;
 };
 
 }  // namespace mdf

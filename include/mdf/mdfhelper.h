@@ -147,6 +147,9 @@ class MdfHelper {
 
   static std::string Latin1ToUtf8(const std::string &latin1);
   static std::string Utf16ToUtf8(const std::wstring &utf16);
+  static bool ComputerUseLittleEndian();
+
+
 };
 
 }  // namespace mdf

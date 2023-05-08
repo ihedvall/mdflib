@@ -5,18 +5,15 @@
 #include "dt3block.h"
 
 #include <stdexcept>
-
+#include "mdf/idatagroup.h"
 #include "dg3block.h"
+
 namespace mdf::detail {
 
 void Dt3Block::GetBlockProperty(BlockPropertyList &dest) const {
   MdfBlock::GetBlockProperty(dest);
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Data Size [byte]", std::to_string(DataSize()));
-}
-void Dt3Block::Init(const MdfBlock &id_block) {
-  dg_block_ = dynamic_cast<const Dg3Block *>(&id_block);
-  MdfBlock::Init(id_block);
 }
 
 size_t Dt3Block::Read(std::FILE *file) {
@@ -44,13 +41,23 @@ size_t Dt3Block::DataSize() const {
   if (dg_block_ == nullptr) {
     return 0;
   }
-  for (const auto &cg3 : dg_block_->Cg3()) {
+  auto* dg3_block = dynamic_cast<Dg3Block*>(dg_block_);
+  if (dg3_block == nullptr) {
+    return 0;
+  }
+  for (const auto &cg3 : dg3_block->Cg3()) {
     if (!cg3) {
       continue;
     }
-    bytes += (dg_block_->NofRecordId() + cg3->RecordSize()) * cg3->NofSamples();
+    bytes += (dg3_block->NofRecordId() + cg3->RecordSize()) * cg3->NofSamples();
   }
   return bytes;
+}
+
+void Dt3Block::Init(const MdfBlock &id_block) {
+  auto* temp = const_cast<MdfBlock*>(&id_block);
+  dg_block_ = dynamic_cast<IDataGroup*>(temp);
+  MdfBlock::Init(id_block);
 }
 
 }  // namespace mdf::detail

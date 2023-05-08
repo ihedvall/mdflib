@@ -11,14 +11,14 @@ namespace mdf::detail {
 class Mdf3Writer : public MdfWriter {
  public:
   Mdf3Writer() = default;  ///< Constructor that creates the ID and HD block.
-  virtual ~Mdf3Writer();   ///< Destructor that close any open file and
+  ~Mdf3Writer() override;   ///< Destructor that close any open file and
                            ///< destructs.
 
-  IChannel* CreateChannel(IChannelGroup* parent) override;
   IChannelConversion* CreateChannelConversion(IChannel* parent) override;
 
  protected:
   void CreateMdfFile() override;
+  bool PrepareForWriting() override;
   void SetLastPosition(std::FILE* file) override;
 };
 

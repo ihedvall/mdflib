@@ -102,7 +102,7 @@ add_library(mdf STATIC
         src/bigbuffer.cpp src/bigbuffer.h
         src/platform.cpp src/platform.h
         src/iblock.cpp include/mdf/iblock.h
-    )
+        src/vlsddata.cpp src/vlsddata.h)
 
 target_link_libraries(mdf ${ZLIB_LIBRARIES} expat)
 

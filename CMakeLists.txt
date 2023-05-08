@@ -84,7 +84,7 @@ add_library(mdf STATIC
         src/ichannelhierarchy.cpp include/mdf/ichannelhierarchy.h
         src/isourceinformation.cpp include/mdf/isourceinformation.h
         src/ichannelarray.cpp include/mdf/ichannelarray.h
-        src/mdfhelper.cpp src/mdfhelper.h
+        src/mdfhelper.cpp include/mdf/mdfhelper.h
         src/dv4block.cpp src/dv4block.h
         src/di4block.cpp src/di4block.h
         src/rv4block.cpp src/rv4block.h
@@ -136,6 +136,7 @@ set(MDF_PUBLIC_HEADERS
         include/mdf/isourceinformation.h
         include/mdf/mdffactory.h
         include/mdf/mdffile.h
+        include/mdf/mdfhelper.h
         include/mdf/mdflogstream.h
         include/mdf/mdfreader.h
         include/mdf/mdfwriter.h

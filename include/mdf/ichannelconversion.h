@@ -10,7 +10,7 @@
 
 #include "mdf/iblock.h"
 #include "mdf/imetadata.h"
-#include "mdfhelper.h"
+#include "mdf/mdfhelper.h"
 
 namespace mdf {
 

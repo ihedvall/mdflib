@@ -13,7 +13,7 @@
 #include "mdf/ichannelconversion.h"
 #include "mdf/imetadata.h"
 #include "mdf/isourceinformation.h"
-#include "mdfhelper.h"
+#include "mdf/mdfhelper.h"
 
 namespace mdf {
 

@@ -9,9 +9,9 @@
 #include <sstream>
 
 #include "mdf/cryptoutil.h"
+#include "mdf/mdfhelper.h"
 #include "mdf/mdflogstream.h"
 #include "mdf/zlibutil.h"
-#include "mdfhelper.h"
 #include "platform.h"
 
 using namespace std::filesystem;

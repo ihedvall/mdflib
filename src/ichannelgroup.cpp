@@ -5,7 +5,7 @@
 
 #include "mdf/ichannelgroup.h"
 
-#include "mdfhelper.h"
+#include "mdf/mdfhelper.h"
 
 namespace mdf {
 

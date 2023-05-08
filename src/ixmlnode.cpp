@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cstring>
 
-#include "mdfhelper.h"
+#include "mdf/mdfhelper.h"
 #include "xmlnode.h"
 
 namespace {

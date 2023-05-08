@@ -11,7 +11,7 @@
 #endif
 
 #include "idblock.h"
-#include "mdfhelper.h"
+#include "mdf/mdfhelper.h"
 
 using namespace std;
 namespace mdf::detail {

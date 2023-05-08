@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "mdfhelper.h"
+#include "mdf/mdfhelper.h"
 #include "pr3block.h"
 
 namespace {

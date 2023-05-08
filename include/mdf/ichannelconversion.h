@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 
-#include "mdf/mdfhelper.h"
 #include "mdf/iblock.h"
 #include "mdf/imetadata.h"
+#include "mdfhelper.h"
 
 namespace mdf {
 

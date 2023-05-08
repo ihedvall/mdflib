@@ -2,11 +2,10 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include "mdf/mdfhelper.h"
+#include "mdfhelper.h"
 
 #include <algorithm>
 #include <array>
-
 #include <cmath>
 #include <codecvt>
 #include <cstring>

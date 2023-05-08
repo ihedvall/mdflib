@@ -4,11 +4,10 @@
  */
 #include "hd3block.h"
 
-#include <mdf/mdfhelper.h>
-
 #include <algorithm>
 #include <vector>
 
+#include "mdfhelper.h"
 #include "pr3block.h"
 
 namespace {

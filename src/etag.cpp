@@ -4,9 +4,9 @@
  */
 
 #include "mdf/etag.h"
-#include "mdf/mdfhelper.h"
-#include "platform.h"
 
+#include "mdfhelper.h"
+#include "platform.h"
 
 namespace mdf {
 

@@ -84,7 +84,7 @@ add_library(mdf STATIC
         src/ichannelhierarchy.cpp include/mdf/ichannelhierarchy.h
         src/isourceinformation.cpp include/mdf/isourceinformation.h
         src/ichannelarray.cpp include/mdf/ichannelarray.h
-        src/mdfhelper.cpp include/mdf/mdfhelper.h
+        src/mdfhelper.cpp src/mdfhelper.h
         src/dv4block.cpp src/dv4block.h
         src/di4block.cpp src/di4block.h
         src/rv4block.cpp src/rv4block.h
@@ -117,21 +117,30 @@ target_include_directories(mdf PRIVATE ${expat_SOURCE_DIR}/expat/lib)
 target_compile_definitions(mdf PRIVATE XML_STATIC)
 
 set(MDF_PUBLIC_HEADERS
+        include/mdf/cryptoutil.h
         include/mdf/etag.h
         include/mdf/iattachment.h
         include/mdf/iblock.h
         include/mdf/ichannel.h
+        include/mdf/ichannelarray.h
         include/mdf/ichannelconversion.h
         include/mdf/ichannelgroup.h
+        include/mdf/ichannelhierarchy.h
         include/mdf/ichannelobserver.h
         include/mdf/idatagroup.h
-        include/mdf/isampleobserver.h
-        include/mdf/samplerecord.h
+        include/mdf/ievent.h
+        include/mdf/ifilehistory.h
         include/mdf/iheader.h
-        include/mdf/mdffile.h
-        include/mdf/mdfreader.h
-        include/mdf/mdfhelper.h # TODO: is there a possibility to get this away?
         include/mdf/imetadata.h
+        include/mdf/isampleobserver.h
+        include/mdf/isourceinformation.h
+        include/mdf/mdffactory.h
+        include/mdf/mdffile.h
+        include/mdf/mdflogstream.h
+        include/mdf/mdfreader.h
+        include/mdf/mdfwriter.h
+        include/mdf/samplerecord.h
+        include/mdf/zlibutil.h
 )
 
 set_target_properties(mdf PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")

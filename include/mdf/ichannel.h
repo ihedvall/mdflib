@@ -9,11 +9,11 @@
 #include <string>
 #include <vector>
 
-#include "mdf/isourceinformation.h"
-#include "mdf/ichannelconversion.h"
-#include "mdf/mdfhelper.h"
 #include "mdf/iblock.h"
+#include "mdf/ichannelconversion.h"
 #include "mdf/imetadata.h"
+#include "mdf/isourceinformation.h"
+#include "mdfhelper.h"
 
 namespace mdf {
 

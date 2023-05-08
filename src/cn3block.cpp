@@ -7,7 +7,7 @@
 #include <limits>
 
 #include "cg3block.h"
-#include "mdf/mdfhelper.h"
+#include "mdfhelper.h"
 
 namespace {
 constexpr size_t kIndexNext = 0;

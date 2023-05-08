@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "mdf/mdfhelper.h"
+#include "mdfhelper.h"
 #include "platform.h"
 
 namespace mdf {

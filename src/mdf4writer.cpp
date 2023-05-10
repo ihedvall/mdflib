@@ -466,4 +466,43 @@ bool Mdf4Writer::InitMeasurement() {
   return MdfWriter::InitMeasurement();
 }
 
+bool Mdf4Writer::WriteSignalData(std::FILE* file) {
+  if (file == nullptr) {
+    MDF_ERROR() << "File is not opened. File: " << Name();
+    return false;
+  }
+
+  const auto *header = Header();
+  if (header == nullptr) {
+    MDF_ERROR() << "No header block found. File: " << Name();
+    return false;
+  }
+
+  // Only the last DG block is updated. So go to the last DT
+  const auto *last_dg = header->LastDataGroup();
+  if (last_dg == nullptr) {
+    return true;
+  }
+
+  auto cg_list = last_dg->ChannelGroups();
+  for (auto* group : cg_list) {
+    if (group == nullptr) {
+      continue;
+    }
+    auto cn_list = group->Channels();
+    for (auto* channel : cn_list) {
+      if (channel == nullptr) {
+        continue;
+      }
+      auto* cn4 = dynamic_cast<Cn4Block*>(channel);
+      if (cn4 == nullptr) {
+        continue;
+      }
+      cn4->WriteSignalData(file, CompressData());
+      cn4->ClearData();
+    }
+  }
+  return true;
+}
+
 }  // namespace mdf::detail

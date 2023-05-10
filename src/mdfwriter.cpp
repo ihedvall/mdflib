@@ -39,9 +39,14 @@ namespace mdf {
 MdfWriter::~MdfWriter() { StopWorkThread(); }
 
 void MdfWriter::PreTrigTime(double pre_trig_time) {
-  auto temp = static_cast<uint64_t>(pre_trig_time);
-  temp += 1'000'000'000;
-  pre_trig_time_ = temp;
+  pre_trig_time *= 1'000'000'000;
+  pre_trig_time_ = static_cast<uint64_t>(pre_trig_time);
+}
+
+double MdfWriter::PreTrigTime() const {
+  auto temp = static_cast<double>(pre_trig_time_);
+  temp /= 1'000'000'000;
+  return temp;
 }
 
 IHeader* MdfWriter::Header() const {
@@ -185,9 +190,10 @@ bool MdfWriter::FinalizeMeasurement() {
     return false;
   }
   const bool write = mdf_file_ && mdf_file_->Write(file);
+  const bool signal_data = WriteSignalData(file);
   fclose(file);
   write_state_ = WriteState::Finalize;
-  return write;
+  return write && signal_data;
 }
 
 void MdfWriter::StopWorkThread() {
@@ -207,9 +213,7 @@ void MdfWriter::TrimQueue() {
     const auto last_time = sample_queue_.back().timestamp;
     if (start_time_ > 0) {
       // Measurement started
-      const auto buffer_time = next_time > start_time_ ?
-                                    next_time - start_time_ : 0;
-      if (buffer_time <= pre_trig_time_) {
+      if (next_time >= start_time_ - pre_trig_time_) {
         break;
       }
     } else {
@@ -341,6 +345,19 @@ IChannel* MdfWriter::CreateChannel(IChannelGroup* parent) {
 
 void MdfWriter::SetDataPosition(std::FILE*) {
   // Only needed for MDF4 and uncompressed storage
+}
+bool MdfWriter::WriteSignalData(std::FILE* file) {
+  // Only  supported by MDF4
+  return true;
+}
+
+std::string MdfWriter::Name() const {
+  try {
+    path filename(filename_);
+    return filename.stem().string();
+  } catch (std::exception& err) {
+  }
+  return {};
 }
 
 }  // namespace mdf

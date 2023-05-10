@@ -757,7 +757,7 @@ TEST_F(TestWrite, Mdf4WriteCN_SI_CC) {
   ch1->Sync(ChannelSyncType::None);
   ch1->DataType(ChannelDataType::UnsignedIntegerLe);
   ch1->DataBytes(8);
-  // Todo: Check why no set function ch1->Decimals();
+
   ch1->Range(0,10);
   ch1->Limit(1,9);
   ch1->ExtLimit(2,8);
@@ -1437,6 +1437,95 @@ TEST_F(TestWrite, CompressData) {
       EXPECT_TRUE(valid);
       EXPECT_FLOAT_EQ(channel_value, static_cast<double>(sample) + 0.23)
           << observer->Name();
+    }
+  }
+}
+
+TEST_F(TestWrite, StringData) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("string.mf4");
+
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  writer->CompressData(false);
+
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test string");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("String");
+
+
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("StringASCII");
+  ch1->Type(ChannelType::VariableLength);
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::StringAscii);
+  ch1->DataBytes(8);
+
+  auto* ch2 = group1->CreateChannel();
+  ch2->Name("StringUtf8");
+  ch2->Type(ChannelType::VariableLength);
+  ch2->Sync(ChannelSyncType::None);
+  ch2->DataType(ChannelDataType::StringUTF8);
+  ch2->DataBytes(4);
+
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+
+  for (size_t sample = 0; sample < 1'000; ++sample) {
+    std::ostringstream value;
+    value << "String "  << sample;
+    ch1->SetChannelValue(value.str());
+    ch2->SetChannelValue(value.str());
+
+    writer->SaveSample(*group1,tick_time);
+    tick_time += 100'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    ASSERT_EQ(observer->NofSamples(), 1'000);
+    for (size_t sample = 0; sample < 100; ++sample) {
+      std::string channel_value;
+      const auto valid = observer->GetChannelValue(sample, channel_value);
+      EXPECT_TRUE(valid);
+      std::ostringstream temp;
+      temp << "String "  << sample;
+      EXPECT_EQ(channel_value, temp.str()) << observer->Name();
     }
   }
 }

@@ -4,6 +4,8 @@
  */
 #pragma once
 #include <string>
+#include <vector>
+#include <map>
 
 #include "cc4block.h"
 #include "datalistblock.h"
@@ -12,6 +14,7 @@
 #include "mdf/ichannel.h"
 #include "mdf/ichannelhierarchy.h"
 #include "si4block.h"
+#include "vlsddata.h"
 
 namespace mdf::detail {
 class Cg4Block;
@@ -65,6 +68,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] const MdfBlock* Find(int64_t index) const override;
   size_t Read(std::FILE* file) override;
   size_t Write(std::FILE* file) override;
+  size_t WriteSignalData(std::FILE* file, bool compress);
 
   void Init(const MdfBlock& id_block) override;
 
@@ -106,12 +110,16 @@ class Cn4Block : public DataListBlock, public IChannel {
     invalid_bit_pos_ = static_cast<uint32_t>(bit_offset);
   }
   void SetValid(bool valid) override;
+  void ClearData() override;
  protected:
   size_t BitCount() const override;    ///< Returns number of bits in value.
   size_t BitOffset() const override;   ///< Returns bit offset (0..7).
   size_t ByteOffset() const override;  ///< Returns byte offset in record.
   bool GetTextValue(const std::vector<uint8_t>& record_buffer,
                     std::string& dest) const override;
+  void SetTextValue(const std::string &value, bool valid) override;
+  void SetByteArray(const std::vector<uint8_t> &value, bool valid) override;
+
   std::vector<uint8_t>& SampleBuffer() const override;
 
  private:
@@ -137,8 +145,10 @@ class Cn4Block : public DataListBlock, public IChannel {
   std::unique_ptr<Si4Block> si_block_;
   std::unique_ptr<Cc4Block> cc_block_;
   std::unique_ptr<Md4Block> unit_;
-  // The block_list_ points to either a SD/DL/DZ block but can also
+
+  // The block_list_ points to signal data either a SD/DL/DZ block but can also
   // be a reference to an VLSD CG block
+
   Cx4List cx_list_;
   std::vector<const IAttachment*> attachment_list_;
   ElementLink default_x_;
@@ -146,6 +156,8 @@ class Cn4Block : public DataListBlock, public IChannel {
   // The data_list_ is a temporary buffer that holds
   // uncompressed signal data
   mutable std::vector<uint8_t> data_list_;
+  mutable std::map<VlsdData, uint64_t> data_map_; // Data->index map
+
   const Cg4Block* cg_block_ = nullptr;
 };
 

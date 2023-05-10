@@ -21,7 +21,7 @@ class DataListBlock : public MdfBlock {
   void WriteBlockList(std::FILE* file, size_t data_index);
 
   void ReadLinkList(std::FILE* file, size_t data_index, uint32_t nof_link);
-  void ClearData();
+  virtual void ClearData();
  protected:
   BlockList block_list_;
 };

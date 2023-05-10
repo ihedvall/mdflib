@@ -25,6 +25,7 @@ class Mdf4Writer : public MdfWriter {
   void SaveQueue(std::unique_lock<std::mutex>& lock) override;
   void CleanQueue(std::unique_lock<std::mutex>& lock) override;
   void SetDataPosition(std::FILE* file) override;
+  bool WriteSignalData(std::FILE* file) override;
  private:
   time_t save_timer_ = 0;
   uint64_t offset_ = 0;

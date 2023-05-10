@@ -188,8 +188,8 @@ class IChannel : public IBlock  {
   void SetSignedValueBe(int64_t value, bool valid);
   void SetFloatValueLe(double value, bool valid);
   void SetFloatValueBe(double value, bool valid);
-  void SetTextValue(const std::string &value, bool valid);
-  void SetByteArray(const std::vector<uint8_t> &value, bool valid);
+  virtual void SetTextValue(const std::string &value, bool valid);
+  virtual void SetByteArray(const std::vector<uint8_t> &value, bool valid);
   std::vector<uint8_t> NsToDateArray(uint64_t ns_since_1970) const;
  private:
   mutable uint64_t cg_record_id_ = 0; ///< Used to fix the VLSD CG block.

@@ -29,6 +29,8 @@ class MdfWriter {
   MdfWriter(const MdfWriter& writer) = delete;
   MdfWriter& operator=(const MdfWriter& writer) = delete;
 
+  std::string Name() const;
+
   bool Init(const std::string& filename);
 
   [[nodiscard]] bool IsFileNew() const {
@@ -42,6 +44,10 @@ class MdfWriter {
    * @param pre_trig_time Pre-trig time in seconds.
    */
   void PreTrigTime(double pre_trig_time);
+  [[nodiscard]] double PreTrigTime() const;
+
+  [[nodiscard]] uint64_t StartTime() const { return start_time_; }
+  [[nodiscard]] uint64_t StopTime() const { return stop_time_; }
 
   /** \brief Returns the MDF file interface.
    *
@@ -99,6 +105,7 @@ class MdfWriter {
   virtual void CreateMdfFile() = 0;
   virtual bool PrepareForWriting() = 0;
   virtual void SetDataPosition(std::FILE* file);
+  virtual bool WriteSignalData(std::FILE* file);
 
   void StopWorkThread();
   void WorkThread();

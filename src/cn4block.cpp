@@ -12,6 +12,8 @@
 #include "cg4block.h"
 #include "littlebuffer.h"
 #include "sd4block.h"
+#include "dz4block.h"
+#include "dl4block.h"
 
 namespace {
 
@@ -28,6 +30,7 @@ constexpr size_t kIndexAt = 8;
 constexpr uint32_t kDefaultXFlag =
     0x1000;  ///< Default X-axis defined for this channel
 
+constexpr size_t kMaxDataSize = 4'000'000;
 std::string MakeTypeString(uint8_t type) {
   switch (type) {
     case 0:
@@ -410,7 +413,9 @@ size_t Cn4Block::Write(std::FILE *file) {
   WriteTx4(file, kIndexName, name_);
   WriteBlock4(file, si_block_, kIndexSi);
   WriteBlock4(file, cc_block_, kIndexCc);
-  // ToDo: Signal data needs to be fixed
+  // The signal data shall not be stored here. Instead, the function
+  // WriteSignalData() should be used. It is called by the Mdf(4)Writer class
+  // when the measurement is finalized.
   WriteBlock4(file, unit_, kIndexUnit);
   WriteMdComment(file, kIndexMd);
   for (size_t index_at = 0; index_at < attachment_list_.size(); ++index_at) {
@@ -615,6 +620,63 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
   return valid;
 }
 
+void Cn4Block::SetTextValue(const std::string &value, bool valid) {
+  SetValid(valid);
+  if (Type() == ChannelType::VariableLength) {
+    // String stored in signal data. Index should be stored in the record
+    // and the string in a temporary data block (data_list_). This block is
+    // later stored into an SD/DZ block.
+    uint64_t index = 0;
+    VlsdData temp(value);
+    auto itr = data_map_.find(temp);
+    if (itr != data_map_.cend()) {
+      index = itr->second;
+    } else {
+      index = static_cast<uint64_t>(data_list_.size());
+      LittleBuffer<uint32_t> length(static_cast<uint32_t>(temp.Size()));
+      data_list_.insert(data_list_.end(),length.cbegin(), length.cend());
+      data_list_.insert(data_list_.end(),temp.Cbegin(), temp.Cend());
+    }
+    // Store the index in the record
+    if (bit_count_ == 0) {
+      SetValid(false);
+    } else {
+      SetUnsignedValueLe(index, true);
+    }
+  } else {
+    // Fixed length handle by interface class
+    IChannel::SetTextValue(value, valid);
+  }
+}
+
+void Cn4Block::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
+  SetValid(valid);
+  if (Type() == ChannelType::VariableLength) {
+    // String stored in signal data. Index should be stored in the record
+    // and the string in a temporary data block (data_list_). This block is
+    // later stored into an SD/DZ block.
+    uint64_t index = 0;
+    VlsdData temp(value);
+    auto itr = data_map_.find(temp);
+    if (itr != data_map_.cend()) {
+      index = itr->second;
+    } else {
+      index = static_cast<uint64_t>(data_list_.size());
+      LittleBuffer<uint32_t> length(static_cast<uint32_t>(temp.Size()));
+      data_list_.insert(data_list_.end(),length.cbegin(), length.cend());
+      data_list_.insert(data_list_.end(),temp.Cbegin(), temp.Cend());
+    }
+    // Store the index in the record
+    if (bit_count_ == 0) {
+      SetValid(false);
+    } else {
+      SetUnsignedValueLe(index, true);
+    }
+  } else {
+    // Fixed length handle by interface class
+    IChannel::SetByteArray(value, valid);
+  }
+}
 void Cn4Block::Unit(const std::string &unit) {
   if (unit.empty()) {
     unit_.reset();
@@ -647,6 +709,9 @@ void Cn4Block::DataType(ChannelDataType type) {
 
     case ChannelDataType::CanOpenTime:
       DataBytes(6);
+      break;
+
+    default:
       break;
   }
 }
@@ -739,6 +804,8 @@ uint32_t Cn4Block::Flags() const { return flags_; }
 void Cn4Block::PrepareForWriting(size_t offset) {
   bit_offset_ = 0;
   byte_offset_ = offset;
+  data_list_.clear(); // Temporary storage of signal data (SD)
+  data_map_.clear();
   // The bit count may be set by the user.
   bool use_index = false;
   switch (Type()) {
@@ -752,9 +819,11 @@ void Cn4Block::PrepareForWriting(size_t offset) {
       break;
 
     case ChannelType::VariableLength:
-      // Store 32-bit index to variable block
+      // Store unsigned 32/64-bit index to variable block
       flags_ |= CnFlag::InvalidValid;
-      bit_count_ = 8 * 4;
+      if (bit_count_ == 0) {
+        bit_count_ = 8 * 8;
+      }
       return;
 
     case ChannelType::VirtualData:
@@ -811,7 +880,12 @@ void Cn4Block::PrepareForWriting(size_t offset) {
     case ChannelDataType::ByteArray:
     case ChannelDataType::MimeSample:
     case ChannelDataType::MimeStream:
-      // The bit count must be > 0 and align to 8 or 16
+      // Typical is the data stored as an index to a
+      // signal data block.
+      if (bit_count_ == 0) {
+        Type(ChannelType::VariableLength);
+        bit_count_ = 8 * 8; // 64-bit index
+      }
       break;
 
     case ChannelDataType::CanOpenDate:
@@ -838,6 +912,7 @@ void Cn4Block::PrepareForWriting(size_t offset) {
         }
       }
       break;
+
     default:
       if (DataBytes() == 0) {
         DataBytes(4);
@@ -860,6 +935,72 @@ void Cn4Block::SetValid(bool valid) {
       }
     }
   }
+}
+
+size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
+  size_t bytes = 0;
+
+  if (file == nullptr) {
+    return 0;
+  };
+  if (data_list_.empty()) {
+    UpdateLink(file, kIndexData, 0); // No data link
+  } else if (!compress || data_list_.size() <= 100 ){
+    // Store as SD block
+    auto sd4 = std::make_unique<Sd4Block>();
+    sd4->Data(data_list_);
+    bytes = sd4->Write(file);
+    UpdateLink(file, kIndexData,sd4->FilePosition());
+  } else if (data_list_.size() <= kMaxDataSize) {
+    // Store DZ (SD) block
+    auto dz4 = std::make_unique<Dz4Block>();
+    dz4->OrigBlockType("SD");
+    dz4->Type(Dz4ZipType::Deflate);
+    dz4->Data(data_list_); // Compress and setup the sizes
+    bytes = dz4->Write(file);
+    UpdateLink(file, kIndexData,dz4->FilePosition());
+  } else {
+    // Store DL + DZ blocks
+    auto dl4 = std::make_unique<Dl4Block>();
+    std::vector<uint8_t> buffer;
+    buffer.reserve(kMaxDataSize);
+    dl4->Flags(Dl4Flags::EqualLength);
+    dl4->EqualLength(kMaxDataSize);
+
+    for (const auto in_byte : data_list_) {
+      buffer.push_back(in_byte);
+      if (buffer.size() + 1 > kMaxDataSize) {
+        auto dz4 = std::make_unique<Dz4Block>();
+        dz4->OrigBlockType("SD");
+        dz4->Type(Dz4ZipType::Deflate);
+        dz4->Data(buffer); // Compress and setup the sizes
+
+        auto& block_list = dl4->DataBlockList();
+        block_list.push_back(std::move(dz4));
+
+        buffer.clear();
+        buffer.reserve(kMaxDataSize);
+      }
+    }
+    if (!buffer.empty()) {
+      auto dz4 = std::make_unique<Dz4Block>();
+      dz4->OrigBlockType("SD");
+      dz4->Type(Dz4ZipType::Deflate);
+      dz4->Data(buffer); // Compress and setup the sizes
+
+      auto& block_list = dl4->DataBlockList();
+      block_list.push_back(std::move(dz4));
+    }
+    bytes = dl4->Write(file);
+    UpdateLink(file, kIndexData,dl4->FilePosition());
+  }
+  return bytes;
+}
+
+void Cn4Block::ClearData() {
+  data_list_.clear();
+  data_map_.clear();
+  DataListBlock::ClearData();
 }
 
 }  // namespace mdf::detail

@@ -1,0 +1,7 @@
+<map id="include/mdf/isampleobserver.h" name="include/mdf/isampleobserver.h">
+<area shape="rect" id="node1" title="Interface class to a sample observer. This class is used internally." alt="" coords="109,5,305,31"/>
+<area shape="rect" id="node2" href="$ichannelobserver_8h.html" title="A channel observer is holds a list of channel samples for a channel." alt="" coords="5,79,204,104"/>
+<area shape="rect" id="node4" href="$idatagroup_8h.html" title="Interface to a data group (DG) block." alt="" coords="229,79,391,104"/>
+<area shape="rect" id="node3" href="$mdfreader_8h_source.html" title=" " alt="" coords="25,152,185,177"/>
+<area shape="rect" id="node5" href="$ichannelhierarchy_8h.html" title="The channel hierarchy (CH) block defines channel dependencies." alt="" coords="209,152,413,177"/>
+</map>

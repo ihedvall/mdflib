@@ -2,6 +2,9 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+/** \file mdffactory.h
+ * \brief Factory class for the MDF library.
+ */
 #pragma once
 #include <functional>
 #include <cstdint>
@@ -9,12 +12,18 @@
 #include <memory>
 
 namespace mdf {
+/** \brief MDF writer types. */
+enum class MdfWriterType : int {
+  Mdf3Basic = 0, ///< Basic MDF version 3 writer.
+  Mdf4Basic = 1  ///< Basic MDF version 4 writer.
+};
+/** \brief MDF file type. */
+enum class MdfFileType : int {
+  Mdf3FileType = 0, ///< MDF version 3 file.
+  Mdf4FileType = 1  ///< MDF version 4 file.
+};
 
-enum class MdfWriterType : int { Mdf3Basic = 0, Mdf4Basic = 1 };
-
-enum class MdfFileType : int { Mdf3FileType = 0, Mdf4FileType = 1 };
-
-///< Defines the log severity level
+/** \brief Defines the log severity level. */
 enum class MdfLogSeverity : uint8_t {
   kTrace = 0,  ///< Trace or listen message
   kDebug,      ///< Debug message
@@ -27,16 +36,21 @@ enum class MdfLogSeverity : uint8_t {
   kEmergency   ///< Fatal error message
 };
 
+/** \brief MDF logging function definition. */
 using MdfLogFunction2 = std::function<void(MdfLogSeverity severity,
   const std::string& function, const std::string& text)>;
 
 class MdfWriter;
 class MdfFile;
 
+/** \brief MDF factory class. */
 class MdfFactory {
  public:
+  /** \brief Creates an MDF writer object. */
   static std::unique_ptr<MdfWriter> CreateMdfWriter(MdfWriterType type);
+  /** \brief Create an MDF reader object.*/
   static std::unique_ptr<MdfFile> CreateMdfFile(MdfFileType type);
+  /** \brief Sets the log function. */
   static void SetLogFunction2(const MdfLogFunction2& func);
 };
 

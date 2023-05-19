@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['eventcause_0',['EventCause',['../namespacemdf.html#ac5d4d013ca4e4f7e6ba01731d6524ab9',1,'mdf']]],
-  ['eventtype_1',['EventType',['../namespacemdf.html#adce2cd261c2306ee601dfaeb929b6fdb',1,'mdf']]]
+  ['arraystorage_0',['ArrayStorage',['../namespacemdf.html#a87715c0617a1132b24b6f0cbed80cbcf',1,'mdf']]],
+  ['arraytype_1',['ArrayType',['../namespacemdf.html#a2dd611c31211248ea4ad0b7363590d14',1,'mdf']]]
 ];

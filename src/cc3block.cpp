@@ -170,8 +170,9 @@ void Cc3Block::GetBlockProperty(BlockPropertyList &dest) const {
   if (!formula_.empty()) {
     dest.emplace_back("Formula", formula_);
   }
-  for (auto par : value_list_) {
-    dest.emplace_back("Parameter", MdfHelper::FormatDouble(par, 6));
+  for (const auto& par : value_list_) {
+    dest.emplace_back("Parameter",
+                      MdfHelper::FormatDouble(std::get<double>(par), 6));
   }
   for (const auto &conv : text_conversion_list_) {
     dest.emplace_back("Parameter", MdfHelper::FormatDouble(conv.value, 6));

@@ -7,6 +7,9 @@
  *
  * Most of meta data related items are stored in an associated MD block
  * which is an XML snippet. The items are stored in 'e' and 'tree' tags.
+ *
+ * The e-tags are commonly used to describe the test object in the header
+ * block.
  */
 #pragma once
 
@@ -15,20 +18,25 @@
 #include <vector>
 namespace mdf {
 
-
+/** \brief The e-tag may optional have a data type below. The value in the
+ * XML file is of course string but the data type may be used for
+ * interpretation of the value. Note that unit property can also be added.
+ *
+ * Use ISO UTC date and time formats or avoid these data types if possible
+ * as they just causing problem at presentation.
+ */
 enum class ETagDataType : uint8_t {
-  StringType = 0,
-  DecimalType = 1,
-  IntegerType = 2,
-  FloatType = 3,
-  BooleanType = 4,
-  DateType = 5,
-  TimeType = 6,
-  DateTimeType = 7
+  StringType = 0,  ///< Text value.
+  DecimalType = 1, ///< Decimal value (use float instead)
+  IntegerType = 2, ///< Integer value
+  FloatType = 3,   ///< Floating point value
+  BooleanType = 4, ///< Boolean tru/false value
+  DateType = 5,    ///< Date value according to ISO (YYYY-MM-DD).
+  TimeType = 6,    ///< Time value ISO
+  DateTimeType = 7 ///< Date and Time ISO string (YYYY-MM-DD hh:mm:ss)
 };
 
-/** \class ETag etag.h "mdf/etag.h"
- * \brief Helper class for meta data items in an MDF file.
+/** \brief Helper class for meta data items in an MDF file.
  *
  * Most of meta data related items are stored in an associated MD block
  * which is an XML snippet. The items are stored in 'e' and 'tree' tags.
@@ -36,7 +44,7 @@ enum class ETagDataType : uint8_t {
  * The 'tree' tag is a list of 'e' tags and shall have a unique name attribute
  * and optional description and creator index.
  *
- * The 'e' tag shall have a unique name attribute and a value. The other
+ * The e-tag shall have a unique name attribute and a value. The other
  * attributes are optional.
  */
 class ETag {
@@ -92,8 +100,8 @@ class ETag {
    */
   [[nodiscard]] const std::string& UnitRef() const { return unit_ref_; }
 
-  void DataType(ETagDataType type);
-  [[nodiscard]] ETagDataType DataType() const;
+  void DataType(ETagDataType type); ///< Sets the data type
+  [[nodiscard]] ETagDataType DataType() const; ///< Retuns the data type
   
   /** \brief Data type of the value.
    *
@@ -181,15 +189,15 @@ class ETag {
   [[nodiscard]] const std::vector<ETag>& TreeList() const { return tree_list_; }
 
  private:
-  std::string name_;
-  std::string desc_;
-  std::string unit_;
-  std::string unit_ref_;
-  std::string type_;
-  std::string language_;
-  std::string value_;
-  bool read_only_ = false;
-  int creator_index_ = -1;
+  std::string name_; ///< Tag name
+  std::string desc_; ///< Optional descriptive text
+  std::string unit_; ///< Optional unit of measure
+  std::string unit_ref_; ///< Unit reference (advance feature)
+  std::string type_;  ///< Data type
+  std::string language_; ///< Language (advance feature)
+  std::string value_;    ///< Value
+  bool read_only_ = false; ///< True if read-only (advance feature)
+  int creator_index_ = -1; ///< Reference to the FH block that created the tag)
 
   std::vector<ETag> tree_list_;
 };
@@ -201,6 +209,10 @@ void ETag::Value(const T& value) {
   value_ = temp.str();
 }
 
+/** \brief Specialization of setting boolean values
+ *
+ * @param value Boolean value
+ */
 template <>
 void ETag::Value(const bool& value);
 
@@ -214,9 +226,17 @@ T ETag::Value() const {
   return temp_value;
 }
 
+/** \brief Specialization of getting a boolean value.
+ *
+ * @return Boolean value true/false
+ */
 template <>
 [[nodiscard]] bool ETag::Value() const;
 
+/** \brief Specialization of getting a string value.
+ *
+ * @return The value as a text string.
+ */
 template <>
 [[nodiscard]] std::string ETag::Value() const;
 }  // namespace mdf

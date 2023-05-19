@@ -2,6 +2,9 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+/** \file mdffile.h
+ * \brief Interface against an MDF file object.
+ */
 #pragma once
 #include <cstdio>
 
@@ -16,13 +19,11 @@ class IAttachment;
 class IDataGroup;
 class IChannel;
 
-/** \typedef AttachmentList
- * \brief List of pointers to attachments.
+/** \brief List of pointers to attachments.
  */
 using AttachmentList = std::vector<const IAttachment*>;
 
-/** \typedef DataGroupList
- * \brief List of pointers to measurements (DG block).
+/** \brief List of pointers to measurements (DG block).
  */
 using DataGroupList = std::vector<const IDataGroup*>;
 
@@ -209,11 +210,13 @@ class MdfFile {
    */
   void FileName(const std::string& filename);
 
+  /** \brief Sets the finalize state for the file. */
   virtual void IsFinalized(bool finalized, std::FILE* file,
                            uint16_t standard_flags, uint16_t custom_flags) = 0;
+  /** \brief Returns true if the file is finalized. */
   [[nodiscard]] virtual bool IsFinalized(uint16_t& standard_flags,
                                          uint16_t& custom_flags) const = 0;
-
+  /** \brief Returns a parent data group (DG) depending a channel. */
   [[nodiscard]] virtual const IDataGroup* FindParentDataGroup(
       const IChannel &channel) const = 0;
  protected:

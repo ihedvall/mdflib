@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['channel_5fdata_5ftype_5f_0',['channel_data_type_',['../classmdf_1_1_i_channel_conversion.html#aa87190baca8de601df31588bd7f06951',1,'mdf::IChannelConversion']]]
+  ['allvaluesinvalid_0',['AllValuesInvalid',['../namespacemdf_1_1_cn_flag.html#acf64527d27cd2ac92ba68e3a20d2dabb',1,'mdf::CnFlag']]],
+  ['axis_1',['Axis',['../namespacemdf_1_1_ca_flag.html#afab4c801f82a479d10482b8e96135e33',1,'mdf::CaFlag']]]
 ];

@@ -5,7 +5,7 @@
 #pragma once
 #include <limits>
 #include <string>
-#include <variant>
+
 #include <vector>
 
 #include "md4block.h"
@@ -17,7 +17,7 @@ namespace mdf::detail {
 class Cc4Block : public MdfBlock, public IChannelConversion {
  public:
   using RefList = std::vector<std::unique_ptr<MdfBlock>>;
-  using ParameterList = std::vector<std::variant<uint64_t, double>>;
+
 
   Cc4Block();
 
@@ -62,6 +62,7 @@ class Cc4Block : public MdfBlock, public IChannelConversion {
 
   [[nodiscard]] const Cc4Block* Cc() const { return cc_block_.get(); }
 
+  void Reference(size_t index, const std::string& text) override;
   [[nodiscard]] const RefList& References() const { return ref_list_; }
 
   [[nodiscard]] const MdfBlock* Find(int64_t index) const override;
@@ -69,6 +70,10 @@ class Cc4Block : public MdfBlock, public IChannelConversion {
 
   size_t Read(std::FILE* file) override;
   size_t Write(std::FILE* file) override;
+
+  void Formula( const std::string& formula) override;
+  [[nodiscard]] const std::string& Formula() const override;
+
 
  protected:
   bool ConvertValueToText(double channel_value,

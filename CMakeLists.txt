@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
 project(mdflib
-        VERSION 1.0
+        VERSION 2.0
         DESCRIPTION "Interface against MDF 3/4 files"
         LANGUAGES CXX)
 

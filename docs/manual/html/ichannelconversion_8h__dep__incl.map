@@ -1,0 +1,9 @@
+<map id="include/mdf/ichannelconversion.h" name="include/mdf/ichannelconversion.h">
+<area shape="rect" id="node1" title="Defines a channel conversion (CC) block." alt="" coords="120,5,332,31"/>
+<area shape="rect" id="node2" href="$ichannel_8h.html" title="The define an interface against a channel block (CN)." alt="" coords="151,79,301,104"/>
+<area shape="rect" id="node3" href="$ichannelgroup_8h.html" title="Defines an interface against a channel group (CG) block." alt="" coords="5,152,188,177"/>
+<area shape="rect" id="node4" href="$ichannelhierarchy_8h.html" title="The channel hierarchy (CH) block defines channel dependencies." alt="" coords="5,299,209,324"/>
+<area shape="rect" id="node6" href="$ichannelobserver_8h.html" title="A channel observer is holds a list of channel samples for a channel." alt="" coords="264,152,463,177"/>
+<area shape="rect" id="node5" href="$idatagroup_8h.html" title="Interface to a data group (DG) block." alt="" coords="26,225,189,251"/>
+<area shape="rect" id="node7" href="$mdfreader_8h_source.html" title=" " alt="" coords="283,225,443,251"/>
+</map>

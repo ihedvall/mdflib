@@ -1,0 +1,13 @@
+<map id="include/mdf/ichannelconversion.h" name="include/mdf/ichannelconversion.h">
+<area shape="rect" id="node1" title="Defines a channel conversion (CC) block." alt="" coords="221,5,433,31"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,79,72,104"/>
+<area shape="rect" id="node3" title=" " alt="" coords="121,225,191,251"/>
+<area shape="rect" id="node4" title=" " alt="" coords="262,225,317,251"/>
+<area shape="rect" id="node5" title=" " alt="" coords="548,225,604,251"/>
+<area shape="rect" id="node6" title=" " alt="" coords="353,79,412,104"/>
+<area shape="rect" id="node7" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="355,152,447,177"/>
+<area shape="rect" id="node9" href="$imetadata_8h.html" title=" " alt="" coords="215,79,329,104"/>
+<area shape="rect" id="node11" href="$mdfhelper_8h.html" title="Support class for the MDF library." alt="" coords="472,152,587,177"/>
+<area shape="rect" id="node8" title=" " alt="" coords="393,225,455,251"/>
+<area shape="rect" id="node10" href="$etag_8h.html" title="Simple wrapper around meta data items." alt="" coords="248,152,331,177"/>
+</map>

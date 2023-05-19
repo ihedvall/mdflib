@@ -15,7 +15,9 @@ namespace mdf {
 
 class IChannelGroup;
 
+/** \brief Smart pointer to an observer. */
 using ChannelObserverPtr = std::unique_ptr<IChannelObserver>;
+/** \brief List of observer. */
 using ChannelObserverList = std::vector<ChannelObserverPtr>;
 
 /// \brief Returns true if the file is an MDF file.
@@ -36,6 +38,7 @@ using ChannelObserverList = std::vector<ChannelObserverPtr>;
 [[nodiscard]] ChannelObserverPtr CreateChannelObserver(
     const IDataGroup& dg_group, const std::string& channel_name);
 
+/** \brief Creates a channel observer. */
 void CreateChannelObserverForChannelGroup(const IDataGroup& data_group,
                                           const IChannelGroup& group,
                                           ChannelObserverList& dest);
@@ -81,7 +84,10 @@ class MdfReader {
   /// blocks. \return Pointer to the MDF file object. Note it may return a null
   /// pointer.
   [[nodiscard]] const MdfFile* GetFile() const { return instance_.get(); }
+
+  /** \brief Returns the header (HD) block. */
   [[nodiscard]] const IHeader* GetHeader() const;
+  /** \brief Returns the data group (DG) block. */
   [[nodiscard]] const IDataGroup* GetDataGroup(size_t order) const;
 
   [[nodiscard]] std::string ShortName()
@@ -94,6 +100,7 @@ class MdfReader {
   bool ReadMeasurementInfo();    ///< Reads everything but not CG and raw data.
   bool ReadEverythingButData();  ///< Reads all blocks but not raw data.
 
+  /** \brief Export the attachment data to a detination file. */
   bool ExportAttachmentData(const IAttachment& attachment,
                             const std::string& dest_file);
 

@@ -1,0 +1,6 @@
+<map id="include/mdf/ichannelarray.h" name="include/mdf/ichannelarray.h">
+<area shape="rect" id="node1" title="Defines a channel array (CA) block. Its functionality is described in the MDF 4 documentation." alt="" coords="5,5,185,31"/>
+<area shape="rect" id="node2" title=" " alt="" coords="25,152,86,177"/>
+<area shape="rect" id="node3" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="92,79,184,104"/>
+<area shape="rect" id="node4" title=" " alt="" coords="111,152,165,177"/>
+</map>

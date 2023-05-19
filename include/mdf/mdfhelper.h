@@ -2,14 +2,16 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-
+/** \file mdfhelper.h
+ * \brief Support class for the MDF library.
+ */
 #pragma once
 #include <cstdint>
 #include <string>
 #include <vector>
 
 namespace mdf {
-
+/** \brief Support class for the MDF library. */
 class MdfHelper {
  public:
   /** \brief Adds the time zone offset to the time stamp.
@@ -143,13 +145,14 @@ class MdfHelper {
       double value, uint8_t decimals, bool fixed = false,
       const std::string &unit = {});  ///< Converts a float to a string.
 
-  static uint64_t NowNs();
+  static uint64_t NowNs(); ///< Return nano-seconds since 1970.
 
+  /** \brief Converts a Latin1 string to UTF8 string. */
   static std::string Latin1ToUtf8(const std::string &latin1);
+  /** \brief Converts a wide UTF16 string to an UTF8 string. */
   static std::string Utf16ToUtf8(const std::wstring &utf16);
+  /** \brief Returns tru if this computer uses Little Endian. */
   static bool ComputerUseLittleEndian();
-
-
 };
 
 }  // namespace mdf

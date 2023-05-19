@@ -1,0 +1,10 @@
+<map id="include/mdf/mdfhelper.h" name="include/mdf/mdfhelper.h">
+<area shape="rect" id="node1" title="Support class for the MDF library." alt="" coords="144,5,303,31"/>
+<area shape="rect" id="node2" href="$ichannel_8h.html" title="The define an interface against a channel block (CN)." alt="" coords="148,152,299,177"/>
+<area shape="rect" id="node6" href="$ichannelobserver_8h.html" title="A channel observer is holds a list of channel samples for a channel." alt="" coords="267,225,465,251"/>
+<area shape="rect" id="node8" href="$ichannelconversion_8h.html" title="Defines a channel conversion (CC) block." alt="" coords="117,79,329,104"/>
+<area shape="rect" id="node3" href="$ichannelgroup_8h.html" title="Defines an interface against a channel group (CG) block." alt="" coords="5,225,188,251"/>
+<area shape="rect" id="node4" href="$ichannelhierarchy_8h.html" title="The channel hierarchy (CH) block defines channel dependencies." alt="" coords="5,372,209,397"/>
+<area shape="rect" id="node5" href="$idatagroup_8h.html" title="Interface to a data group (DG) block." alt="" coords="26,299,189,324"/>
+<area shape="rect" id="node7" href="$mdfreader_8h_source.html" title=" " alt="" coords="286,299,446,324"/>
+</map>

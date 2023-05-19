@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['pre_5ftrig_5ftime_5f_0',['pre_trig_time_',['../classmdf_1_1_mdf_writer.html#a0bdf7185c7edb044c1d8ee2a315e1c86',1,'mdf::MdfWriter']]]
+  ['eventsignal_0',['EventSignal',['../namespacemdf_1_1_cn_flag.html#ae027244b0d6d32508e40c70d07627746',1,'mdf::CnFlag::EventSignal()'],['../namespacemdf_1_1_cg_flag.html#a73e9929db9cc7dedbcd2608e9e2658c6',1,'mdf::CgFlag::EventSignal()']]],
+  ['extendedlimitvalid_1',['ExtendedLimitValid',['../namespacemdf_1_1_cn_flag.html#ab9b91e121dc26872a9d2607c63272949',1,'mdf::CnFlag']]]
 ];

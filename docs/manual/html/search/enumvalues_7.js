@@ -1,11 +1,9 @@
 var searchData=
 [
-  ['startmeas_0',['StartMeas',['../classmdf_1_1_mdf_writer.html#adadc2746aad9d59686ca5a984404c69fa5f686f3e8ee5b33ba455d12ddd5bbb0b',1,'mdf::MdfWriter']]],
-  ['startrecording_1',['StartRecording',['../namespacemdf.html#adce2cd261c2306ee601dfaeb929b6fdba1be0cafca6f3374b24cc833bac2c7380',1,'mdf']]],
-  ['stopmeas_2',['StopMeas',['../classmdf_1_1_mdf_writer.html#adadc2746aad9d59686ca5a984404c69fa4f243ebd916a3b0988217b1173b49816',1,'mdf::MdfWriter']]],
-  ['stoprecording_3',['StopRecording',['../namespacemdf.html#adce2cd261c2306ee601dfaeb929b6fdba0711c4b9ecefa0a637e6a7b6c3759859',1,'mdf']]],
-  ['syncangle_4',['SyncAngle',['../namespacemdf.html#a8c225042124d87094e5197dea6785cfba95a9c6af6fbe441769aac87deda6d3e2',1,'mdf']]],
-  ['syncdistance_5',['SyncDistance',['../namespacemdf.html#a8c225042124d87094e5197dea6785cfba007baa5c9e60e388184764ffd93a8d36',1,'mdf']]],
-  ['syncindex_6',['SyncIndex',['../namespacemdf.html#a8c225042124d87094e5197dea6785cfbac7ac042524327e55cf6a257206700d7b',1,'mdf']]],
-  ['synctime_7',['SyncTime',['../namespacemdf.html#a8c225042124d87094e5197dea6785cfbad57e8c9127fbb81c871fb9982ee10e30',1,'mdf']]]
+  ['index_0',['Index',['../namespacemdf.html#a97db9dc7397318bc42aa8ba07f1880dfa88fa71f0a6e0dfedbb46d91cc0b37a50',1,'mdf']]],
+  ['init_1',['Init',['../classmdf_1_1_mdf_writer.html#adadc2746aad9d59686ca5a984404c69fa95b19f7739b0b7ea7d6b07586be54f36',1,'mdf::MdfWriter']]],
+  ['inputvariable_2',['InputVariable',['../namespacemdf.html#a29bde85f03dffd25c09cd1003e2e0abca66590126aec0b7ca1ed076a375c02cc3',1,'mdf']]],
+  ['integertype_3',['IntegerType',['../namespacemdf.html#aa4186b6847da714edb635652e9063081a97a28f98bc67732c13cc3d7469f3f0df',1,'mdf']]],
+  ['intervalaxis_4',['IntervalAxis',['../namespacemdf.html#a2dd611c31211248ea4ad0b7363590d14a4dbb422b3ca78f3b27b938271a38ef8f',1,'mdf']]],
+  ['iodevice_5',['IoDevice',['../namespacemdf.html#ad08d2620932a9dc94fded9d0aad6a564ac830552ff7c9aa1a4ac83707820dfc5b',1,'mdf']]]
 ];

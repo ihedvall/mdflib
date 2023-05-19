@@ -12,17 +12,7 @@
 
 namespace mdf::detail {
 
-struct TextConversion {
-  double value = 0;
-  std::string text;
-};
 
-struct TextRangeConversion {
-  double lower = 0;
-  double upper = 0;
-  uint32_t link_text = 0;
-  std::string text;
-};
 
 class Cc3Block : public MdfBlock, public IChannelConversion {
  public:
@@ -58,8 +48,6 @@ class Cc3Block : public MdfBlock, public IChannelConversion {
   std::string unit_;
   uint16_t conversion_type_ = 0xFFFF;
 
-  std::string formula_;
-  std::vector<TextConversion> text_conversion_list_;
-  std::vector<TextRangeConversion> text_range_conversion_list_;
+
 };
 }  // namespace mdf::detail

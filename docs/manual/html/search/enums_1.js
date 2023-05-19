@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mdflogseverity_0',['MdfLogSeverity',['../namespacemdf.html#a5025c3469ed574e224270c03c89b24ac',1,'mdf']]]
+  ['bustype_0',['BusType',['../namespacemdf.html#a7d8062669e05a387de168820f98d4ff6',1,'mdf']]]
 ];

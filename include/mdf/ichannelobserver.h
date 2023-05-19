@@ -2,6 +2,11 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+
+/** \file ichannelobserver.h
+ * \brief A channel observer is holds a list of channel samples for a
+ * channel.
+ */
 #pragma once
 #include <string>
 #include <vector>
@@ -12,21 +17,30 @@
 
 namespace mdf {
 
+/** \brief The channel observer object shall hold all samples for a channel.
+ *
+ * The main purpose for a channel observer is to store all channel samples for
+ * a channel. This object is used when reading data from a MDF file.
+ */
 class IChannelObserver : public ISampleObserver {
  protected:
-  const IChannel& channel_;
-  std::vector<uint64_t> index_list_; ///< Only used for VLSD channels
-  virtual bool GetSampleUnsigned(uint64_t sample, uint64_t& value) const = 0;
-  virtual bool GetSampleSigned(uint64_t sample, int64_t& value) const = 0;
-  virtual bool GetSampleFloat(uint64_t sample, double& value) const = 0;
-  virtual bool GetSampleText(uint64_t sample, std::string& value) const = 0;
-  virtual bool GetSampleByteArray(uint64_t sample,
-                                  std::vector<uint8_t>& value) const = 0;
+  const IChannel& channel_; ///< Reference to the channel (CN) block.
+  std::vector<uint64_t> index_list_; ///< Only used for VLSD channels.
+  virtual bool GetSampleUnsigned(uint64_t sample, uint64_t& value)
+      const = 0; ///< Returns a unsigned  sample value.
+  virtual bool GetSampleSigned(uint64_t sample, int64_t& value)
+      const = 0; ///< Returns a signed sample value.
+  virtual bool GetSampleFloat(uint64_t sample, double& value)
+      const = 0; ///< Returns a float sample value.
+  virtual bool GetSampleText(uint64_t sample, std::string& value)
+      const = 0; ///< Returns a string sample value.
+  virtual bool GetSampleByteArray(uint64_t sample, std::vector<uint8_t>& value)
+      const = 0; ///< Returns a byte array sample value.
 
  public:
-  explicit IChannelObserver(const IChannel& channel);
+  explicit IChannelObserver(const IChannel& channel); ///< Constructor.
 
-  ~IChannelObserver() override = default;
+  ~IChannelObserver() override = default; ///< Default destructor.
 
   IChannelObserver() = delete;
   IChannelObserver(const IChannelObserver&) = delete;
@@ -34,18 +48,35 @@ class IChannelObserver : public ISampleObserver {
   IChannelObserver& operator=(const IChannelObserver&) = delete;
   IChannelObserver& operator=(IChannelObserver&&) = delete;
 
-  [[nodiscard]] virtual size_t NofSamples() const = 0;
+  [[nodiscard]] virtual size_t NofSamples()
+      const = 0; ///< Returns number of samples.
 
-  [[nodiscard]] std::string Name() const;
+  [[nodiscard]] std::string Name() const; ///< Channel name
 
-  [[nodiscard]] std::string Unit() const;
+  [[nodiscard]] std::string Unit() const; ///< Channel unit.
 
-  [[nodiscard]] const IChannel& Channel() const;
-  [[nodiscard]] bool IsMaster() const;
+  [[nodiscard]] const IChannel& Channel() const; ///< Channel.
+  [[nodiscard]] bool IsMaster() const; ///< True if this is the master channel.
 
+  /** \brief Returns the channel value for a sample.
+   *
+   * Returns the (unscaled) channel value for a specific sample.
+   * @tparam V Type of value
+   * @param sample Sample number (0..).
+   * @param value The channel value.
+   * @return True if value is valid.
+   */
   template <typename V>
   bool GetChannelValue(size_t sample, V& value) const;
 
+  /** \brief Returns the engineering value for a specific value.
+   *
+   * Returns the engineering (scaled) value for a specific value.
+   * @tparam V Type of return value
+   * @param sample Sample number (0..).
+   * @param value The return value.
+   * @return True if the value is valid.
+   */
   template <typename V>
   bool GetEngValue(size_t sample, V& value) const;
 };
@@ -113,10 +144,12 @@ bool IChannelObserver::GetChannelValue(size_t sample, V& value) const {
   return valid;
 }
 
+/** \brief Returns the sample as a string. */
 template <>
 bool IChannelObserver::GetChannelValue(uint64_t sample,
                                        std::string& value) const;
 
+/** \brief Returns the sample as a byte. */
 template <>
 bool IChannelObserver::GetChannelValue(uint64_t sample,
                                        std::vector<uint8_t>& value) const;

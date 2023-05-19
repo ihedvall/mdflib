@@ -1,0 +1,11 @@
+<map id="include/mdf/iattachment.h" name="include/mdf/iattachment.h">
+<area shape="rect" id="node1" title="Interface against an attached file." alt="" coords="49,5,220,31"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,79,72,104"/>
+<area shape="rect" id="node3" title=" " alt="" coords="150,225,205,251"/>
+<area shape="rect" id="node4" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="30,152,122,177"/>
+<area shape="rect" id="node6" href="$imetadata_8h.html" title=" " alt="" coords="197,79,312,104"/>
+<area shape="rect" id="node5" title=" " alt="" coords="45,225,107,251"/>
+<area shape="rect" id="node7" title=" " alt="" coords="340,225,396,251"/>
+<area shape="rect" id="node8" href="$etag_8h.html" title="Simple wrapper around meta data items." alt="" coords="248,152,331,177"/>
+<area shape="rect" id="node9" title=" " alt="" coords="247,225,316,251"/>
+</map>

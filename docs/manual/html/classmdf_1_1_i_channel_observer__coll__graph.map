@@ -1,5 +1,6 @@
 <map id="mdf::IChannelObserver" name="mdf::IChannelObserver">
-<area shape="rect" id="node1" title=" " alt="" coords="79,95,231,121"/>
-<area shape="rect" id="node2" href="$classmdf_1_1_i_sample_observer.html" title=" " alt="" coords="5,5,155,32"/>
-<area shape="rect" id="node3" href="$classmdf_1_1_i_channel.html" title=" " alt="" coords="179,5,280,32"/>
+<area shape="rect" id="node1" title="The channel observer object shall hold all samples for a channel." alt="" coords="52,168,204,193"/>
+<area shape="rect" id="node2" href="$classmdf_1_1_i_sample_observer.html" title="Interface to a sample observer that handle incoming samples events." alt="" coords="5,80,155,105"/>
+<area shape="rect" id="node3" href="$classmdf_1_1_i_channel.html" title="Defines a MDF channel (CN) block." alt="" coords="179,80,280,105"/>
+<area shape="rect" id="node4" href="$classmdf_1_1_i_block.html" title="Base class for all MDF blocks." alt="" coords="186,5,273,31"/>
 </map>

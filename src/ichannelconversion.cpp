@@ -42,9 +42,9 @@ bool IChannelConversion::ConvertLinear(double channel_value,
     return false;
   }
   if (value_list_.size() == 1) {
-    eng_value = value_list_[0];  // Constant value
+    eng_value = Parameter(0);  // Constant value
   } else {
-    eng_value = value_list_[0] + (value_list_[1] * channel_value);
+    eng_value = Parameter(0) + (Parameter(1) * channel_value);
   }
   return true;
 }
@@ -55,10 +55,10 @@ bool IChannelConversion::ConvertRational(double channel_value,
     return false;
   }
 
-  eng_value = (value_list_[0] * std::pow(channel_value, 2)) +
-              (value_list_[1] * channel_value) + value_list_[2];
-  const double div = (value_list_[3] * std::pow(channel_value, 2)) +
-                     (value_list_[4] * channel_value) + value_list_[5];
+  eng_value = (Parameter(0) * std::pow(channel_value, 2)) +
+              (Parameter(1) * channel_value) + Parameter(2);
+  const double div = (Parameter(3) * std::pow(channel_value, 2)) +
+                     (Parameter(4) * channel_value) + Parameter(5);
   if (div == 0.0) {
     return false;
   }
@@ -71,9 +71,9 @@ bool IChannelConversion::ConvertPolynomial(double channel_value,
   if (value_list_.size() < 6) {
     return false;
   }
-  const double temp = channel_value - value_list_[4] - value_list_[5];
-  eng_value = value_list_[1] - (value_list_[3] * temp);
-  const double div = value_list_[2] * temp - value_list_[0];
+  const double temp = channel_value - Parameter(4) - Parameter(5);
+  eng_value = Parameter(1) - (Parameter(3) * temp);
+  const double div = Parameter(2) * temp - Parameter(0);
   if (div == 0.0) {
     return false;
   }
@@ -86,36 +86,36 @@ bool IChannelConversion::ConvertLogarithmic(double channel_value,
   if (value_list_.size() < 7) {
     return false;
   }
-  if (value_list_[3] == 0.0) {
-    double eng_value =
-        (channel_value - value_list_[6]) * value_list_[5] - value_list_[2];
-    if (value_list_[0] == 0) {
+  if (Parameter(3) == 0.0) {
+    eng_value =
+        (channel_value - Parameter(6)) * Parameter(5) - Parameter(2);
+    if (Parameter(0) == 0) {
       return false;
     }
 
-    eng_value /= value_list_[0];
+    eng_value /= Parameter(0);
     eng_value = std::log(eng_value);
-    if (value_list_[1] == 0.0) {
+    if (Parameter(1) == 0.0) {
       return false;
     }
-    eng_value /= value_list_[1];
-  } else if (value_list_[0] == 0.0) {
-    double eng_value = value_list_[2];
-    const double temp2 = channel_value - value_list_[6];
+    eng_value /= Parameter(1);
+  } else if (Parameter(0) == 0.0) {
+    eng_value = Parameter(2);
+    const double temp2 = channel_value - Parameter(6);
     if (temp2 == 0) {
       return false;
     }
     eng_value /= temp2;
-    eng_value -= value_list_[5];
-    if (value_list_[3] == 0) {
+    eng_value -= Parameter(5);
+    if (Parameter(3) == 0) {
       return false;
     }
-    eng_value /= value_list_[3];
+    eng_value /= Parameter(3);
     eng_value = std::log(eng_value);
-    if (value_list_[4] == 0.0) {
+    if (Parameter(4) == 0.0) {
       return false;
     }
-    eng_value /= value_list_[4];
+    eng_value /= Parameter(4);
   } else {
     return false;
   }
@@ -127,36 +127,36 @@ bool IChannelConversion::ConvertExponential(double channel_value,
   if (value_list_.size() < 7) {
     return false;
   }
-  if (value_list_[3] == 0.0) {
-    double eng_value =
-        (channel_value - value_list_[6]) * value_list_[5] - value_list_[2];
-    if (value_list_[0] == 0) {
+  if (Parameter(3) == 0.0) {
+    eng_value =
+        (channel_value - Parameter(6)) * Parameter(5) - Parameter(2);
+    if (Parameter(0) == 0) {
       return false;
     }
 
-    eng_value /= value_list_[0];
+    eng_value /= Parameter(0);
     eng_value = std::exp(eng_value);
-    if (value_list_[1] == 0.0) {
+    if (Parameter(1) == 0.0) {
       return false;
     }
-    eng_value /= value_list_[1];
-  } else if (value_list_[0] == 0.0) {
-    double eng_value = value_list_[2];
-    const double temp2 = channel_value - value_list_[6];
+    eng_value /= Parameter(1);
+  } else if (Parameter(0) == 0.0) {
+    eng_value = Parameter(2);
+    const double temp2 = channel_value - Parameter(6);
     if (temp2 == 0) {
       return false;
     }
     eng_value /= temp2;
-    eng_value -= value_list_[5];
-    if (value_list_[3] == 0) {
+    eng_value -= Parameter(5);
+    if (Parameter(3) == 0) {
       return false;
     }
-    eng_value /= value_list_[3];
+    eng_value /= Parameter(3);
     eng_value = std::exp(eng_value);
-    if (value_list_[4] == 0.0) {
+    if (Parameter(4) == 0.0) {
       return false;
     }
-    eng_value /= value_list_[4];
+    eng_value /= Parameter(4);
   } else {
     return false;
   }
@@ -181,8 +181,8 @@ bool IChannelConversion::ConvertValueToValueInterpolate(
     if (value_index >= value_list_.size()) {
       break;
     }
-    const double key = value_list_[key_index];
-    const double value = value_list_[value_index];
+    const auto key = Parameter(key_index);
+    const auto value = Parameter(value_index);
     if (channel_value == key) {
       eng_value = value;
       return true;
@@ -192,8 +192,8 @@ bool IChannelConversion::ConvertValueToValueInterpolate(
         eng_value = value;
         return true;
       }
-      const double prev_key = value_list_[key_index - 2];
-      const double prev_value = value_list_[value_index - 2];
+      const auto prev_key = Parameter(key_index - 2);
+      const auto prev_value = Parameter(value_index - 2);
       const double key_range = key - prev_key;
       const double value_range = value - prev_value;
 
@@ -205,7 +205,7 @@ bool IChannelConversion::ConvertValueToValueInterpolate(
       return true;
     }
   }
-  eng_value = value_list_.back();
+  eng_value = std::get<double>(value_list_.back());
   return true;
 }
 
@@ -221,8 +221,8 @@ bool IChannelConversion::ConvertValueToValue(double channel_value,
     if (value_index >= value_list_.size()) {
       break;
     }
-    const double key = value_list_[key_index];
-    const double value = value_list_[value_index];
+    const double key = Parameter(key_index);
+    const double value = Parameter(value_index);
     if (channel_value == key) {
       eng_value = value;
       return true;
@@ -234,8 +234,8 @@ bool IChannelConversion::ConvertValueToValue(double channel_value,
         return true;
       }
 
-      const double prev_key = value_list_[key_index - 2];
-      const double prev_value = value_list_[value_index - 2];
+      const double prev_key = Parameter(key_index - 2);
+      const double prev_value = Parameter(value_index - 2);
       const double key_range = key - prev_key;
       if (key_range == 0.0) {
         return false;
@@ -245,7 +245,7 @@ bool IChannelConversion::ConvertValueToValue(double channel_value,
       return true;
     }
   }
-  eng_value = value_list_.back();
+  eng_value = std::get<double>(value_list_.back());
   return true;
 }
 
@@ -262,9 +262,9 @@ bool IChannelConversion::ConvertValueRangeToValue(double channel_value,
     if (value_index >= value_list_.size()) {
       break;
     }
-    const double key_min = value_list_[key_min_index];
-    const double key_max = value_list_[key_max_index];
-    const double value = value_list_[value_index];
+    const double key_min = Parameter(key_min_index);
+    const double key_max = Parameter(key_max_index);
+    const double value = Parameter(value_index);
     if (IsChannelInteger() && channel_value >= key_min &&
         channel_value <= key_max) {
       eng_value = value;
@@ -277,7 +277,7 @@ bool IChannelConversion::ConvertValueRangeToValue(double channel_value,
       return true;
     }
   }
-  eng_value = value_list_.back();
+  eng_value = std::get<double>(value_list_.back());
   return true;
 }
 
@@ -303,7 +303,19 @@ bool IChannelConversion::ConvertTextToTranslation(
 
 void IChannelConversion::Parameter(size_t index, double parameter) {
   while (index >= value_list_.size()) {
-    value_list_.push_back(0.0);
+    value_list_.emplace_back(0.0);
+  }
+  value_list_[index] = parameter;
+}
+
+double IChannelConversion::Parameter(size_t index) const {
+  return index < value_list_.size() ?
+               std::get<double>(value_list_[index]) : 0.0;
+}
+
+void IChannelConversion::Parameter(size_t index, uint64_t parameter) {
+  while (index >= value_list_.size()) {
+    value_list_.emplace_back(0ULL);
   }
   value_list_[index] = parameter;
 }
@@ -319,5 +331,17 @@ std::string IChannelConversion::Description() const { return {}; }
 void IChannelConversion::Decimals(uint8_t decimals) {}
 IMetaData *IChannelConversion::CreateMetaData() { return nullptr; }
 const IMetaData *IChannelConversion::MetaData() const { return nullptr; }
+
+void IChannelConversion::Formula(const std::string &formula) {
+  formula_ = formula;
+}
+
+const std::string &IChannelConversion::Formula() const {
+  return formula_;
+}
+
+void IChannelConversion::Reference(size_t index, const std::string &text) {
+
+}
 
 }  // end namespace mdf

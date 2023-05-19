@@ -1,6 +1,7 @@
 <map id="mdf::ElementLink" name="mdf::ElementLink">
-<area shape="rect" id="node1" title=" " alt="" coords="153,95,275,121"/>
-<area shape="rect" id="node2" href="$classmdf_1_1_i_data_group.html" title=" " alt="" coords="5,5,121,32"/>
-<area shape="rect" id="node3" href="$classmdf_1_1_i_channel_group.html" title=" " alt="" coords="146,5,282,32"/>
-<area shape="rect" id="node4" href="$classmdf_1_1_i_channel.html" title=" " alt="" coords="306,5,407,32"/>
+<area shape="rect" id="node1" title="Support structure that holds a DG/CG/CN relation." alt="" coords="153,168,275,193"/>
+<area shape="rect" id="node2" href="$classmdf_1_1_i_data_group.html" title="Interface to a data group (DG) block." alt="" coords="5,80,121,105"/>
+<area shape="rect" id="node3" href="$classmdf_1_1_i_block.html" title="Base class for all MDF blocks." alt="" coords="171,5,257,31"/>
+<area shape="rect" id="node4" href="$classmdf_1_1_i_channel_group.html" title="Interface against a channel group (CG) block." alt="" coords="146,80,282,105"/>
+<area shape="rect" id="node5" href="$classmdf_1_1_i_channel.html" title="Defines a MDF channel (CN) block." alt="" coords="306,80,407,105"/>
 </map>

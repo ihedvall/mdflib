@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['datagrouplist_0',['DataGroupList',['../namespacemdf.html#a066a32e811bf2c5f71e60aab3fd7b45b',1,'mdf']]]
+  ['channelobserverlist_0',['ChannelObserverList',['../namespacemdf.html#abfb69c65cc7804403fc688da91817835',1,'mdf']]],
+  ['channelobserverptr_1',['ChannelObserverPtr',['../namespacemdf.html#a3b404abf8489be4a7617648cd4d1baae',1,'mdf']]]
 ];

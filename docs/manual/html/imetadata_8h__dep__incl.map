@@ -1,14 +1,14 @@
 <map id="include/mdf/imetadata.h" name="include/mdf/imetadata.h">
-<area shape="rect" id="node1" title=" " alt="" coords="300,5,460,32"/>
-<area shape="rect" id="node2" href="$idatagroup_8h_source.html" title=" " alt="" coords="19,229,181,256"/>
-<area shape="rect" id="node4" href="$iheader_8h.html" title="Interface against a HD block." alt="" coords="237,379,382,405"/>
-<area shape="rect" id="node9" href="$ievent_8h_source.html" title=" " alt="" coords="417,229,553,256"/>
-<area shape="rect" id="node10" href="$ifilehistory_8h.html" title=" " alt="" coords="499,155,661,181"/>
-<area shape="rect" id="node11" href="$isourceinformation_8h_source.html" title=" " alt="" coords="135,80,343,107"/>
-<area shape="rect" id="node3" href="$ichannelhierarchy_8h_source.html" title=" " alt="" coords="138,304,342,331"/>
-<area shape="rect" id="node5" href="$mdffile_8h_source.html" title=" " alt="" coords="74,453,214,480"/>
-<area shape="rect" id="node6" href="$mdffactory_8h_source.html" title=" " alt="" coords="5,603,168,629"/>
-<area shape="rect" id="node7" href="$mdfreader_8h_source.html" title=" " alt="" coords="245,528,405,555"/>
-<area shape="rect" id="node8" href="$mdfwriter_8h_source.html" title=" " alt="" coords="67,528,221,555"/>
-<area shape="rect" id="node12" href="$ichannelgroup_8h_source.html" title=" " alt="" coords="147,155,330,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="235,5,395,31"/>
+<area shape="rect" id="node2" href="$iattachment_8h.html" title="Interface against an attached file." alt="" coords="5,79,176,104"/>
+<area shape="rect" id="node3" href="$ievent_8h.html" title="Interface against an event block (EV)" alt="" coords="57,152,193,177"/>
+<area shape="rect" id="node4" href="$ichannel_8h.html" title="The define an interface against a channel block (CN)." alt="" coords="374,152,525,177"/>
+<area shape="rect" id="node5" href="$ichannelgroup_8h.html" title="Defines an interface against a channel group (CG) block." alt="" coords="205,225,387,251"/>
+<area shape="rect" id="node10" href="$ichannelconversion_8h.html" title="Defines a channel conversion (CC) block." alt="" coords="353,79,565,104"/>
+<area shape="rect" id="node11" href="$ifilehistory_8h.html" title=" " alt="" coords="589,79,750,104"/>
+<area shape="rect" id="node12" href="$isourceinformation_8h.html" title="Interface against a source information (SI) block." alt="" coords="775,79,983,104"/>
+<area shape="rect" id="node6" href="$ichannelhierarchy_8h.html" title="The channel hierarchy (CH) block defines channel dependencies." alt="" coords="221,372,425,397"/>
+<area shape="rect" id="node8" href="$ichannelobserver_8h.html" title="A channel observer is holds a list of channel samples for a channel." alt="" coords="479,225,678,251"/>
+<area shape="rect" id="node7" href="$idatagroup_8h.html" title="Interface to a data group (DG) block." alt="" coords="241,299,404,324"/>
+<area shape="rect" id="node9" href="$mdfreader_8h_source.html" title=" " alt="" coords="499,299,659,324"/>
 </map>

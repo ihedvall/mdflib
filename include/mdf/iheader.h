@@ -266,7 +266,6 @@ class IHeader : public IBlock {
   /** Returns the start angle.
    *
    * Returns the start angle of the measurement in radians.
-   * @param valid Set tor true if the angle value is valid.
    * @return Start angle in radians.
    */
   [[nodiscard]] virtual std::optional<double> StartAngle() const;
@@ -281,13 +280,12 @@ class IHeader : public IBlock {
   /** \brief Returns the start distance in meters.
    *
    * Sets the start distance in meters.
-   * @param valid True if the value is valid.
    * @return Start distance in meters.
    */
   [[nodiscard]] virtual std::optional<double> StartDistance() const;
 
  protected:
-  virtual ~IHeader() = default;  ///< Default constructor
+  ~IHeader() override = default;  ///< Default constructor
 };
 
 }  // end namespace mdf

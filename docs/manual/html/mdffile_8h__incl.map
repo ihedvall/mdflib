@@ -1,0 +1,10 @@
+<map id="include/mdf/mdffile.h" name="include/mdf/mdffile.h">
+<area shape="rect" id="node1" title="Interface against an MDF file object." alt="" coords="56,5,196,31"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,79,63,104"/>
+<area shape="rect" id="node3" title=" " alt="" coords="204,225,259,251"/>
+<area shape="rect" id="node4" title=" " alt="" coords="138,152,194,177"/>
+<area shape="rect" id="node5" href="$iheader_8h.html" title="Interface against a HD block." alt="" coords="189,79,289,104"/>
+<area shape="rect" id="node6" title=" " alt="" coords="269,152,335,177"/>
+<area shape="rect" id="node7" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="360,152,452,177"/>
+<area shape="rect" id="node8" title=" " alt="" coords="375,225,437,251"/>
+</map>

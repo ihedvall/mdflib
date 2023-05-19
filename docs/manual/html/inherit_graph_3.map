@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classmdf_1_1_i_channel.html" title=" " alt="" coords="5,5,107,32"/>
+<area shape="rect" id="node1" href="$classmdf_1_1_i_sample_observer.html" title="Interface to a sample observer that handle incoming samples events." alt="" coords="5,5,155,31"/>
+<area shape="rect" id="node2" href="$classmdf_1_1_i_channel_observer.html" title="The channel observer object shall hold all samples for a channel." alt="" coords="203,5,355,31"/>
 </map>

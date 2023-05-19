@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['sample_5fbuffer_5f_0',['sample_buffer_',['../classmdf_1_1_i_channel_group.html#a49395edb4e1a877b35d4cfc829e08520',1,'mdf::IChannelGroup']]],
-  ['severity_5f_1',['severity_',['../classmdf_1_1_mdf_log_stream.html#ad81e8236cad4b58439e2e39996af8606',1,'mdf::MdfLogStream']]],
-  ['start_5ftime_5f_2',['start_time_',['../classmdf_1_1_mdf_writer.html#acb39fac997fbfe3224aa2796e444f96e',1,'mdf::MdfWriter']]],
-  ['stop_5ftime_5f_3',['stop_time_',['../classmdf_1_1_mdf_writer.html#a9392b77baecf6dc01410113c7d1124fd',1,'mdf::MdfWriter']]]
+  ['index_5flist_5f_0',['index_list_',['../classmdf_1_1_i_channel_observer.html#a866292eb811a5384c482de43d1b360c7',1,'mdf::IChannelObserver']]],
+  ['inputquantity_1',['InputQuantity',['../namespacemdf_1_1_ca_flag.html#a178842808d50bf736c9815ebdc37f271',1,'mdf::CaFlag']]],
+  ['invalidvalid_2',['InvalidValid',['../namespacemdf_1_1_cn_flag.html#adfea72260e33c3932f755773b308ceb8',1,'mdf::CnFlag']]],
+  ['inverselayout_3',['InverseLayout',['../namespacemdf_1_1_ca_flag.html#ab55c64aea9c4b0e7467d42441ce3ea3d',1,'mdf::CaFlag']]]
 ];

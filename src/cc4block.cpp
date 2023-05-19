@@ -38,6 +38,8 @@ std::string MakeTypeString(uint8_t type) {
       return "Text to Value";
     case 10:
       return "Text to Text";
+    case 11:
+      return "Bitfield to Text";
     default:
       break;
   }
@@ -188,7 +190,7 @@ void Cc4Block::GetBlockProperty(BlockPropertyList& dest) const {
   for (size_t ii = 0; ii < value_list_.size(); ++ii) {
     std::ostringstream label;
     label << "Value " << ii;
-    dest.emplace_back(label.str(), ToString(value_list_[ii]));
+    dest.emplace_back(label.str(), ToString(Parameter(ii)) );
   }
   if (md_comment_) {
     md_comment_->GetBlockProperty(dest);
@@ -209,7 +211,7 @@ size_t Cc4Block::Read(std::FILE* file) {  // NOLINT
   for (uint16_t ii = 0; ii < nof_values_; ++ii) {
     double temp = 0;
     bytes += ReadNumber(file, temp);
-    value_list_.push_back(temp);
+    value_list_.emplace_back(temp);
   }
 
   name_ = ReadTx4(file, kIndexName);
@@ -330,7 +332,7 @@ bool Cc4Block::ConvertValueToText(double channel_value,
     if (n >= value_list_.size()) {
       break;
     }
-    const double key = value_list_[n];
+    const auto key = Parameter(n);
     if (channel_value == key) {
       ref_index = n;
       break;
@@ -374,8 +376,8 @@ bool Cc4Block::ConvertValueRangeToText(double channel_value,
     if (key_max_index >= value_list_.size()) {
       break;
     }
-    const double key_min = value_list_[key_min_index];
-    const double key_max = value_list_[key_max_index];
+    const auto key_min = Parameter(key_min_index);
+    const auto key_max = Parameter(key_max_index);
     if (IsChannelInteger() && channel_value >= key_min &&
         channel_value <= key_max) {
       ref_index = n;
@@ -441,7 +443,7 @@ bool Cc4Block::ConvertTextToValue(const std::string& channel_value,
   if (value_index >= value_list_.size()) {
     return false;
   }
-  eng_value = value_list_[value_index];
+  eng_value = Parameter(value_index);
   return true;
 }
 
@@ -488,5 +490,42 @@ bool Cc4Block::ConvertTextToTranslation(const std::string& channel_value,
 
   return true;
 }
+
+void Cc4Block::Formula(const std::string& formula) {
+  // The formula should be place in ref_list[0].
+  constexpr size_t index = 0;
+  while (index >= ref_list_.size()) {
+    auto temp = std::make_unique<Tx4Block>();
+    ref_list_.push_back(std::move(temp));
+  }
+  auto* tx4 = dynamic_cast<Tx4Block*>(ref_list_[0].get());
+  if (tx4 != nullptr) {
+    tx4->Text(formula);
+  }
+  IChannelConversion::Formula(formula);
+}
+
+const std::string& Cc4Block::Formula() const {
+  auto* tx4 = ref_list_.empty() ? nullptr :
+                                dynamic_cast<Tx4Block*>(ref_list_[0].get());
+ if (tx4 != nullptr) {
+    formula_ = tx4->Text();
+  } else {
+    formula_.clear();
+  }
+  return IChannelConversion::Formula();
+}
+
+void Cc4Block::Reference(size_t index, const std::string& text) {
+  while (index < ref_list_.size()) {
+    auto temp = std::make_unique<Tx4Block>();
+    ref_list_.push_back(std::move(temp));
+  }
+  auto* tx4 = dynamic_cast<Tx4Block*>(ref_list_.back().get());
+  if (tx4 != nullptr) {
+    tx4->Text(text);
+  }
+}
+
 
 }  // namespace mdf::detail

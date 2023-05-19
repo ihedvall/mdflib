@@ -12,13 +12,13 @@ here: [ASAM MDF Wiki](https://www.asam.net/standards/detail/mdf/wiki/).
 Version 3 of the MDF file, had a simpler design than the version 4. Therefore, it exists several types of
 writer. The following writers exists.
 
-- **Mdf3Writer**. This writer creates an MDF file according to the version 3 of the standard (Original Bosch). It is 
+- **BasicMdf3Writer**. This writer creates an MDF file according to the version 3 of the standard (Original Bosch). It is 
 useful when producing files with just measurement data and most external tools can handle this format.
-- **Mdf4Writer**. Produces an MDF file according to version 4. The user may add both metadata information and 
+- **BasicMdf4Writer**. Produces an MDF file according to version 4. The user may add both metadata information and 
 file attachments. This interface is flexible but the user need to understand the MDF file format.
-- **DbcWriter**. Produces a CAN bus file. Simply add the DBC file, select which messages to store and add messages
-as they are received on the bus.
-- **A2lWriter**. Similar to CAN bus but store signals received on an XCP bus.
+
+Note that bus streamers that uses A2L or DBC file for the configuration can be made upon request. Also gRPC 
+microservices are possible to do upon request.
 
 ## Creating a File
 

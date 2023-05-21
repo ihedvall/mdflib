@@ -225,6 +225,7 @@
         <ClCompile Include="src\tr3block.cpp" />
         <ClCompile Include="src\tx3block.cpp" />
         <ClCompile Include="src\tx4block.cpp" />
+        <ClCompile Include="src\vlsddata.cpp" />
         <ClCompile Include="src\writexml.cpp" />
         <ClCompile Include="src\xmlnode.cpp" />
         <ClCompile Include="src\zlibutil.cpp" />
@@ -310,6 +311,7 @@
         <ClInclude Include="src\tr3block.h" />
         <ClInclude Include="src\tx3block.h" />
         <ClInclude Include="src\tx4block.h" />
+        <ClInclude Include="src\vlsddata.h" />
         <ClInclude Include="src\writexml.h" />
         <ClInclude Include="src\xmlnode.h" />
     </ItemGroup>

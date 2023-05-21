@@ -63,17 +63,16 @@ bool MdfViewer::OnInit() {
   std::locale::global(gen(""));
 
     // Setup system basic configuration
-  SetVendorDisplayName("Measurement Data Reporting Server");
-  SetVendorName("ReportServer");
+  SetVendorDisplayName("MdfLib");
+  SetVendorName("MdfLib");
   SetAppName("MdfViewer");
   SetAppDisplayName("MDF File Viewer");
 
   // Set up the log file.
-  // The log file will be in %TEMP%/report_server/mdf_viewer.log
   auto& log_config = LogConfig::Instance();
   log_config.Type(LogType::LogToFile);
-  log_config.SubDir("report_server");
-  log_config.BaseName("mdf_viewer");
+  log_config.SubDir("mdflib/log");
+  log_config.BaseName("mdfviewer");
   log_config.CreateDefaultLogger();
   LOG_INFO() << "Log File created. Path: " << log_config.GetLogFile();
 
@@ -102,7 +101,6 @@ bool MdfViewer::OnInit() {
   } catch (const std::exception& error) {
     LOG_ERROR() << "Error when creating temporary directory. Error:" << error.what();
   }
-
 
   auto* app_config = wxConfig::Get();
   wxPoint start_pos;

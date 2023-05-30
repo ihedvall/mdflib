@@ -117,6 +117,8 @@ class Cn4Block : public DataListBlock, public IChannel {
   size_t ByteOffset() const override;  ///< Returns byte offset in record.
   bool GetTextValue(const std::vector<uint8_t>& record_buffer,
                     std::string& dest) const override;
+  bool GetByteArrayValue(const std::vector<uint8_t>& record_buffer,
+                    std::vector<uint8_t>& dest) const override;
   void SetTextValue(const std::string &value, bool valid) override;
   void SetByteArray(const std::vector<uint8_t> &value, bool valid) override;
 

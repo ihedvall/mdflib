@@ -22,8 +22,7 @@ is on low priority. Please let me know if write support is required.
 ## Building
 
 The project uses CMAKE for building. The following third-party libraries are used and
-needs to be downloaded and pre-built. Note that the .NET library requires Visual Studio 
-and a
+needs to be downloaded and pre-built. Note that the .NET library is a Visual Studio build.
 
 - ZLIB Library. Set the 'ZLIB_ROOT' variable to the ZLIB root path.
 - WxWidgets Library. Required if the GUI applications should be built. 

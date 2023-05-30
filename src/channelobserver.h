@@ -60,7 +60,7 @@ class ChannelObserver : public IChannelObserver {
     }
     data_group_.AttachSampleObserver(this);
   }
-  virtual ~ChannelObserver() { data_group_.DetachSampleObserver(this); }
+  ~ChannelObserver() override { data_group_.DetachSampleObserver(this); }
 
   ChannelObserver() = delete;
   ChannelObserver(const ChannelObserver&) = delete;
@@ -93,7 +93,7 @@ class ChannelObserver : public IChannelObserver {
 
         // This channel may reference a CG blocks another record id
       case ChannelType::VariableLength: {
-        if (record_id_ == record_id) {
+        if (record_id_ == record_id && channel_.CgRecordId() == 0) {
           uint64_t index = 0;
           bool valid = channel_.GetUnsignedValue(record, index);
           if (sample < index_list_.size()) {

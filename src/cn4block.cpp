@@ -526,7 +526,7 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
   std::vector<uint8_t> temp;
   bool valid = true;
   dest.clear();
-  if (Type() == ChannelType::VariableLength) {
+  if (Type() == ChannelType::VariableLength && CgRecordId() == 0) {
     // Index into the local data buffer
     uint64_t index = 0;
     valid = GetUnsignedValue(record_buffer, index);
@@ -537,11 +537,13 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
     temp.resize(length.value(), 0);
     if (index + 4 + length.value() <= data_list_.size()) {
       memcpy(temp.data(), data_list_.data() + index + 4, length.value());
+    } else {
+      valid = false;
     }
     offset = 0;
   } else {
-    temp = record_buffer;
     temp.resize(nof_bytes);
+    memcpy(temp.data(), record_buffer.data() + offset, nof_bytes);
   }
 
   switch (DataType()) {
@@ -617,6 +619,43 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
     default:
       break;
   }
+  return valid;
+}
+
+bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
+                            std::vector<uint8_t> &dest) const {
+  auto offset = ByteOffset();
+  auto nof_bytes = BitCount() / 8;
+
+  if (Type() == ChannelType::VariableLength && CgRecordId() > 0) {
+    offset = 0;
+    nof_bytes = record_buffer.size();
+  }
+
+  std::vector<uint8_t> temp;
+  bool valid = true;
+  dest.clear();
+
+  if (Type() == ChannelType::VariableLength && CgRecordId() == 0) {
+    // Index into the local data buffer
+    uint64_t index = 0;
+    valid = GetUnsignedValue(record_buffer, index);
+    if (index + 4 > data_list_.size()) {
+      return false;
+    }
+    const LittleBuffer<uint32_t> length(data_list_, index);
+    temp.resize(length.value(), 0);
+    if (index + 4 + length.value() <= data_list_.size()) {
+      memcpy(temp.data(), data_list_.data() + index + 4, length.value());
+    } else {
+      valid = false;
+    }
+    offset = 0;
+  } else {
+    temp.resize(nof_bytes);
+    memcpy(temp.data(), record_buffer.data() + offset, nof_bytes);
+  }
+  dest = temp;
   return valid;
 }
 

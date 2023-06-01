@@ -106,10 +106,6 @@ add_library(mdf STATIC
 
 target_link_libraries(mdf ${ZLIB_LIBRARIES} expat)
 
-if (UNIX)
-  target_link_libraries(mdf rt icuuc icui18n)
-endif (UNIX)
-
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

@@ -46,6 +46,10 @@ if (WIN32)
     target_link_libraries(test_mdf PRIVATE mswsock)
 endif ()
 
+if (UNIX)
+    target_link_libraries(test_mdf PRIVATE rt)
+endif (UNIX)
+
 include(GoogleTest)
 gtest_discover_tests(test_mdf)
 

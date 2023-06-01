@@ -55,3 +55,7 @@ if (WIN32)
 target_link_libraries(mdfview PRIVATE bcrypt)
 target_link_libraries(mdfview PRIVATE ws2_32)
 endif()
+
+if (UNIX)
+target_link_libraries(mdfview PRIVATE rt icuuc icui18n)
+endif (UNIX)

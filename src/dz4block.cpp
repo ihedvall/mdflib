@@ -90,7 +90,11 @@ size_t Dz4Block::CopyDataToFile(std::FILE *from_file,
 
     case Dz4ZipType::TransposeAndDeflate: {
       ByteArray temp(data_length_, 0);
-      fread(temp.data(), 1, temp.size(), from_file);
+      {
+        auto dummy = fread(temp.data(), 1, temp.size(), from_file);
+        if (dummy == 0) {
+        }
+      }
       ByteArray out(orig_data_length_, 0);
       const bool inflate = Inflate(temp, out);
       InvTranspose(out, parameter_);
@@ -118,8 +122,11 @@ size_t Dz4Block::CopyDataToBuffer(std::FILE *from_file,
   switch (static_cast<Dz4ZipType>(type_)) {
     case Dz4ZipType::Deflate: {
       ByteArray temp(data_length_, 0);
-      fread(temp.data(), 1, temp.size(), from_file);
-
+      {
+        auto dummy = fread(temp.data(), 1, temp.size(), from_file);
+        if (dummy == 0) {
+        }
+      }
       ByteArray out(orig_data_length_, 0);
       Inflate(temp, out);
       count = orig_data_length_;
@@ -130,8 +137,11 @@ size_t Dz4Block::CopyDataToBuffer(std::FILE *from_file,
 
     case Dz4ZipType::TransposeAndDeflate: {
       ByteArray temp(data_length_, 0);
-      fread(temp.data(), 1, temp.size(), from_file);
-
+      {
+        auto dummy = fread(temp.data(), 1, temp.size(), from_file);
+        if (dummy == 0) {
+        }
+      }
       ByteArray out(orig_data_length_, 0);
       Inflate(temp, out);
       InvTranspose(out, parameter_);

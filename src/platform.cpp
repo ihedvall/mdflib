@@ -30,7 +30,10 @@ void strerror(int __errnum, char *__buf, size_t __buflen) {
 #if (_WIN32)
   strerror_s(__buf, __buflen, __errnum);
 #else
-  strerror_r(__errnum, __buf, __buflen);
+  auto* dummy = strerror_r(__errnum, __buf, __buflen);
+  if (dummy == nullptr) {
+
+  }
 #endif
 }
 
@@ -65,3 +68,4 @@ int fileopen(std::FILE **out, const char *__restrict __filename,
 }
 
 }  // namespace Platform
+

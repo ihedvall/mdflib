@@ -3,8 +3,7 @@
 ## Summary
 
 The MDF library repository implements an interface against the ASAM Measurement Data File (MDF). 
-It supports reading of MDF files version 3 and 4. The writing support is not finalized.  
-
+It supports reading and writing of MDF files version 3 and 4. 
 The release 2.0 of the project support reading and writing of MDF files up to version 4.2. 
 
 The main project is a C++ static library and its used applications.
@@ -16,8 +15,9 @@ The main project is a C++ static library and its used applications.
 The library and its applications, compiles/runs on Windows, Linux and Mac operating system. 
 The .NET library only runs on Windows operating system.
 
-Note that external projects currently only needing read support. This means that the writing support
-is on low priority. Please let me know if write support is required.
+## Installation
+
+[Windows Install (exe)](https://github.com/ihedvall/mdflib/releases/download/v2.0.%2C0/mdflib.exe)
 
 ## Building
 

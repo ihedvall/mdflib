@@ -6,6 +6,7 @@
 #include <msclr/marshal_cppstd.h>
 
 #include "MdfFile.h"
+#include "mdflibrary.h"
 
 using namespace msclr::interop;
 
@@ -40,9 +41,8 @@ array<MdfDataGroup^>^ MdfFile::DataGroups::get() {
 }
 
 String^ MdfFile::Name::get() {
-  const auto* temp = mdf_file_ != nullptr ?
-    mdf_file_->Name().c_str() : "";
-  return  gcnew String(temp);
+  return mdf_file_ != nullptr ? MdfLibrary::Utf8Conversion(
+    mdf_file_->Name().c_str()) : gcnew String("");
 }
 
 void MdfFile::Name::set(String^ name) {
@@ -54,9 +54,8 @@ void MdfFile::Name::set(String^ name) {
 }
 
 String^ MdfFile::Filename::get() {
-  const auto* temp = mdf_file_ != nullptr ?
-    mdf_file_->FileName().c_str() : "";
-  return  gcnew String(temp);
+  return mdf_file_ != nullptr ?
+    MdfLibrary::Utf8Conversion(mdf_file_->FileName().c_str()) : gcnew String("");
 }
 
 void MdfFile::Filename::set(String^ filename) {
@@ -68,17 +67,8 @@ void MdfFile::Filename::set(String^ filename) {
 }
 
 String^ MdfFile::Version::get() {
-  const auto temp = mdf_file_ != nullptr ?
-      mdf_file_->Version() : std::string();
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);
+  return mdf_file_ != nullptr ? MdfLibrary::Utf8Conversion(
+      mdf_file_->Version()) : gcnew String("");
 }
 
 int MdfFile::MainVersion::get() {
@@ -95,17 +85,8 @@ void MdfFile::MinorVersion::set(int minor) {
 }
 
 String^ MdfFile::ProgramId::get() {
-  const auto temp = mdf_file_ != nullptr ?
-      mdf_file_->ProgramId() : std::string();
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);
+  return mdf_file_ != nullptr ? MdfLibrary::Utf8Conversion( 
+      mdf_file_->ProgramId()) : gcnew String("");
 }
 
 void MdfFile::ProgramId::set(String^ program_id) {

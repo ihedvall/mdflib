@@ -6,6 +6,7 @@
 #include <string>
 #include <msclr/marshal_cppstd.h>
 #include "MdfMetaData.h"
+#include "mdflibrary.h"
 
 using namespace msclr::interop;
 
@@ -14,18 +15,8 @@ namespace MdfLibrary {
 String^ MdfMetaData::PropertyAsString::get(String^ index) {
   const auto key = String::IsNullOrEmpty(index) ?
     std::string() : marshal_as<std::string>(index);
-  const auto temp = meta_data_ != nullptr ?
-   meta_data_->StringProperty(key) : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);   
+  return meta_data_ != nullptr ? MdfLibrary::Utf8Conversion(
+   meta_data_->StringProperty(key)) : gcnew String("");
 }
 
 void MdfMetaData::PropertyAsString::set(String^ index, String^ prop) {
@@ -96,18 +87,8 @@ void MdfMetaData::CommonProperties::set(array<MdfETag^>^ prop_list) {
 }
 
 String^ MdfMetaData::XmlSnippet::get() {
-  const auto temp = meta_data_ != nullptr ?
-   meta_data_->XmlSnippet() : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);   
+  return meta_data_ != nullptr ? MdfLibrary::Utf8Conversion(
+   meta_data_->XmlSnippet()) : gcnew String("");
 }
 
 void MdfMetaData::XmlSnippet::set(String^ xml) {

@@ -5,6 +5,8 @@
 #include <string>
 #include <msclr/marshal_cppstd.h>
 #include "MdfDataGroup.h"
+#include "mdflibrary.h"
+
 using namespace msclr::interop;
 
 namespace MdfLibrary {
@@ -14,18 +16,8 @@ int64_t MdfDataGroup::Index::get() {
 }
 
 String^ MdfDataGroup::Description::get() {
-  const auto temp = group_ != nullptr ?
-  group_->Description() : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);
+  return group_ != nullptr ? MdfLibrary::Utf8Conversion(
+  group_->Description()) : gcnew String("");
 }
 
 void MdfDataGroup::Description::set(String^ desc) {

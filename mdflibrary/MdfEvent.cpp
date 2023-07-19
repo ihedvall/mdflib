@@ -6,6 +6,8 @@
 #include <msclr/marshal_cppstd.h>
 
 #include "MdfEvent.h"
+#include "mdflibrary.h"
+
 using namespace msclr::interop;
 
 namespace MdfLibrary {
@@ -15,18 +17,7 @@ int64_t MdfEvent::Index::get() {
 }
 
 String^ MdfEvent::Name::get() {
-  const auto temp = event_ != nullptr ?
-    event_->Name() : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);
+  return event_ != nullptr ? MdfLibrary::Utf8Conversion(event_->Name()) : gcnew String("");
 }
 
 void MdfEvent::Name::set(String^ name) {
@@ -38,18 +29,7 @@ void MdfEvent::Name::set(String^ name) {
 }
 
 String^ MdfEvent::Description::get() {
-  const auto temp = event_ != nullptr ?
-    event_->Description() : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);
+  return event_ != nullptr ? MdfLibrary::Utf8Conversion(event_->Description()) : gcnew String("");
 }
 
 void MdfEvent::Description::set(String^ desc) {
@@ -61,18 +41,7 @@ void MdfEvent::Description::set(String^ desc) {
 }
 
 String^ MdfEvent::Group::get() {
-  const auto temp = event_ != nullptr ?
-    event_->GroupName() : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);
+  return event_ != nullptr ? MdfLibrary::Utf8Conversion(event_->GroupName()) : gcnew String("");
 }
 
 void MdfEvent::Group::set(String^ group) {

@@ -6,6 +6,7 @@
 #include <msclr/marshal_cppstd.h>
 
 #include "MdfAttachment.h"
+#include "mdflibrary.h"
 
 using namespace msclr::interop;
 using namespace System;
@@ -54,34 +55,15 @@ String^ MdfAttachment::Md5::get() {
   if (attachment_ == nullptr) {
     return gcnew String("");
   }
-  
-  const std::string temp = attachment_->Md5().has_value() ?
-    attachment_->Md5().value() : std::string();
 
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);    
+  return attachment_->Md5().has_value()
+             ? MdfLibrary::Utf8Conversion( 
+    attachment_->Md5().value()) : gcnew String("");
 }
 
 String^ MdfAttachment::Filename::get() {
-  const std::string temp = attachment_ != nullptr ?
-  attachment_->FileName() : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array); 
+  return attachment_ != nullptr ? MdfLibrary::Utf8Conversion(
+    attachment_->FileName()) : gcnew String("");
 }
 
 void MdfAttachment::Filename::set(String^ filename) {
@@ -93,18 +75,8 @@ void MdfAttachment::Filename::set(String^ filename) {
 }
 
 String^ MdfAttachment::FileType::get() {
-  const std::string temp = attachment_ != nullptr ?
-  attachment_->FileType() : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);   
+  return attachment_ != nullptr ? MdfLibrary::Utf8Conversion(
+  attachment_->FileType()) : gcnew String("");
 }
 
 void MdfAttachment::FileType::set(String^ type) {

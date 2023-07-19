@@ -6,6 +6,7 @@
 #include <msclr/marshal_cppstd.h>
 
 #include "MdfSourceInformation.h"
+#include "mdflibrary.h"
 
 using namespace msclr::interop;
 
@@ -16,18 +17,7 @@ int64_t MdfSourceInformation::Index::get() {
 }
 
 String^ MdfSourceInformation::Name::get() {
-  const auto temp = info_ != nullptr ?
-    info_->Name() : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);
+  return info_ != nullptr ? MdfLibrary::Utf8Conversion(info_->Name()) : gcnew String("");
 }
 
 void MdfSourceInformation::Name::set(String^ name) {
@@ -38,18 +28,7 @@ void MdfSourceInformation::Name::set(String^ name) {
   }    
 }
 String^ MdfSourceInformation::Description::get() {
-  const auto temp = info_ != nullptr ?
-    info_->Description() : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);
+  return info_ != nullptr ? MdfLibrary::Utf8Conversion(info_->Description()) : gcnew String("");
 }
 
 void MdfSourceInformation::Description::set(String^ desc) {
@@ -61,18 +40,7 @@ void MdfSourceInformation::Description::set(String^ desc) {
 }
 
 String^ MdfSourceInformation::Path::get() {
-  const auto temp = info_ != nullptr ?
-    info_->Path() : std::string();
-
-  array<unsigned char> ^ c_array =
-      gcnew array<unsigned char>(temp.length());
-
-  for (int i = 0; i < temp.length(); i++)
-    c_array[i] = temp[i];
-
-  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
-
-  return u8enc->GetString(c_array);
+  return info_ != nullptr ? MdfLibrary::Utf8Conversion(info_->Path()) : gcnew String("");
 }
 
 void MdfSourceInformation::Path::set(String^ path) {

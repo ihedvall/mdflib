@@ -6,6 +6,7 @@
 #include <msclr/marshal_cppstd.h>
 
 #include "MdfFileHistory.h"
+#include "mdflibrary.h"
 
 using namespace msclr::interop;
 
@@ -32,9 +33,7 @@ MdfMetaData^ MdfFileHistory::MetaData::get() {
 }
 
 String^ MdfFileHistory::Description::get() {
-  const auto temp = history_ != nullptr ?
-    history_->Description() : std::string();
-  return gcnew String(temp.c_str());
+  return history_ != nullptr ? MdfLibrary::Utf8Conversion(history_->Description()) : gcnew String("");
 }
 
 void MdfFileHistory::Description::set(String^ desc) {
@@ -46,9 +45,7 @@ void MdfFileHistory::Description::set(String^ desc) {
 }
 
 String^ MdfFileHistory::ToolName::get() {
-  const auto temp = history_ != nullptr ?
-    history_->ToolName() : std::string();
-  return gcnew String(temp.c_str());  
+  return history_ != nullptr ? MdfLibrary::Utf8Conversion(history_->ToolName()) : gcnew String("");  
 }
 
 void MdfFileHistory::ToolName::set(String^ name) {

@@ -5,6 +5,7 @@
 #include <string>
 #include <msclr/marshal_cppstd.h>
 #include "MdfHeader.h"
+#include "mdflibrary.h"
 
 using namespace msclr::interop;
 
@@ -19,9 +20,7 @@ MdfHeader::MdfHeader(mdf::IHeader* header)
 }
 
 String^ MdfHeader::Description::get() {
-  const auto temp = header_ != nullptr ?
-    header_->Description() : std::string();
-  return gcnew String(temp.c_str());
+  return header_ != nullptr ? MdfLibrary::Utf8Conversion(header_->Description()) : gcnew String("");
 }
 
 void MdfHeader::Description::set(String^ desc) {
@@ -33,9 +32,7 @@ void MdfHeader::Description::set(String^ desc) {
 }
 
 String^ MdfHeader::Author::get() {
-  const auto temp = header_ != nullptr ?
-    header_->Author() : std::string();
-  return gcnew String(temp.c_str());
+  return header_ != nullptr ? MdfLibrary::Utf8Conversion(header_->Author()) : gcnew String("");
 }
 
 void MdfHeader::Author::set(String^ author) {
@@ -47,9 +44,7 @@ void MdfHeader::Author::set(String^ author) {
 }
 
 String^ MdfHeader::Department::get() {
-  const auto temp = header_ != nullptr ?
-    header_->Department() : std::string();
-  return gcnew String(temp.c_str());  
+  return header_ != nullptr ? MdfLibrary::Utf8Conversion(header_->Department()) : gcnew String("");  
 }
 
 void MdfHeader::Department::set(String^ department) {
@@ -61,9 +56,7 @@ void MdfHeader::Department::set(String^ department) {
 }
 
 String^ MdfHeader::Project::get() {
-  const auto temp = header_ != nullptr ?
-    header_->Project() : std::string();
-  return gcnew String(temp.c_str());    
+  return header_ != nullptr ? MdfLibrary::Utf8Conversion(header_->Project()) : gcnew String("");    
 }
 
 void MdfHeader::Project::set(String^ project) {
@@ -74,9 +67,7 @@ void MdfHeader::Project::set(String^ project) {
 }
 
 String^ MdfHeader::Subject::get() {
-  const auto temp = header_ != nullptr ?
-    header_->Subject() : std::string();
-  return gcnew String(temp.c_str());   
+  return header_ != nullptr ? MdfLibrary::Utf8Conversion(header_->Subject()) : gcnew String("");   
 }
 
 void MdfHeader::Subject::set(String^ subject) {
@@ -87,9 +78,7 @@ void MdfHeader::Subject::set(String^ subject) {
 }
 
 String^ MdfHeader::MeasurementId::get() {
-  const auto temp = header_ != nullptr ?
-    header_->MeasurementId() : std::string();
-  return gcnew String(temp.c_str());     
+  return header_ != nullptr ? MdfLibrary::Utf8Conversion(header_->MeasurementId()) : gcnew String("");     
 }
 
 void MdfHeader::MeasurementId::set(String^ uuid) {
@@ -100,9 +89,7 @@ void MdfHeader::MeasurementId::set(String^ uuid) {
 }
 
 String^ MdfHeader::RecorderId::get() {
-  const auto temp = header_ != nullptr ?
-    header_->RecorderId() : std::string();
-  return gcnew String(temp.c_str());     
+  return header_ != nullptr ? MdfLibrary::Utf8Conversion(header_->RecorderId()) : gcnew String("");     
 }
 
 void MdfHeader::RecorderId::set(String^ uuid) {

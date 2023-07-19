@@ -7,6 +7,7 @@
 #include <msclr/marshal_cppstd.h>
 
 #include "MdfReader.h"
+#include "mdflibrary.h"
 
 using namespace msclr::interop;
 
@@ -37,9 +38,8 @@ void MdfReader::Index::set(long long index) {
 }
 
 String^ MdfReader::Name::get() {
-  const auto name = reader_ != nullptr ?
-    reader_->ShortName() : std::string();
-  return gcnew String(name.c_str());
+  return reader_ != nullptr ? MdfLibrary::Utf8Conversion(reader_->ShortName())
+                            : gcnew String("");
 }
 
 MdfFile^ MdfReader::File::get() {

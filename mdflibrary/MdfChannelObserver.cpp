@@ -8,6 +8,7 @@
 #include <mdf/ichannel.h>
 
 #include "MdfChannelObserver.h"
+#include "mdflibrary.h"
 
 using namespace msclr::interop;
 using namespace System;
@@ -24,15 +25,11 @@ size_t MdfChannelObserver::NofSamples::get() {
 }
 
 String^ MdfChannelObserver::Name::get() {
-  const auto temp = observer_ != nullptr ?
-    observer_->Name() : std::string();
-  return gcnew String(temp.c_str());
+  return observer_ != nullptr ? MdfLibrary::Utf8Conversion(observer_->Name()) : gcnew String("");
 }
 
 String^ MdfChannelObserver::Unit::get() {
-  const auto temp = observer_ != nullptr ?
-    observer_->Unit() : std::string();
-  return gcnew String(temp.c_str());
+  return observer_ != nullptr ? MdfLibrary::Utf8Conversion(observer_->Unit()) : gcnew String("");
 }
 
 MdfChannel^ MdfChannelObserver::Channel::get() {
@@ -80,7 +77,7 @@ bool MdfChannelObserver::GetChannelValueAsString(size_t sample,
   }
   std::string temp;
   const auto valid = observer_->GetChannelValue(sample, temp);
-  value = gcnew String(temp.c_str());
+  value = MdfLibrary::Utf8Conversion(temp);
   return valid;
 }
 
@@ -130,7 +127,7 @@ bool MdfChannelObserver::GetEngValueAsString(size_t sample, String^% value) {
   }
   std::string temp;
   const auto valid = observer_->GetEngValue(sample, temp);
-  value = gcnew String(temp.c_str());
+  value = MdfLibrary::Utf8Conversion(temp);
   return valid;
 }
 

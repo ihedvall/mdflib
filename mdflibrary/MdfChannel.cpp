@@ -6,6 +6,7 @@
 #include <msclr/marshal_cppstd.h>
 
 #include "MdfChannel.h"
+#include "mdflibrary.h"
 
 using namespace msclr::interop;
 
@@ -16,9 +17,7 @@ int64_t MdfChannel::Index::get() {
 }
 
 String^ MdfChannel::Name::get() {
-  const auto temp = channel_ != nullptr ?
-    channel_->Name() : std::string();
-  return gcnew String(temp.c_str());
+  return channel_ != nullptr ? MdfLibrary::Utf8Conversion(channel_->Name()) : gcnew String("");
 }
 
 void MdfChannel::Name::set(String^ name) {
@@ -30,9 +29,7 @@ void MdfChannel::Name::set(String^ name) {
 }
 
 String^ MdfChannel::DisplayName::get() {
-  const auto temp = channel_ != nullptr ?
-    channel_->DisplayName() : std::string();
-  return gcnew String(temp.c_str());  
+  return channel_ != nullptr ? MdfLibrary::Utf8Conversion(channel_->DisplayName()) : gcnew String("");
 }
 
 void MdfChannel::DisplayName::set(String^ name) {
@@ -44,9 +41,7 @@ void MdfChannel::DisplayName::set(String^ name) {
 }
 
 String^ MdfChannel::Description::get() {
-  const auto temp = channel_ != nullptr ?
-    channel_->Description() : std::string();
-  return gcnew String(temp.c_str());   
+  return channel_ != nullptr ? MdfLibrary::Utf8Conversion(channel_->Description()) : gcnew String("");   
 }
 
 void MdfChannel::Description::set(String^ desc) {
@@ -62,9 +57,7 @@ bool MdfChannel::UnitUsed::get() {
 }
 
 String^ MdfChannel::Unit::get() {
-  const auto temp = channel_ != nullptr ?
-    channel_->Unit() : std::string();
-  return gcnew String(temp.c_str());     
+  return channel_ != nullptr ? MdfLibrary::Utf8Conversion(channel_->Unit()) : gcnew String("");
 }
 
 void MdfChannel::Unit::set(String^ unit) {

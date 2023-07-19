@@ -57,13 +57,31 @@ String^ MdfAttachment::Md5::get() {
   
   const std::string temp = attachment_->Md5().has_value() ?
     attachment_->Md5().value() : std::string();
-  return gcnew String(temp.c_str());    
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);    
 }
 
 String^ MdfAttachment::Filename::get() {
   const std::string temp = attachment_ != nullptr ?
   attachment_->FileName() : std::string();
-  return gcnew String(temp.c_str()); 
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array); 
 }
 
 void MdfAttachment::Filename::set(String^ filename) {
@@ -77,7 +95,16 @@ void MdfAttachment::Filename::set(String^ filename) {
 String^ MdfAttachment::FileType::get() {
   const std::string temp = attachment_ != nullptr ?
   attachment_->FileType() : std::string();
-  return gcnew String(temp.c_str());   
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);   
 }
 
 void MdfAttachment::FileType::set(String^ type) {

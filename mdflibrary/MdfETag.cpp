@@ -26,7 +26,16 @@ MdfETag::~MdfETag() {
 String^ MdfETag::Name::get() {
   const auto temp = tag_ != nullptr ?
     tag_->Name() : std::string();
-  return gcnew String(temp.c_str());  
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);  
 }
 
 void MdfETag::Name::set(String^ name) {
@@ -40,7 +49,16 @@ void MdfETag::Name::set(String^ name) {
 String^ MdfETag::Description::get() {
   const auto temp = tag_ != nullptr ?
     tag_->Description() : std::string();
-  return gcnew String(temp.c_str());    
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);    
 }
 
 void MdfETag::Description::set(String^ desc) {
@@ -54,7 +72,16 @@ void MdfETag::Description::set(String^ desc) {
 String^ MdfETag::Unit::get() {
   const auto temp = tag_ != nullptr ?
     tag_->Unit() : std::string();
-  return gcnew String(temp.c_str());     
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);     
 }
 
 void MdfETag::Unit::set(String^ unit) {
@@ -68,7 +95,16 @@ void MdfETag::Unit::set(String^ unit) {
 String^ MdfETag::UnitRef::get() {
   const auto temp = tag_ != nullptr ?
     tag_->UnitRef() : std::string();
-  return gcnew String(temp.c_str());    
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);    
 }
 
 void MdfETag::UnitRef::set(String^ unit) {
@@ -82,7 +118,16 @@ void MdfETag::UnitRef::set(String^ unit) {
 String^ MdfETag::Type::get() {
   const auto temp = tag_ != nullptr ?
     tag_->Type() : std::string();
-  return gcnew String(temp.c_str());   
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);   
 }
 
 void MdfETag::Type::set(String^ type) {
@@ -107,7 +152,16 @@ void MdfETag::DataType::set(ETagDataType type) {
 String^ MdfETag::Language::get() {
   const auto temp = tag_ != nullptr ?
     tag_->Language() : std::string();
-  return gcnew String(temp.c_str());     
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);     
 }
 
 void MdfETag::Language::set(String^ language) {
@@ -131,7 +185,16 @@ void MdfETag::ReadOnly::set(bool read_only) {
 String^ MdfETag::ValueAsString::get() {
   const auto temp = tag_ != nullptr ?
     tag_->Value<std::string>() : std::string();
-  return gcnew String(temp.c_str());    
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);    
 }
 
 void MdfETag::ValueAsString::set(String^ value) {

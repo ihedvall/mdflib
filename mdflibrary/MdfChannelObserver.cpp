@@ -26,13 +26,30 @@ size_t MdfChannelObserver::NofSamples::get() {
 String^ MdfChannelObserver::Name::get() {
   const auto temp = observer_ != nullptr ?
     observer_->Name() : std::string();
-  return gcnew String(temp.c_str());
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 String^ MdfChannelObserver::Unit::get() {
   const auto temp = observer_ != nullptr ?
     observer_->Unit() : std::string();
-  return gcnew String(temp.c_str());
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 MdfChannel^ MdfChannelObserver::Channel::get() {
@@ -80,7 +97,15 @@ bool MdfChannelObserver::GetChannelValueAsString(size_t sample,
   }
   std::string temp;
   const auto valid = observer_->GetChannelValue(sample, temp);
-  value = gcnew String(temp.c_str());
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  value= u8enc->GetString(c_array);
   return valid;
 }
 
@@ -130,7 +155,15 @@ bool MdfChannelObserver::GetEngValueAsString(size_t sample, String^% value) {
   }
   std::string temp;
   const auto valid = observer_->GetEngValue(sample, temp);
-  value = gcnew String(temp.c_str());
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  value= u8enc->GetString(c_array);
   return valid;
 }
 

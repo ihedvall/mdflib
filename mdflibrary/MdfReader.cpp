@@ -39,7 +39,16 @@ void MdfReader::Index::set(long long index) {
 String^ MdfReader::Name::get() {
   const auto name = reader_ != nullptr ?
     reader_->ShortName() : std::string();
-  return gcnew String(name.c_str());
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(name.length());
+
+  for (int i = 0; i < name.length(); i++)
+    c_array[i] = name[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 MdfFile^ MdfReader::File::get() {

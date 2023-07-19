@@ -16,7 +16,16 @@ int64_t MdfDataGroup::Index::get() {
 String^ MdfDataGroup::Description::get() {
   const auto temp = group_ != nullptr ?
   group_->Description() : std::string();
-  return gcnew String(temp.c_str());
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 void MdfDataGroup::Description::set(String^ desc) {

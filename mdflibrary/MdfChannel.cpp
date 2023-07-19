@@ -18,7 +18,15 @@ int64_t MdfChannel::Index::get() {
 String^ MdfChannel::Name::get() {
   const auto temp = channel_ != nullptr ?
     channel_->Name() : std::string();
-  return gcnew String(temp.c_str());
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 void MdfChannel::Name::set(String^ name) {
@@ -32,7 +40,15 @@ void MdfChannel::Name::set(String^ name) {
 String^ MdfChannel::DisplayName::get() {
   const auto temp = channel_ != nullptr ?
     channel_->DisplayName() : std::string();
-  return gcnew String(temp.c_str());  
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 void MdfChannel::DisplayName::set(String^ name) {
@@ -46,7 +62,16 @@ void MdfChannel::DisplayName::set(String^ name) {
 String^ MdfChannel::Description::get() {
   const auto temp = channel_ != nullptr ?
     channel_->Description() : std::string();
-  return gcnew String(temp.c_str());   
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);   
 }
 
 void MdfChannel::Description::set(String^ desc) {
@@ -64,7 +89,15 @@ bool MdfChannel::UnitUsed::get() {
 String^ MdfChannel::Unit::get() {
   const auto temp = channel_ != nullptr ?
     channel_->Unit() : std::string();
-  return gcnew String(temp.c_str());     
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 void MdfChannel::Unit::set(String^ unit) {

@@ -18,7 +18,16 @@ Int64 MdfChannelConversion::Index::get() {
 String^ MdfChannelConversion::Name::get() {
   const auto temp = conversion_ != nullptr ?
     conversion_->Name() : std::string();
-  return gcnew String(temp.c_str());
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 void MdfChannelConversion::Name::set(String^ name) {
@@ -32,7 +41,16 @@ void MdfChannelConversion::Name::set(String^ name) {
 String^ MdfChannelConversion::Description::get() {
   const auto temp = conversion_ != nullptr ?
     conversion_->Description() : std::string();
-  return gcnew String(temp.c_str());  
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);  
 }
 void MdfChannelConversion::Description::set(String^ desc) {
   const auto temp = String::IsNullOrEmpty(desc) ?
@@ -49,7 +67,16 @@ bool MdfChannelConversion::UnitUsed::get() {
 String^ MdfChannelConversion::Unit::get() {
   const auto temp = conversion_ != nullptr ?
     conversion_->Unit() : std::string();
-  return gcnew String(temp.c_str());   
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);   
 }
 
 void MdfChannelConversion::Unit::set(String^ unit) {

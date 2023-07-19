@@ -16,7 +16,16 @@ String^ MdfMetaData::PropertyAsString::get(String^ index) {
     std::string() : marshal_as<std::string>(index);
   const auto temp = meta_data_ != nullptr ?
    meta_data_->StringProperty(key) : std::string();
-  return gcnew String(temp.c_str());   
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);   
 }
 
 void MdfMetaData::PropertyAsString::set(String^ index, String^ prop) {
@@ -89,7 +98,16 @@ void MdfMetaData::CommonProperties::set(array<MdfETag^>^ prop_list) {
 String^ MdfMetaData::XmlSnippet::get() {
   const auto temp = meta_data_ != nullptr ?
    meta_data_->XmlSnippet() : std::string();
-  return gcnew String(temp.c_str());   
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);   
 }
 
 void MdfMetaData::XmlSnippet::set(String^ xml) {

@@ -21,7 +21,16 @@ MdfHeader::MdfHeader(mdf::IHeader* header)
 String^ MdfHeader::Description::get() {
   const auto temp = header_ != nullptr ?
     header_->Description() : std::string();
-  return gcnew String(temp.c_str());
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 void MdfHeader::Description::set(String^ desc) {
@@ -35,7 +44,16 @@ void MdfHeader::Description::set(String^ desc) {
 String^ MdfHeader::Author::get() {
   const auto temp = header_ != nullptr ?
     header_->Author() : std::string();
-  return gcnew String(temp.c_str());
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 void MdfHeader::Author::set(String^ author) {
@@ -49,7 +67,16 @@ void MdfHeader::Author::set(String^ author) {
 String^ MdfHeader::Department::get() {
   const auto temp = header_ != nullptr ?
     header_->Department() : std::string();
-  return gcnew String(temp.c_str());  
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);  
 }
 
 void MdfHeader::Department::set(String^ department) {
@@ -63,7 +90,16 @@ void MdfHeader::Department::set(String^ department) {
 String^ MdfHeader::Project::get() {
   const auto temp = header_ != nullptr ?
     header_->Project() : std::string();
-  return gcnew String(temp.c_str());    
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);    
 }
 
 void MdfHeader::Project::set(String^ project) {
@@ -76,7 +112,16 @@ void MdfHeader::Project::set(String^ project) {
 String^ MdfHeader::Subject::get() {
   const auto temp = header_ != nullptr ?
     header_->Subject() : std::string();
-  return gcnew String(temp.c_str());   
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);   
 }
 
 void MdfHeader::Subject::set(String^ subject) {
@@ -89,7 +134,16 @@ void MdfHeader::Subject::set(String^ subject) {
 String^ MdfHeader::MeasurementId::get() {
   const auto temp = header_ != nullptr ?
     header_->MeasurementId() : std::string();
-  return gcnew String(temp.c_str());     
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);     
 }
 
 void MdfHeader::MeasurementId::set(String^ uuid) {
@@ -102,7 +156,16 @@ void MdfHeader::MeasurementId::set(String^ uuid) {
 String^ MdfHeader::RecorderId::get() {
   const auto temp = header_ != nullptr ?
     header_->RecorderId() : std::string();
-  return gcnew String(temp.c_str());     
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);     
 }
 
 void MdfHeader::RecorderId::set(String^ uuid) {

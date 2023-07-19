@@ -17,7 +17,16 @@ int64_t MdfEvent::Index::get() {
 String^ MdfEvent::Name::get() {
   const auto temp = event_ != nullptr ?
     event_->Name() : std::string();
-  return gcnew String(temp.c_str());
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 void MdfEvent::Name::set(String^ name) {
@@ -31,7 +40,16 @@ void MdfEvent::Name::set(String^ name) {
 String^ MdfEvent::Description::get() {
   const auto temp = event_ != nullptr ?
     event_->Description() : std::string();
-  return gcnew String(temp.c_str());
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 void MdfEvent::Description::set(String^ desc) {
@@ -45,7 +63,16 @@ void MdfEvent::Description::set(String^ desc) {
 String^ MdfEvent::Group::get() {
   const auto temp = event_ != nullptr ?
     event_->GroupName() : std::string();
-  return gcnew String(temp.c_str());
+
+  array<unsigned char> ^ c_array =
+      gcnew array<unsigned char>(temp.length());
+
+  for (int i = 0; i < temp.length(); i++)
+    c_array[i] = temp[i];
+
+  System::Text::Encoding ^ u8enc = System::Text::Encoding::UTF8;
+
+  return u8enc->GetString(c_array);
 }
 
 void MdfEvent::Group::set(String^ group) {

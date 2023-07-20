@@ -42,7 +42,11 @@ public:
   property BusType Bus {BusType get(); void set(BusType bus); }  
   property uint8_t Flags {uint8_t get(); void set(uint8_t flags); }
   property MdfMetaData^ MetaData { MdfMetaData^ get();}
-private:
+
+  
+  MdfMetaData^ CreateMetaData();
+
+ private:
   MdfSourceInformation() {}
 internal:
   mdf::ISourceInformation *info_ = nullptr;

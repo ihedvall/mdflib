@@ -299,6 +299,11 @@ MdfChannelConversion^ MdfChannel::ChannelConversion::get() {
     : nullptr;
 }
 
+MdfChannelConversion^ MdfChannel::CreateMdfChannelConversion() {
+  auto* temp = channel_ != nullptr ? channel_->CreateChannelConversion() : nullptr;
+  return gcnew MdfChannelConversion(temp);
+}
+
 MdfChannel::MdfChannel(mdf::IChannel* channel) {
   channel_ = channel;
 }

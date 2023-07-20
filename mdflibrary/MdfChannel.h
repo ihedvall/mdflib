@@ -104,10 +104,12 @@ public:
   property double SamplingRate { double get(); void set(double rate); }
 
   property MdfChannelConversion^ ChannelConversion {
-    MdfChannelConversion^ get();
+      MdfChannelConversion^ get(); 
   }
-  
-private:
+
+  MdfChannelConversion^ CreateMdfChannelConversion();
+
+ private:
   MdfChannel() {}
 internal:
   mdf::IChannel* channel_ = nullptr;

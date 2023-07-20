@@ -159,6 +159,7 @@
     <ClInclude Include="MdfMetaData.h" />
     <ClInclude Include="MdfReader.h" />
     <ClInclude Include="MdfSourceInformation.h" />
+    <ClInclude Include="MdfWriter.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +179,7 @@
     <ClCompile Include="MdfMetaData.cpp" />
     <ClCompile Include="MdfReader.cpp" />
     <ClCompile Include="MdfSourceInformation.cpp" />
+    <ClCompile Include="MdfWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />

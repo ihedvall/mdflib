@@ -63,6 +63,9 @@
     <ClInclude Include="MdfSourceInformation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MdfWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mdflibrary.cpp">
@@ -111,6 +114,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MdfSourceInformation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MdfWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

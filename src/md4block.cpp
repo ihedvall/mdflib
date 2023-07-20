@@ -260,6 +260,10 @@ void MakeCommonPropertyList(const mdf::IXmlNode &root,
 
 namespace mdf::detail {
 
+Md4Block::Md4Block() {
+    block_type_ = "##MD";
+}
+
 Md4Block::Md4Block(const std::string &text) {
   const bool xml = !text.empty() && text[0] == '<';
   if (xml) {

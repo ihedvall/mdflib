@@ -11,8 +11,8 @@ namespace mdf::detail {
 class Md4Block : public Tx4Block, public IMetaData {
  public:
 
+  Md4Block();
   explicit Md4Block(const std::string& text);
-  Md4Block() = default;
 
   [[nodiscard]] int64_t Index() const override {
     return MdfBlock::Index();

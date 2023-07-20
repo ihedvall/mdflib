@@ -961,9 +961,9 @@ void Cn4Block::PrepareForWriting(size_t offset) {
 }
 
 void Cn4Block::SetValid(bool valid) {
-  if (Flags() & CnFlag::InvalidValid) {
+  if (Flags() & CnFlag::InvalidValid && cg_block_ != nullptr) {
     auto& buffer = SampleBuffer();
-    const auto byte_offset = invalid_bit_pos_ / 8;
+    const auto byte_offset = cg_block_->NofDataBytes() + (invalid_bit_pos_ / 8);
     const auto bit_offset = invalid_bit_pos_ % 8;
     const uint8_t mask = 0x01 << bit_offset;
     if (byte_offset < buffer.size()) {
@@ -974,6 +974,19 @@ void Cn4Block::SetValid(bool valid) {
       }
     }
   }
+}
+
+bool Cn4Block::GetValid(const std::vector<uint8_t> &record_buffer) const {
+  bool valid = true;
+  if (Flags() & CnFlag::InvalidValid && cg_block_ != nullptr) {
+    const auto byte_offset = cg_block_->NofDataBytes() + (invalid_bit_pos_ / 8);
+    const auto bit_offset = invalid_bit_pos_ % 8;
+    const uint8_t mask = 0x01 << bit_offset;
+    if (byte_offset < record_buffer.size()) {
+      valid = (record_buffer[byte_offset] & ~mask) == 0;
+    }
+  }
+  return valid;
 }
 
 size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {

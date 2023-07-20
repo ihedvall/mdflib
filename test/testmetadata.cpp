@@ -8,6 +8,10 @@
 #include <memory>
 
 #include "md4block.h"
+#include "hd4block.h"
+#include "fh4block.h"
+
+using namespace mdf::detail;
 
 namespace mdf::test {
 
@@ -46,4 +50,33 @@ TEST(TestMetaData, HDComment) {
   EXPECT_EQ(olle2_list.size(), 2);
 }
 
+TEST(TestMetaData, Hd4Block) {
+  Hd4Block hd4;
+  hd4.Author("Ingemar Hedvall");
+  hd4.Department("Home");
+
+  EXPECT_STREQ(hd4.Author().c_str(), "Ingemar Hedvall");
+  EXPECT_STREQ(hd4.Department().c_str(), "Home");
+
+  const auto* md4 = hd4.MetaData();
+  ASSERT_TRUE(md4 != nullptr);
+  std::cout << md4->XmlSnippet() << std::endl;
+}
+
+TEST(TestMetaData, Fh4Block) {
+  Fh4Block fh4;
+
+  fh4.Time(1234);
+  EXPECT_EQ(fh4.Time(), 1234);
+
+  fh4.Description("Comments");
+  fh4.ToolName("Tester");
+
+  EXPECT_STREQ(fh4.Description().c_str(), "Comments");
+  EXPECT_STREQ(fh4.ToolName().c_str(), "Tester");
+
+  const auto* md4 = fh4.MetaData();
+  ASSERT_TRUE(md4 != nullptr);
+  std::cout << md4->XmlSnippet() << std::endl;
+}
 }  // namespace mdf::test

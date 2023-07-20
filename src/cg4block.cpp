@@ -402,7 +402,7 @@ void Cg4Block::PrepareForWriting() {
     byte_offset += channel1->DataBytes();
   }
 
-  size_t bit_offset = byte_offset * 8;
+  size_t bit_offset = 0;
   for (auto &channel2 : cn_list_) {
     if (!channel2) {
       continue;

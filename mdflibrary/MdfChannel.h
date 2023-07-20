@@ -115,6 +115,18 @@ public:
 
   MdfChannelConversion^ CreateMdfChannelConversion();
 
+  void SetChannelValue(const int64_t value) { SetChannelValue(value, true); };
+  void SetChannelValue(const uint64_t value) { SetChannelValue(value, true); };
+  void SetChannelValue(const double value) { SetChannelValue(value, true); };
+  void SetChannelValue(String ^ value) { SetChannelValue(value, true); };
+  void SetChannelValue(array<Byte> ^ value) { SetChannelValue(value, true); };
+
+  void SetChannelValue(const int64_t value, bool valid);
+  void SetChannelValue(const uint64_t value, bool valid);
+  void SetChannelValue(const double value, bool valid);
+  void SetChannelValue(String ^ value, bool valid);
+  void SetChannelValue(array<Byte> ^ value, bool valid);
+
  private:
   MdfChannel() {}
 internal:

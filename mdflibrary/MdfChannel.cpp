@@ -227,6 +227,31 @@ MdfChannelConversion^ MdfChannel::CreateMdfChannelConversion() {
   return gcnew MdfChannelConversion(temp);
 }
 
+void MdfChannel::SetChannelValue(const int64_t value, bool valid) {
+  channel_->SetChannelValue(value, valid);
+}
+
+void MdfChannel::SetChannelValue(const uint64_t value, bool valid) {
+  channel_->SetChannelValue(value, valid);
+}
+
+void MdfChannel::SetChannelValue(const double value, bool valid) {
+  channel_->SetChannelValue(value, valid);
+}
+
+void MdfChannel::SetChannelValue(String ^ value, bool valid) {
+  const auto temp = String::IsNullOrEmpty(value)
+                        ? std::string()
+                        : marshal_as<std::string>(value);
+  channel_->SetChannelValue(temp, valid);
+}
+
+void MdfChannel::SetChannelValue(array<Byte> ^ value, bool valid) {
+  std::vector<uint8_t> temp(value->Length);
+  for (int i = 0; i < value->Length; ++i) temp[i] = value[i];
+  channel_->SetChannelValue(temp, valid);
+}
+
 MdfChannel::MdfChannel(mdf::IChannel* channel) {
   channel_ = channel;
 }

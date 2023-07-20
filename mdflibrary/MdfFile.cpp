@@ -42,7 +42,7 @@ array<MdfDataGroup^>^ MdfFile::DataGroups::get() {
 
 String^ MdfFile::Name::get() {
   return mdf_file_ != nullptr ? MdfLibrary::Utf8Conversion(
-    mdf_file_->Name().c_str()) : gcnew String("");
+    mdf_file_->Name()) : gcnew String("");
 }
 
 void MdfFile::Name::set(String^ name) {
@@ -55,7 +55,7 @@ void MdfFile::Name::set(String^ name) {
 
 String^ MdfFile::Filename::get() {
   return mdf_file_ != nullptr ?
-    MdfLibrary::Utf8Conversion(mdf_file_->FileName().c_str()) : gcnew String("");
+    MdfLibrary::Utf8Conversion(mdf_file_->FileName()) : gcnew String("");
 }
 
 void MdfFile::Filename::set(String^ filename) {

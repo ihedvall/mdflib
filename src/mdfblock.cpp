@@ -484,7 +484,7 @@ void MdfBlock::CreateMd4Block() {
 
   if (md_comment_) {
     const auto *tx4 = dynamic_cast<const Tx4Block *>(md_comment_.get());
-    xml->SetProperty("TX", tx4 != nullptr ? tx4->Text() : std::string());
+    xml->SetProperty("TX", tx4 != nullptr ? tx4->TxComment() : std::string());
   }
 
   md4->XmlSnippet(xml->WriteString(true));

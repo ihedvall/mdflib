@@ -110,6 +110,7 @@ class Cn4Block : public DataListBlock, public IChannel {
     invalid_bit_pos_ = static_cast<uint32_t>(bit_offset);
   }
   void SetValid(bool valid) override;
+  bool GetValid(const std::vector<uint8_t> &record_buffer) const override;
   void ClearData() override;
  protected:
   size_t BitCount() const override;    ///< Returns number of bits in value.

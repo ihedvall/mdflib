@@ -465,6 +465,11 @@ TEST_F(TestWrite, Mdf4WriteFH) {  // NOLINT
   history->ToolVendor("ACME");
   history->ToolVersion("2.3");
   history->UserName("Ducky");
+  {
+    const auto* md4 = history->MetaData();
+    ASSERT_TRUE(md4 != nullptr);
+    std::cout << "Before: " << md4->XmlSnippet() << std::endl;
+  }
 
   EXPECT_FALSE(history->Description().empty());
 
@@ -489,11 +494,17 @@ TEST_F(TestWrite, Mdf4WriteFH) {  // NOLINT
   const auto* history1 = fh_list[0];
   ASSERT_TRUE(history1 != nullptr);
   EXPECT_EQ(history->Time(), history1->Time());
-  EXPECT_EQ(history->Description(), history1->Description());
-  EXPECT_EQ(history->ToolName(), history1->ToolName());
-  EXPECT_EQ(history->ToolVendor(), history1->ToolVendor());
-  EXPECT_EQ(history->ToolVersion(), history1->ToolVersion());
-  EXPECT_EQ(history->UserName(), history1->UserName());
+  EXPECT_STREQ(history1->Description().c_str(), "Initial stuff");
+  EXPECT_STREQ(history1->ToolName().c_str(), "Unit Test");
+  EXPECT_STREQ(history1->ToolVendor().c_str(), "ACME");
+  EXPECT_STREQ(history1->ToolVersion().c_str(), "2.3");
+  EXPECT_STREQ(history1->UserName().c_str(), "Ducky");
+
+  {
+    const auto* md4 = history1->MetaData();
+    ASSERT_TRUE(md4 != nullptr);
+    std::cout << "After: " << md4->XmlSnippet() << std::endl;
+  }
 }
 
 TEST_F(TestWrite, Mdf4WriteAT) {  // NOLINT
@@ -1526,6 +1537,114 @@ TEST_F(TestWrite, StringData) {
       std::ostringstream temp;
       temp << "String "  << sample;
       EXPECT_EQ(channel_value, temp.str()) << observer->Name();
+    }
+  }
+}
+
+
+TEST_F(TestWrite, Mdf4Invalid) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("invalid.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("Float");
+
+
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("Intel32");
+  ch1->Type(ChannelType::FixedLength);
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::FloatLe);
+  ch1->DataBytes(4);
+
+  auto* ch2 = group1->CreateChannel();
+  ch2->Name("Intel64");
+  ch2->Type(ChannelType::FixedLength);
+  ch2->Sync(ChannelSyncType::None);
+  ch2->DataType(ChannelDataType::FloatLe);
+  ch2->DataBytes(8);
+
+  auto* ch3 = group1->CreateChannel();
+  ch3->Name("Motorola32");
+  ch3->Type(ChannelType::FixedLength);
+  ch3->Sync(ChannelSyncType::None);
+  ch3->DataType(ChannelDataType::FloatBe);
+  ch3->DataBytes(4);
+
+  auto* ch4 = group1->CreateChannel();
+  ch4->Name("Motorola64");
+  ch4->Type(ChannelType::FixedLength);
+  ch4->Sync(ChannelSyncType::None);
+  ch4->DataType(ChannelDataType::FloatBe);
+  ch4->DataBytes(8);
+
+
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+
+  for (size_t sample = 0; sample < 100; ++sample) {
+    double value = static_cast<double>(sample) + 0.23;
+    bool valid = (sample % 2) == 0; // Even samples are valid
+    ch1->SetChannelValue(value, valid);
+    ch2->SetChannelValue(value, valid);
+    ch3->SetChannelValue(value, valid);
+    ch4->SetChannelValue(value, valid);
+
+    writer->SaveSample(*group1,tick_time);
+    tick_time += 1'000'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    ASSERT_EQ(observer->NofSamples(), 100);
+    for (size_t sample = 0; sample < 100; ++sample) {
+      double channel_value = 0;
+      const auto valid = observer->GetChannelValue(sample, channel_value);
+      if ((sample % 2) == 0) {
+        EXPECT_TRUE(valid);
+      } else {
+        EXPECT_FALSE(valid);
+      }
+      EXPECT_FLOAT_EQ(channel_value, static_cast<double>(sample) + 0.23)
+          << observer->Name();
     }
   }
 }

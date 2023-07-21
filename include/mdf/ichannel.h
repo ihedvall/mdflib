@@ -320,6 +320,9 @@ class IChannel : public IBlock  {
   /** \brief Support function that sets the valid flag. */
   virtual void SetValid(bool valid);
 
+  /** \brief Support function that return true if the valid bit is set.*/
+  virtual bool GetValid(const std::vector<uint8_t> &record_buffer) const;
+
   /** \brief Support function that sets unsigned little endian values */
   void SetUnsignedValueLe(uint64_t value, bool valid);
   /** \brief Support function that sets unsigned big endian values */
@@ -345,6 +348,7 @@ template <typename T>
 bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
                                T &dest) const {
   bool valid = false;
+
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
     case ChannelDataType::UnsignedIntegerBe: {
@@ -404,6 +408,9 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     }
     default:
       break;
+  }
+  if (valid) {
+     valid = GetValid(record_buffer);
   }
   return valid;
 }

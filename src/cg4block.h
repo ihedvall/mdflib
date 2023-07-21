@@ -84,7 +84,12 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   }
   void PrepareForWriting();
 
-
+  uint32_t NofDataBytes() const {
+    return nof_data_bytes_;
+  }
+  uint32_t NofInvalidBytes() const {
+    return nof_invalid_bytes_;
+  }
  private:
   uint64_t record_id_ = 0;
   uint64_t nof_samples_ = 0;

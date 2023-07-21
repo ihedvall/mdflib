@@ -198,7 +198,7 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
     // | In[0] | In[1] |  <-- in_byte index
     //    <-- BitOffset() (0.7)
     //    <-- BitCount() number of bits
-    uint8_t in_offset = static_cast<uint8_t>(BitOffset()); // Bit inside 1 byte
+    auto in_offset = static_cast<uint8_t>(BitOffset()); // Bit inside 1 byte
     size_t in_byte = ByteOffset();
     uint8_t out_offset = 0;
     size_t out_byte = 0;
@@ -436,7 +436,9 @@ bool IChannel::GetCanOpenTime(const std::vector<uint8_t> &record_buffer,
 
 void IChannel::SetValid(bool) {
   // Only MDF 4 have this functionality;
-
+}
+bool IChannel::GetValid(const std::vector<uint8_t> &) const {
+  return true; // Only MDF 4 have this functionality;
 }
 
 void IChannel::SetUnsignedValueLe(uint64_t value, bool valid) {
@@ -736,6 +738,9 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     default:
       break;
   }
+  if (valid) {
+    valid = GetValid(record_buffer);
+  }
   return valid;
 }
 
@@ -824,6 +829,9 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
 
     default:
       break;
+  }
+  if (valid) {
+    valid = GetValid(record_buffer);
   }
   return valid;
 }

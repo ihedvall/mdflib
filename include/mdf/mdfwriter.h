@@ -10,6 +10,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <map>
 
 #include "mdf/mdffile.h"
 #include "samplerecord.h"
@@ -128,12 +129,12 @@ class MdfWriter {
   /** \brief Saves a sample record for a channel group. */
   void SaveSample(IChannelGroup& group, uint64_t time);
   /** \brief Starts the measurement. */
-  void StartMeasurement(uint64_t start_time);
+  virtual void StartMeasurement(uint64_t start_time);
   /** \brief Stops the measurement. */
-  void StopMeasurement(uint64_t stop_time);
+  virtual void StopMeasurement(uint64_t stop_time);
   /** \brief Stop the sample queue and write all unwritten blocks to
    * the file.*/
-  bool FinalizeMeasurement();
+  virtual bool FinalizeMeasurement();
    /** \brief If set to true, the data block will be compressed. */
   void CompressData(bool compress) {compress_data_ = compress;}
   /** \brief Returns true if the data block is compressed. */
@@ -186,6 +187,8 @@ class MdfWriter {
 
  private:
   bool compress_data_ = false; ///< True if the data shall be compressed.
+  std::map<uint64_t, const IChannel*> master_channels_; ///< List of master channels
+  void RecalculateTimeMaster();
 };
 
 }  // namespace mdf

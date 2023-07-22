@@ -202,7 +202,7 @@ class IChannel : public IBlock  {
   /** \brief Creates a conversion block. */
   [[nodiscard]] virtual IChannelConversion *CreateChannelConversion() = 0;
 
-  /** \brief Returns true if the channel is a numer. */
+  /** \brief Returns true if the channel is a number. */
   [[nodiscard]] bool IsNumber() const {
     // Need to check the cc at well if it is a value to text conversion
     if (const auto *cc = ChannelConversion();
@@ -283,6 +283,9 @@ class IChannel : public IBlock  {
     */
   virtual bool GetTextValue(const std::vector<uint8_t> &record_buffer,
                             std::string &dest) const;
+
+  void SetTimestamp(double timestamp, std::vector<uint8_t> &record_buffer) const;
+
  protected:
   [[nodiscard]] virtual size_t BitCount()
       const = 0;  ///< Returns number of bits in value.

@@ -127,7 +127,7 @@ class Cn4Block : public DataListBlock, public IChannel {
 
  private:
   uint8_t type_ = 0;
-  uint8_t sync_type_ = 0;
+  uint8_t sync_type_ = 0; ///< Normal channel type
   uint8_t data_type_ = 0;
   uint8_t bit_offset_ = 0;
   uint32_t byte_offset_ = 0;

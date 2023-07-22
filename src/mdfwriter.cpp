@@ -142,14 +142,77 @@ bool MdfWriter::InitMeasurement() {
 void MdfWriter::SaveSample(IChannelGroup& group, uint64_t time) {
   SampleRecord sample = group.GetSampleRecord();
   sample.timestamp = time;
+  const auto itr_master = master_channels_.find(group.RecordId());
+  const auto* master = itr_master == master_channels_.cend() ?
+                       nullptr : itr_master->second;
+  if (master != nullptr) {
+    auto rel_ns = static_cast<int64_t>(sample.timestamp);
+    rel_ns -= static_cast<int64_t>(start_time_);
+    const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
+    master->SetTimestamp(rel_s,sample.record_buffer);
+  }
 
   std::lock_guard lock(locker_);
   sample_queue_.emplace_back(sample);
 }
 
+void MdfWriter::RecalculateTimeMaster() {
+  master_channels_.clear();
+  const auto* header = Header();
+  if (header == nullptr) {
+    return;
+  }
+  // Find last DG block
+  const auto dg_list = header->DataGroups();
+  if (dg_list.empty()) {
+    return;
+  }
+  const auto* last_dg = dg_list.back();
+  if (last_dg == nullptr) {
+    return;
+  }
+  const auto cg_list = last_dg->ChannelGroups();
+  for (const auto* group : cg_list) {
+    if (group == nullptr) {
+      continue;
+    }
+    const auto cn_list = group->Channels();
+    for (const auto* channel : cn_list) {
+      if (channel == nullptr) {
+        continue;
+      }
+      if (channel->Type() == ChannelType::Master &&
+          channel->Sync() == ChannelSyncType::Time) {
+        master_channels_.emplace(group->RecordId(), channel);
+        break;
+      }
+    }
+  }
+  if (master_channels_.empty()) {
+    return;
+  }
+  std::scoped_lock list_lock(locker_);
+  for (auto& sample : sample_queue_) {
+    auto itr_ch = master_channels_.find(sample.record_id);
+    if (itr_ch == master_channels_.end()) {
+      continue;
+    }
+    auto rel_ns = static_cast<int64_t>(sample.timestamp);
+    rel_ns -= static_cast<int64_t>(start_time_);
+    const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
+
+    const auto* master = itr_ch->second;
+    if (master == nullptr) {
+      continue;
+    }
+    master->SetTimestamp(rel_s,sample.record_buffer);
+  }
+}
+
 void MdfWriter::StartMeasurement(uint64_t start_time) {
   write_state_ = WriteState::StartMeas;
   start_time_ = start_time;
+  RecalculateTimeMaster();
   stop_time_ = 0; // Zero indicate not stopped
   sample_event_.notify_one();
 

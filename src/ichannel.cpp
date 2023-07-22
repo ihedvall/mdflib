@@ -947,4 +947,45 @@ ISourceInformation *IChannel::CreateSourceInformation() {
 void IChannel::Flags(uint32_t flags) {}
 uint32_t IChannel::Flags() const { return 0; }
 
+void IChannel::SetTimestamp(double timestamp,
+                            std::vector<uint8_t> &record_buffer) const {
+  // If conversion is in use, reverse convert to channel value
+  const auto* conversion = ChannelConversion();
+  if (conversion != nullptr &&
+      conversion->Type() == ConversionType::Linear &&
+      conversion->Parameter(1) != 0.0) {
+    timestamp -= conversion->Parameter(0);
+    timestamp /= conversion->Parameter(1);
+  } else if (conversion != nullptr) {
+    return;
+  }
+
+  const size_t bytes = BitCount() / 8;
+
+  switch (DataType()) {
+    case ChannelDataType::FloatLe:
+      if (bytes == 4) {
+        const LittleBuffer data(static_cast<float>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 8) {
+        const LittleBuffer data(static_cast<double>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      }
+      break;
+
+    case ChannelDataType::FloatBe:
+      if (bytes == 4) {
+        const BigBuffer data(static_cast<float>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 8) {
+        const BigBuffer data(static_cast<double>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      }
+      break;
+
+    default:
+      break;
+  }
+}
+
 }  // end namespace mdf

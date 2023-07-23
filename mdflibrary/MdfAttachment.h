@@ -18,7 +18,7 @@ public:
   property bool Embedded {bool get(); void set(bool embedded); }
   property bool Compressed {bool get(); void set(bool compressed); }
   property String^ Md5 {String^ get(); }
-  property String^ Filename { String^ get(); void set(String^ filename); }
+  property String^ FileName { String^ get(); void set(String^ name); }
   property String^ FileType { String^ get(); void set(String^ type); }
   
 private:

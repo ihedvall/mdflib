@@ -2,6 +2,7 @@
 namespace mdflibrary_test;
 
 using MdfLibrary;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
 [TestClass]
@@ -13,6 +14,15 @@ public class MdfLibraryTest
     private const string InvalidFile = @"testi.mf4";
 
     private const string TestFile4 = @"test4.mf4";
+
+    [TestInitialize]
+    public void TestLog()
+    {
+        MdfLibrary.Instance.LogEvent += (MdfLogSeverity severity, string function, string message) =>
+        {
+            Console.WriteLine("{0} {1} {2}", severity, function, message);
+        };
+    }
 
     [TestMethod]
     public void TestStatic()
@@ -483,6 +493,11 @@ public class MdfLibraryTest
 
     public void TestWriter()
     {
+        if (File.Exists(TestFile4))
+        {
+            File.Delete(TestFile4);
+        }
+
         var Writer = new MdfWriter(MdfWriterType.Mdf4Basic);
         Writer.Init(TestFile4);
         var Header = Writer.Header;
@@ -500,6 +515,13 @@ public class MdfLibraryTest
         History.ToolVendor = "ACME";
         History.ToolVersion = "2.3";
         History.UserName = "Ducky";
+
+        var Attachment = Header.CreateAttachment();
+        Attachment.CreatorIndex = 0;
+        Attachment.Embedded = true;
+        Attachment.Compressed = false;
+        Attachment.FileName = "test.txt";
+        Attachment.FileType = "text/plain";
 
         var dg = Writer.CreateDataGroup();
         var cg = dg.CreateChannelGroup();
@@ -522,7 +544,7 @@ public class MdfLibraryTest
             cn.DataType = ChannelDataType.FloatLe;
             cn.DataBytes = 4;
             cn.Unit = "s";
-            cn.Range = new Tuple<double, double>(0.0, 0.0);
+            cn.Range = new Tuple<double, double>(0.0, int.MaxValue);
         }
         {
             var cn = cg.CreateChannel();
@@ -602,13 +624,6 @@ public class MdfLibraryTest
             cn.Type = ChannelType.FixedLength;
             cn.DataType = ChannelDataType.CanOpenTime;
         }
-
-        /*    var Attachment = Header.CreateAttachment();
-            Attachment.CreatorIndex = 0;
-            Attachment.Embedded = true;
-            Attachment.Compressed = false;
-            Attachment.Filename = "test.txt";
-            Attachment.FileType = "text/plain";*/
 
 
         Writer.InitMeasurement();

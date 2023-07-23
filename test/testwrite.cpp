@@ -1569,6 +1569,7 @@ TEST_F(TestWrite, Mdf4Invalid) {
   ch1->Type(ChannelType::FixedLength);
   ch1->Sync(ChannelSyncType::None);
   ch1->DataType(ChannelDataType::FloatLe);
+  ch1->Flags(CnFlag::InvalidValid);
   ch1->DataBytes(4);
 
   auto* ch2 = group1->CreateChannel();
@@ -1576,6 +1577,7 @@ TEST_F(TestWrite, Mdf4Invalid) {
   ch2->Type(ChannelType::FixedLength);
   ch2->Sync(ChannelSyncType::None);
   ch2->DataType(ChannelDataType::FloatLe);
+  ch2->Flags(CnFlag::InvalidValid);
   ch2->DataBytes(8);
 
   auto* ch3 = group1->CreateChannel();
@@ -1583,6 +1585,7 @@ TEST_F(TestWrite, Mdf4Invalid) {
   ch3->Type(ChannelType::FixedLength);
   ch3->Sync(ChannelSyncType::None);
   ch3->DataType(ChannelDataType::FloatBe);
+  ch3->Flags(CnFlag::InvalidValid);
   ch3->DataBytes(4);
 
   auto* ch4 = group1->CreateChannel();
@@ -1590,8 +1593,8 @@ TEST_F(TestWrite, Mdf4Invalid) {
   ch4->Type(ChannelType::FixedLength);
   ch4->Sync(ChannelSyncType::None);
   ch4->DataType(ChannelDataType::FloatBe);
+  ch4->Flags(CnFlag::InvalidValid);
   ch4->DataBytes(8);
-
 
   writer->PreTrigTime(0);
   writer->InitMeasurement();

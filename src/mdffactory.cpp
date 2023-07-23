@@ -14,13 +14,47 @@
 using namespace mdf::detail;
 
 namespace mdf {
+
 std::unique_ptr<MdfWriter> MdfFactory::CreateMdfWriter(MdfWriterType type) {
-  std::unique_ptr<MdfWriter> writer = std::make_unique<Mdf3Writer>();
+  std::unique_ptr<MdfWriter> writer;
+
+  switch (type) {
+    case MdfWriterType::Mdf3Basic: {
+      auto mdf3 = std::make_unique<Mdf3Writer>();
+      writer = std::move(mdf3);
+      break;
+    }
+
+    case MdfWriterType::Mdf4Basic: {
+      auto mdf4 = std::make_unique<Mdf4Writer>();
+      writer = std::move(mdf4);
+      break;
+    }
+
+    default:
+      break;
+  }
   return writer;
 }
 
 std::unique_ptr<MdfFile> MdfFactory::CreateMdfFile(MdfFileType type) {
-  std::unique_ptr<MdfFile> file = std::make_unique<Mdf3File>();
+  std::unique_ptr<MdfFile> file;
+
+  switch (type) {
+    case MdfFileType::Mdf3FileType: {
+      auto mdf3 = std::make_unique<Mdf3File>();
+      file = std::move(mdf3);
+      break;
+    }
+    case MdfFileType::Mdf4FileType: {
+      auto mdf4 = std::make_unique<Mdf4File>();
+      file = std::move(mdf4);
+      break;
+    }
+
+    default:
+      break;
+  }
   return file;
 }
 

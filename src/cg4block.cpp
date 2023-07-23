@@ -402,21 +402,23 @@ void Cg4Block::PrepareForWriting() {
     byte_offset += channel1->DataBytes();
   }
 
-  size_t bit_offset = 0;
+  size_t invalid_bit_offset = 0;
   for (auto &channel2 : cn_list_) {
     if (!channel2) {
       continue;
     }
     if (channel2->Flags() & CnFlag::InvalidValid) {
-      channel2->SetInvalidOffset(bit_offset);
-      ++bit_offset;
+      channel2->SetInvalidOffset(invalid_bit_offset);
+      ++invalid_bit_offset;
     }
   }
 
-  const auto temp = cn_list_.size() % 8;
-  nof_invalid_bytes_ = cn_list_.size() / 8;
-  if (temp > 0) {
-    ++nof_invalid_bytes_;
+  if (invalid_bit_offset == 0) {
+    nof_invalid_bytes_ = 0;
+  } else if ((invalid_bit_offset % 8) > 0) {
+    nof_invalid_bytes_ = (invalid_bit_offset / 8) + 1;
+  } else {
+    nof_invalid_bytes_ = invalid_bit_offset / 8;
   }
 
   if (const auto total_size = nof_invalid_bytes_ + nof_data_bytes_;

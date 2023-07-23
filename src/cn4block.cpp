@@ -848,18 +848,18 @@ void Cn4Block::PrepareForWriting(size_t offset) {
   // The bit count may be set by the user.
   bool use_index = false;
   switch (Type()) {
+    case ChannelType::Master:
+      flags_ &= ~CnFlag::InvalidValid;
+      break;
+
     case ChannelType::MaxLength:
     case ChannelType::Sync:
-    case ChannelType::Master:
     case ChannelType::FixedLength:
       // Length fixed below or by user
-      // Always store invalid bit
-      flags_ |= CnFlag::InvalidValid;
       break;
 
     case ChannelType::VariableLength:
       // Store unsigned 32/64-bit index to variable block
-      flags_ |= CnFlag::InvalidValid;
       if (bit_count_ == 0) {
         bit_count_ = 8 * 8;
       }

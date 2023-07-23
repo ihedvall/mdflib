@@ -89,6 +89,11 @@ MdfMetaData^ MdfSourceInformation::MetaData::get() {
     gcnew MdfMetaData(const_cast<mdf::IMetaData*>(temp)) : nullptr;
 }
 
+MdfMetaData^ MdfSourceInformation::CreateMetaData() {
+  auto* temp = info_ != nullptr ? info_->CreateMetaData() : nullptr;
+  return gcnew MdfMetaData(temp);
+}
+
 MdfSourceInformation::MdfSourceInformation(mdf::ISourceInformation* info)
   : info_(info) {
   

@@ -90,24 +90,44 @@ public:
   property Byte Precision { Byte get(); };
   
   property bool RangeUsed { bool get(); }
-  property double RangeMin { double get(); void set(double min); };
-  property double RangeMax { double get(); void set(double max); };
+  property Tuple<double,double>^ Range {
+    Tuple<double,double>^ get();
+    void set(Tuple<double,double>^);
+  };
   
   property bool LimitUsed { bool get(); }
-  property double LimitMin { double get(); void set(double min); };
-  property double LimitMax { double get(); void set(double max); };
+  property Tuple<double,double>^ Limit {
+    Tuple<double,double>^ get();
+    void set(Tuple<double,double>^);
+  };
 
   property bool ExtLimitUsed { bool get(); }
-  property double ExtLimitMin { double get(); void set(double min); };
-  property double ExtLimitMax { double get(); void set(double max); };
+  property Tuple<double,double>^ ExtLimit {
+    Tuple<double,double>^ get();
+    void set(Tuple<double,double>^);
+  };
 
   property double SamplingRate { double get(); void set(double rate); }
 
   property MdfChannelConversion^ ChannelConversion {
-    MdfChannelConversion^ get();
+      MdfChannelConversion^ get(); 
   }
-  
-private:
+
+  MdfChannelConversion^ CreateMdfChannelConversion();
+
+  void SetChannelValue(const int64_t value) { SetChannelValue(value, true); };
+  void SetChannelValue(const uint64_t value) { SetChannelValue(value, true); };
+  void SetChannelValue(const double value) { SetChannelValue(value, true); };
+  void SetChannelValue(String ^ value) { SetChannelValue(value, true); };
+  void SetChannelValue(array<Byte> ^ value) { SetChannelValue(value, true); };
+
+  void SetChannelValue(const int64_t value, bool valid);
+  void SetChannelValue(const uint64_t value, bool valid);
+  void SetChannelValue(const double value, bool valid);
+  void SetChannelValue(String ^ value, bool valid);
+  void SetChannelValue(array<Byte> ^ value, bool valid);
+
+ private:
   MdfChannel() {}
 internal:
   mdf::IChannel* channel_ = nullptr;

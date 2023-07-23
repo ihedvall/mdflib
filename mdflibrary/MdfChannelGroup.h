@@ -31,7 +31,12 @@ public:
     MdfSourceInformation^ get();
   }
   MdfChannel^ GetXChannel(const MdfChannel^ ref_channel );
-private:
+
+    
+  MdfChannel^ CreateChannel();
+  MdfMetaData^ CreateMetaData();
+  MdfSourceInformation^ CreateSourceInformation(); 
+ private:
   MdfChannelGroup() {}
 internal:
   mdf::IChannelGroup *group_ = nullptr;

@@ -159,7 +159,7 @@
     <ClInclude Include="MdfMetaData.h" />
     <ClInclude Include="MdfReader.h" />
     <ClInclude Include="MdfSourceInformation.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="MdfWriter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
@@ -178,12 +178,7 @@
     <ClCompile Include="MdfMetaData.cpp" />
     <ClCompile Include="MdfReader.cpp" />
     <ClCompile Include="MdfSourceInformation.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="app.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="app.ico" />
+    <ClCompile Include="MdfWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\mdflib.vcxproj">

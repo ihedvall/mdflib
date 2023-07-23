@@ -131,47 +131,21 @@ bool MdfChannel::RangeUsed::get() {
   return used;
 }
 
-double MdfChannel::RangeMin::get() {
-  double min = 0;
+Tuple<double, double> ^ MdfChannel::Range::get() {
+  double min = 0, max = 0;
   if (channel_ != nullptr) {
     const auto optional = channel_->Range();
     if (optional.has_value()) {
       min = optional.value().first;
-    }
-  }
-  return min;
-}
-
-void MdfChannel::RangeMin::set(double min) {
-  if (channel_ != nullptr) {
-    const auto optional = channel_->Range();
-    double max = 0;
-    if (optional.has_value()) {
       max = optional.value().second;
     }
-    channel_->Range(min,max);
   }
+  return gcnew Tuple<double, double>(min, max);
 }
 
-double MdfChannel::RangeMax::get() {
-  double max = 0;
+void MdfChannel::Range::set(Tuple<double,double>^ range) {
   if (channel_ != nullptr) {
-    const auto optional = channel_->Range();
-    if (optional.has_value()) {
-      max = optional.value().first;
-    }
-  }
-  return max;  
-}
-
-void MdfChannel::RangeMax::set(double max) {
-  if (channel_ != nullptr) {
-    const auto optional = channel_->Range();
-    double min = 0;
-    if (optional.has_value()) {
-      min = optional.value().second;
-    }
-    channel_->Range(min,max);
+    channel_->Range(range->Item1, range->Item2);
   }
 }
 
@@ -184,47 +158,21 @@ bool MdfChannel::LimitUsed::get() {
   return used;
 }
 
-double MdfChannel::LimitMin::get() {
-  double min = 0;
+Tuple<double, double> ^ MdfChannel::Limit::get() {
+  double min = 0, max = 0;
   if (channel_ != nullptr) {
     const auto optional = channel_->Limit();
     if (optional.has_value()) {
       min = optional.value().first;
-    }
-  }
-  return min;
-}
-
-void MdfChannel::LimitMin::set(double min) {
-  if (channel_ != nullptr) {
-    const auto optional = channel_->Limit();
-    double max = 0;
-    if (optional.has_value()) {
       max = optional.value().second;
     }
-    channel_->Limit(min,max);
   }
+  return gcnew Tuple<double, double>(min, max);
 }
 
-double MdfChannel::LimitMax::get() {
-  double max = 0;
+void MdfChannel::Limit::set(Tuple<double,double>^ limit) {
   if (channel_ != nullptr) {
-    const auto optional = channel_->Limit();
-    if (optional.has_value()) {
-      max = optional.value().first;
-    }
-  }
-  return max;  
-}
-
-void MdfChannel::LimitMax::set(double max) {
-  if (channel_ != nullptr) {
-    const auto optional = channel_->Limit();
-    double min = 0;
-    if (optional.has_value()) {
-      min = optional.value().second;
-    }
-    channel_->Limit(min,max);
+    channel_->Limit(limit->Item1, limit->Item2);
   }
 }
 
@@ -237,49 +185,24 @@ bool MdfChannel::ExtLimitUsed::get() {
   return used;
 }
 
-double MdfChannel::ExtLimitMin::get() {
-  double min = 0;
+Tuple<double,double>^ MdfChannel::ExtLimit::get() {
+  double min = 0, max = 0;
   if (channel_ != nullptr) {
     const auto optional = channel_->ExtLimit();
     if (optional.has_value()) {
-      min = optional.value().first;
+        min=optional.value().first;
+        max=optional.value().second;
     }
   }
-  return min;
+  return gcnew Tuple<double, double>(min, max);
 }
 
-void MdfChannel::ExtLimitMin::set(double min) {
+void MdfChannel::ExtLimit::set(Tuple<double,double>^ ext_limit) {
   if (channel_ != nullptr) {
-    const auto optional = channel_->ExtLimit();
-    double max = 0;
-    if (optional.has_value()) {
-      max = optional.value().second;
-    }
-    channel_->ExtLimit(min,max);
+    channel_->ExtLimit(ext_limit->Item1, ext_limit->Item2);
   }
 }
 
-double MdfChannel::ExtLimitMax::get() {
-  double max = 0;
-  if (channel_ != nullptr) {
-    const auto optional = channel_->ExtLimit();
-    if (optional.has_value()) {
-      max = optional.value().first;
-    }
-  }
-  return max;  
-}
-
-void MdfChannel::ExtLimitMax::set(double max) {
-  if (channel_ != nullptr) {
-    const auto optional = channel_->ExtLimit();
-    double min = 0;
-    if (optional.has_value()) {
-      min = optional.value().second;
-    }
-    channel_->ExtLimit(min,max);
-  }
-}
 
 double MdfChannel::SamplingRate::get() {
   return channel_ != nullptr ? channel_->SamplingRate() : 0;
@@ -297,6 +220,36 @@ MdfChannelConversion^ MdfChannel::ChannelConversion::get() {
   return conversion != nullptr ?
     gcnew MdfChannelConversion(const_cast<mdf::IChannelConversion*>(conversion))
     : nullptr;
+}
+
+MdfChannelConversion^ MdfChannel::CreateMdfChannelConversion() {
+  auto* temp = channel_ != nullptr ? channel_->CreateChannelConversion() : nullptr;
+  return gcnew MdfChannelConversion(temp);
+}
+
+void MdfChannel::SetChannelValue(const int64_t value, bool valid) {
+  channel_->SetChannelValue(value, valid);
+}
+
+void MdfChannel::SetChannelValue(const uint64_t value, bool valid) {
+  channel_->SetChannelValue(value, valid);
+}
+
+void MdfChannel::SetChannelValue(const double value, bool valid) {
+  channel_->SetChannelValue(value, valid);
+}
+
+void MdfChannel::SetChannelValue(String ^ value, bool valid) {
+  const auto temp = String::IsNullOrEmpty(value)
+                        ? std::string()
+                        : marshal_as<std::string>(value);
+  channel_->SetChannelValue(temp, valid);
+}
+
+void MdfChannel::SetChannelValue(array<Byte> ^ value, bool valid) {
+  std::vector<uint8_t> temp(value->Length);
+  for (int i = 0; i < value->Length; ++i) temp[i] = value[i];
+  channel_->SetChannelValue(temp, valid);
 }
 
 MdfChannel::MdfChannel(mdf::IChannel* channel) {

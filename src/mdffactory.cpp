@@ -14,20 +14,27 @@
 using namespace mdf::detail;
 
 namespace mdf {
-
 std::unique_ptr<MdfWriter> MdfFactory::CreateMdfWriter(MdfWriterType type) {
-  std::unique_ptr<MdfWriter> writer;
+  std::unique_ptr<MdfWriter> writer = std::make_unique<Mdf3Writer>();
+  return writer;
+}
+
+std::unique_ptr<MdfFile> MdfFactory::CreateMdfFile(MdfFileType type) {
+  std::unique_ptr<MdfFile> file = std::make_unique<Mdf3File>();
+  return file;
+}
+
+MdfWriter* MdfFactory::CreateMdfWriterEx(MdfWriterType type) {
+  MdfWriter* writer = nullptr;
 
   switch (type) {
     case MdfWriterType::Mdf3Basic: {
-      auto temp = std::make_unique<Mdf3Writer>();
-      writer = std::move(temp);
+      writer = new Mdf3Writer();
       break;
     }
 
     case MdfWriterType::Mdf4Basic: {
-      auto temp = std::make_unique<Mdf4Writer>();
-      writer = std::move(temp);
+      writer = new Mdf4Writer();
       break;
     }
 
@@ -37,19 +44,17 @@ std::unique_ptr<MdfWriter> MdfFactory::CreateMdfWriter(MdfWriterType type) {
   return writer;
 }
 
-std::unique_ptr<MdfFile> MdfFactory::CreateMdfFile(MdfFileType type) {
-  std::unique_ptr<MdfFile> file;
+MdfFile* MdfFactory::CreateMdfFileEx(MdfFileType type) {
+  MdfFile* file = nullptr;
 
   switch (type) {
     case MdfFileType::Mdf3FileType: {
-      auto temp = std::make_unique<Mdf3File>();
-      file = std::move(temp);
+      file = new Mdf3File();
       break;
     }
 
     case MdfFileType::Mdf4FileType: {
-      auto temp = std::make_unique<Mdf4File>();
-      file = std::move(temp);
+      file = new Mdf4File();
       break;
     }
 

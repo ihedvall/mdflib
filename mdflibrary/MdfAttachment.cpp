@@ -61,14 +61,14 @@ String^ MdfAttachment::Md5::get() {
     attachment_->Md5().value()) : gcnew String("");
 }
 
-String^ MdfAttachment::Filename::get() {
+String^ MdfAttachment::FileName::get() {
   return attachment_ != nullptr ? MdfLibrary::Utf8Conversion(
     attachment_->FileName()) : gcnew String("");
 }
 
-void MdfAttachment::Filename::set(String^ filename) {
-  const auto temp = String::IsNullOrEmpty(filename) ?
-    std::string() : marshal_as<std::string>(filename);
+void MdfAttachment::FileName::set(String ^ name) {
+  const auto temp = String::IsNullOrEmpty(name) ?
+    std::string() : marshal_as<std::string>(name);
   if (attachment_ != nullptr) {
     attachment_->FileName(temp);
   }
@@ -83,7 +83,7 @@ void MdfAttachment::FileType::set(String^ type) {
   const auto temp = String::IsNullOrEmpty(type) ?
     std::string() : marshal_as<std::string>(type);
   if (attachment_ != nullptr) {
-    attachment_->FileName(temp);
+    attachment_->FileType(temp);
   }
 }
 

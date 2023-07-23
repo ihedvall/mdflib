@@ -14,8 +14,17 @@
 using namespace mdf::detail;
 
 namespace mdf {
+std::unique_ptr<MdfWriter> MdfFactory::CreateMdfWriter(MdfWriterType type) {
+  std::unique_ptr<MdfWriter> writer = std::make_unique<Mdf3Writer>();
+  return writer;
+}
 
-MdfWriter* MdfFactory::CreateMdfWriter(MdfWriterType type) {
+std::unique_ptr<MdfFile> MdfFactory::CreateMdfFile(MdfFileType type) {
+  std::unique_ptr<MdfFile> file = std::make_unique<Mdf3File>();
+  return file;
+}
+
+MdfWriter* MdfFactory::CreateMdfWriterEx(MdfWriterType type) {
   MdfWriter* writer = nullptr;
 
   switch (type) {
@@ -35,7 +44,7 @@ MdfWriter* MdfFactory::CreateMdfWriter(MdfWriterType type) {
   return writer;
 }
 
-MdfFile* MdfFactory::CreateMdfFile(MdfFileType type) {
+MdfFile* MdfFactory::CreateMdfFileEx(MdfFileType type) {
   MdfFile* file = nullptr;
 
   switch (type) {

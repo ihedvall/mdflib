@@ -16,7 +16,7 @@ namespace MdfLibrary {
 
 MdfWriter::MdfWriter(MdfWriterType writer_type) {
   writer_ =
-      mdf::MdfFactory::CreateMdfWriter(static_cast<mdf::MdfWriterType>(writer_type));
+      mdf::MdfFactory::CreateMdfWriterEx(static_cast<mdf::MdfWriterType>(writer_type));
 }
 
 MdfWriter::~MdfWriter() { this->!MdfWriter(); }
@@ -65,12 +65,6 @@ MdfDataGroup^ MdfWriter::CreateDataGroup() {
   auto* data_group = writer_->CreateDataGroup();
   return data_group != nullptr ? gcnew MdfDataGroup(data_group) : nullptr;
 }
-
-//  bool InitMeasurement();
-//void SaveSample(MdfChannelGroup ^ group, uint64_t time);
-//void StartMeasurement(uint64_t start_time);
-//void StopMeasurement(uint64_t stop_time);
-//bool FinalizeMeasurement();
 
 bool MdfWriter::InitMeasurement() {
     if (writer_ != nullptr) {

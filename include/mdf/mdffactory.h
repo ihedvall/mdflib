@@ -47,9 +47,14 @@ class MdfFile;
 class MdfFactory {
  public:
   /** \brief Creates an MDF writer object. */
-  static MdfWriter* CreateMdfWriter(MdfWriterType type);
+  static std::unique_ptr<MdfWriter> CreateMdfWriter(MdfWriterType type);
   /** \brief Create an MDF reader object.*/
-  static MdfFile* CreateMdfFile(MdfFileType type);
+  static std::unique_ptr<MdfFile> CreateMdfFile(MdfFileType type);
+  /** \brief Creates an MDF writer object. */
+  static MdfWriter* CreateMdfWriterEx(MdfWriterType type);
+  /** \brief Create an MDF reader object.*/
+  static MdfFile* CreateMdfFileEx(MdfFileType type);
+
   /** \brief Sets the log function. */
   static void SetLogFunction2(const MdfLogFunction2& func);
 };

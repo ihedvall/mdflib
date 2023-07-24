@@ -66,7 +66,7 @@ String^ MdfAttachment::FileName::get() {
     attachment_->FileName()) : gcnew String("");
 }
 
-void MdfAttachment::FileName::set(String ^ name) {
+void MdfAttachment::FileName::set(String^ name) {
   const auto temp = String::IsNullOrEmpty(name) ?
     std::string() : marshal_as<std::string>(name);
   if (attachment_ != nullptr) {

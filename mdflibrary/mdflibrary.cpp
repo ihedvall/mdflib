@@ -112,7 +112,7 @@ array<MdfChannelObserver^>^ MdfLibrary::CreateChannelObserverForChannelGroup(
 }
 
 String^ MdfLibrary::Utf8Conversion(const std::string& utf8_string) {
-  array<byte> ^ c_array = gcnew array<byte>(utf8_string.length());
+  array<byte>^ c_array = gcnew array<byte>(utf8_string.length());
   for (int i = 0; i < utf8_string.length(); i++) c_array[i] = utf8_string[i];
 
   System::Text::Encoding^ u8enc = System::Text::Encoding::UTF8;

@@ -73,7 +73,7 @@ bool MdfWriter::InitMeasurement() {
 	return false;
 }
 
-void MdfWriter::SaveSample(MdfChannelGroup ^ group, uint64_t time) {
+void MdfWriter::SaveSample(MdfChannelGroup^ group, uint64_t time) {
         if (writer_ != nullptr) {
                 writer_->SaveSample(*(group->group_), time);
         }

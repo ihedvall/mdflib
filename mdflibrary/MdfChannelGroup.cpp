@@ -109,17 +109,17 @@ MdfChannel^ MdfChannelGroup::GetXChannel(const MdfChannel^ ref_channel) {
   return temp != nullptr ? gcnew MdfChannel(temp) : nullptr;
 }
 
-MdfChannel ^ MdfChannelGroup::CreateChannel() {
+MdfChannel^ MdfChannelGroup::CreateChannel() {
   auto* temp = group_ != nullptr ? group_->CreateChannel() : nullptr;
   return gcnew MdfChannel(temp);
 }
 
-MdfMetaData ^ MdfChannelGroup::CreateMetaData() {
+MdfMetaData^ MdfChannelGroup::CreateMetaData() {
   auto* temp = group_ != nullptr ? group_->CreateMetaData() : nullptr;
   return gcnew MdfMetaData(temp);
 }
 
-MdfSourceInformation ^ MdfChannelGroup::CreateSourceInformation() {
+MdfSourceInformation^ MdfChannelGroup::CreateSourceInformation() {
   auto* temp = group_ != nullptr ? group_->CreateSourceInformation() : nullptr;
   return gcnew MdfSourceInformation(temp);
 }

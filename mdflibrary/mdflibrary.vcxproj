@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClInclude Include="MdfAttachment.h" />
     <ClInclude Include="MdfChannel.h" />
+    <ClInclude Include="MdfChannelArray.h" />
     <ClInclude Include="MdfChannelConversion.h" />
     <ClInclude Include="MdfChannelGroup.h" />
     <ClInclude Include="MdfChannelObserver.h" />
@@ -165,6 +166,7 @@
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="MdfAttachment.cpp" />
     <ClCompile Include="MdfChannel.cpp" />
+    <ClCompile Include="MdfChannelArray.cpp" />
     <ClCompile Include="MdfChannelConversion.cpp" />
     <ClCompile Include="MdfChannelGroup.cpp" />
     <ClCompile Include="MdfChannelObserver.cpp" />

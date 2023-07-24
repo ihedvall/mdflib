@@ -489,15 +489,14 @@ public class MdfLibraryTest
             Console.WriteLine("");
         }
     }
-    [TestMethod]
 
+    [TestMethod]
     public void TestWriter()
     {
-        if (File.Exists(TestFile4))
+        if(File.Exists(TestFile4))
         {
             File.Delete(TestFile4);
         }
-
         var Writer = new MdfWriter(MdfWriterType.Mdf4Basic);
         Writer.Init(TestFile4);
         var Header = Writer.Header;
@@ -515,13 +514,6 @@ public class MdfLibraryTest
         History.ToolVendor = "ACME";
         History.ToolVersion = "2.3";
         History.UserName = "Ducky";
-
-        var Attachment = Header.CreateAttachment();
-        Attachment.CreatorIndex = 0;
-        Attachment.Embedded = true;
-        Attachment.Compressed = false;
-        Attachment.FileName = "test.txt";
-        Attachment.FileType = "text/plain";
 
         var dg = Writer.CreateDataGroup();
         var cg = dg.CreateChannelGroup();
@@ -544,7 +536,7 @@ public class MdfLibraryTest
             cn.DataType = ChannelDataType.FloatLe;
             cn.DataBytes = 4;
             cn.Unit = "s";
-            cn.Range = new Tuple<double, double>(0.0, int.MaxValue);
+            cn.Range = new Tuple<double, double>(0.0, 0.0);
         }
         {
             var cn = cg.CreateChannel();
@@ -625,6 +617,19 @@ public class MdfLibraryTest
             cn.DataType = ChannelDataType.CanOpenTime;
         }
 
+        var Attachment = Header.CreateAttachment();
+        Attachment.CreatorIndex = 0;
+        Attachment.Embedded = true;
+        Attachment.Compressed = false;
+        Attachment.FileName = "test.txt";
+        Attachment.FileType = "text/plain";
+
+        Attachment = Header.CreateAttachment();
+        Attachment.CreatorIndex = 0;
+        Attachment.Embedded = true;
+        Attachment.Compressed = true;
+        Attachment.FileName = "test.txt";
+        Attachment.FileType = "text/plain";
 
         Writer.InitMeasurement();
         Writer.StartMeasurement((ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000));
@@ -642,10 +647,15 @@ public class MdfLibraryTest
             cns[6].SetChannelValue(11.1 * i);
 
             cns[7].SetChannelValue(i.ToString());
-            byte[] temp = new byte[5];
+
+            byte[] temp = new byte[4];
+            temp[0] = (byte)i;
+            temp[1] = (byte)(i + 1);
+            temp[2] = (byte)(i + 2);
+            temp[3] = (byte)(i + 3);
             cns[8].SetChannelValue(temp);
 
-            var ns70 = DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000;
+            ulong ns70 = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds()) * 1000000;
             cns[9].SetChannelValue(ns70);
             cns[10].SetChannelValue(ns70);
 
@@ -654,5 +664,186 @@ public class MdfLibraryTest
         Writer.StopMeasurement((ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000));
         Writer.FinalizeMeasurement();
 
+    }
+
+    [TestMethod]
+    public void TestReader2()
+    {
+        var Reader = new MdfReader(TestFile4);
+        Reader.ReadEverythingButData();
+        var lVersion = Reader.File.MainVersion;
+
+        // Get file time and other infos
+        DateTimeOffset ti = DateTimeOffset.FromUnixTimeMilliseconds((long)Reader.Header.StartTime / 1000000);
+        Console.WriteLine($"FileTime = {ti.ToString("%y-%M-%d %h:%m:%s.%fff")}");
+
+        string str;
+        if (Reader.File.IsMdf4)
+        {
+            str = Reader.Header.Description;
+            Console.WriteLine($"Header comment = {str}");
+            str = "";
+            foreach (var history in Reader.Header.FileHistories)
+            {
+                str += $"{history.Time} {history.UserName} {history.Description} {history.ToolName} {history.ToolVendor} {history.ToolVersion}\n";
+            }
+            Console.WriteLine($"File history : \n{str}");
+        }
+        Console.WriteLine($"Author = {Reader.Header.Author}");
+        Console.WriteLine($"Organisation = {Reader.Header.Department}");
+        Console.WriteLine($"Project = {Reader.Header.Project}");
+        Console.WriteLine($"Subject = {Reader.Header.Subject}");
+
+
+        var groups = Reader.Header.DataGroups;
+        Console.WriteLine("GetNGroups." + groups.Length);
+        foreach (var group in groups)
+        {
+            if (Reader.File.IsMdf4)
+            {
+                /*Console.WriteLine("GetGroupName." + group.MetaData.);*/
+
+            }
+            // Comment from data group:
+            Console.WriteLine("Comment = ", group.Description);
+
+            Console.WriteLine("GetNChannels." + group.ChannelGroups.Length);
+            foreach (var channels in group.ChannelGroups)
+            {
+                // Comments from channel group:
+                str = channels.Name;
+                Console.WriteLine("  CG name = " + str);
+                str = channels.Description;
+                Console.WriteLine("  CG comment = " + str);
+
+                // Comments from channel groups SI block :
+                if (channels.SourceInformation != null)
+                {
+                    str = channels.SourceInformation.Name;
+                    Console.WriteLine("  CG SI name = " + str);
+                    str = channels.SourceInformation.Path;
+                    Console.WriteLine("  CG SI path = " + str);
+                    str = channels.SourceInformation.Description;
+                    Console.WriteLine("  CG SI description = " + str);
+                }
+
+                Console.WriteLine("GetNSignals." + channels.Channels.Length);
+                Console.WriteLine("NofSamples" + channels.NofSamples);
+
+                var subscriber_list = new MdfChannelObserver[channels.Channels.Length];
+                ulong i = 0;
+                foreach (var channel in channels.Channels)
+                {
+                    Console.WriteLine($" string pszDisplayName={channel.DisplayName};string pszAliasName = {channel.Name};string pszUnit ={channel.Unit};string pszComment = ");
+                    var sub = MdfLibrary.CreateChannelObserver(group, channels, channel);
+                    subscriber_list[i++] = sub;
+                }
+
+                Reader.ReadData(group);
+                for (i = 0; i < channels.NofSamples; ++i)
+                {
+                    Console.WriteLine($"Sample {i}");
+                    foreach (var item in subscriber_list)
+                    {
+                        switch (item.Channel.DataType)
+                        {
+                            case ChannelDataType.CanOpenDate:
+                            case ChannelDataType.CanOpenTime:
+                                {
+                                    ulong channel_value = 0; // Channel value (no scaling)
+                                    ulong eng_value = 0; // Engineering value
+                                    item.GetChannelValueAsUnsigned(i, ref channel_value);
+                                    item.GetEngValueAsUnsigned(i, ref eng_value);
+
+                                    DateTimeOffset time = DateTimeOffset.FromUnixTimeMilliseconds((long)channel_value / 1000000);
+                                    Console.WriteLine($"channel_value = {time.ToString("%y-%M-%d %h:%m:%s.%fff")}");
+
+                                    time = DateTimeOffset.FromUnixTimeMilliseconds((long)eng_value / 1000000);
+                                    Console.WriteLine($"eng_value = {time.ToString("%y-%M-%d %h:%m:%s.%fff")}");
+                                    break;
+                                }
+                            case ChannelDataType.UnsignedIntegerLe:
+                            case ChannelDataType.UnsignedIntegerBe:
+                                {
+                                    ulong channel_value = 0; // Channel value (no scaling)
+                                    ulong eng_value = 0; // Engineering value
+                                    item.GetChannelValueAsUnsigned(i, ref channel_value);
+                                    item.GetEngValueAsUnsigned(i, ref eng_value);
+                                    Console.WriteLine($"channel_value = {channel_value}, eng_value= {eng_value}");
+                                    break;
+                                }
+                            case ChannelDataType.SignedIntegerLe:
+                            case ChannelDataType.SignedIntegerBe:
+                                {
+                                    long channel_value = 0; // Channel value (no scaling)
+                                    long eng_value = 0; // Engineering value
+                                    item.GetChannelValueAsSigned(i, ref channel_value);
+                                    item.GetEngValueAsSigned(i, ref eng_value);
+                                    Console.WriteLine($"channel_value = {channel_value}, eng_value= {eng_value}");
+                                    break;
+                                }
+                            case ChannelDataType.FloatLe:
+                            case ChannelDataType.FloatBe:
+                                {
+                                    double channel_value = 0; // Channel value (no scaling)
+                                    double eng_value = 0; // Engineering value
+                                    item.GetChannelValueAsFloat(i, ref channel_value);
+                                    item.GetEngValueAsFloat(i, ref eng_value);
+                                    Console.WriteLine($"channel_value = {channel_value}, eng_value= {eng_value}");
+                                    break;
+                                }
+                            case ChannelDataType.StringAscii:
+                            case ChannelDataType.StringUTF8:
+                            case ChannelDataType.StringUTF16Le:
+                            case ChannelDataType.StringUTF16Be:
+                                {
+                                    string channel_value = ""; // Channel value (no scaling)
+                                    string eng_value = ""; // Engineering value
+                                    item.GetChannelValueAsString(i, ref channel_value);
+                                    item.GetEngValueAsString(i, ref eng_value);
+                                    Console.WriteLine($"channel_value = {channel_value}, eng_value= {eng_value}");
+                                    break;
+                                }
+                            case ChannelDataType.MimeStream:
+                            case ChannelDataType.MimeSample:
+                            case ChannelDataType.ByteArray:
+                                {
+                                    var channel_value = new byte[4]; // Channel value (no scaling)
+                                    var eng_value = new byte[4]; // Engineering value
+                                    item.GetChannelValueAsArray(i, ref channel_value);
+                                    item.GetEngValueAsArray(i, ref eng_value);
+                                    Console.WriteLine($"channel_value = {channel_value[0]} {channel_value[1]} {channel_value[2]} {channel_value[3]}, eng_value= {eng_value[0]} {eng_value[1]} {eng_value[2]} {eng_value[3]}");
+                                    break;
+                                }
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            /* 
+                        // SR Blocks
+                        int isr, nsr = Reader.GetNoOfSRBlocks();
+                        Console.WriteLine($"    {nsr} SR Blocks\n");
+                        for (isr = 0; isr < nsr; isr++)
+                        {
+                            double dt = Reader.GetSRdt(isr);
+                            int lValues = Reader.GetSRCycleCount(isr);
+                            Console.WriteLine($"      SR Block {isr + 1}        N = {lValues}, dt = {dt}");
+                            if (lValues > 10)
+                                lValues = 10;
+                            lValues = Reader.CacheSRData(isr, true, 0, lValues - 1);
+                            lValues = Reader.CacheSRData(isr, false, 0, lValues - 1);
+                            double Min1 = 0, Max1 = 0, Mean1 = 0;
+                            double Min2 = 0, Max2 = 0, Mean2 = 0;
+                            for (int iv = 0; iv < lValues; iv++)
+                            {
+                                Reader.GetCachedSRValues(true, iv, ref Min1, ref Max1, ref Mean1);
+                                Reader.GetCachedSRValues(false, iv, ref Min2, ref Max2, ref Mean2);
+                                Console.WriteLine($"        {Min1} | {Max1} | {Mean1} || {Min2} | {Max2} | {Mean2}");
+                            }
+                        }
+                    }*/
+        }
     }
 }

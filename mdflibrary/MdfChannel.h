@@ -6,6 +6,7 @@
 #pragma once
 #include <mdf/ichannel.h>
 #include "MdfChannelConversion.h"
+#include "MdfChannelArray.h"
 
 using namespace System;
 namespace MdfLibrary {
@@ -113,10 +114,14 @@ public:
 
   property double SamplingRate { double get(); void set(double rate); }
 
+  property MdfSourceInformation^ SourceInformation {
+    MdfSourceInformation^ get();
+  }
   property MdfChannelConversion^ ChannelConversion {
-      MdfChannelConversion^ get(); 
+      MdfChannelConversion^ get();
   }
 
+  MdfSourceInformation^ CreateSourceInformation(); 
   MdfChannelConversion^ CreateMdfChannelConversion();
 
   void SetChannelValue(const int64_t value) { SetChannelValue(value, true); };

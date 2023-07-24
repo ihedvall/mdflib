@@ -227,6 +227,14 @@ void MdfChannel::SamplingRate::set(double rate) {
   }
 }
 
+MdfSourceInformation^ MdfChannel::SourceInformation::get() {
+  auto* temp =
+      channel_ != nullptr
+          ? const_cast<mdf::ISourceInformation*>(channel_->SourceInformation())
+          : nullptr;
+  return temp != nullptr ? gcnew MdfSourceInformation(temp) : nullptr;
+}
+
 MdfChannelConversion^ MdfChannel::ChannelConversion::get() {
   const auto* conversion =
       channel_ != nullptr ? channel_->ChannelConversion() : nullptr;
@@ -234,6 +242,11 @@ MdfChannelConversion^ MdfChannel::ChannelConversion::get() {
              ? gcnew MdfChannelConversion(
                    const_cast<mdf::IChannelConversion*>(conversion))
              : nullptr;
+}
+
+MdfSourceInformation^ MdfChannel::CreateSourceInformation() {
+  auto* temp=channel_ != nullptr ? channel_->CreateSourceInformation() : nullptr;
+  return temp != nullptr ? gcnew MdfSourceInformation(temp) : nullptr;
 }
 
 MdfChannelConversion^ MdfChannel::CreateMdfChannelConversion() {

@@ -50,9 +50,11 @@ public:
   property bool PrecisionUsed{ bool get(); }
   property Byte Precision { Byte get(); void set(Byte precision); }
   
-  property bool RangeUsed{ bool get(); }
-  property double RangeMin { double get(); void set(double min); }
-  property double RangeMax { double get(); void set(double max); }  
+  property bool RangeUsed { bool get(); }
+  property Tuple<double, double>^ Range {
+    Tuple<double, double>^ get();
+    void set(Tuple<double, double>^);
+  };
 
   property UInt16 Flags { UInt16 get(); void set(UInt16 flags); }
   property MdfChannelConversion^ Inverse { MdfChannelConversion^ get(); }

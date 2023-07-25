@@ -660,8 +660,8 @@ bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
 }
 
 void Cn4Block::SetTextValue(const std::string &value, bool valid) {
-  SetValid(valid);
   if (Type() == ChannelType::VariableLength) {
+    SetValid(valid);
     // String stored in signal data. Index should be stored in the record
     // and the string in a temporary data block (data_list_). This block is
     // later stored into an SD/DZ block.

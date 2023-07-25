@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #include "MdfChannelArray.h"
 
 namespace MdfLibrary {
@@ -36,4 +40,6 @@ void MdfChannelArray::Flags::set(CaFlag flags) {
           array_->Flags(static_cast<uint32_t>(flags));
         }
   }
+MdfChannelArray::MdfChannelArray(mdf::IChannelArray* array) { array_ = array; }
+
 }  // namespace MdfLibrary

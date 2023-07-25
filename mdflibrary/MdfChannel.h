@@ -7,6 +7,7 @@
 #include <mdf/ichannel.h>
 #include "MdfChannelConversion.h"
 #include "MdfChannelArray.h"
+#include "MdfSourceInformation.h"
 
 using namespace System;
 namespace MdfLibrary {

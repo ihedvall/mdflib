@@ -9,7 +9,6 @@
 #include "mdflibrary.h"
 
 using namespace msclr::interop;
-using namespace System;
 
 namespace MdfLibrary {
 

@@ -169,7 +169,7 @@ void MdfETag::ValueAsUnsigned::set(uint64_t value) {
   }
 }
 
-void MdfETag::!MdfETag() {
+MdfETag::!MdfETag() {
   delete tag_;
   tag_ = nullptr;
 }

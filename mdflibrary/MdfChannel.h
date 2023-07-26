@@ -6,6 +6,8 @@
 #pragma once
 #include <mdf/ichannel.h>
 #include "MdfChannelConversion.h"
+#include "MdfChannelArray.h"
+#include "MdfSourceInformation.h"
 
 using namespace System;
 namespace MdfLibrary {
@@ -48,24 +50,27 @@ public enum class ChannelDataType : uint8_t {
   ComplexBE = 16
 };
 
+public enum class CnFlag : uint32_t {
+    None = 0b0000'0000,
+    AllValuesInvalid = 0b0000'0001,
+    InvalidValid = 0b0000'0010,
+    PrecisionValid = 0b0000'0100,
+    RangeValid = 0b0000'1000,
+    LimitValid = 0b0001'0000,
+    ExtendedLimitValid = 0b0010'0000,
+    Discrete = 0b0100'0000,
+    Calibration = 0b1000'0000,
+    Calculated = 0b0000'0001'0000'0000,
+    Virtual = 0b0000'0010'0000'0000,
+    BusEvent = 0b0000'0100'0000'0000,
+    StrictlyMonotonous = 0b0000'1000'0000'0000,
+    DefaultX = 0b0001'0000'0000'0000,
+    EventSignal = 0b0010'0000'0000'0000,
+    VlsdDataStream = 0b0100'0000'0000'0000
+ };
+
 public ref class MdfChannel {
 public:
-  literal uint32_t AllValuesInvalid = 0x0001;
-  literal uint32_t InvalidValid = 0x0002;
-  literal uint32_t PrecisionValid = 0x0004;
-  literal uint32_t RangeValid = 0x0008;
-  literal uint32_t LimitValid = 0x0010;
-  literal uint32_t ExtendedLimitValid = 0x0020;
-  literal uint32_t Discrete = 0x0040;
-  literal uint32_t Calibration = 0x0080;
-  literal uint32_t Calculated = 0x0100;
-  literal uint32_t Virtual = 0x0200;
-  literal uint32_t BusEvent = 0x0400;
-  literal uint32_t StrictlyMonotonous = 0x0800;
-  literal uint32_t DefaultX = 0x1000;
-  literal uint32_t EventSignal = 0x2000;
-  literal uint32_t VlsdDataStream = 0x4000;
-  
   property int64_t Index { int64_t get(); }
   property String^ Name { String^ get(); void set(String^ name); }
   property String^ DisplayName { String^ get(); void set(String^ name); }
@@ -83,6 +88,7 @@ public:
     ChannelDataType get();
     void set(ChannelDataType type);
   }
+  property CnFlag Flags { CnFlag get(); void set(CnFlag flags); }
 
   property size_t DataBytes { size_t get(); void set(size_t bytes); };  
 
@@ -109,23 +115,27 @@ public:
 
   property double SamplingRate { double get(); void set(double rate); }
 
+  property MdfSourceInformation^ SourceInformation {
+    MdfSourceInformation^ get();
+  }
   property MdfChannelConversion^ ChannelConversion {
-      MdfChannelConversion^ get(); 
+      MdfChannelConversion^ get();
   }
 
+  MdfSourceInformation^ CreateSourceInformation(); 
   MdfChannelConversion^ CreateMdfChannelConversion();
 
   void SetChannelValue(const int64_t value) { SetChannelValue(value, true); };
   void SetChannelValue(const uint64_t value) { SetChannelValue(value, true); };
   void SetChannelValue(const double value) { SetChannelValue(value, true); };
-  void SetChannelValue(String ^ value) { SetChannelValue(value, true); };
-  void SetChannelValue(array<Byte> ^ value) { SetChannelValue(value, true); };
+  void SetChannelValue(String^ value) { SetChannelValue(value, true); };
+  void SetChannelValue(array<Byte>^ value) { SetChannelValue(value, true); };
 
   void SetChannelValue(const int64_t value, bool valid);
   void SetChannelValue(const uint64_t value, bool valid);
   void SetChannelValue(const double value, bool valid);
-  void SetChannelValue(String ^ value, bool valid);
-  void SetChannelValue(array<Byte> ^ value, bool valid);
+  void SetChannelValue(String^ value, bool valid);
+  void SetChannelValue(array<Byte>^ value, bool valid);
 
  private:
   MdfChannel() {}

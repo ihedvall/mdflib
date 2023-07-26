@@ -41,9 +41,10 @@ public:
   property bool IsStartAngleUsed { bool get(); }
   property bool IsStartDistanceUsed { bool get(); }
   property MdfDataGroup^ LastDataGroup { MdfDataGroup^ get(); }  
+
   MdfAttachment^ CreateAttachment();
   MdfFileHistory^ CreateFileHistory();
-  MdfEvent^ CreateMdfEvent();
+  MdfEvent^ CreateEvent();
   MdfDataGroup^ CreateDataGroup();
   
 private:

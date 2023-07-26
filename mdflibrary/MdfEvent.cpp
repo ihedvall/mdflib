@@ -40,13 +40,14 @@ void MdfEvent::Description::set(String^ desc) {
   }    
 }
 
-String^ MdfEvent::Group::get() {
+String ^ MdfEvent::GroupName::get() {
   return event_ != nullptr ? MdfLibrary::Utf8Conversion(event_->GroupName()) : gcnew String("");
 }
 
-void MdfEvent::Group::set(String^ group) {
-  const auto temp = String::IsNullOrEmpty(group) ?
-    std::string() : marshal_as<std::string>(group);
+void MdfEvent::GroupName::set(String ^ group_name) {
+  const auto temp = String::IsNullOrEmpty(group_name)
+                        ? std::string()
+                        : marshal_as<std::string>(group_name);
   if (event_ != nullptr) {
     event_->GroupName(temp);
   }    

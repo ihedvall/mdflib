@@ -12,9 +12,6 @@
 using namespace System;
 
 namespace MdfLibrary {
-
-
-
 public ref class MdfFile {
 public:
 

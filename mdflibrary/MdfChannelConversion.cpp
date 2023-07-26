@@ -91,47 +91,21 @@ bool MdfChannelConversion::RangeUsed::get() {
   return used;
 }
 
-double MdfChannelConversion::RangeMin::get() {
-  double min = 0;
+Tuple<double, double>^ MdfChannelConversion::Range::get() {
+  double min = 0, max = 0;
   if (conversion_ != nullptr) {
-      const auto optional = conversion_->Range();
+    const auto optional = conversion_->Range();
     if (optional.has_value()) {
       min = optional.value().first;
-    }
-  }
-  return min;
-}
-
-void MdfChannelConversion::RangeMin::set(double min) {
-  if (conversion_ != nullptr) {
-    const auto optional = conversion_->Range();
-    double max = 0;
-    if (optional.has_value()) {
       max = optional.value().second;
     }
-    conversion_->Range(min,max);
   }
+  return gcnew Tuple<double, double>(min, max);
 }
 
-double MdfChannelConversion::RangeMax::get() {
-  double max = 0;
+void MdfChannelConversion::Range::set(Tuple<double, double> ^ range) {
   if (conversion_ != nullptr) {
-    const auto optional = conversion_->Range();
-    if (optional.has_value()) {
-      max = optional.value().first;
-    }
-  }
-  return max;  
-}
-
-void MdfChannelConversion::RangeMax::set(double max) {
-  if (conversion_ != nullptr) {
-    const auto optional = conversion_->Range();
-    double min = 0;
-    if (optional.has_value()) {
-      min = optional.value().second;
-    }
-    conversion_->Range(min,max);
+    conversion_->Range(range->Item1, range->Item2);
   }
 }
 

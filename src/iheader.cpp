@@ -39,6 +39,7 @@ IFileHistory *IHeader::CreateFileHistory() { return nullptr; }
 
 std::vector<IFileHistory *> IHeader::FileHistories() const { return {}; }
 
+#undef CreateEvent
 IEvent *IHeader::CreateEvent() { return nullptr; }
 
 std::vector<IEvent *> IHeader::Events() const { return {}; }

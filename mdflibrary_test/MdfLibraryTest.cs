@@ -212,7 +212,7 @@ public class MdfLibraryTest
 
         Assert.IsNotNull(header.CreateAttachment());
         Assert.IsNotNull(header.CreateFileHistory());
-        Assert.IsNotNull(header.CreateMdfEvent());
+        Assert.IsNotNull(header.CreateEvent());
         Assert.IsNotNull(header.CreateDataGroup());
     }
 
@@ -424,8 +424,8 @@ public class MdfLibraryTest
         Console.WriteLine("Precision Used: {0}", conv.PrecisionUsed);
         Console.WriteLine("Precision: {0}", conv.Precision);
         Console.WriteLine("Range Used: {0}", conv.RangeUsed);
-        Console.WriteLine("Range Min: {0}", conv.RangeMin);
-        Console.WriteLine("Range Max: {0}", conv.RangeMax);
+        Console.WriteLine("Range Min: {0}", conv.Range.Item1);
+        Console.WriteLine("Range Max: {0}", conv.Range.Item2);
         Console.WriteLine("Flags: {0:X}", conv.Flags);
         Assert.IsNull(conv.Inverse);
         Assert.IsNotNull(conv.CreateInverse());
@@ -515,6 +515,10 @@ public class MdfLibraryTest
         History.ToolVersion = "2.3";
         History.UserName = "Ducky";
 
+        var Event = Header.CreateEvent();
+        Event.GroupName = "Olle";
+        Event.Description = "Olle Event";
+
         var dg = Writer.CreateDataGroup();
         var cg = dg.CreateChannelGroup();
         cg.Name = "Test";
@@ -591,7 +595,7 @@ public class MdfLibraryTest
             cn.Name = "String";
             cn.Description = "string";
             cn.Type = ChannelType.FixedLength;
-            cn.DataType = ChannelDataType.StringAscii;
+            cn.DataType = ChannelDataType.StringUTF8;
             cn.DataBytes = 10;
         }
         {
@@ -688,6 +692,12 @@ public class MdfLibraryTest
                 str += $"{history.Time} {history.UserName} {history.Description} {history.ToolName} {history.ToolVendor} {history.ToolVersion}\n";
             }
             Console.WriteLine($"File history : \n{str}");
+            str = "";
+            foreach (var Event in Reader.Header.Events)
+            {
+                str+=$"{Event.Name} {Event.Description} {Event.GroupName} {Event.SyncFactor}\n";
+            }
+            Console.WriteLine($"Events : \n{str}");
         }
         Console.WriteLine($"Author = {Reader.Header.Author}");
         Console.WriteLine($"Organisation = {Reader.Header.Department}");

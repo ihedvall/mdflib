@@ -47,7 +47,7 @@ public:
   property int64_t Index { int64_t get(); }
   property String^ Name { String^ get(); void set(String^ name); }
   property String^ Description { String^ get(); void set(String^ desc); }
-  property String^ Group { String^ get(); void set(String^ group); }
+  property String^ GroupName { String^ get(); void set(String^ group); }
   property EventType Type { EventType get(); void set(EventType type); }
   property SyncType Sync { SyncType get(); void set(SyncType type); }
   property RangeType Range { RangeType get(); void set(RangeType type); }

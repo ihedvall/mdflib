@@ -207,7 +207,8 @@ MdfFileHistory^ MdfHeader::CreateFileHistory() {
   return gcnew MdfFileHistory(temp);  
 }
 
-MdfEvent^ MdfHeader::CreateMdfEvent() {
+#undef CreateEvent
+MdfEvent ^ MdfHeader::CreateEvent() {
   auto* temp = header_ != nullptr ?
     header_->CreateEvent() : nullptr;
   return gcnew MdfEvent(temp);    

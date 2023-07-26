@@ -206,6 +206,7 @@ class IHeader : public IBlock {
    */
   [[nodiscard]] virtual std::vector<IFileHistory*> FileHistories() const;
 
+#undef CreateEvent
   /** \brief Creates a new event block.
    *
    * Creates a new event (EV) block.

@@ -147,7 +147,7 @@ bool MdfChannelObserver::GetEngValueAsArray(size_t sample,
   return valid;
 }
 
-void MdfChannelObserver::!MdfChannelObserver() {
+MdfChannelObserver::!MdfChannelObserver() {
   delete observer_;
   observer_ = nullptr;
 }

@@ -550,8 +550,8 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::StringAscii: {
       // Convert ASCII to UTF8
       std::ostringstream s;
-      for (size_t ii = offset; ii < temp.size(); ++ii) {
-        char in = static_cast<char>(temp[ii]);
+      for (unsigned char ii : temp) {
+        char in = static_cast<char>(ii);
         if (in == '\0') {
           break;
         }
@@ -569,8 +569,8 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::StringUTF8: {
       // No conversion needed
       std::ostringstream s;
-      for (size_t ii = offset; ii < temp.size(); ++ii) {
-        char in = static_cast<char>(temp[ii]);
+      for (unsigned char ii : temp) {
+        char in = static_cast<char>(ii);
         if (in == '\0') {
           break;
         }
@@ -582,7 +582,7 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
 
     case ChannelDataType::StringUTF16Le: {
       std::wostringstream s;
-      for (size_t ii = offset; (ii + 2) <= temp.size(); ii += 2) {
+      for (size_t ii = 0; (ii + 2) <= temp.size(); ii += 2) {
         auto *d = temp.data() + ii;
 
         const LittleBuffer<uint16_t> data(temp, ii);
@@ -602,7 +602,7 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
 
     case ChannelDataType::StringUTF16Be: {
       std::wostringstream s;
-      for (size_t ii = offset; (ii + 2) <= temp.size(); ii += 2) {
+      for (size_t ii = 0; (ii + 2) <= temp.size(); ii += 2) {
         const BigBuffer<uint16_t> data(temp, ii);
         if (data.value() == 0) {
           break;

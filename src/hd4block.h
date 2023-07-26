@@ -111,7 +111,6 @@ class Hd4Block : public MdfBlock, public IHeader {
   void ReadMeasurementInfo(std::FILE *file);
   void ReadEverythingButData(std::FILE *file);
 
-#undef CreateEvent
   [[nodiscard]] IEvent *CreateEvent() override;
   [[nodiscard]] std::vector<IEvent *> Events() const override;
 

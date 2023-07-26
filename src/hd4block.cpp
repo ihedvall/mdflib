@@ -338,7 +338,6 @@ std::vector<IFileHistory*> Hd4Block::FileHistories() const {
   return list;
 }
 
-#undef CreateEvent
 IEvent* Hd4Block::CreateEvent() {
   auto ev4 = std::make_unique<Ev4Block>();
   ev4->Init(*this);

@@ -30,10 +30,8 @@ String^ MdfChannelGroup::Name::get() {
 }
 
 void MdfChannelGroup::Name::set(String^ name) {
-  const auto temp = String::IsNullOrEmpty(name) ?
-  std::string() : marshal_as<std::string>(name);
   if (group_ != nullptr) {
-    group_->Name(temp);
+    group_->Name(MdfLibrary::Utf8Conversion(name));
   }    
 }
 
@@ -42,10 +40,8 @@ String^ MdfChannelGroup::Description::get() {
 }
 
 void MdfChannelGroup::Description::set(String^ desc) {
-  const auto temp = String::IsNullOrEmpty(desc) ?
-  std::string() : marshal_as<std::string>(desc);
   if (group_ != nullptr) {
-    group_->Description(temp);
+    group_->Description(MdfLibrary::Utf8Conversion(desc));
   }    
 }
 

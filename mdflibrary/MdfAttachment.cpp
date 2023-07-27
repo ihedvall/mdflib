@@ -20,11 +20,11 @@ Int64 MdfAttachment::Index::get() {
   return attachment_ != nullptr ? attachment_->Index() : 0;
 }
 
-unsigned short MdfAttachment::CreatorIndex::get() {
+UInt16 MdfAttachment::CreatorIndex::get() {
   return attachment_ != nullptr ? attachment_->CreatorIndex() : 0;
 }
 
-void MdfAttachment::CreatorIndex::set(unsigned short index) {
+void MdfAttachment::CreatorIndex::set(UInt16 index) {
   if (attachment_ != nullptr) {
     attachment_->CreatorIndex(index);
   }
@@ -56,8 +56,8 @@ String^ MdfAttachment::Md5::get() {
   }
 
   return attachment_->Md5().has_value()
-             ? MdfLibrary::Utf8Conversion( 
-    attachment_->Md5().value()) : gcnew String("");
+             ? MdfLibrary::Utf8Conversion(attachment_->Md5().value())
+             : gcnew String("");
 }
 
 String^ MdfAttachment::FileName::get() {
@@ -66,10 +66,8 @@ String^ MdfAttachment::FileName::get() {
 }
 
 void MdfAttachment::FileName::set(String^ name) {
-  const auto temp = String::IsNullOrEmpty(name) ?
-    std::string() : marshal_as<std::string>(name);
   if (attachment_ != nullptr) {
-    attachment_->FileName(temp);
+    attachment_->FileName(MdfLibrary::Utf8Conversion(name));
   }
 }
 
@@ -79,10 +77,8 @@ String^ MdfAttachment::FileType::get() {
 }
 
 void MdfAttachment::FileType::set(String^ type) {
-  const auto temp = String::IsNullOrEmpty(type) ?
-    std::string() : marshal_as<std::string>(type);
   if (attachment_ != nullptr) {
-    attachment_->FileType(temp);
+    attachment_->FileType(MdfLibrary::Utf8Conversion(type));
   }
 }
 

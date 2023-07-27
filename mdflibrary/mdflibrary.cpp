@@ -51,8 +51,7 @@ MdfLibrary^ MdfLibrary::Instance::get() {
 }
 
 bool MdfLibrary::IsMdfFile(String^ filename) {
-  return String::IsNullOrEmpty(filename) ?
-    false : mdf::IsMdfFile(marshal_as<std::string>(filename));
+  return mdf::IsMdfFile(MdfLibrary::Utf8Conversion(filename));
 }
 
 MdfChannelObserver^ MdfLibrary::CreateChannelObserver(MdfDataGroup^ data_group,
@@ -84,7 +83,7 @@ MdfChannelObserver^ MdfLibrary::CreateChannelObserverByChannelName(
     return nullptr;
   }
   auto observer = mdf::CreateChannelObserver(*data_group->group_,
-   marshal_as<std::string>(channel_name));
+   Utf8Conversion(channel_name));
   if (!observer) {
     return nullptr;
   }
@@ -117,6 +116,15 @@ String^ MdfLibrary::Utf8Conversion(const std::string& utf8_string) {
 
   System::Text::Encoding^ u8enc = System::Text::Encoding::UTF8;
   return u8enc->GetString(c_array);
+}
+
+std::string MdfLibrary::Utf8Conversion(String^ string) {
+  array<byte>^ c_array = System::Text::Encoding::UTF8->GetBytes(string);
+
+  std::string utf8_string;
+  utf8_string.resize(c_array->Length);
+  for (int i = 0; i < c_array->Length; i++) utf8_string[i] = c_array[i];
+  return utf8_string;
 }
 
 void MdfLibrary::FireLogEvent(MdfLogSeverity severity, String^ function,

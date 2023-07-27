@@ -29,10 +29,8 @@ String^ MdfETag::Name::get() {
 }
 
 void MdfETag::Name::set(String^ name) {
-  const auto temp = String::IsNullOrEmpty(name) ?
-    std::string() : marshal_as<std::string>(name);
   if (tag_ != nullptr) {
-    tag_->Name(temp);
+    tag_->Name(MdfLibrary::Utf8Conversion(name));
  }   
 }
 
@@ -41,10 +39,8 @@ String^ MdfETag::Description::get() {
 }
 
 void MdfETag::Description::set(String^ desc) {
-  const auto temp = String::IsNullOrEmpty(desc) ?
-    std::string() : marshal_as<std::string>(desc);
   if (tag_ != nullptr) {
-    tag_->Description(temp);
+    tag_->Description(MdfLibrary::Utf8Conversion(desc));
   }    
 }
 
@@ -53,10 +49,8 @@ String^ MdfETag::Unit::get() {
 }
 
 void MdfETag::Unit::set(String^ unit) {
-  const auto temp = String::IsNullOrEmpty(unit) ?
-    std::string() : marshal_as<std::string>(unit);
   if (tag_ != nullptr) {
-    tag_->Unit(temp);
+    tag_->Unit(MdfLibrary::Utf8Conversion(unit));
   }      
 }
 
@@ -65,10 +59,8 @@ String^ MdfETag::UnitRef::get() {
 }
 
 void MdfETag::UnitRef::set(String^ unit) {
-  const auto temp = String::IsNullOrEmpty(unit) ?
-    std::string() : marshal_as<std::string>(unit);
   if (tag_ != nullptr) {
-    tag_->UnitRef(temp);
+    tag_->UnitRef(MdfLibrary::Utf8Conversion(unit));
   }        
 }
 
@@ -77,10 +69,8 @@ String^ MdfETag::Type::get() {
 }
 
 void MdfETag::Type::set(String^ type) {
-  const auto temp = String::IsNullOrEmpty(type) ?
-    std::string() : marshal_as<std::string>(type);
   if (tag_ != nullptr) {
-    tag_->Type(temp);
+    tag_->Type(MdfLibrary::Utf8Conversion(type));
   }    
 }
 
@@ -100,10 +90,8 @@ String^ MdfETag::Language::get() {
 }
 
 void MdfETag::Language::set(String^ language) {
-  const auto temp = String::IsNullOrEmpty(language) ?
-    std::string() : marshal_as<std::string>(language);
   if (tag_ != nullptr) {
-    tag_->Language(temp);
+    tag_->Language(MdfLibrary::Utf8Conversion(language));
   }    
 }
 
@@ -122,10 +110,8 @@ String^ MdfETag::ValueAsString::get() {
 }
 
 void MdfETag::ValueAsString::set(String^ value) {
-  const auto temp = String::IsNullOrEmpty(value) ?
-    std::string() : marshal_as<std::string>(value);
    if (tag_ != nullptr) {
-     tag_->Value(temp);
+    tag_->Value(MdfLibrary::Utf8Conversion(value));
    } 
 }
 

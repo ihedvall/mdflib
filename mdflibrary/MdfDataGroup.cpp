@@ -21,10 +21,8 @@ String^ MdfDataGroup::Description::get() {
 }
 
 void MdfDataGroup::Description::set(String^ desc) {
-  const auto temp = String::IsNullOrEmpty(desc) ?
-    std::string() : marshal_as<std::string>(desc);
   if (group_ != nullptr) {
-    group_->Description(temp);
+    group_->Description(MdfLibrary::Utf8Conversion(desc));
   }    
 }
 

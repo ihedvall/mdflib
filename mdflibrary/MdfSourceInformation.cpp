@@ -21,10 +21,8 @@ String^ MdfSourceInformation::Name::get() {
 }
 
 void MdfSourceInformation::Name::set(String^ name) {
-  const auto temp = String::IsNullOrEmpty(name) ?
-      std::string() : marshal_as<std::string>(name);
   if (info_ != nullptr) {
-    info_->Name(temp);
+    info_->Name(MdfLibrary::Utf8Conversion(name));
   }    
 }
 String^ MdfSourceInformation::Description::get() {
@@ -32,10 +30,8 @@ String^ MdfSourceInformation::Description::get() {
 }
 
 void MdfSourceInformation::Description::set(String^ desc) {
-  const auto temp = String::IsNullOrEmpty(desc) ?
-    std::string() : marshal_as<std::string>(desc);
-  if (info_ != nullptr) {
-    info_->Description(temp);
+if (info_ != nullptr) {
+    info_->Description(MdfLibrary::Utf8Conversion(desc));
   }    
 }
 
@@ -44,10 +40,8 @@ String^ MdfSourceInformation::Path::get() {
 }
 
 void MdfSourceInformation::Path::set(String^ path) {
-  const auto temp = String::IsNullOrEmpty(path) ?
-    std::string() : marshal_as<std::string>(path);
-  if (info_ != nullptr) {
-    info_->Path(temp);
+if (info_ != nullptr) {
+    info_->Path(MdfLibrary::Utf8Conversion(path));
   }    
 }
 

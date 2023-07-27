@@ -21,10 +21,8 @@ String^ MdfEvent::Name::get() {
 }
 
 void MdfEvent::Name::set(String^ name) {
-  const auto temp = String::IsNullOrEmpty(name) ?
-    std::string() : marshal_as<std::string>(name);
   if (event_ != nullptr) {
-    event_->Name(temp);
+    event_->Name(MdfLibrary::Utf8Conversion(name));
   }    
 }
 
@@ -33,10 +31,8 @@ String^ MdfEvent::Description::get() {
 }
 
 void MdfEvent::Description::set(String^ desc) {
-  const auto temp = String::IsNullOrEmpty(desc) ?
-    std::string() : marshal_as<std::string>(desc);
   if (event_ != nullptr) {
-    event_->Description(temp);
+    event_->Description(MdfLibrary::Utf8Conversion(desc));
   }    
 }
 
@@ -45,11 +41,8 @@ String ^ MdfEvent::GroupName::get() {
 }
 
 void MdfEvent::GroupName::set(String ^ group_name) {
-  const auto temp = String::IsNullOrEmpty(group_name)
-                        ? std::string()
-                        : marshal_as<std::string>(group_name);
-  if (event_ != nullptr) {
-    event_->GroupName(temp);
+if (event_ != nullptr) {
+    event_->GroupName(MdfLibrary::Utf8Conversion(group_name));
   }    
 }
 

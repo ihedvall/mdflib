@@ -46,10 +46,8 @@ String^ MdfFile::Name::get() {
 }
 
 void MdfFile::Name::set(String^ name) {
-  const auto temp = String::IsNullOrEmpty(name) ?
-    std::string() : marshal_as<std::string>(name);
   if (mdf_file_ != nullptr) {
-    mdf_file_->Name(temp);
+     mdf_file_->Name(MdfLibrary::Utf8Conversion(name));
   }
 }
 
@@ -59,10 +57,8 @@ String^ MdfFile::Filename::get() {
 }
 
 void MdfFile::Filename::set(String^ filename) {
-  const auto temp = String::IsNullOrEmpty(filename) ?
-    std::string() : marshal_as<std::string>(filename);
   if (mdf_file_ != nullptr) {
-    mdf_file_->FileName(temp);
+     mdf_file_->FileName(MdfLibrary::Utf8Conversion(filename));
   }  
 }
 
@@ -90,10 +86,8 @@ String^ MdfFile::ProgramId::get() {
 }
 
 void MdfFile::ProgramId::set(String^ program_id) {
-  const auto temp = String::IsNullOrEmpty(program_id) ?
-    std::string() : marshal_as<std::string>(program_id);
   if (mdf_file_ != nullptr) {
-    mdf_file_->ProgramId(temp);
+    mdf_file_->ProgramId(MdfLibrary::Utf8Conversion(program_id));
   }  
 }
 

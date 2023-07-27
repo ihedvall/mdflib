@@ -13,37 +13,26 @@ using namespace msclr::interop;
 namespace MdfLibrary {
 
 String^ MdfMetaData::PropertyAsString::get(String^ index) {
-  const auto key = String::IsNullOrEmpty(index) ?
-    std::string() : marshal_as<std::string>(index);
   return meta_data_ != nullptr ? MdfLibrary::Utf8Conversion(
-   meta_data_->StringProperty(key)) : gcnew String("");
+   meta_data_->StringProperty(MdfLibrary::Utf8Conversion(index))) : gcnew String("");
 }
 
 void MdfMetaData::PropertyAsString::set(String^ index, String^ prop) {
-  if (String::IsNullOrEmpty(index)) {
-    return;
-  }
-  const auto key = marshal_as<std::string>(index);
-  const auto value = String::IsNullOrEmpty(prop) ?
-    std::string() : marshal_as<std::string>(prop);
   if (meta_data_ != nullptr) {
-    meta_data_->StringProperty(key, value);
+    meta_data_->StringProperty(MdfLibrary::Utf8Conversion(index),
+                               MdfLibrary::Utf8Conversion(prop));
   }
 }
 
 double MdfMetaData::PropertyAsFloat::get(String^ index) {
-  const auto key = String::IsNullOrEmpty(index) ?
-    std::string() : marshal_as<std::string>(index);
-  return meta_data_ != nullptr ? meta_data_->FloatProperty(key) : 0.0;
+  return meta_data_ != nullptr
+             ? meta_data_->FloatProperty(MdfLibrary::Utf8Conversion(index))
+             : 0.0;
 }
 
 void MdfMetaData::PropertyAsFloat::set(String^ index, double prop) {
-  if (String::IsNullOrEmpty(index)) {
-    return;
-  }
-  const auto key = marshal_as<std::string>(index);
   if (meta_data_ != nullptr) {
-    meta_data_->FloatProperty(key, prop);
+    meta_data_->FloatProperty(MdfLibrary::Utf8Conversion(index), prop);
   }  
 }
 
@@ -92,18 +81,16 @@ String^ MdfMetaData::XmlSnippet::get() {
 }
 
 void MdfMetaData::XmlSnippet::set(String^ xml) {
-  const auto temp = String::IsNullOrEmpty(xml) ?
-    std::string() : marshal_as<std::string>(xml);
-  if (meta_data_ != nullptr) {
-    meta_data_->XmlSnippet(temp);
+if (meta_data_ != nullptr) {
+    meta_data_->XmlSnippet(MdfLibrary::Utf8Conversion(xml));
   }   
 }
 
 MdfETag^ MdfMetaData::GetCommonProperty(String^ name) {
-  const auto key = String::IsNullOrEmpty(name) ?
-    std::string() : marshal_as<std::string>(name);
-  const auto temp = meta_data_ != nullptr ?
-    meta_data_->CommonProperty(key) : mdf::ETag();
+  const auto temp =
+      meta_data_ != nullptr
+          ? meta_data_->CommonProperty(MdfLibrary::Utf8Conversion(name))
+          : mdf::ETag();
   return gcnew MdfETag(temp);
 }
 

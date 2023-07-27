@@ -14,7 +14,7 @@ using namespace msclr::interop;
 namespace MdfLibrary {
 
 MdfReader::MdfReader(String^ filename) {
-   reader_ = new mdf::MdfReader(marshal_as<std::string>(filename)); 
+  reader_ = new mdf::MdfReader(MdfLibrary::Utf8Conversion(filename));
 }
 
 

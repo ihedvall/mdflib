@@ -37,10 +37,8 @@ String^ MdfFileHistory::Description::get() {
 }
 
 void MdfFileHistory::Description::set(String^ desc) {
-  const auto temp = String::IsNullOrEmpty(desc) ?
-    std::string() : marshal_as<std::string>(desc);
   if (history_ != nullptr) {
-    history_->Description(temp);
+    history_->Description(MdfLibrary::Utf8Conversion(desc));
   }    
 }
 
@@ -49,10 +47,8 @@ String^ MdfFileHistory::ToolName::get() {
 }
 
 void MdfFileHistory::ToolName::set(String^ name) {
-  const auto temp = String::IsNullOrEmpty(name) ?
-    std::string() : marshal_as<std::string>(name);
-  if (history_ != nullptr) {
-    history_->ToolName(temp);
+if (history_ != nullptr) {
+    history_->ToolName(MdfLibrary::Utf8Conversion(name));
   }
 }
 
@@ -63,10 +59,8 @@ String^ MdfFileHistory::ToolVendor::get() {
 }
 
 void MdfFileHistory::ToolVendor::set(String^ vendor) {
-  const auto temp = String::IsNullOrEmpty(vendor) ?
-    std::string() : marshal_as<std::string>(vendor);
-  if (history_ != nullptr) {
-    history_->ToolVendor(temp);
+if (history_ != nullptr) {
+    history_->ToolVendor(MdfLibrary::Utf8Conversion(vendor));
   }  
 }
 
@@ -77,10 +71,8 @@ String^ MdfFileHistory::ToolVersion::get() {
 }
 
 void MdfFileHistory::ToolVersion::set(String^ version) {
-  const auto temp = String::IsNullOrEmpty(version) ?
-    std::string() : marshal_as<std::string>(version);
-  if (history_ != nullptr) {
-    history_->ToolVersion(temp);
+if (history_ != nullptr) {
+    history_->ToolVersion(MdfLibrary::Utf8Conversion(version));
   }    
 }
 
@@ -91,10 +83,8 @@ String^ MdfFileHistory::UserName::get() {
 }
 
 void MdfFileHistory::UserName::set(String^ user) {
-  const auto temp = String::IsNullOrEmpty(user) ?
-    std::string() : marshal_as<std::string>(user);
   if (history_ != nullptr) {
-    history_->UserName(marshal_as<std::string>(user));
+    history_->UserName(MdfLibrary::Utf8Conversion(user));
   }      
 }
 

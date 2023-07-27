@@ -55,10 +55,7 @@ bool MdfWriter::CompressData::get() {
 }
 
 bool MdfWriter::Init(String^ path_name) {
-  const auto temp = String::IsNullOrEmpty(path_name)
-                        ? std::string()
-                        : marshal_as<std::string>(path_name);
-  return writer_->Init(temp);
+  return writer_->Init(MdfLibrary::Utf8Conversion(path_name));
 }
 
 MdfDataGroup^ MdfWriter::CreateDataGroup() {

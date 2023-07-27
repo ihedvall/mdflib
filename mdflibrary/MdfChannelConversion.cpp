@@ -21,10 +21,8 @@ String^ MdfChannelConversion::Name::get() {
 }
 
 void MdfChannelConversion::Name::set(String^ name) {
-  const auto temp = String::IsNullOrEmpty(name) ?
-  std::string() : marshal_as<std::string>(name);
   if (conversion_ != nullptr) {
-    conversion_->Name(temp);
+    conversion_->Name(MdfLibrary::Utf8Conversion(name));
   }
 }
 
@@ -32,10 +30,8 @@ String^ MdfChannelConversion::Description::get() {
   return conversion_ != nullptr ? MdfLibrary::Utf8Conversion(conversion_->Description()) : gcnew String("");  
 }
 void MdfChannelConversion::Description::set(String^ desc) {
-  const auto temp = String::IsNullOrEmpty(desc) ?
-  std::string() : marshal_as<std::string>(desc);
   if (conversion_ != nullptr) {
-    conversion_->Description(temp);
+    conversion_->Description(MdfLibrary::Utf8Conversion(desc));
   }  
 }
 
@@ -48,10 +44,8 @@ String^ MdfChannelConversion::Unit::get() {
 }
 
 void MdfChannelConversion::Unit::set(String^ unit) {
-  const auto temp = String::IsNullOrEmpty(unit) ?
-  std::string() : marshal_as<std::string>(unit);
   if (conversion_ != nullptr) {
-    conversion_->Unit(temp);
+    conversion_->Unit(MdfLibrary::Utf8Conversion(unit));
   }  
 }
 

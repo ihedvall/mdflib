@@ -24,10 +24,8 @@ String^ MdfHeader::Description::get() {
 }
 
 void MdfHeader::Description::set(String^ desc) {
-  const auto temp = String::IsNullOrEmpty(desc) ?
-    std::string() : marshal_as<std::string>(desc);
-  if (header_ != nullptr) {
-    header_->Description(temp);
+if (header_ != nullptr) {
+    header_->Description(MdfLibrary::Utf8Conversion(desc));
   }    
 }
 
@@ -36,10 +34,8 @@ String^ MdfHeader::Author::get() {
 }
 
 void MdfHeader::Author::set(String^ author) {
-  const auto temp = String::IsNullOrEmpty(author) ?
-    std::string() : marshal_as<std::string>(author);
-  if (header_ != nullptr) {
-    header_->Author(temp);
+if (header_ != nullptr) {
+    header_->Author(MdfLibrary::Utf8Conversion(author));
   }      
 }
 
@@ -48,10 +44,8 @@ String^ MdfHeader::Department::get() {
 }
 
 void MdfHeader::Department::set(String^ department) {
-  const auto temp = String::IsNullOrEmpty(department) ?
-    std::string() : marshal_as<std::string>(department);
-  if (header_ != nullptr) {
-    header_->Department(temp);
+if (header_ != nullptr) {
+    header_->Department(MdfLibrary::Utf8Conversion(department));
   }   
 }
 
@@ -61,8 +55,7 @@ String^ MdfHeader::Project::get() {
 
 void MdfHeader::Project::set(String^ project) {
   if (header_ != nullptr) {
-    header_->Project(String::IsNullOrEmpty(project) ?
-      std::string() : marshal_as<std::string>(project));
+    header_->Project(MdfLibrary::Utf8Conversion(project));
   }     
 }
 
@@ -72,8 +65,7 @@ String^ MdfHeader::Subject::get() {
 
 void MdfHeader::Subject::set(String^ subject) {
   if (header_ != nullptr) {
-    header_->Subject(String::IsNullOrEmpty(subject) ?
-      std::string() : marshal_as<std::string>(subject));
+    header_->Subject(MdfLibrary::Utf8Conversion(subject));
   }    
 }
 
@@ -83,8 +75,7 @@ String^ MdfHeader::MeasurementId::get() {
 
 void MdfHeader::MeasurementId::set(String^ uuid) {
   if (header_ != nullptr) {
-    header_->MeasurementId(String::IsNullOrEmpty(uuid) ?
-      std::string() : marshal_as<std::string>(uuid));
+    header_->MeasurementId(MdfLibrary::Utf8Conversion(uuid));
   }     
 }
 
@@ -94,8 +85,7 @@ String^ MdfHeader::RecorderId::get() {
 
 void MdfHeader::RecorderId::set(String^ uuid) {
   if (header_ != nullptr) {
-    header_->RecorderId(String::IsNullOrEmpty(uuid) ?
-      std::string() : marshal_as<std::string>(uuid));
+    header_->RecorderId(MdfLibrary::Utf8Conversion(uuid));
   }     
 }
 

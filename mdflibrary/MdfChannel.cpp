@@ -21,10 +21,8 @@ String^ MdfChannel::Name::get() {
 }
 
 void MdfChannel::Name::set(String^ name) {
-  const auto temp = String::IsNullOrEmpty(name) ? std::string()
-                                                : marshal_as<std::string>(name);
   if (channel_ != nullptr) {
-    channel_->Name(temp);
+    channel_->Name(MdfLibrary::Utf8Conversion(name));
   }
 }
 
@@ -35,10 +33,8 @@ String^ MdfChannel::DisplayName::get() {
 }
 
 void MdfChannel::DisplayName::set(String^ name) {
-  const auto temp = String::IsNullOrEmpty(name) ? std::string()
-                                                : marshal_as<std::string>(name);
   if (channel_ != nullptr) {
-    channel_->DisplayName(temp);
+    channel_->DisplayName(MdfLibrary::Utf8Conversion(name));
   }
 }
 
@@ -49,10 +45,8 @@ String^ MdfChannel::Description::get() {
 }
 
 void MdfChannel::Description::set(String^ desc) {
-  const auto temp = String::IsNullOrEmpty(desc) ? std::string()
-                                                : marshal_as<std::string>(desc);
   if (channel_ != nullptr) {
-    channel_->Description(temp);
+    channel_->Description(MdfLibrary::Utf8Conversion(desc));
   }
 }
 
@@ -66,10 +60,8 @@ String^ MdfChannel::Unit::get() {
 }
 
 void MdfChannel::Unit::set(String^ unit) {
-  const auto temp = String::IsNullOrEmpty(unit) ? std::string()
-                                                : marshal_as<std::string>(unit);
   if (channel_ != nullptr) {
-    channel_->Unit(temp);
+    channel_->Unit(MdfLibrary::Utf8Conversion(unit));
   }
 }
 
@@ -110,7 +102,7 @@ void MdfChannel::DataType::set(ChannelDataType type) {
 }
 
 CnFlag MdfChannel::Flags::get() {
-  auto temp = channel_ == nullptr ? static_cast<CnFlag>(channel_->Flags()) : CnFlag::None;
+  auto temp = channel_ != nullptr ? static_cast<CnFlag>(channel_->Flags()) : CnFlag::None;
   return temp;
 }
 
@@ -268,10 +260,8 @@ void MdfChannel::SetChannelValue(const double value, bool valid) {
 }
 
 void MdfChannel::SetChannelValue(String^ value, bool valid) {
-  const auto temp = String::IsNullOrEmpty(value)
-                        ? std::string()
-                        : marshal_as<std::string>(value);
-  if (channel_ != nullptr) channel_->SetChannelValue(temp, valid);
+  if (channel_ != nullptr)
+    channel_->SetChannelValue(MdfLibrary::Utf8Conversion(value), valid);
 }
 
 void MdfChannel::SetChannelValue(array<Byte>^ value, bool valid) {

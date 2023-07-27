@@ -546,7 +546,7 @@ public class MdfLibraryTest
             var cn = cg.CreateChannel();
             cn.Name = "UnsignedLe";
             cn.Description = "uint32_t";
-            cn.Unit = "¡ãC";
+            cn.Unit = "Â°C";
             cn.Type = ChannelType.FixedLength;
             cn.DataType = ChannelDataType.UnsignedIntegerLe;
             cn.DataBytes = 4;

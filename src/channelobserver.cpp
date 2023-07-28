@@ -8,13 +8,13 @@ namespace mdf::detail {
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleUnsigned(
-    size_t sample, uint64_t &value) const {
+    uint64_t sample, uint64_t &value) const {
   value = 0;
   return sample < valid_list_.size() && valid_list_[sample];
 }
 
 template <>
-bool ChannelObserver<std::string>::GetSampleUnsigned(size_t sample,
+bool ChannelObserver<std::string>::GetSampleUnsigned(uint64_t sample,
                                                      uint64_t &value) const {
   value = sample < value_list_.size() ? std::stoull(value_list_[sample]) : 0;
   return sample < valid_list_.size() && valid_list_[sample];
@@ -22,13 +22,13 @@ bool ChannelObserver<std::string>::GetSampleUnsigned(size_t sample,
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleSigned(
-    size_t sample, int64_t &value) const {
+    uint64_t sample, int64_t &value) const {
   value = 0;
   return sample < valid_list_.size() && valid_list_[sample];
 }
 
 template <>
-bool ChannelObserver<std::string>::GetSampleSigned(size_t sample,
+bool ChannelObserver<std::string>::GetSampleSigned(uint64_t sample,
                                                    int64_t &value) const {
   value = sample < value_list_.size() ? std::stoll(value_list_[sample]) : 0;
   return sample < valid_list_.size() && valid_list_[sample];
@@ -36,13 +36,13 @@ bool ChannelObserver<std::string>::GetSampleSigned(size_t sample,
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleFloat(
-    size_t sample, double &value) const {
+    uint64_t sample, double &value) const {
   value = 0;
   return sample < valid_list_.size() && valid_list_[sample];
 }
 
 template <>
-bool ChannelObserver<std::string>::GetSampleFloat(size_t sample,
+bool ChannelObserver<std::string>::GetSampleFloat(uint64_t sample,
                                                   double &value) const {
   value = sample < value_list_.size() ? std::stod(value_list_[sample]) : 0;
   return sample < valid_list_.size() && valid_list_[sample];

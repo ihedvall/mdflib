@@ -24,19 +24,19 @@ class ChannelObserver : public IChannelObserver {
       data_group_;  ///< Reference to the publisher (subject/observer)
 
   template <typename V>
-  bool GetVirtualSample(size_t sample, V& value) const {
+  bool GetVirtualSample(uint64_t sample, V& value) const {
     value = static_cast<V>(sample);
     return true;
   }
 
   template <typename V = std::string>
-  bool GetVirtualSample(size_t sample, std::string& value) const {
+  bool GetVirtualSample(uint64_t sample, std::string& value) const {
     value = std::to_string(sample);
     return true;
   }
 
  protected:
-  bool GetSampleUnsigned(size_t sample, uint64_t& value) const override;
+  bool GetSampleUnsigned(uint64_t sample, uint64_t& value) const override;
 
   bool GetSampleSigned(uint64_t sample, int64_t& value) const override;
 
@@ -68,11 +68,11 @@ class ChannelObserver : public IChannelObserver {
   ChannelObserver& operator=(const ChannelObserver&) = delete;
   ChannelObserver& operator=(ChannelObserver&&) = delete;
 
-  [[nodiscard]] size_t NofSamples() const override {
+  [[nodiscard]] uint64_t NofSamples() const override {
     return std::min(valid_list_.size(), value_list_.size());
   }
 
-  void OnSample(size_t sample, uint64_t record_id,
+  void OnSample(uint64_t sample, uint64_t record_id,
                 const std::vector<uint8_t>& record) override {
 
     switch (channel_.Type()) {
@@ -144,7 +144,7 @@ class ChannelObserver : public IChannelObserver {
 };
 
 template <class T>
-bool ChannelObserver<T>::GetSampleUnsigned(size_t sample,
+bool ChannelObserver<T>::GetSampleUnsigned(uint64_t sample,
                                            uint64_t& value) const {
   value = sample < value_list_.size() ? 
       static_cast<uint64_t>(value_list_[sample]) : static_cast<uint64_t>(T{});
@@ -153,10 +153,10 @@ bool ChannelObserver<T>::GetSampleUnsigned(size_t sample,
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleUnsigned(
-    size_t sample, uint64_t& value) const;
+    uint64_t sample, uint64_t& value) const;
 
 template <>
-bool ChannelObserver<std::string>::GetSampleUnsigned(size_t sample,
+bool ChannelObserver<std::string>::GetSampleUnsigned(uint64_t sample,
                                                      uint64_t& value) const;
 
 template <class T>
@@ -168,10 +168,10 @@ bool ChannelObserver<T>::GetSampleSigned(uint64_t sample,
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleSigned(
-    size_t sample, int64_t& value) const;
+    uint64_t sample, int64_t& value) const;
 
 template <>
-bool ChannelObserver<std::string>::GetSampleSigned(size_t sample,
+bool ChannelObserver<std::string>::GetSampleSigned(uint64_t sample,
                                                    int64_t& value) const;
 
 template <class T>
@@ -181,11 +181,11 @@ bool ChannelObserver<T>::GetSampleFloat(uint64_t sample, double& value) const {
 }
 
 template <>
-bool ChannelObserver<std::vector<uint8_t>>::GetSampleFloat(size_t sample,
+bool ChannelObserver<std::vector<uint8_t>>::GetSampleFloat(uint64_t sample,
                                                            double& value) const;
 
 template <>
-bool ChannelObserver<std::string>::GetSampleFloat(size_t sample,
+bool ChannelObserver<std::string>::GetSampleFloat(uint64_t sample,
                                                   double& value) const;
 
 template <class T>

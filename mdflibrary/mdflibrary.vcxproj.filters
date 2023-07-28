@@ -66,6 +66,9 @@
     <ClInclude Include="MdfChannelArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Export.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mdflibrary.cpp">

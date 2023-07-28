@@ -739,7 +739,7 @@ public class MdfLibraryTest
                 }
 
                 Console.WriteLine("GetNSignals." + channels.Channels.Length);
-                Console.WriteLine("NofSamples" + channels.NofSamples);
+                Console.WriteLine("NofSamples." + channels.NofSamples);
 
                 var subscriber_list = new MdfChannelObserver[channels.Channels.Length];
                 ulong i = 0;

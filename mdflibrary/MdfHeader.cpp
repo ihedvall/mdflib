@@ -209,12 +209,6 @@ MdfDataGroup^ MdfHeader::CreateDataGroup() {
   return gcnew MdfDataGroup(temp);   
 }
 
-MdfDataGroup^ MdfHeader::LastDataGroup::get() {
-  auto* temp = header_ != nullptr ?
-    header_->LastDataGroup() : nullptr;
-  return temp != nullptr ? gcnew MdfDataGroup(temp) : nullptr;
-}
-
 bool MdfHeader::IsStartAngleUsed::get() {
   return header_ != nullptr ? header_->StartAngle().has_value() : false;
 }

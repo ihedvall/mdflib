@@ -21,7 +21,7 @@ public:
 
   property  Int64 Index {
     Int64 get();
-    void set(Int64);
+    void set(Int64 index);
   }
 
   property String^ Name {String^ get();}

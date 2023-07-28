@@ -8,6 +8,7 @@
 #include <mdf/mdfreader.h>
 #include <msclr/marshal_cppstd.h>
 
+#include "MdfExport.h"
 #include "mdflibrary.h"
 
 using namespace msclr::interop;

@@ -27,11 +27,11 @@ MdfReader::!MdfReader() {
   reader_ = nullptr;
 }
 
-long long MdfReader::Index::get() {
+Int64 MdfReader::Index::get() {
   return reader_ != nullptr ? reader_->Index(): 0;
 }
 
-void MdfReader::Index::set(long long index) {
+void MdfReader::Index::set(Int64 index) {
   if (reader_ != nullptr) {
     reader_->Index(index);
   }

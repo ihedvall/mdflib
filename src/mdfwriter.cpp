@@ -418,7 +418,7 @@ std::string MdfWriter::Name() const {
   try {
     path filename(filename_);
     return filename.stem().string();
-  } catch (std::exception& err) {
+  } catch (...) {
   }
   return {};
 }

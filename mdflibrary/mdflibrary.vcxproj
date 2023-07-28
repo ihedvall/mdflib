@@ -145,7 +145,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Export.h" />
+    <ClInclude Include="MdfExport.h" />
     <ClInclude Include="MdfAttachment.h" />
     <ClInclude Include="MdfChannel.h" />
     <ClInclude Include="MdfChannelArray.h" />

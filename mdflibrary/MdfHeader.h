@@ -29,18 +29,15 @@ public:
   property int64_t RecorderIndex { int64_t get(); void set(int64_t index); }
   property uint64_t StartTime { uint64_t get(); void set(uint64_t time); }
   
+  property bool IsStartAngleUsed { bool get(); }
   property double StartAngle { double get(); void set(double angle); }
+  property bool IsStartDistanceUsed { bool get(); }
   property double StartDistance { double get(); void set(double distance); }  
   property MdfMetaData^ MetaData { MdfMetaData^ get(); }
   property array<MdfAttachment^>^ Attachments { array<MdfAttachment^>^ get(); }
-  property array<MdfFileHistory^>^ FileHistories {
-    array<MdfFileHistory^>^ get();
-  }
+  property array<MdfFileHistory^>^ FileHistories { array<MdfFileHistory^>^ get(); }
   property array<MdfEvent^>^ Events { array<MdfEvent^>^ get(); }
   property array<MdfDataGroup^>^ DataGroups { array<MdfDataGroup^>^ get(); }
-  property bool IsStartAngleUsed { bool get(); }
-  property bool IsStartDistanceUsed { bool get(); }
-  property MdfDataGroup^ LastDataGroup { MdfDataGroup^ get(); }  
 
   MdfAttachment^ CreateAttachment();
   MdfFileHistory^ CreateFileHistory();

@@ -43,7 +43,6 @@ public:
   property uint8_t Flags {uint8_t get(); void set(uint8_t flags); }
   property MdfMetaData^ MetaData { MdfMetaData^ get();}
 
-  
   MdfMetaData^ CreateMetaData();
 
  private:

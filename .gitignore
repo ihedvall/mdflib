@@ -47,6 +47,10 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
+# Visual Studio code
+.vscode/
+build/
+
 # User-specific files
 *.rsuser
 *.suo

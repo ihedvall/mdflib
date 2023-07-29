@@ -6,19 +6,13 @@ project(mdflib
         DESCRIPTION "Interface against MDF 3/4 files"
         LANGUAGES CXX)
 
-option(BUILD_SHARED_LIBS "Static libraries are preferred." OFF)
+option(MDF_BUILD_SHARED_LIB "Build dll/so library." ON)
 option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
-option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." ON)
-option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." ON)
+option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
+option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_DEBUG_POSTFIX d)
-
-include("script/zlib.cmake")
-include("script/fetch_expat.cmake")
-include("script/wxwidgets.cmake")
-include("script/googletest.cmake")
-include("script/doxygen.cmake")
 
 add_library(mdf STATIC
         src/mdfblock.cpp src/mdfblock.h
@@ -104,17 +98,17 @@ add_library(mdf STATIC
         src/iblock.cpp include/mdf/iblock.h
         src/vlsddata.cpp src/vlsddata.h)
 
-target_link_libraries(mdf ${ZLIB_LIBRARIES} expat)
+
+find_package(ZLIB REQUIRED)
+target_link_libraries(mdf PRIVATE ZLIB::ZLIB)
+
+find_package(expat CONFIG REQUIRED)
+target_link_libraries(mdf PRIVATE expat::expat)
 
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         )
-
-target_include_directories(mdf PRIVATE ${ZLIB_INCLUDE_DIRS})
-target_include_directories(mdf PRIVATE ${expat_SOURCE_DIR}/expat/lib)
-
-target_compile_definitions(mdf PRIVATE XML_STATIC)
 
 set(MDF_PUBLIC_HEADERS
         include/mdf/cryptoutil.h
@@ -146,15 +140,15 @@ set(MDF_PUBLIC_HEADERS
 
 set_target_properties(mdf PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")
 get_target_property(PH1 mdf PUBLIC_HEADER)
-message( STATUS "MDF Target Includes: " "${PH1}")
+message(STATUS "MDF Target Includes: " "${PH1}")
 
 if (WIN32)
-install(TARGETS mdf
-        EXPORT MdfLibTargets
-        LIBRARY DESTINATION mdf/lib
-        ARCHIVE DESTINATION mdf/lib
-        RUNTIME DESTINATION mdf/bin
-        PUBLIC_HEADER DESTINATION mdf/include/mdf)
+    install(TARGETS mdf
+            EXPORT MdfLibTargets
+            LIBRARY DESTINATION mdf/lib
+            ARCHIVE DESTINATION mdf/lib
+            RUNTIME DESTINATION mdf/bin
+            PUBLIC_HEADER DESTINATION mdf/include/mdf)
 else()
     install(TARGETS mdf
             EXPORT MdfLibTargets
@@ -164,26 +158,42 @@ else()
             PUBLIC_HEADER DESTINATION include/mdf)
 endif()
 
-if (wxWidgets_FOUND AND MDF_BUILD_TOOL)
-    add_subdirectory(mdfviewer)
+if (MDF_BUILD_SHARED_LIB)
+    add_subdirectory(mdflibrary)
 endif()
 
 
-if (GTEST_FOUND AND MDF_BUILD_TEST)
-    enable_testing()
-    add_subdirectory(test)
+if (MDF_BUILD_TOOL)
+    include("script/wxwidgets.cmake")
+    if (wxWidgets_FOUND)
+        add_subdirectory(mdfviewer)
+    endif()
 endif()
 
-if (DOXYGEN_FOUND AND (CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC )
-    set(DOXYGEN_RECURSIVE NO)
-    set(DOXYGEN_REPEAT_BRIEF NO)
-    set(DOXYGEN_PROJECT_NAME "MDFLib")
-    set(DOXYGEN_HTML_EXTRA_STYLESHEET doxygen/utillib.css)
-    set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/manual)
-    doxygen_add_docs( doc_libmdf ALL
-            include/mdf doxygen
-            COMMENT "MDF Library generating API documentation with Doxygen")
+
+if (MDF_BUILD_TEST)
+    include("script/googletest.cmake") 
+    if(GTEST_FOUND)
+        enable_testing()
+        add_subdirectory(test)
+    endif()
 endif()
+
+
+if ((CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC)
+    include("script/doxygen.cmake")
+    if(NOT DOXYGEN_FOUND)
+        set(DOXYGEN_RECURSIVE NO)
+        set(DOXYGEN_REPEAT_BRIEF NO)
+        set(DOXYGEN_PROJECT_NAME "MDFLib")
+        set(DOXYGEN_HTML_EXTRA_STYLESHEET doxygen/utillib.css)
+        set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/manual)
+        doxygen_add_docs( doc_libmdf ALL
+                include/mdf doxygen
+                COMMENT "MDF Library generating API documentation with Doxygen")
+    endif()
+endif()
+
 
 ######################################################################################
 # Packaging

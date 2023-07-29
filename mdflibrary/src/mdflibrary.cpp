@@ -8,7 +8,6 @@
 #include <mdf/mdfreader.h>
 #include <msclr/marshal_cppstd.h>
 
-#include "MdfExport.h"
 #include "mdflibrary.h"
 
 using namespace msclr::interop;
@@ -52,7 +51,7 @@ MdfLibrary^ MdfLibrary::Instance::get() {
 }
 
 bool MdfLibrary::IsMdfFile(String^ filename) {
-  return mdf::IsMdfFile(MdfLibrary::Utf8Conversion(filename));
+  return mdf::IsMdfFile(Utf8Conversion(filename));
 }
 
 MdfChannelObserver^ MdfLibrary::CreateChannelObserver(MdfDataGroup^ data_group,

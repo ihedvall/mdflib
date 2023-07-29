@@ -47,7 +47,7 @@ public:
     MdfChannelGroup^ channel_group);
 
   static String^ Utf8Conversion(const std::string& utf8_string);
-  static std::string MdfLibrary::Utf8Conversion(String ^ string);
+  static std::string Utf8Conversion(String ^ string);
 
   event DoLogEvent^ LogEvent;
 protected:

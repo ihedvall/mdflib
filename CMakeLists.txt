@@ -1,7 +1,8 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
-project(mdflib
+set(project_name mdflib)
+project(${project_name}
         VERSION 2.0
         DESCRIPTION "Interface against MDF 3/4 files"
         LANGUAGES CXX)

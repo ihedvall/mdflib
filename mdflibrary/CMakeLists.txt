@@ -1,18 +1,18 @@
 # Copyright 2023 Simplxs
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
-project(mdflibrary
+set(project_name mdflibrary)
+project(${project_name}
         VERSION 2.0
         DESCRIPTION "Interface against MDF 3/4 files"
         LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_VERBOSE_MAKEFILEON ON)
+set(CMAKE_CXX_STANDARD 17)
 
 if (WIN32)
-    add_library(mdflibrary SHARED
+    add_library(${project_name} SHARED
             src/AssemblyInfo.cpp
-            src/MdfExport.hpp
+            src/MdfExport.cpp
             src/MdfAttachment.cpp src/MdfAttachment.h
             src/MdfChannel.cpp src/MdfChannel.h
             src/MdfChannelArray.cpp src/MdfChannelArray.h
@@ -29,14 +29,14 @@ if (WIN32)
             src/MdfMetaData.cpp src/MdfMetaData.h
             src/MdfReader.cpp src/MdfReader.h
             src/MdfSourceInformation.cpp src/MdfSourceInformation.h
-            src/mdfwriter.cpp src/mdfwriter.h
+            src/Mdfwriter.cpp src/Mdfwriter.h
             )
     set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
 else()
-    add_library(mdflibrary SHARED MdfExport.hpp)
+    add_library(${project_name} SHARED MdfExport.cpp)
 endif()
 
-target_include_directories(mdflibrary PRIVATE mdf)
-target_include_directories(mdflibrary PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src")
+target_include_directories(${project_name} PRIVATE mdf)
+target_include_directories(${project_name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src")
 
-target_link_libraries(mdflibrary PRIVATE mdf)
+target_link_libraries(${project_name} PRIVATE mdf)

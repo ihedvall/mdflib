@@ -1,8 +1,7 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
-set(project_name mdflib)
-project(${project_name}
+project(mdflib
         VERSION 2.0
         DESCRIPTION "Interface against MDF 3/4 files"
         LANGUAGES CXX)
@@ -13,6 +12,7 @@ option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 set(CMAKE_DEBUG_POSTFIX d)
 
 add_library(mdf STATIC
@@ -107,7 +107,6 @@ find_package(expat CONFIG REQUIRED)
 target_link_libraries(mdf PRIVATE expat::expat)
 
 target_include_directories(mdf PUBLIC
-        $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         )
 

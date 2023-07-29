@@ -17,7 +17,7 @@ using namespace mdf;
   __declspec(dllexport) ReturnType ClassName##FuncName(__VA_ARGS__)
 #elif defined(__GNUC__)
 // GCC
-#define EXPORTFUNC(ReturnType, FuncName, ...) \
+#define EXPORT(ReturnType, ClassName, FuncName, ...) \
   __attribute__((visibility("default")))      \
   ReturnType ClassName##FuncName(__VA_ARGS__)
 #else
@@ -28,7 +28,7 @@ extern "C" {
 #define EXPORTINITFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfReader, FuncName, __VA_ARGS__)
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
-  EXPORT(ReturnType, MdfReader, FuncName, MdfReader* reader, __VA_ARGS__)
+  EXPORT(ReturnType, MdfReader, FuncName, MdfReader* reader, ##__VA_ARGS__)
 
 EXPORTINITFUNC(MdfReader*, Init, char* filename) {
   return new MdfReader(filename);
@@ -57,7 +57,7 @@ EXPORTFEATUREFUNC(bool, ReadData, IDataGroup* group) {
 #undef EXPORTFEATUREFUNC
 
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
-  EXPORT(ReturnType, MdfHeader, FuncName, IHeader* header, __VA_ARGS__)
+  EXPORT(ReturnType, MdfHeader, FuncName, IHeader* header, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex) { return header->Index(); }
 EXPORTFEATUREFUNC(const char*, GetDescription) {
   return header->Description().c_str();
@@ -152,7 +152,7 @@ EXPORTFEATUREFUNC(const IDataGroup*, CreateDataGroup) {
 #undef EXPORTFEATUREFUNC
 
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
-  EXPORT(ReturnType, MdfDataGroup, FuncName, IDataGroup* group, __VA_ARGS__)
+  EXPORT(ReturnType, MdfDataGroup, FuncName, IDataGroup* group, ##__VA_ARGS__)
 
 EXPORTFEATUREFUNC(int64_t, GetIndex) { return group->Index(); }
 EXPORTFEATUREFUNC(const char*, GetDescription) {
@@ -181,7 +181,7 @@ EXPORTFEATUREFUNC(void, ResetSample) { group->ResetSample(); }
 
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                  \
   EXPORT(ReturnType, MdfChannelGroup, FuncName, IChannelGroup* group, \
-         __VA_ARGS__)
+         ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex) { return group->Index(); }
 EXPORTFEATUREFUNC(uint64_t, GetRecordId) { return group->RecordId(); }
 EXPORTFEATUREFUNC(const char*, GetName) { return group->Name().c_str(); }
@@ -225,7 +225,7 @@ EXPORTFEATUREFUNC(const ISourceInformation*, CreateSourceInformation) {
 #undef EXPORTFEATUREFUNC
 
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
-  EXPORT(ReturnType, MdfChannel, FuncName, IChannel* channel, __VA_ARGS__)
+  EXPORT(ReturnType, MdfChannel, FuncName, IChannel* channel, ##__VA_ARGS__)
 
 EXPORTFEATUREFUNC(int64_t, GetIndex) { return channel->Index(); }
 EXPORTFEATUREFUNC(const char*, GetName) { return channel->Name().c_str(); }
@@ -315,7 +315,7 @@ EXPORTFEATUREFUNC(void, SetChannelValueAsArray, const uint8_t* value,
 
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                           \
   EXPORT(ReturnType, MdfChannelConversion, FuncName, IChannelConversion* conv, \
-         __VA_ARGS__)
+         ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex) { return conv->Index(); }
 EXPORTFEATUREFUNC(const char*, GetName) { return conv->Name().c_str(); }
 EXPORTFEATUREFUNC(void, SetName, char* name) { conv->Name(name); }
@@ -344,7 +344,7 @@ EXPORTFEATUREFUNC(const IChannelConversion*, CreateInverse) {
 
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                          \
   EXPORT(ReturnType, MdfChannelObserver, FuncName, IChannelObserver* channel, \
-         __VA_ARGS__)
+         ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetNofSamples) { return channel->NofSamples(); }
 EXPORTFEATUREFUNC(const char*, GetName) { return channel->Name().c_str(); }
 EXPORTFEATUREFUNC(const char*, GetUnit) { return channel->Unit().c_str(); }
@@ -411,7 +411,7 @@ EXPORTFEATUREFUNC(bool, GetEngValueAsArray, uint64_t sample, uint8_t*& value,
 #pragma region SourceInformation
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfSourceInformation, FuncName, \
-         ISourceInformation* source_information, __VA_ARGS__)
+         ISourceInformation* source_information, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex) { return source_information->Index(); }
 EXPORTFEATUREFUNC(const char*, GetName) {
   return source_information->Name().c_str();

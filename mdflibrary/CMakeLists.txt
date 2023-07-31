@@ -8,10 +8,10 @@ project(mdflibrary
 
 set(CMAKE_CXX_STANDARD 17)
 
-if (MSVC)
+if (_MSC_VER)
     add_library(mdflibrary SHARED
             src/AssemblyInfo.cpp
-            src/MdfExport.cpp
+            include/mdflibrary/MdfExport.h src/MdfExport.cpp
             src/MdfAttachment.cpp src/MdfAttachment.h
             src/MdfChannel.cpp src/MdfChannel.h
             src/MdfChannelArray.cpp src/MdfChannelArray.h
@@ -39,3 +39,26 @@ endif()
 target_include_directories(mdflibrary PRIVATE mdf)
 
 target_link_libraries(mdflibrary PRIVATE mdf)
+
+set(MDF_PUBLIC_HEADERS
+include/mdflibrary/MdfExport.h
+)
+set_target_properties(mdflibrary PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")
+get_target_property(PH1 mdflibrary PUBLIC_HEADER)
+message(STATUS "MDFLibrary Target Includes: " "${PH1}")
+
+if (WIN32)
+    install(TARGETS mdflibrary
+            EXPORT MdfLibraryTargets
+            LIBRARY DESTINATION mdflibrary/lib
+            ARCHIVE DESTINATION mdflibrary/lib
+            RUNTIME DESTINATION mdflibrary/bin
+            PUBLIC_HEADER DESTINATION mdf/include/mdflibrary)
+else()
+    install(TARGETS mdflibrary
+            EXPORT MdfLibraryTargets
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+            PUBLIC_HEADER DESTINATION include/mdflibrary)
+endif()

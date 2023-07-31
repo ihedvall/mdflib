@@ -14,6 +14,8 @@ option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_DEBUG_POSTFIX d)
 
+add_compile_options(-fPIC)
+
 add_library(mdf STATIC
         src/mdfblock.cpp src/mdfblock.h
         src/mdffile.cpp include/mdf/mdffile.h
@@ -136,7 +138,6 @@ set(MDF_PUBLIC_HEADERS
         include/mdf/samplerecord.h
         include/mdf/zlibutil.h
 )
-
 set_target_properties(mdf PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")
 get_target_property(PH1 mdf PUBLIC_HEADER)
 message(STATUS "MDF Target Includes: " "${PH1}")
@@ -155,7 +156,6 @@ else()
             ARCHIVE DESTINATION lib
             RUNTIME DESTINATION bin
             PUBLIC_HEADER DESTINATION include/mdf)
-    add_compile_options(-fPIC)
 endif()
 
 if (MDF_BUILD_SHARED_LIB)

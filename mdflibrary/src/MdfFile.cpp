@@ -51,12 +51,12 @@ void MdfFile::Name::set(String^ name) {
   }
 }
 
-String^ MdfFile::Filename::get() {
+String^ MdfFile::FileName::get() {
   return mdf_file_ != nullptr ?
     MdfLibrary::Utf8Conversion(mdf_file_->FileName()) : gcnew String("");
 }
 
-void MdfFile::Filename::set(String^ filename) {
+void MdfFile::FileName::set(String^ filename) {
   if (mdf_file_ != nullptr) {
      mdf_file_->FileName(MdfLibrary::Utf8Conversion(filename));
   }  

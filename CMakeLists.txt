@@ -12,7 +12,6 @@ option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
 
 set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-fPIC)
 set(CMAKE_DEBUG_POSTFIX d)
 
 add_library(mdf STATIC
@@ -156,6 +155,7 @@ else()
             ARCHIVE DESTINATION lib
             RUNTIME DESTINATION bin
             PUBLIC_HEADER DESTINATION include/mdf)
+    add_compile_options(-fPIC)
 endif()
 
 if (MDF_BUILD_SHARED_LIB)

@@ -8,7 +8,7 @@ project(mdflibrary
 
 set(CMAKE_CXX_STANDARD 17)
 
-if (_MSC_VER)
+if (MSVC)
     add_library(mdflibrary SHARED
             src/AssemblyInfo.cpp
             src/MdfExport.cpp

@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <mdf/etag.h>
+#include <mdf/iattachment.h>
 #include <mdf/idatagroup.h>
-#include <mdf/iheader.h>
+#include <mdf/ievent.h>
+#include <mdf/ifilehistory.h>
 #include <mdf/mdffactory.h>
 #include <mdf/mdfreader.h>
 #include <mdf/mdfwriter.h>
@@ -18,7 +21,7 @@ using namespace mdf;
 #elif defined(__GNUC__)
 // GCC
 #define EXPORT(ReturnType, ClassName, FuncName, ...) \
-  __attribute__((visibility("default")))      \
+  __attribute__((visibility("default")))             \
   ReturnType ClassName##FuncName(__VA_ARGS__)
 #else
 #pragma warning Unknown dynamic link import / export semantics.
@@ -54,6 +57,92 @@ EXPORTFEATUREFUNC(bool, ReadData, IDataGroup* group) {
   return reader->ReadData(*group);
 }
 #undef EXPORTINITFUNC
+#undef EXPORTFEATUREFUNC
+#pragma endregion
+
+#pragma region MdfWriter
+#define EXPORTINITFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfWriter, FuncName, ##__VA_ARGS__)
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfWriter, FuncName, MdfWriter* writer, ##__VA_ARGS__)
+EXPORTINITFUNC(MdfWriter*, Init, MdfWriterType type, char* filename) {
+  auto* writer = MdfFactory::CreateMdfWriterEx(type);
+  if (!writer) return nullptr;
+  writer->Init(filename);
+  return writer;
+}
+EXPORTINITFUNC(void, UnInit, MdfWriter* writer) { delete writer; }
+EXPORTFEATUREFUNC(MdfFile*, GetFile) { return writer->GetFile(); }
+EXPORTFEATUREFUNC(IHeader*, GetHeader) { return writer->Header(); }
+EXPORTFEATUREFUNC(bool, GetCompressData) { return writer->CompressData(); }
+EXPORTFEATUREFUNC(void, SetCompressData, bool compress) {
+  writer->CompressData(compress);
+}
+EXPORTFEATUREFUNC(IDataGroup*, CreateDataGroup) {
+  return writer->CreateDataGroup();
+}
+EXPORTFEATUREFUNC(bool, InitMeasurement) { return writer->InitMeasurement(); }
+EXPORTFEATUREFUNC(void, SaveSample, IChannelGroup* group, uint64_t time) {
+  writer->SaveSample(*group, time);
+}
+EXPORTFEATUREFUNC(void, StartMeasurement, uint64_t start_time) {
+  writer->StartMeasurement(start_time);
+}
+EXPORTFEATUREFUNC(void, StopMeasurement, uint64_t stop_time) {
+  writer->StopMeasurement(stop_time);
+}
+EXPORTFEATUREFUNC(bool, FinalizeMeasurement) {
+  return writer->FinalizeMeasurement();
+}
+#undef EXPORTINITFUNC
+#undef EXPORTFEATUREFUNC
+#pragma endregion
+
+#pragma region MdfFile
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfFile, FuncName, MdfFile* file, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment**& pAttachment) {
+  AttachmentList AttachmentList;
+  file->Attachments(AttachmentList);
+  pAttachment = &AttachmentList[0];
+  return AttachmentList.size();
+}
+EXPORTFEATUREFUNC(size_t, GetDataGroups, const IDataGroup**& pDataGroup) {
+  DataGroupList DataGroupList;
+  file->DataGroups(DataGroupList);
+  pDataGroup = &DataGroupList[0];
+  return DataGroupList.size();
+}
+EXPORTFEATUREFUNC(const char*, GetName) { return file->Name().c_str(); }
+EXPORTFEATUREFUNC(void, SetName, char* name) { file->Name(name); }
+EXPORTFEATUREFUNC(const char*, GetFileName) { return file->FileName().c_str(); }
+EXPORTFEATUREFUNC(void, SetFileName, char* filename) {
+  file->FileName(filename);
+}
+EXPORTFEATUREFUNC(const char*, GetVersion) { return file->Version().c_str(); }
+EXPORTFEATUREFUNC(int, GetMainVersion) { return file->MainVersion(); }
+EXPORTFEATUREFUNC(int, GetMinorVersion) { return file->MinorVersion(); }
+EXPORTFEATUREFUNC(void, SetMinorVersion, int minor) {
+  file->MinorVersion(minor);
+}
+EXPORTFEATUREFUNC(const char*, GetProgramId) {
+  return file->ProgramId().c_str();
+}
+EXPORTFEATUREFUNC(void, SetProgramId, char* program_id) {
+  file->ProgramId(program_id);
+}
+EXPORTFEATUREFUNC(bool, GetFinalized, uint16_t& standard_flags,
+                  uint16_t& custom_flags) {
+  return file->IsFinalized(standard_flags, custom_flags);
+}
+EXPORTFEATUREFUNC(const IHeader*, GetHeader) { return file->Header(); }
+EXPORTFEATUREFUNC(bool, GetIsMdf4) { return file->IsMdf4(); }
+EXPORTFEATUREFUNC(IAttachment*, CreateAttachment) {
+  return file->CreateAttachment();
+}
+EXPORTFEATUREFUNC(IDataGroup*, CreateDataGroup) {
+  return file->CreateDataGroup();
+}
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 
@@ -123,22 +212,26 @@ EXPORTFEATUREFUNC(double, GetStartDistance) {
 EXPORTFEATUREFUNC(void, SetStartDistance, double distance) {
   header->StartDistance(distance);
 }
-EXPORTFEATUREFUNC(const IMetaData*, GetMetaData) { return header->MetaData(); }
-EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment*& pAttachments) {
-  pAttachments = header->Attachments()[0];
-  return header->Attachments().size();
+EXPORTFEATUREFUNC(const IMetaData*, GetMetaDatas) { return header->MetaData(); }
+EXPORTFEATUREFUNC(size_t, GetAttachments, IAttachment**& pAttachments) {
+  auto attachments = header->Attachments();
+  pAttachments = &attachments[0];
+  return attachments.size();
 }
-EXPORTFEATUREFUNC(size_t, GetFileHistory, const IFileHistory*& pFileHistorys) {
-  pFileHistorys = header->FileHistories()[0];
-  return header->FileHistories().size();
+EXPORTFEATUREFUNC(size_t, GetFileHistorys, IFileHistory**& pFileHistorys) {
+  auto file_historys = header->FileHistories();
+  pFileHistorys = &file_historys[0];
+  return file_historys.size();
 }
-EXPORTFEATUREFUNC(size_t, GetEvents, const IEvent*& pEvents) {
-  pEvents = header->Events()[0];
-  return header->Events().size();
+EXPORTFEATUREFUNC(size_t, GetEvents, IEvent**& pEvents) {
+  auto events = header->Events();
+  pEvents = &events[0];
+  return events.size();
 }
-EXPORTFEATUREFUNC(size_t, GetDataGroups, const IDataGroup*& pDataGroups) {
-  pDataGroups = header->DataGroups()[0];
-  return header->DataGroups().size();
+EXPORTFEATUREFUNC(size_t, GetDataGroups, IDataGroup**& pDataGroups) {
+  auto data_groups = header->DataGroups();
+  pDataGroups = &data_groups[0];
+  return data_groups.size();
 }
 EXPORTFEATUREFUNC(const IAttachment*, CreateAttachment) {
   return header->CreateAttachment();
@@ -163,10 +256,10 @@ EXPORTFEATUREFUNC(const char*, GetDescription) {
 }
 EXPORTFEATUREFUNC(uint8_t, GetRecordIdSize) { return group->RecordIdSize(); }
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaData) { return group->MetaData(); }
-EXPORTFEATUREFUNC(size_t, GetChannelGroups,
-                  const IChannelGroup*& pChannelGroups) {
-  pChannelGroups = group->ChannelGroups()[0];
-  return group->ChannelGroups().size();
+EXPORTFEATUREFUNC(size_t, GetChannelGroups, IChannelGroup**& pChannelGroups) {
+  auto channel_groups = group->ChannelGroups();
+  pChannelGroups = &channel_groups[0];
+  return channel_groups.size();
 }
 EXPORTFEATUREFUNC(bool, IsRead) { return group->IsRead(); }
 EXPORTFEATUREFUNC(const IMetaData*, CreateMetaData) {
@@ -208,9 +301,10 @@ EXPORTFEATUREFUNC(void, SetPathSeparator, wchar_t sep) {
   group->PathSeparator(sep);
 }
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaData) { return group->MetaData(); }
-EXPORTFEATUREFUNC(size_t, GetChannels, const IChannel*& pChannels) {
-  pChannels = group->Channels()[0];
-  return group->Channels().size();
+EXPORTFEATUREFUNC(size_t, GetChannels, IChannel**& pChannels) {
+  auto channels = group->Channels();
+  pChannels = &channels[0];
+  return channels.size();
 }
 EXPORTFEATUREFUNC(const ISourceInformation*, GetSourceInformation) {
   return group->SourceInformation();
@@ -362,15 +456,15 @@ EXPORTFEATUREFUNC(const char*, GetUnit) { return channel->Unit().c_str(); }
 EXPORTFEATUREFUNC(const IChannel*, GetChannel) { return &(channel->Channel()); }
 EXPORTFEATUREFUNC(bool, IsMaster) { return channel->IsMaster(); }
 EXPORTFEATUREFUNC(bool, GetChannelValueAsSigned, uint64_t sample,
-                   int64_t& value) {
+                  int64_t& value) {
   return channel->GetChannelValue(sample, value);
 }
 EXPORTFEATUREFUNC(bool, GetChannelValueAsUnSigned, uint64_t sample,
-                   uint64_t& value) {
+                  uint64_t& value) {
   return channel->GetChannelValue(sample, value);
 }
 EXPORTFEATUREFUNC(bool, GetChannelValueAsFloat, uint64_t sample,
-                   double& value) {
+                  double& value) {
   return channel->GetChannelValue(sample, value);
 }
 EXPORTFEATUREFUNC(bool, GetChannelValueAsString, uint64_t sample,
@@ -388,16 +482,14 @@ EXPORTFEATUREFUNC(bool, GetChannelValueAsArray, uint64_t sample,
   if (size > 0) memcpy(value, vec.data(), size);
   return valid;
 }
-EXPORTFEATUREFUNC(bool, GetEngValueAsSigned, uint64_t sample,
-                   int64_t& value) {
+EXPORTFEATUREFUNC(bool, GetEngValueAsSigned, uint64_t sample, int64_t& value) {
   return channel->GetEngValue(sample, value);
 }
 EXPORTFEATUREFUNC(bool, GetEngValueAsUnSigned, uint64_t sample,
-                   uint64_t& value) {
+                  uint64_t& value) {
   return channel->GetEngValue(sample, value);
 }
-EXPORTFEATUREFUNC(bool, GetEngValueAsFloat, uint64_t sample,
-                   double& value) {
+EXPORTFEATUREFUNC(bool, GetEngValueAsFloat, uint64_t sample, double& value) {
   return channel->GetEngValue(sample, value);
 }
 EXPORTFEATUREFUNC(bool, GetEngValueAsString, uint64_t sample, char*& value) {
@@ -420,7 +512,7 @@ EXPORTFEATUREFUNC(bool, GetEngValueAsArray, uint64_t sample, uint8_t*& value,
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 
-#pragma region SourceInformation
+#pragma region MdfSourceInformation
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfSourceInformation, FuncName, \
          ISourceInformation* source_information, ##__VA_ARGS__)
@@ -459,6 +551,233 @@ EXPORTFEATUREFUNC(const IMetaData*, CreateMetaData) {
 #pragma endregion
 
 #pragma region MdfAttachment
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                   \
+  EXPORT(ReturnType, MdfAttachment, FuncName, IAttachment* attachment, \
+         ##__VA_ARGS__)
+EXPORTFEATUREFUNC(int64_t, GetIndex) { return attachment->Index(); }
+EXPORTFEATUREFUNC(uint16_t, GetCreatorIndex) {
+  return attachment->CreatorIndex();
+}
+EXPORTFEATUREFUNC(void, SetCreatorIndex, uint16_t index) {
+  attachment->CreatorIndex(index);
+}
+EXPORTFEATUREFUNC(bool, GetEmbedded) { return attachment->IsEmbedded(); }
+EXPORTFEATUREFUNC(void, SetEmbedded, bool embedded) {
+  attachment->IsEmbedded(embedded);
+}
+EXPORTFEATUREFUNC(bool, GetCompressed) { return attachment->IsCompressed(); }
+EXPORTFEATUREFUNC(void, SetCompressed, bool compressed) {
+  attachment->IsCompressed(compressed);
+}
+EXPORTFEATUREFUNC(const char*, GetMd5) {
+  return attachment->Md5().value_or(std::string()).c_str();
+}
+EXPORTFEATUREFUNC(const char*, GetFileName) {
+  return attachment->FileName().c_str();
+}
+EXPORTFEATUREFUNC(void, SetFileName, char* name) { attachment->FileName(name); }
+EXPORTFEATUREFUNC(const char*, GetFileType) {
+  return attachment->FileType().c_str();
+}
+EXPORTFEATUREFUNC(void, SetFileType, char* type) { attachment->FileType(type); }
+#undef EXPORTFEATUREFUNC
+#pragma endregion
 
+#pragma region MdfFileHistory
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                       \
+  EXPORT(ReturnType, MdfFileHistory, FuncName, IFileHistory* file_history, \
+         ##__VA_ARGS__)
+EXPORTFEATUREFUNC(int64_t, GetIndex) { return file_history->Index(); }
+EXPORTFEATUREFUNC(uint64_t, GetTime) { return file_history->Time(); }
+EXPORTFEATUREFUNC(void, SetTime, uint64_t time) { file_history->Time(time); }
+EXPORTFEATUREFUNC(const IMetaData*, GetMetaData) {
+  return file_history->MetaData();
+}
+EXPORTFEATUREFUNC(const char*, GetDescription) {
+  return file_history->Description().c_str();
+}
+EXPORTFEATUREFUNC(void, SetDescription, char* desc) {
+  file_history->Description(desc);
+}
+EXPORTFEATUREFUNC(const char*, GetToolName) {
+  return file_history->ToolName().c_str();
+}
+EXPORTFEATUREFUNC(void, SetToolName, char* name) {
+  file_history->ToolName(name);
+}
+EXPORTFEATUREFUNC(const char*, GetToolVendor) {
+  return file_history->ToolVendor().c_str();
+}
+EXPORTFEATUREFUNC(void, SetToolVendor, char* vendor) {
+  file_history->ToolVendor(vendor);
+}
+EXPORTFEATUREFUNC(const char*, GetToolVersion) {
+  return file_history->ToolVersion().c_str();
+}
+EXPORTFEATUREFUNC(void, SetToolVersion, char* version) {
+  file_history->ToolVersion(version);
+}
+EXPORTFEATUREFUNC(const char*, GetUserName) {
+  return file_history->UserName().c_str();
+}
+EXPORTFEATUREFUNC(void, SetUserName, char* user) {
+  file_history->UserName(user);
+}
+#undef EXPORTFEATUREFUNC
+#pragma endregion
+
+#pragma region MdfEvent
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfEvent, FuncName, IEvent* event, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(int64_t, GetIndex) { return event->Index(); }
+EXPORTFEATUREFUNC(const char*, GetName) { return event->Name().c_str(); }
+EXPORTFEATUREFUNC(void, SetName, char* name) { event->Name(name); }
+EXPORTFEATUREFUNC(const char*, GetDescription) {
+  return event->Description().c_str();
+}
+EXPORTFEATUREFUNC(void, SetDescription, char* desc) {
+  event->Description(desc);
+}
+EXPORTFEATUREFUNC(const char*, GetGroupName) {
+  return event->GroupName().c_str();
+}
+EXPORTFEATUREFUNC(void, SetGroupName, char* group) { event->GroupName(group); }
+EXPORTFEATUREFUNC(EventType, GetType) { return event->Type(); }
+EXPORTFEATUREFUNC(void, SetType, EventType type) { event->Type(type); }
+EXPORTFEATUREFUNC(SyncType, GetSync) { return event->Sync(); }
+EXPORTFEATUREFUNC(void, SetSync, SyncType type) { event->Sync(type); }
+EXPORTFEATUREFUNC(RangeType, GetRange) { return event->Range(); }
+EXPORTFEATUREFUNC(void, SetRange, RangeType type) { event->Range(type); }
+EXPORTFEATUREFUNC(EventCause, GetCause) { return event->Cause(); }
+EXPORTFEATUREFUNC(void, SetCause, EventCause cause) { event->Cause(cause); }
+EXPORTFEATUREFUNC(int64_t, GetCreatorIndex) { return event->CreatorIndex(); }
+EXPORTFEATUREFUNC(void, SetCreatorIndex, int64_t index) {
+  event->CreatorIndex(index);
+}
+EXPORTFEATUREFUNC(int64_t, GetSyncValue) { return event->SyncValue(); }
+EXPORTFEATUREFUNC(void, SetSyncValue, int64_t value) {
+  event->SyncValue(value);
+}
+EXPORTFEATUREFUNC(double, GetSyncFactor) { return event->SyncFactor(); }
+EXPORTFEATUREFUNC(void, SetSyncFactor, double factor) {
+  event->SyncFactor(factor);
+}
+EXPORTFEATUREFUNC(const IEvent*, GetParentEvent) {
+  return event->ParentEvent();
+}
+EXPORTFEATUREFUNC(void, SetParentEvent, IEvent* parent) {
+  event->ParentEvent(parent);
+}
+EXPORTFEATUREFUNC(const IEvent*, GetRangeEvent) { return event->RangeEvent(); }
+EXPORTFEATUREFUNC(void, SetRangeEvent, IEvent* range) {
+  event->RangeEvent(range);
+}
+EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment**& pAttachment) {
+  auto attachment = event->Attachments();
+  pAttachment = &attachment[0];
+  return attachment.size();
+}
+EXPORTFEATUREFUNC(double, GetPreTrig) { return event->PreTrig(); }
+EXPORTFEATUREFUNC(void, SetPreTrig, double time) { event->PreTrig(time); }
+EXPORTFEATUREFUNC(double, GetPostTrig) { return event->PostTrig(); }
+EXPORTFEATUREFUNC(void, SetPostTrig, double time) { event->PostTrig(time); }
+EXPORTFEATUREFUNC(const IMetaData*, GetMetaData) { return event->MetaData(); }
+EXPORTFEATUREFUNC(void, AddAttachment, IAttachment* attachment) {
+  event->AddAttachment(attachment);
+}
+#undef EXPORTFEATUREFUNC
+#pragma endregion
+
+#pragma region MdfETag
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfETag, FuncName, ETag* etag, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(const char*, GetName) { return etag->Name().c_str(); }
+EXPORTFEATUREFUNC(void, SetName, char* name) { etag->Name(name); }
+EXPORTFEATUREFUNC(const char*, GetDescription) {
+  return etag->Description().c_str();
+}
+EXPORTFEATUREFUNC(void, SetDescription, char* desc) { etag->Description(desc); }
+EXPORTFEATUREFUNC(const char*, GetUnit) { return etag->Unit().c_str(); }
+EXPORTFEATUREFUNC(void, SetUnit, char* unit) { etag->Unit(unit); }
+EXPORTFEATUREFUNC(const char*, GetUnitRef) { return etag->UnitRef().c_str(); }
+EXPORTFEATUREFUNC(void, SetUnitRef, char* unit) { etag->UnitRef(unit); }
+EXPORTFEATUREFUNC(const char*, GetType) { return etag->Type().c_str(); }
+EXPORTFEATUREFUNC(void, SetType, char* type) { etag->Type(type); }
+EXPORTFEATUREFUNC(ETagDataType, GetDataType) { return etag->DataType(); }
+EXPORTFEATUREFUNC(void, SetDataType, ETagDataType type) {
+  etag->DataType(type);
+}
+EXPORTFEATUREFUNC(const char*, GetLanguage) { return etag->Language().c_str(); }
+EXPORTFEATUREFUNC(void, SetLanguage, char* language) {
+  etag->Language(language);
+}
+EXPORTFEATUREFUNC(bool, GetReadOnly) { return etag->ReadOnly(); }
+EXPORTFEATUREFUNC(void, SetReadOnly, bool read_only) {
+  etag->ReadOnly(read_only);
+}
+EXPORTFEATUREFUNC(const char*, GetValueAsString) {
+  return etag->Value<std::string>().c_str();
+}
+EXPORTFEATUREFUNC(void, SetValueAsString, char* value) {
+  etag->Value(std::string(value));
+}
+EXPORTFEATUREFUNC(double, GetValueAsFloat) { return etag->Value<double>(); }
+EXPORTFEATUREFUNC(void, SetValueAsFloat, double value) { etag->Value(value); }
+EXPORTFEATUREFUNC(bool, GetValueAsBoolean) { return etag->Value<bool>(); }
+EXPORTFEATUREFUNC(void, SetValueAsBoolean, bool value) { etag->Value(value); }
+EXPORTFEATUREFUNC(int64_t, GetValueAsSigned) { return etag->Value<int64_t>(); }
+EXPORTFEATUREFUNC(void, SetValueAsSigned, int64_t value) { etag->Value(value); }
+EXPORTFEATUREFUNC(uint64_t, GetValueAsUnsigned) {
+  return etag->Value<uint64_t>();
+}
+EXPORTFEATUREFUNC(void, SetValueAsUnsigned, uint64_t value) {
+  etag->Value(value);
+}
+#undef EXPORTFEATUREFUNC
+#pragma endregion
+
+#pragma region MdfMetaData
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfMetaData, FuncName, IMetaData* metadata, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(const char*, GetPropertyAsString, char* index) {
+  return metadata->StringProperty(index).c_str();
+}
+EXPORTFEATUREFUNC(void, SetPropertyAsString, char* index, char* prop) {
+  metadata->StringProperty(index, std::string(prop));
+}
+EXPORTFEATUREFUNC(double, GetPropertyAsFloat, char* index) {
+  return metadata->FloatProperty(index);
+}
+EXPORTFEATUREFUNC(void, SetPropertyAsFloat, char* index, double prop) {
+  metadata->FloatProperty(index, prop);
+}
+EXPORTFEATUREFUNC(size_t, GetProperties, const ETag*& pProperty) {
+  auto properties = metadata->Properties();
+  pProperty = &properties[0];
+  return properties.size();
+}
+EXPORTFEATUREFUNC(size_t, GetCommonProperties, const ETag*& pProperty) {
+  auto properties = metadata->CommonProperties();
+  pProperty = &properties[0];
+  return properties.size();
+}
+EXPORTFEATUREFUNC(void, SetCommonProperties, const ETag* pProperty,
+                  size_t count) {
+  std::vector<ETag> properties(pProperty, pProperty + count);
+  metadata->CommonProperties(properties);
+}
+EXPORTFEATUREFUNC(const char*, GetXmlSnippet) {
+  return metadata->XmlSnippet().c_str();
+}
+EXPORTFEATUREFUNC(void, SetXmlSnippet, char* xml) {
+  metadata->XmlSnippet(std::string(xml));
+}
+EXPORTFEATUREFUNC(const ETag*, GetCommonProperty, char* name) {
+  return &metadata->CommonProperty(name);
+}
+EXPORTFEATUREFUNC(void, AddCommonProperty, ETag* tag) {
+  metadata->CommonProperty(*tag);
+}
+#undef EXPORTFEATUREFUNC
 #pragma endregion
 }

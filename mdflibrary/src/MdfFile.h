@@ -24,7 +24,7 @@ public:
   }
 
   property String^ Name { String^ get(); void set( String^ name); }
-  property String^ Filename { String^ get(); void set( String^ filename); }
+  property String^ FileName { String^ get(); void set( String^ filename); }
   property String^ Version { String^ get(); } 
   property int MainVersion { int get(); }
   property int MinorVersion { int get(); void set(int minor); }

@@ -100,6 +100,7 @@ add_library(mdf STATIC
         src/iblock.cpp include/mdf/iblock.h
         src/vlsddata.cpp src/vlsddata.h)
 
+set_target_properties(mdf PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
 
 find_package(ZLIB REQUIRED)
 target_link_libraries(mdf PRIVATE ZLIB::ZLIB)

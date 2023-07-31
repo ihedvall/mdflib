@@ -82,13 +82,18 @@ EXPORTFEATUREFUNC(bool, FinalizeMeasurement) {
 EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment**& pAttachment) {
   AttachmentList AttachmentList;
   file->Attachments(AttachmentList);
+  if (pAttachment == nullptr) return AttachmentList.size();
   pAttachment = &AttachmentList[0];
+  for (size_t i = 0; i < AttachmentList.size(); i++)
+    pAttachment[i] = AttachmentList[i];
   return AttachmentList.size();
 }
 EXPORTFEATUREFUNC(size_t, GetDataGroups, const IDataGroup**& pDataGroup) {
   DataGroupList DataGroupList;
   file->DataGroups(DataGroupList);
-  pDataGroup = &DataGroupList[0];
+  if (pDataGroup == nullptr) return DataGroupList.size();
+  for (size_t i = 0; i < DataGroupList.size(); i++)
+    pDataGroup[i] = DataGroupList[i];
   return DataGroupList.size();
 }
 EXPORTFEATUREFUNC(const char*, GetName) { return file->Name().c_str(); }
@@ -192,23 +197,30 @@ EXPORTFEATUREFUNC(void, SetStartDistance, double distance) {
 }
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaDatas) { return header->MetaData(); }
 EXPORTFEATUREFUNC(size_t, GetAttachments, IAttachment**& pAttachments) {
+  if (pAttachments == nullptr) return header->Attachments().size();
   auto attachments = header->Attachments();
-  pAttachments = &attachments[0];
+  for (size_t i = 0; i < attachments.size(); ++i)
+    pAttachments[i] = attachments[i];
   return attachments.size();
 }
 EXPORTFEATUREFUNC(size_t, GetFileHistorys, IFileHistory**& pFileHistorys) {
+  if (pFileHistorys == nullptr) return header->FileHistories().size();
   auto file_historys = header->FileHistories();
-  pFileHistorys = &file_historys[0];
+  for (size_t i = 0; i < file_historys.size(); ++i)
+    pFileHistorys[i] = file_historys[i];
   return file_historys.size();
 }
 EXPORTFEATUREFUNC(size_t, GetEvents, IEvent**& pEvents) {
+  if (pEvents == nullptr) return header->Events().size();
   auto events = header->Events();
-  pEvents = &events[0];
+  for (size_t i = 0; i < events.size(); ++i) pEvents[i] = events[i];
   return events.size();
 }
 EXPORTFEATUREFUNC(size_t, GetDataGroups, IDataGroup**& pDataGroups) {
+  if (pDataGroups == nullptr) return header->DataGroups().size();
   auto data_groups = header->DataGroups();
-  pDataGroups = &data_groups[0];
+  for (size_t i = 0; i < data_groups.size(); ++i)
+    pDataGroups[i] = data_groups[i];
   return data_groups.size();
 }
 EXPORTFEATUREFUNC(IAttachment*, CreateAttachment) {
@@ -235,8 +247,10 @@ EXPORTFEATUREFUNC(const char*, GetDescription) {
 EXPORTFEATUREFUNC(uint8_t, GetRecordIdSize) { return group->RecordIdSize(); }
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaData) { return group->MetaData(); }
 EXPORTFEATUREFUNC(size_t, GetChannelGroups, IChannelGroup**& pChannelGroups) {
+  if (pChannelGroups == nullptr) return group->ChannelGroups().size();
   auto channel_groups = group->ChannelGroups();
-  pChannelGroups = &channel_groups[0];
+  for (size_t i = 0; i < channel_groups.size(); ++i)
+    pChannelGroups[i] = channel_groups[i];
   return channel_groups.size();
 }
 EXPORTFEATUREFUNC(bool, IsRead) { return group->IsRead(); }
@@ -280,8 +294,9 @@ EXPORTFEATUREFUNC(void, SetPathSeparator, wchar_t sep) {
 }
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaData) { return group->MetaData(); }
 EXPORTFEATUREFUNC(size_t, GetChannels, IChannel**& pChannels) {
+  if (pChannels == nullptr) return group->Channels().size();
   auto channels = group->Channels();
-  pChannels = &channels[0];
+  for (size_t i = 0; i < channels.size(); i++) pChannels[i] = channels[i];
   return channels.size();
 }
 EXPORTFEATUREFUNC(const ISourceInformation*, GetSourceInformation) {
@@ -673,8 +688,9 @@ EXPORTFEATUREFUNC(void, SetRangeEvent, IEvent* range) {
   event->RangeEvent(range);
 }
 EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment**& pAttachment) {
+  if (pAttachment == nullptr) return event->Attachments().size();
   auto attachment = event->Attachments();
-  pAttachment = &attachment[0];
+  for (size_t i = 0; i < attachment.size(); ++i) pAttachment[i] = attachment[i];
   return attachment.size();
 }
 EXPORTFEATUREFUNC(double, GetPreTrig) { return event->PreTrig(); }

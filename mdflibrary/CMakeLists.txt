@@ -34,6 +34,7 @@ if (_MSC_VER)
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
     add_library(mdflibrary SHARED src/MdfExport.cpp)
+    set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
 endif()
 
 target_include_directories(mdflibrary PRIVATE mdf)

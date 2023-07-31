@@ -14,12 +14,12 @@
 
 using namespace mdf;
 
-#if defined(_MSC_VER)
-//  Microsoft
+#if defined(_WIN32)
+// WINDOWS
 #define EXPORT(ReturnType, ClassName, FuncName, ...) \
   __declspec(dllexport) ReturnType ClassName##FuncName(__VA_ARGS__)
-#elif defined(__GNUC__)
-// GCC
+#elif defined(__linux__)
+// LINUX
 #define EXPORT(ReturnType, ClassName, FuncName, ...) \
   __attribute__((visibility("default")))             \
   ReturnType ClassName##FuncName(__VA_ARGS__)
@@ -771,9 +771,6 @@ EXPORTFEATUREFUNC(const char*, GetXmlSnippet) {
 }
 EXPORTFEATUREFUNC(void, SetXmlSnippet, char* xml) {
   metadata->XmlSnippet(std::string(xml));
-}
-EXPORTFEATUREFUNC(const ETag*, GetCommonProperty, char* name) {
-  return &metadata->CommonProperty(name);
 }
 EXPORTFEATUREFUNC(void, AddCommonProperty, ETag* tag) {
   metadata->CommonProperty(*tag);

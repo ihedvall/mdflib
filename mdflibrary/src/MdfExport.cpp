@@ -25,11 +25,11 @@ using namespace mdf;
 #endif
 
 extern "C" {
+#pragma region MdfReader
 #define EXPORTINITFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfReader, FuncName, __VA_ARGS__)
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfReader, FuncName, MdfReader* reader, ##__VA_ARGS__)
-
 EXPORTINITFUNC(MdfReader*, Init, char* filename) {
   return new MdfReader(filename);
 }
@@ -55,7 +55,9 @@ EXPORTFEATUREFUNC(bool, ReadData, IDataGroup* group) {
 }
 #undef EXPORTINITFUNC
 #undef EXPORTFEATUREFUNC
+#pragma endregion
 
+#pragma region MdfHeader
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfHeader, FuncName, IHeader* header, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex) { return header->Index(); }
@@ -150,10 +152,11 @@ EXPORTFEATUREFUNC(const IDataGroup*, CreateDataGroup) {
   return header->CreateDataGroup();
 }
 #undef EXPORTFEATUREFUNC
+#pragma endregion
 
+#pragma region MdfDataGroup
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfDataGroup, FuncName, IDataGroup* group, ##__VA_ARGS__)
-
 EXPORTFEATUREFUNC(int64_t, GetIndex) { return group->Index(); }
 EXPORTFEATUREFUNC(const char*, GetDescription) {
   return group->Description().c_str();
@@ -178,7 +181,9 @@ EXPORTFEATUREFUNC(const IChannelGroup*, FindParentChannelGroup,
 }
 EXPORTFEATUREFUNC(void, ResetSample) { group->ResetSample(); }
 #undef EXPORTFEATUREFUNC
+#pragma endregion
 
+#pragma region MdfChannelGroup
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                  \
   EXPORT(ReturnType, MdfChannelGroup, FuncName, IChannelGroup* group, \
          ##__VA_ARGS__)
@@ -223,7 +228,9 @@ EXPORTFEATUREFUNC(const ISourceInformation*, CreateSourceInformation) {
   return group->CreateSourceInformation();
 }
 #undef EXPORTFEATUREFUNC
+#pragma endregion
 
+#pragma region MdfChannel
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfChannel, FuncName, IChannel* channel, ##__VA_ARGS__)
 
@@ -312,7 +319,9 @@ EXPORTFEATUREFUNC(void, SetChannelValueAsArray, const uint8_t* value,
   channel->SetChannelValue(std::vector<uint8_t>(value, value + size), valid);
 }
 #undef EXPORTFEATUREFUNC
+#pragma endregion
 
+#pragma region MdfChannelConversion
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                           \
   EXPORT(ReturnType, MdfChannelConversion, FuncName, IChannelConversion* conv, \
          ##__VA_ARGS__)
@@ -341,7 +350,9 @@ EXPORTFEATUREFUNC(const IChannelConversion*, CreateInverse) {
 }
 
 #undef EXPORTFEATUREFUNC
+#pragma endregion
 
+#pragma region MdfChannelObserver
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                          \
   EXPORT(ReturnType, MdfChannelObserver, FuncName, IChannelObserver* channel, \
          ##__VA_ARGS__)
@@ -397,7 +408,7 @@ EXPORTFEATUREFUNC(bool, GetEngValueAsString, uint64_t sample, char*& value) {
 }
 EXPORTFEATUREFUNC(bool, GetEngValueAsArray, uint64_t sample, uint8_t*& value,
                   size_t& size) {
-  // Ref MdfChannelObserver::GetChannelValueAsArray
+  // Ref `MdfChannelObserver::GetChannelValueAsArray`
   // Note that engineering value cannot be byte arrays so I assume
   // that it was the channel value that was requested.
   std::vector<uint8_t> vec;
@@ -407,6 +418,7 @@ EXPORTFEATUREFUNC(bool, GetEngValueAsArray, uint64_t sample, uint8_t*& value,
   return valid;
 }
 #undef EXPORTFEATUREFUNC
+#pragma endregion
 
 #pragma region SourceInformation
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
@@ -444,5 +456,9 @@ EXPORTFEATUREFUNC(const IMetaData*, CreateMetaData) {
   return source_information->CreateMetaData();
 }
 #undef EXPORTFEATUREFUNC
+#pragma endregion
+
+#pragma region MdfAttachment
+
 #pragma endregion
 }

@@ -12,7 +12,7 @@ option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+add_compile_options(-fPIC)
 set(CMAKE_DEBUG_POSTFIX d)
 
 add_library(mdf STATIC
@@ -182,7 +182,7 @@ endif()
 
 if ((CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC)
     include("script/doxygen.cmake")
-    if(NOT DOXYGEN_FOUND)
+    if(DOXYGEN_FOUND)
         set(DOXYGEN_RECURSIVE NO)
         set(DOXYGEN_REPEAT_BRIEF NO)
         set(DOXYGEN_PROJECT_NAME "MDFLib")

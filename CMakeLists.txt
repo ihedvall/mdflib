@@ -9,12 +9,11 @@ project(mdflib
 option(MDF_BUILD_SHARED_LIB "Build dll/so library." ON)
 option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
 option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
+option(MDF_BUILD_SHARED_LIB_TEST "Build MdfLibraryTest." ON)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_DEBUG_POSTFIX d)
-
-add_compile_options(-fPIC)
 
 add_library(mdf STATIC
         src/mdfblock.cpp src/mdfblock.h
@@ -100,7 +99,11 @@ add_library(mdf STATIC
         src/iblock.cpp include/mdf/iblock.h
         src/vlsddata.cpp src/vlsddata.h)
 
-set_target_properties(mdf PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
+# set_target_properties(mdf PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set_target_properties(mdf PROPERTIES COMPILE_FLAGS "-fPIC")
+endif()
 
 find_package(ZLIB REQUIRED)
 target_link_libraries(mdf PRIVATE ZLIB::ZLIB)
@@ -163,6 +166,9 @@ if (MDF_BUILD_SHARED_LIB)
     add_subdirectory(mdflibrary)
 endif()
 
+if (MDF_BUILD_SHARED_LIB_TEST)
+    add_subdirectory(mdflibrary_test)
+endif()
 
 if (MDF_BUILD_TOOL)
     include("script/wxwidgets.cmake")

@@ -32,18 +32,16 @@ if (_MSC_VER)
             )
     set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
     add_library(mdflibrary SHARED src/MdfExport.cpp)
-    set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
-endif()
+    set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-fvisibility=hidden")
+    set_target_properties(mdflibrary PROPERTIES LINK_FLAGS "-Wl,-rpath,'$ORIGIN/lib'")
 
-target_include_directories(mdflibrary PRIVATE mdf)
+    # set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
+endif()
 
 target_link_libraries(mdflibrary PRIVATE mdf)
 
-set(MDF_PUBLIC_HEADERS
-include/mdflibrary/MdfExport.h
-)
+set(MDF_PUBLIC_HEADERS include/mdflibrary/MdfExport.h)
 set_target_properties(mdflibrary PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")
 get_target_property(PH1 mdflibrary PUBLIC_HEADER)
 message(STATUS "MDFLibrary Target Includes: " "${PH1}")

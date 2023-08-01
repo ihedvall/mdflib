@@ -48,6 +48,7 @@ int main() {
     MdfChannelSetUnit(cn, "s");
     MdfChannelSetRange(cn, 0, 100);
   }
+
   {
     auto* cn = MdfChannelGroupCreateChannel(cg);
     MdfChannelSetName(cn, "SignedLe");
@@ -64,7 +65,6 @@ int main() {
     MdfChannelSetDataType(cn, ChannelDataType::SignedIntegerLe);
     MdfChannelSetDataBytes(cn, sizeof(int8_t));
   }
-
   {
     auto* cn = MdfChannelGroupCreateChannel(cg);
     MdfChannelSetName(cn, "FloatLe");
@@ -82,22 +82,28 @@ int main() {
     MdfChannelSetDataBytes(cn, sizeof(double));
   }
 
-  MdfWriterInitMeasurement(Writer);
-  MdfWriterStartMeasurement(Writer, 100000000);
-
   mdf::IChannel** pChannel = nullptr;
   size_t size = MdfChannelGroupGetChannels(cg, pChannel);
   pChannel = new mdf::IChannel*[size];
   std::cout << "ChannelGroupGetChannels: " << size << std::endl;
   size = MdfChannelGroupGetChannels(cg, pChannel);
   std::cout << "Channel0: " << pChannel[0] << std::endl;
+  std::cout << "Channel1: " << pChannel[1] << std::endl;
+  std::cout << "Channel2: " << pChannel[2] << std::endl;
+  std::cout << "Channel3: " << pChannel[3] << std::endl;
+  std::cout << "Channel4: " << pChannel[4] << std::endl;
 
+  MdfWriterInitMeasurement(Writer);
+  MdfWriterStartMeasurement(Writer, 100000000);
+  std::cout << "Start measure" << std::endl;
   for (size_t i = 0; i < 50; i++) {
     MdfChannelSetChannelValueAsFloat(pChannel[1], i * 2);
     MdfChannelSetChannelValueAsFloat(pChannel[2], i * 3);
     MdfChannelSetChannelValueAsFloat(pChannel[3], i * 4);
     MdfChannelSetChannelValueAsFloat(pChannel[4], i * 5);
+    MdfWriterSaveSample(Writer, cg, 100000000 + i * 1000000);
   }
+  std::cout << "Stop measure" << std::endl;
   MdfWriterStopMeasurement(Writer, 1100000000);
   MdfWriterFinalizeMeasurement(Writer);
 }

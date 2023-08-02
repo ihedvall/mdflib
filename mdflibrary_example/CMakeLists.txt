@@ -9,8 +9,9 @@ project(mdflibrarytest
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(mdflibrarytest src/test.cpp)
-# set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
-set_target_properties(mdflibrarytest PROPERTIES LINK_FLAGS "-Wl,-rpath='$ORIGIN/lib'")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
+        set_target_properties(mdflibrarytest PROPERTIES LINK_FLAGS "-Wl,-rpath,'$ORIGIN'")
+endif()
 
-target_link_libraries(mdflibrarytest PRIVATE mdf)
 target_link_libraries(mdflibrarytest PRIVATE mdflibrary)

@@ -1,5 +1,7 @@
 #pragma once
 #include <chrono>
+#include <sstream>
+#include <iomanip>
 namespace util::time {
 
 /** \typedef SystemClock

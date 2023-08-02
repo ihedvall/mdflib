@@ -16,7 +16,7 @@
 
 #include "ilogger.h"
 #include "logmessage.h"
-#include "StringUtil.h"
+#include "stringutil.h"
 
 namespace util::log {
 

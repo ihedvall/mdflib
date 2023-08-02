@@ -38,6 +38,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        
+      # Install latest CMake.
+      - uses: lukka/get-cmake@latest
 
       # Setup vcpkg: ensures vcpkg is downloaded and built.
       # Since vcpkg.json is being used later on to install the packages

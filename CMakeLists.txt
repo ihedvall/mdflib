@@ -1,7 +1,6 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
-set(CMAKE_VERBOSE_MAKEFILEON ON)
 
 option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
@@ -21,16 +20,13 @@ project(mdflib
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_DEBUG_POSTFIX d)
 
-option(MDF_BUILD_SHARED_LIB "Build dll/so library." ON)
-option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
-option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
 option(MDF_BUILD_SHARED_LIB_Example "Build MdfLibrary Example." ON)
-option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
 
 add_subdirectory(mdflib)
+add_subdirectory(mdflibrary)
 
-if (MDF_BUILD_SHARED_LIB)
-    add_subdirectory(mdflibrary)
+if(MDF_BUILD_TEST)
+    add_subdirectory(mdflib_test)
 endif()
 
 if (MDF_BUILD_SHARED_LIB_Example)
@@ -38,20 +34,9 @@ if (MDF_BUILD_SHARED_LIB_Example)
 endif()
 
 if (MDF_BUILD_TOOL)
-    include("script/wxwidgets.cmake")
-    if (wxWidgets_FOUND)
-        add_subdirectory(mdfviewer)
-    endif()
+    add_subdirectory(mdfviewer)
 endif()
 
-
-if (MDF_BUILD_TEST)
-    include("script/googletest.cmake") 
-    if(GTEST_FOUND)
-        enable_testing()
-        add_subdirectory(test)
-    endif()
-endif()
 
 
 if ((CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC)

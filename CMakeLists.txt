@@ -1,6 +1,18 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
+set(CMAKE_VERBOSE_MAKEFILEON ON)
+
+option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
+option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
+if(MDF_BUILD_TOOL)
+    list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
+endif()
+option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." ON)
+if(MDF_BUILD_TEST)
+    list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
+endif()
+
 project(mdflib
         VERSION 2.0
         DESCRIPTION "Interface against MDF 3/4 files"

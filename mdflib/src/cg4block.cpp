@@ -5,7 +5,7 @@
 #include "cg4block.h"
 
 #include <algorithm>
-#include <cuchar>
+#include <codecvt>
 #include <climits>
 
 namespace {
@@ -139,10 +139,10 @@ void Cg4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Nof Samples", std::to_string(nof_samples_));
   dest.emplace_back("Flags", MakeFlagString(flags_));
 
-  std::mbstate_t state{};
-  char utf8[MB_LEN_MAX]{};
-  std::c16rtomb(utf8, path_separator_, &state);
-  dest.emplace_back("Path Separator", utf8);
+  wchar_t path_separator[2] = {path_separator_,0};
+  std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+
+  dest.emplace_back("Path Separator", converter.to_bytes(path_separator));
 
   dest.emplace_back("Data Bytes", std::to_string(nof_data_bytes_));
   dest.emplace_back("Invalid Bytes", std::to_string(nof_invalid_bytes_));

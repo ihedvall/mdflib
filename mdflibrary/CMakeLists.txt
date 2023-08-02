@@ -3,8 +3,8 @@
 
 if (MSVC)
     add_library(mdflibrary SHARED
-            src/AssemblyInfo.cpp
             ../include/mdflibrary/MdfExport.h src/MdfExport.cpp
+            src/AssemblyInfo.cpp
             src/MdfAttachment.cpp src/MdfAttachment.h
             src/MdfChannel.cpp src/MdfChannel.h
             src/MdfChannelArray.cpp src/MdfChannelArray.h
@@ -24,8 +24,15 @@ if (MSVC)
             src/Mdfwriter.cpp src/Mdfwriter.h
             )
     set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
+    
+    # PLEASE DON'T DELETE IT
+    set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "/EHa /clr")
+    # I DONT KNOW WHY BUT IT WORKS
+    # IT IS NEED BY GITHUB ACTIONS
+
 else()
-    add_library(mdflibrary SHARED src/MdfExport.cpp)
+    add_library(mdflibrary SHARED
+            ../include/mdflibrary/MdfExport.h src/MdfExport.cpp)
     set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-fvisibility=hidden")
     set_target_properties(mdflibrary PROPERTIES LINK_FLAGS "-Wl,-rpath,'$ORIGIN'")
 

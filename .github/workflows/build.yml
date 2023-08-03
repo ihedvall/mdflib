@@ -21,7 +21,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # not supported macos currently
+        # os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
         include:
           - os: windows-latest
             vcpkgCommitId: 0895a813036f4d189e2bdd1b62741744614347b4
@@ -31,9 +33,10 @@ jobs:
             vcpkgCommitId: 0895a813036f4d189e2bdd1b62741744614347b4
             triplet: x64-linux
 
-          - os: macos-latest
-            vcpkgCommitId: 0895a813036f4d189e2bdd1b62741744614347b4
-            triplet: x64-osx
+          # not supported macos currently
+          # - os: macos-latest
+          #   vcpkgCommitId: 0895a813036f4d189e2bdd1b62741744614347b4
+          #   triplet: x64-osx
 
     steps:
       - name: Checkout repository

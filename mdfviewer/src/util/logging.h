@@ -51,6 +51,13 @@ void LogError(const Loc &loc, const char *fmt,
 void LogString(const Loc &loc, LogSeverity severity,
                const std::string &message);  ///< Creates a generic message
 
+/** \brief Search and returns the path to the Notepad application..
+ * Search primary for the Notepad++ application and second for the Notepad
+ * application.
+ * @return The path to the Notepad++ or the Notepad application.
+ */
+std::string FindNotepad();
+
 /** \brief Backup up a file with the 9 last changes.
  *
  * Backup a file by adding a sequence number 0..9 to the file (file_N.ext).

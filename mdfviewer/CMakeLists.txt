@@ -1,15 +1,13 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
-project(MdfViewer
-        VERSION 1.0
-        DESCRIPTION "Simple MDF file browser"
-        LANGUAGES CXX)
+project(
+  MdfViewer
+  VERSION 1.0
+  DESCRIPTION "Simple MDF file browser"
+  LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
-
-include("../script/boost.cmake")
-include("../script/utillib.cmake")
 
 add_executable(mdfview 
         src/mdfviewer.cpp src/mdfviewer.h
@@ -20,40 +18,53 @@ add_executable(mdfview
         src/childframe.cpp src/childframe.h
         src/windowid.h
         src/channelobserverlistview.cpp src/channelobserverlistview.h
-        src/channelobserverframe.cpp src/channelobserverframe.h)
+        src/channelobserverframe.cpp src/channelobserverframe.h
+        src/util/csvwriter.cpp src/util/csvwriter.h
+        src/util/ilogger.cpp src/util/ilogger.h
+        src/util/logconfig.cpp src/util/logconfig.h
+        src/util/logconsole.cpp src/util/logconsole.h
+        src/util/logfile.cpp src/util/logfile.h
+        src/util/logging.cpp src/util/logging.h
+        src/util/logmessage.cpp src/util/logmessage.h
+        src/util/logstream.cpp src/util/logstream.h
+        src/util/stringutil.cpp src/util/stringutil.h
+        src/util/timestamp.cpp src/util/timestamp.h)
 
+target_include_directories(mdfview PRIVATE mdf
+                                           "${CMAKE_CURRENT_SOURCE_DIR}/../mdflib/src")
 
-target_include_directories(mdfview PRIVATE ${wxWidgets_INCLUDE_DIRS})
-target_include_directories(mdfview PRIVATE ${Boost_INCLUDE_DIRS})
-target_include_directories(mdfview PRIVATE mdf)
-target_include_directories(mdfview PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src")
-
-if (MINGW)
-target_link_options(mdfview PRIVATE -mwindows -static -fstack-protector)
+if(MSVC)
+  target_link_options(mdfview PRIVATE /SUBSYSTEM:WINDOWS)
+  target_compile_definitions(mdfview PRIVATE _WIN32_WINNT=0x0A00)
 endif()
 
-if (MSVC)
-target_link_options(mdfview PRIVATE /SUBSYSTEM:WINDOWS)
-target_compile_definitions(mdfview PRIVATE _WIN32_WINNT=0x0A00)
+if(MINGW)
+  target_link_options(mdfview PRIVATE -mwindows -static -fstack-protector)
 endif()
 
 target_link_libraries(mdfview PRIVATE mdf)
-target_link_libraries(mdfview PRIVATE util)
-target_link_libraries(mdfview PRIVATE expat)
-target_link_libraries(mdfview PRIVATE ${wxWidgets_LIBRARIES})
-target_link_libraries(mdfview PRIVATE ${Boost_LIBRARIES})
-target_link_libraries(mdfview PRIVATE ${ZLIB_LIBRARIES})
-target_link_libraries(mdfview PRIVATE ${OPENSSL_CRYPTO_LIBRARY} )
 
-if (MINGW)
-    target_link_libraries(mdfview PRIVATE iconv)
+find_package(expat CONFIG REQUIRED)
+target_link_libraries(mdfview PRIVATE expat::expat)
+
+find_package(ZLIB REQUIRED)
+target_link_libraries(mdfview PRIVATE ZLIB::ZLIB)
+
+find_package(Boost REQUIRED COMPONENTS filesystem locale)
+target_link_libraries(mdfview PRIVATE Boost::boost Boost::filesystem Boost::locale)
+
+find_package(wxWidgets CONFIG REQUIRED)
+target_link_libraries(mdfview PRIVATE wx::core wx::base)
+
+if(MINGW)
+  target_link_libraries(mdfview PRIVATE iconv)
 endif()
 
-if (WIN32)
-target_link_libraries(mdfview PRIVATE bcrypt)
-target_link_libraries(mdfview PRIVATE ws2_32)
+if(WIN32)
+  target_link_libraries(mdfview PRIVATE bcrypt)
+  target_link_libraries(mdfview PRIVATE ws2_32)
 endif()
 
-if (UNIX)
-target_link_libraries(mdfview PRIVATE rt icuuc icui18n)
-endif (UNIX)
+if(UNIX)
+  target_link_libraries(mdfview PRIVATE rt icuuc icui18n)
+endif(UNIX)

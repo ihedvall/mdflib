@@ -13,6 +13,9 @@
         "mdfviewer": {
             "description": "Build mdf viewer",
             "dependencies": [
+                "boost-filesystem",
+                "boost-process",
+                "boost-locale",
                 "wxwidgets"
             ]
 

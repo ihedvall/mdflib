@@ -11,7 +11,7 @@
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
-#include "util/TimeUtil.h"
+#include "util/timestamp.h"
 
 #include "mdf/isourceinformation.h"
 #include "mdf/iattachment.h"

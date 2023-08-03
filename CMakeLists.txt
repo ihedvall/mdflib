@@ -3,92 +3,80 @@
 cmake_minimum_required(VERSION 3.20)
 
 option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
-option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
+option(MDF_BUILD_SHARED_LIB_Example "Build MdfLibrary Example." ON)
+option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." ON)
 if(MDF_BUILD_TOOL)
-    list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
+  list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
 endif()
 option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." ON)
 if(MDF_BUILD_TEST)
-    list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
+  list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
 endif()
 
-project(mdflib
-        VERSION 2.0
-        DESCRIPTION "Interface against MDF 3/4 files"
-        LANGUAGES CXX)
+project(
+  mdflib
+  VERSION 2.0
+  DESCRIPTION "Interface against MDF 3/4 files"
+  LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_DEBUG_POSTFIX d)
 
-option(MDF_BUILD_SHARED_LIB_Example "Build MdfLibrary Example." ON)
 
 add_subdirectory(mdflib)
 add_subdirectory(mdflibrary)
 
 if(MDF_BUILD_TEST)
-    add_subdirectory(mdflib_test)
+  add_subdirectory(mdflib_test)
 endif()
 
-if (MDF_BUILD_SHARED_LIB_Example)
-    add_subdirectory(mdflibrary_example)
+if(MDF_BUILD_SHARED_LIB_Example)
+  add_subdirectory(mdflibrary_example)
 endif()
 
-if (MDF_BUILD_TOOL)
-    add_subdirectory(mdfviewer)
+if(MDF_BUILD_TOOL)
+  add_subdirectory(mdfviewer)
 endif()
 
-
-
-if ((CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC)
-    include("script/doxygen.cmake")
-    if(DOXYGEN_FOUND)
-        set(DOXYGEN_RECURSIVE NO)
-        set(DOXYGEN_REPEAT_BRIEF NO)
-        set(DOXYGEN_PROJECT_NAME "MDFLib")
-        set(DOXYGEN_HTML_EXTRA_STYLESHEET doxygen/utillib.css)
-        set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/manual)
-        doxygen_add_docs( doc_libmdf ALL
-                include/mdf doxygen
-                COMMENT "MDF Library generating API documentation with Doxygen")
-    endif()
+if((CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC)
+  include("script/doxygen.cmake")
+  if(DOXYGEN_FOUND)
+    set(DOXYGEN_RECURSIVE NO)
+    set(DOXYGEN_REPEAT_BRIEF NO)
+    set(DOXYGEN_PROJECT_NAME "MDFLib")
+    set(DOXYGEN_HTML_EXTRA_STYLESHEET doxygen/utillib.css)
+    set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/manual)
+    doxygen_add_docs(
+      doc_libmdf ALL include/mdf doxygen
+      COMMENT "MDF Library generating API documentation with Doxygen")
+  endif()
 endif()
 
-
-######################################################################################
+# ##############################################################################
 # Packaging
-######################################################################################
+# ##############################################################################
 # https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#creating-a-package-configuration-file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibConfigVersion.cmake"
   VERSION ${Upstream_VERSION}
-  COMPATIBILITY AnyNewerVersion
-)
+  COMPATIBILITY AnyNewerVersion)
 
-export(EXPORT MdfLibTargets
+export(
+  EXPORT MdfLibTargets
   FILE "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibTargets.cmake"
-  NAMESPACE Upstream::
-)
+  NAMESPACE Upstream::)
 configure_file(cmake/MdfLibConfig.cmake
-  "${CMAKE_CURRENT_BINARY_DIR}/mdflib/MdfLibConfig.cmake"
-  COPYONLY
-)
+               "${CMAKE_CURRENT_BINARY_DIR}/mdflib/MdfLibConfig.cmake" COPYONLY)
 
 set(ConfigPackageLocation lib/cmake/mdflib)
-install(EXPORT MdfLibTargets
-  FILE
-    MdfLibTargets.cmake
-  NAMESPACE
-    Upstream::
-  DESTINATION
-    ${ConfigPackageLocation}
-)
 install(
-  FILES
-    cmake/MdfLibConfig.cmake
-    "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibConfigVersion.cmake"
-  DESTINATION
-    ${ConfigPackageLocation}
-  COMPONENT
-    Devel
-)
+  EXPORT MdfLibTargets
+  FILE MdfLibTargets.cmake
+  NAMESPACE Upstream::
+  DESTINATION ${ConfigPackageLocation})
+install(
+  FILES cmake/MdfLibConfig.cmake
+        "${CMAKE_CURRENT_BINARY_DIR}/mdflib/mdflibConfigVersion.cmake"
+  DESTINATION ${ConfigPackageLocation}
+  COMPONENT Devel)

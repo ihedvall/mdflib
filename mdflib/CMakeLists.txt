@@ -85,65 +85,66 @@ add_library(mdf STATIC
         src/iblock.cpp ../include/mdf/iblock.h
         src/vlsddata.cpp src/vlsddata.h)
 
-# set_target_properties(mdflib PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set_target_properties(mdf PROPERTIES COMPILE_FLAGS "-fPIC")
-endif()
-
 find_package(ZLIB REQUIRED)
 target_link_libraries(mdf PRIVATE ZLIB::ZLIB)
 
 find_package(expat CONFIG REQUIRED)
 target_link_libraries(mdf PRIVATE expat::expat)
 
-target_include_directories(mdf PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-        )
+target_include_directories(
+  mdf PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>)
+
+# set_target_properties(mdflib PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS
+# "-m32")
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set_target_properties(mdf PROPERTIES COMPILE_FLAGS "-fPIC")
+endif()
 
 set(MDF_PUBLIC_HEADERS
-        ../include/mdf/cryptoutil.h
-        ../include/mdf/etag.h
-        ../include/mdf/iattachment.h
-        ../include/mdf/iblock.h
-        ../include/mdf/ichannel.h
-        ../include/mdf/ichannelarray.h
-        ../include/mdf/ichannelconversion.h
-        ../include/mdf/ichannelgroup.h
-        ../include/mdf/ichannelhierarchy.h
-        ../include/mdf/ichannelobserver.h
-        ../include/mdf/idatagroup.h
-        ../include/mdf/ievent.h
-        ../include/mdf/ifilehistory.h
-        ../include/mdf/iheader.h
-        ../include/mdf/imetadata.h
-        ../include/mdf/isampleobserver.h
-        ../include/mdf/isourceinformation.h
-        ../include/mdf/mdffactory.h
-        ../include/mdf/mdffile.h
-        ../include/mdf/mdfhelper.h
-        ../include/mdf/mdflogstream.h
-        ../include/mdf/mdfreader.h
-        ../include/mdf/mdfwriter.h
-        ../include/mdf/samplerecord.h
-        ../include/mdf/zlibutil.h
-)
+    ../include/mdf/cryptoutil.h
+    ../include/mdf/etag.h
+    ../include/mdf/iattachment.h
+    ../include/mdf/iblock.h
+    ../include/mdf/ichannel.h
+    ../include/mdf/ichannelarray.h
+    ../include/mdf/ichannelconversion.h
+    ../include/mdf/ichannelgroup.h
+    ../include/mdf/ichannelhierarchy.h
+    ../include/mdf/ichannelobserver.h
+    ../include/mdf/idatagroup.h
+    ../include/mdf/ievent.h
+    ../include/mdf/ifilehistory.h
+    ../include/mdf/iheader.h
+    ../include/mdf/imetadata.h
+    ../include/mdf/isampleobserver.h
+    ../include/mdf/isourceinformation.h
+    ../include/mdf/mdffactory.h
+    ../include/mdf/mdffile.h
+    ../include/mdf/mdfhelper.h
+    ../include/mdf/mdflogstream.h
+    ../include/mdf/mdfreader.h
+    ../include/mdf/mdfwriter.h
+    ../include/mdf/samplerecord.h
+    ../include/mdf/zlibutil.h)
 set_target_properties(mdf PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")
 get_target_property(PH1 mdf PUBLIC_HEADER)
 message(STATUS "MDF Target Includes: " "${PH1}")
 
-if (WIN32)
-    install(TARGETS mdf
-            EXPORT MdfLibTargets
-            LIBRARY DESTINATION mdf/lib
-            ARCHIVE DESTINATION mdf/lib
-            RUNTIME DESTINATION mdf/bin
-            PUBLIC_HEADER DESTINATION mdf/include/mdf)
+if(WIN32)
+  install(
+    TARGETS mdf
+    EXPORT MdfLibTargets
+    LIBRARY DESTINATION mdf/lib
+    ARCHIVE DESTINATION mdf/lib
+    RUNTIME DESTINATION mdf/bin
+    PUBLIC_HEADER DESTINATION mdf/include/mdf)
 else()
-    install(TARGETS mdf
-            EXPORT MdfLibTargets
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            RUNTIME DESTINATION bin
-            PUBLIC_HEADER DESTINATION include/mdf)
+  install(
+    TARGETS mdf
+    EXPORT MdfLibTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    PUBLIC_HEADER DESTINATION include/mdf)
 endif()

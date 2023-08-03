@@ -23,45 +23,48 @@ if (MSVC)
             src/MdfSourceInformation.cpp src/MdfSourceInformation.h
             src/Mdfwriter.cpp src/Mdfwriter.h
             )
-    set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
-    
-    # PLEASE DON'T DELETE IT
-    set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "/EHa /clr")
-    # I DONT KNOW WHY BUT IT WORKS
-    # IT IS NEED BY GITHUB ACTIONS
+  set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
+
+  # PLEASE DON'T DELETE IT
+  set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "/EHa /clr")
+  # I DONT KNOW WHY BUT IT WORKS IT IS NEED BY GITHUB ACTIONS
 
 else()
-    add_library(mdflibrary SHARED
-            ../include/mdflibrary/MdfExport.h src/MdfExport.cpp)
-    set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-fvisibility=hidden")
-    set_target_properties(mdflibrary PROPERTIES LINK_FLAGS "-Wl,-rpath,'$ORIGIN'")
+  add_library(mdflibrary SHARED ../include/mdflibrary/MdfExport.h
+                                src/MdfExport.cpp)
+  set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS
+                                              "-fvisibility=hidden")
+  set_target_properties(mdflibrary PROPERTIES LINK_FLAGS "-Wl,-rpath,'$ORIGIN'")
 
-    # set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
+  # set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS
+  # "-m32")
 endif()
 
 target_link_libraries(mdflibrary PRIVATE mdf)
 
-target_include_directories(mdflibrary PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-        )
+target_include_directories(
+  mdflibrary PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>)
 
 set(MDFLIBRARY_PUBLIC_HEADERS ../include/mdflibrary/MdfExport.h)
-set_target_properties(mdflibrary PROPERTIES PUBLIC_HEADER "${MDFLIBRARY_PUBLIC_HEADERS}")
+set_target_properties(mdflibrary PROPERTIES PUBLIC_HEADER
+                                            "${MDFLIBRARY_PUBLIC_HEADERS}")
 get_target_property(PH1 mdflibrary PUBLIC_HEADER)
 message(STATUS "MDFLibrary Target Includes: " "${PH1}")
 
-if (WIN32)
-    install(TARGETS mdflibrary
-            EXPORT MdfLibraryTargets
-            LIBRARY DESTINATION mdflibrary/lib
-            ARCHIVE DESTINATION mdflibrary/lib
-            RUNTIME DESTINATION mdflibrary/bin
-            PUBLIC_HEADER DESTINATION mdf/include/mdflibrary)
+if(WIN32)
+  install(
+    TARGETS mdflibrary
+    EXPORT MdfLibraryTargets
+    LIBRARY DESTINATION mdflibrary/lib
+    ARCHIVE DESTINATION mdflibrary/lib
+    RUNTIME DESTINATION mdflibrary/bin
+    PUBLIC_HEADER DESTINATION mdf/include/mdflibrary)
 else()
-    install(TARGETS mdflibrary
-            EXPORT MdfLibraryTargets
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            RUNTIME DESTINATION bin
-            PUBLIC_HEADER DESTINATION include/mdflibrary)
+  install(
+    TARGETS mdflibrary
+    EXPORT MdfLibraryTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    PUBLIC_HEADER DESTINATION include/mdflibrary)
 endif()

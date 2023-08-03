@@ -14,7 +14,7 @@
 #include "mdf4file.h"
 #include "util/logconfig.h"
 #include "util/logstream.h"
-#include "util/StringUtil.h"
+#include "util/stringutil.h"
 using namespace std::filesystem;
 using namespace util::string;
 using namespace mdf;

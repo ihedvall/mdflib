@@ -25,10 +25,6 @@ if (MSVC)
             )
   set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
 
-  # PLEASE DON'T DELETE IT
-  set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "/EHa /clr")
-  # I DONT KNOW WHY BUT IT WORKS IT IS NEED BY GITHUB ACTIONS
-
 else()
   add_library(mdflibrary SHARED ../include/mdflibrary/MdfExport.h
                                 src/MdfExport.cpp)

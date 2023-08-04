@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
 
+option(MDF_BUILD_SHARED_LIB "Build shared library." ON)
+option(MDF_BUILD_SHARED_LIB_EXAMPLE "Build MdfLibrary Example." OFF)
 option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
 if(MDF_BUILD_DOC)
   list(APPEND VCPKG_MANIFEST_FEATURES "mdflibdoc")
@@ -14,7 +16,6 @@ option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
 if(MDF_BUILD_TEST)
   list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
 endif()
-option(MDF_BUILD_SHARED_LIB_EXAMPLE "Build MdfLibrary Example." OFF)
 
 project(
   mdflib
@@ -22,18 +23,17 @@ project(
   DESCRIPTION "Interface against MDF 3/4 files"
   LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_DEBUG_POSTFIX d)
-
-
 add_subdirectory(mdflib)
-add_subdirectory(mdflibrary)
+
+if(MDF_BUILD_SHARED_LIB)
+  add_subdirectory(mdflibrary)
+endif()
 
 if(MDF_BUILD_TEST)
   add_subdirectory(mdflib_test)
 endif()
 
-if(MDF_BUILD_SHARED_LIB_EXAMPLE)
+if(MDF_BUILD_SHARED_LIB AND MDF_BUILD_SHARED_LIB_EXAMPLE)
   add_subdirectory(mdflibrary_example)
 endif()
 

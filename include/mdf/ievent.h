@@ -8,7 +8,6 @@
  */
 #pragma once
 #include <mdf/iattachment.h>
-#include <mdf/imetadata.h>
 #include <mdf/iblock.h>
 
 #include <cstdint>

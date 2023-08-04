@@ -15,10 +15,10 @@
         },
         {
             "name": "msvc-multi-vcpkg",
-            "displayName": "Msvc Multi-Config Configure Settings",
+            "displayName": "MSVC Multi-Config Configure Settings",
             "description": "Configure with vcpkg toolchain",
             "generator": "Visual Studio 17 2022",
-            "toolset": "host=x64",
+            "toolset": "v143,version=14.36.32532,host=x64",
             "architecture": "x64",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
@@ -34,13 +34,21 @@
             "name": "ninja-multi-vcpkg",
             "description": "Build ninja-multi-vcpkg Configurations",
             "displayName": "Build ninja-multi-vcpkg",
-            "configurePreset": "ninja-multi-vcpkg"
+            "configurePreset": "ninja-multi-vcpkg",
+            "targets": [
+                "all",
+                "install"
+            ]
         },
         {
             "name": "msvc-multi-vcpkg",
             "description": "Build msvc-multi-vcpkg Configurations",
             "displayName": "Build msvc-multi-vcpkg",
-            "configurePreset": "msvc-multi-vcpkg"
+            "configurePreset": "msvc-multi-vcpkg",
+            "targets": [
+                "ALL_BUILD",
+                "install"
+            ]
         }
     ]
 }

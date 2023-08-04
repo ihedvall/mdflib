@@ -27,16 +27,13 @@ jobs:
         include:
           - os: windows-latest
             vcpkgCommitId: 0895a813036f4d189e2bdd1b62741744614347b4
-            triplet: x64-windows-static
 
           - os: ubuntu-latest
             vcpkgCommitId: 0895a813036f4d189e2bdd1b62741744614347b4
-            triplet: x64-linux
 
           # not supported macos currently
           # - os: macos-latest
           #   vcpkgCommitId: 0895a813036f4d189e2bdd1b62741744614347b4
-          #   triplet: x64-osx
 
     steps:
       - name: Checkout repository
@@ -75,6 +72,7 @@ jobs:
           # runVcpkgInstall: true
 
       - name: Run CMake consuming CMakePreset.json and run vcpkg to build dependencies
+        if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
         uses: lukka/run-cmake@v10
         with:
           # This is the default path to the CMakeLists.txt along side the
@@ -89,6 +87,24 @@ jobs:
 
           # This is the name of the CMakePresets.json's configuration to build the project.
           buildPreset: 'ninja-multi-vcpkg'
+
+      - name: Run CMake consuming CMakePreset.json and run vcpkg to build dependencies
+        if: ${{ runner.os == 'Windows' }}
+        uses: lukka/run-cmake@v10
+        with:
+          # This is the default path to the CMakeLists.txt along side the
+          # CMakePresets.json. Change if you need have CMakeLists.txt and CMakePresets.json
+          # located elsewhere.
+          cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
+ 
+          # This is the name of the CMakePresets.json's configuration to use to generate
+          # the project files. This configuration leverages the vcpkg.cmake toolchain file to
+          # run vcpkg and install all dependencies specified in vcpkg.json.
+          configurePreset: 'msvc-multi-vcpkg'
+
+          # This is the name of the CMakePresets.json's configuration to build the project.
+          buildPreset: 'msvc-multi-vcpkg'
+
       - name: Upload build
         uses: actions/upload-artifact@v3
         with:

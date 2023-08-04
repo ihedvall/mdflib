@@ -12,6 +12,21 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
             }
+        },
+        {
+            "name": "msvc-multi-vcpkg",
+            "displayName": "Msvc Multi-Config Configure Settings",
+            "description": "Configure with vcpkg toolchain",
+            "generator": "Visual Studio 17 2022",
+            "toolset": "host=x64",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
+            }
         }
     ],
     "buildPresets": [
@@ -20,6 +35,12 @@
             "description": "Build ninja-multi-vcpkg Configurations",
             "displayName": "Build ninja-multi-vcpkg",
             "configurePreset": "ninja-multi-vcpkg"
+        },
+        {
+            "name": "msvc-multi-vcpkg",
+            "description": "Build msvc-multi-vcpkg Configurations",
+            "displayName": "Build msvc-multi-vcpkg",
+            "configurePreset": "msvc-multi-vcpkg"
         }
     ]
 }

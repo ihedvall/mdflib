@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
 
-option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." ON)
+option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
 if(MDF_BUILD_DOC)
   list(APPEND VCPKG_MANIFEST_FEATURES "mdflibdoc")
 endif()

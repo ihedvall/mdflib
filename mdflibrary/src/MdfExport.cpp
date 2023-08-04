@@ -3,9 +3,31 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <mdflibrary/MdfExport.h>
+#include <mdf/etag.h>
+#include <mdf/iattachment.h>
+#include <mdf/idatagroup.h>
+#include <mdf/ievent.h>
+#include <mdf/ifilehistory.h>
+#include <mdf/mdffactory.h>
+#include <mdf/mdfreader.h>
+#include <mdf/mdfwriter.h>
 
-extern "C" {
+using namespace mdf;
+
+#if defined(_WIN32)
+// WINDOWS
+#define EXPORT(ReturnType, ClassName, FuncName, ...) \
+  __declspec(dllexport) ReturnType ClassName##FuncName(__VA_ARGS__)
+#elif defined(__linux__)
+// LINUX
+#define EXPORT(ReturnType, ClassName, FuncName, ...) \
+  __attribute__((visibility("default")))             \
+  ReturnType ClassName##FuncName(__VA_ARGS__)
+#else
+#pragma warning Unknown dynamic link import / export semantics.
+#endif
+
+namespace MdfLibrary {
 #pragma region MdfReader
 #define EXPORTINITFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfReader, FuncName, __VA_ARGS__)
@@ -797,3 +819,5 @@ EXPORTFEATUREFUNC(void, AddCommonProperty, ETag* tag) {
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 }
+
+#undef EXPORT

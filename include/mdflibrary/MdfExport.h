@@ -1,13 +1,304 @@
-#include <mdf/etag.h>
-#include <mdf/iattachment.h>
-#include <mdf/idatagroup.h>
-#include <mdf/ievent.h>
-#include <mdf/ifilehistory.h>
-#include <mdf/mdffactory.h>
-#include <mdf/mdfreader.h>
-#include <mdf/mdfwriter.h>
+#pragma once
+#include <cstdint>
 
-using namespace mdf;
+namespace mdf {
+
+#pragma region Classes
+class MdfReader;
+class MdfWriter;
+class MdfFile;
+class IHeader;
+class IDataGroup;
+class IChannelGroup;
+class IChannel;
+class IChannelArray;
+class IChannelConversion;
+class IChannelObserver;
+class ISourceInformation;
+class IAttachment;
+class IFileHistory;
+class IEvent;
+class ETag;
+class IMetaData;
+#pragma endregion
+
+#pragma region Enumerations
+/** \brief MDF writer types. */
+enum class MdfWriterType : int {
+  Mdf3Basic = 0, ///< Basic MDF version 3 writer.
+  Mdf4Basic = 1  ///< Basic MDF version 4 writer.
+};
+
+/** \brief Channel functional type.
+ *
+ * Most channels are marked as 'FixedLength' which means that its
+ * size in a record is fixed. This works well with most data types but
+ * byte arrays and strings may change its size. Instead are these data types
+ * marked as 'Variable Length'. Avoid writing variable length data as it
+ * may allocate a lot of memory as it flush at the end of the measurement.
+ *
+ * One channel in channel group (IChannelGroup), should be marked as a master
+ * channel. This channel is typical relative sample time with seconds as
+ * unit. The master channel is typical used on the X-axis when plotting data.
+ *
+ * The 'VirtualMaster' channel can be used if the sample number is linear
+ * related to the sample time. The channel conversion (CC) block should
+ * define the sample number to time conversion.
+ *
+ * The 'Sync' channel is used to synchronize an attachment block (file).
+ *
+ * The 'MaxLength' type is typical used when storing CAN byte array where
+ * another channel stores actual bytes stored in a sample. For CAN the size
+ * in the max record size is 8 bytes.
+ *
+ * The 'VirtualData' is similar to the 'VirtualMaster' channel but related to
+ * data. Good luck to find a use of this type.
+ */
+enum class ChannelType : uint8_t {
+  FixedLength = 0,    ///< Fixed length data (default type)
+  VariableLength = 1, ///< Variable length data
+  Master = 2,         ///< Master channel
+  VirtualMaster = 3,  ///< Virtual master channel
+  Sync = 4,           ///< Synchronize channel
+  MaxLength = 5,      ///< Max length channel
+  VirtualData = 6     ///< Virtual data channel
+};
+
+/** \brief Synchronization type
+ *
+ * Defines the synchronization type. The type is 'None' for fixed length
+ * channel but should be set for master and synchronization channels.
+ */
+enum class ChannelSyncType : uint8_t {
+  None = 0,     ///< No synchronization (default value)
+  Time = 1,     ///< Time type
+  Angle = 2,    ///< Angle type
+  Distance = 3, ///< Distance type
+  Index = 4     ///< Sample number
+};
+
+/** \brief Channel data type.
+ *
+ * Defines the channel data type. Avoid defining value sizes that doesn't align
+ * to a byte size.
+ *
+ * The Le and Be extension is related to byte order. Little endian (Intel
+ * byte order) while big endian (Motorola byte order).
+ */
+enum class ChannelDataType : uint8_t {
+  UnsignedIntegerLe= 0,  ///< Unsigned integer, little endian.
+  UnsignedIntegerBe = 1, ///< Unsigned integer, big endian.
+  SignedIntegerLe = 2,   ///< Signed integer, little endian.
+  SignedIntegerBe = 3,   ///< Signed integer, big endian.
+  FloatLe = 4,           ///< Float, little endian.
+  FloatBe = 5,           ///< Float, big endian.
+  StringAscii = 6,       ///< Text,  ISO-8859-1 coded
+  StringUTF8 = 7,        ///< Text, UTF8 coded.
+  StringUTF16Le = 8,     ///< Text, UTF16 coded little endian.
+  StringUTF16Be = 9,     ///< Text, UTF16 coded big endian.
+  ByteArray = 10,        ///< Byte array.
+  MimeSample = 11,       ///< MIME sample byte array.
+  MimeStream = 12,       ///< MIME stream byte array.
+  CanOpenDate = 13,      ///< 7-byte CANOpen date.
+  CanOpenTime = 14,      ///< 6-byte CANOpen time.
+  ComplexLe = 15,        ///< Complex value, little endian.
+  ComplexBe = 16         ///< Complex value, big endian.
+};
+
+/** \brief Channel flags. See also IChannel::Flags().
+ *
+ */
+namespace CnFlag {
+constexpr uint32_t AllValuesInvalid = 0x0001; ///< All values are invalid.
+constexpr uint32_t InvalidValid = 0x0002; ///< Invalid bit is used.
+constexpr uint32_t PrecisionValid = 0x0004; ///< Precision is used.
+constexpr uint32_t RangeValid = 0x0008; ///< Range is used.
+constexpr uint32_t LimitValid = 0x0010; ///< Limit is used.
+constexpr uint32_t ExtendedLimitValid = 0x0020; ///< Extended limit is used.
+constexpr uint32_t Discrete = 0x0040; ///< Discrete channel.
+constexpr uint32_t Calibration = 0x0080; ///< Calibrated channel.
+constexpr uint32_t Calculated = 0x0100; ///< Calculated channel.
+constexpr uint32_t Virtual = 0x0200; ///< Virtual channel.
+constexpr uint32_t BusEvent = 0x0400; ///< Bus event channel.
+constexpr uint32_t StrictlyMonotonous = 0x0800; ///< Strict monotonously.
+constexpr uint32_t DefaultX = 0x1000; ///< Default x-axis channel.
+constexpr uint32_t EventSignal = 0x2000; ///< Event signal.
+constexpr uint32_t VlsdDataStream = 0x4000; ///< VLSD data stream channel.
+}  // namespace CnFlag
+
+/** \brief Type of conversion formula
+ *
+ * The type together with the Parameter() function defines
+ * the conversion between channel and engineering value.
+ *
+ */
+enum class ConversionType : uint8_t {
+  /** \brief 1:1 conversion. No parameters needed. */
+  NoConversion = 0,
+
+  /** \brief Linear conversion. 2 parameters.
+   * Eng = Ch * Par(1) + Par(0).
+   */
+  Linear = 1,
+
+  /** \brief Rational function conversion. 6 parameters.
+   *  Eng = (Par(0)*Ch^2 + Par(1)*Ch + Par(2)) /
+   *  (Par(3)*Ch^2 + Par(4)*Ch + Par(5))
+   */
+  Rational = 2,
+  Algebraic = 3, ///< Text formula.
+
+  /** \brief Value to value conversion with interpolation.
+   * Defined by a list of Key value pairs.
+   * Par(n) = key and Par(n+1) value.
+   */
+  ValueToValueInterpolation = 4,
+
+  /** \brief Value to value conversion without interpolation.
+   * Defined by a list of Key value pairs.
+   * Par(n) = key and Par(n+1) value.
+   */
+  ValueToValue = 5,
+
+  /** \brief Value range to value conversion without interpolation.
+   * Defined by a list of Key min/max value triplets.
+   * Par(3*n) = key min, Par(3*(n+1)) = key max and Par(3*(n+2)) value. Add a default
+   * value last, after all the triplets.
+   */
+  ValueRangeToValue = 6,
+
+  /** \brief Value to text conversion.
+   * Defined by a list of key values to text string conversions. This is
+   * normally used for enumerated channels.
+   * Par(n) value to Ref(n) text. Add a default
+   * referenced text last.
+   */
+  ValueToText = 7,
+
+  /** \brief Value range to text conversion.
+   * Defined by a list of key min/max values to text string conversions. This is
+   * normally used for enumerated channels.
+   * Par(2*n) min key, Par(2(n+1)) max key to Ref(n) value. Add a default
+   * referenced text  last.
+   */
+  ValueRangeToText = 8,
+
+  /** \brief Text to value conversion.
+   * Defines a list of text string to value conversion.
+   * Ref(n) key to Par(n) value. Add a default value last to the parameter list.
+   */
+  TextToValue = 9,
+
+  /** \brief Text to text conversion.
+    * Defines a list of text string to text conversion.
+    * Ref(2*n) key to Ref(2*(n+1)) value.
+    * Add a text value last to the parameter list.
+    */
+  TextToTranslation = 10,
+
+  /** \brief Bitfield to text conversion
+   * Currently unsupported conversion.
+   */
+  BitfieldToText = 11,
+  // MDF 3 types
+  Polynomial = 30, ///< MDF 3 polynomial conversion.
+  Exponential = 31, ///< MDF 3 exponential conversion.
+  Logarithmic = 32, ///< MDF 3 logarithmic conversion.
+  DateConversion = 33, ///< MDF 3 Date conversion
+  TimeConversion = 34 ///< MDF 3 Time conversion
+};
+
+/** \brief Channel conversion flags.
+ *
+ */
+namespace CcFlag {
+constexpr uint16_t PrecisionValid = 0x0001; ///< Precision is used.
+constexpr uint16_t RangeValid = 0x0002; ///< Range is used.
+constexpr uint16_t StatusString = 0x0004; ///< Status string flag.
+}  // namespace CcFlag
+
+/** \brief Type of source information. */
+enum class SourceType : uint8_t {
+  Other = 0, ///< Unknown source type.
+  Ecu = 1, ///< ECU.
+  Bus = 2, ///< Bus.
+  IoDevice = 3, ///< I/O device.
+  Tool = 4, ///< Tool.
+  User = 5 ///< User.
+};
+
+/** \brief Type of bus. */
+enum class BusType : uint8_t {
+  None = 0, ///< No bus (default).
+  Other = 1, ///< Unknown bus type.
+  Can = 2, ///< CAN bus.
+  Lin = 3, ///< LIN bus.
+  Most = 4, ///< MOST bus.
+  FlexRay = 5, ///< FlexRay bus.
+  Kline = 6, ///< KLINE bus.
+  Ethernet = 7, ///< EtherNet bus.
+  Usb = 8 ///< USB bus.
+};
+
+/** \brief Source information flags. */
+namespace SiFlag {
+constexpr uint8_t Simulated = 0x01; ///< Simulated device.
+}
+
+/** \brief Type of event. */
+enum class EventType : uint8_t {
+  RecordingPeriod = 0,       ///< Specifies a recording period (range).
+  RecordingInterrupt = 1,    ///< The recording was interrupted.
+  AcquisitionInterrupt = 2,  ///< The data acquisition was interrupted.
+  StartRecording = 3,        ///< Start recording event.
+  StopRecording = 4,         ///< Stop recording event.
+  Trigger = 5,               ///< Generic event (no range).
+  Marker = 6                 ///< Another generic event (maybe range).
+};
+
+/** \brief Type of synchronization value (default time) */
+enum class SyncType : uint8_t {
+  SyncTime = 1,      ///< Sync value represent time (s).
+  SyncAngle = 2,     ///< Sync value represent angle (rad).
+  SyncDistance = 3,  ///< Sync value represent distance (m).
+  SyncIndex = 4,     ///< Sync value represent sample index.
+};
+
+/** \brief Type of range. */
+enum class RangeType : uint8_t {
+  RangePoint = 0,  ///< Defines a point
+  RangeStart = 1,  ///< First in a range.
+  RangeEnd = 2     ///< Last in a range.
+};
+
+/** \brief Type of cause. */
+enum class EventCause : uint8_t {
+  CauseOther = 0,   ///< Unknown source.
+  CauseError = 1,   ///< An error generated this event.
+  CauseTool = 2,    ///< The tool generated this event.
+  CauseScript = 3,  ///< A script generated this event.
+  CauseUser = 4,    ///< A user generated this event.
+};
+
+/** \brief The e-tag may optional have a data type below. The value in the
+ * XML file is of course string but the data type may be used for
+ * interpretation of the value. Note that unit property can also be added.
+ *
+ * Use ISO UTC date and time formats or avoid these data types if possible
+ * as they just causing problem at presentation.
+ */
+enum class ETagDataType : uint8_t {
+  StringType = 0,  ///< Text value.
+  DecimalType = 1, ///< Decimal value (use float instead)
+  IntegerType = 2, ///< Integer value
+  FloatType = 3,   ///< Floating point value
+  BooleanType = 4, ///< Boolean tru/false value
+  DateType = 5,    ///< Date value according to ISO (YYYY-MM-DD).
+  TimeType = 6,    ///< Time value ISO
+  DateTimeType = 7 ///< Date and Time ISO string (YYYY-MM-DD hh:mm:ss)
+};
+#pragma endregion
+}  // namespace mdf
 
 #if defined(_WIN32)
 // WINDOWS
@@ -22,6 +313,9 @@ using namespace mdf;
 #pragma warning Unknown dynamic link import / export semantics.
 #endif
 
+using namespace mdf;
+
+namespace MdfLibrary {
 extern "C" {
 #pragma region MdfReader
 #define EXPORTINITFUNC(ReturnType, FuncName, ...) \
@@ -70,6 +364,8 @@ EXPORTFEATUREFUNC(bool, FinalizeMeasurement);
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfFile, FuncName, MdfFile* file, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment**& pAttachment);
+EXPORTFEATUREFUNC(bool, GetFinalized, uint16_t& standard_flags,
+                  uint16_t& custom_flags);
 EXPORTFEATUREFUNC(size_t, GetDataGroups, const IDataGroup**& pDataGroup);
 EXPORTFEATUREFUNC(const char*, GetName);
 EXPORTFEATUREFUNC(void, SetName, const char* name);
@@ -435,3 +731,6 @@ EXPORTFEATUREFUNC(void, AddCommonProperty, ETag* tag);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 }
+}  // namespace MdfLibrary
+
+#undef EXPORT

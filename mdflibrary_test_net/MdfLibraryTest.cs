@@ -144,7 +144,7 @@ public class MdfLibraryTest
         Assert.AreEqual(datagroups.Length, 2);
 
         Console.WriteLine("Name: {0}", file.Name);
-        Console.WriteLine("Filename: {0}", file.Filename);
+        Console.WriteLine("Filename: {0}", file.FileName);
         Console.WriteLine("Version: {0}", file.Version);
         Console.WriteLine("Main Version: {0}", file.MainVersion);
         Console.WriteLine("Minor Version: {0}", file.MinorVersion);
@@ -208,7 +208,6 @@ public class MdfLibraryTest
 
         Assert.IsFalse(header.IsStartAngleUsed);
         Assert.IsFalse(header.IsStartDistanceUsed);
-        Assert.IsNotNull(header.LastDataGroup);
 
         Assert.IsNotNull(header.CreateAttachment());
         Assert.IsNotNull(header.CreateFileHistory());

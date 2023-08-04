@@ -21,13 +21,19 @@ The .NET library only runs on Windows operating system.
 
 ## Building
 
-The project uses CMAKE for building. The following third-party libraries are used and
-needs to be downloaded and pre-built. Note that the .NET library is a Visual Studio build.
+Most project uses CMAKE for building. But mdflibrary_test_net need to build with Visual Studio.
 
-- ZLIB Library. Set the 'ZLIB_ROOT' variable to the ZLIB root path.
+The following third-party libraries are improted by [vcpkg](https://github.com/microsoft/vcpkg).
+- ZLIB Library.
+- EXPAT Library.
+- Boost Library. Required if the GUI applications should be built. 
 - WxWidgets Library. Required if the GUI applications should be built. 
-- Doxygen's application. Is required if the documentation should be built.
 - Google Test Library. Is required for running and build the unit tests.
+
+The following third-party application need to be downloaded by yourself.
+- Doxygen's application. Is required if the documentation should be built.
+
+
 
 ## License
 

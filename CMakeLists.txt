@@ -2,16 +2,19 @@
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
 
-option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
-option(MDF_BUILD_SHARED_LIB_Example "Build MdfLibrary Example." ON)
-option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." ON)
+option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." ON)
+if(MDF_BUILD_DOC)
+  list(APPEND VCPKG_MANIFEST_FEATURES "mdflibdoc")
+endif()
+option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
 if(MDF_BUILD_TOOL)
   list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
 endif()
-option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." ON)
+option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
 if(MDF_BUILD_TEST)
   list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
 endif()
+option(MDF_BUILD_SHARED_LIB_EXAMPLE "Build MdfLibrary Example." OFF)
 
 project(
   mdflib
@@ -30,7 +33,7 @@ if(MDF_BUILD_TEST)
   add_subdirectory(mdflib_test)
 endif()
 
-if(MDF_BUILD_SHARED_LIB_Example)
+if(MDF_BUILD_SHARED_LIB_EXAMPLE)
   add_subdirectory(mdflibrary_example)
 endif()
 
@@ -41,14 +44,14 @@ endif()
 if((CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC)
   include("script/doxygen.cmake")
   if(DOXYGEN_FOUND)
-    set(DOXYGEN_RECURSIVE NO)
-    set(DOXYGEN_REPEAT_BRIEF NO)
-    set(DOXYGEN_PROJECT_NAME "MDFLib")
-    set(DOXYGEN_HTML_EXTRA_STYLESHEET doxygen/utillib.css)
-    set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/manual)
-    doxygen_add_docs(
-      doc_libmdf ALL include/mdf doxygen
-      COMMENT "MDF Library generating API documentation with Doxygen")
+  set(DOXYGEN_RECURSIVE NO)
+  set(DOXYGEN_REPEAT_BRIEF NO)
+  set(DOXYGEN_PROJECT_NAME "MDFLib")
+  set(DOXYGEN_HTML_EXTRA_STYLESHEET doxygen/utillib.css)
+  set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/manual)
+  doxygen_add_docs(
+    doc_libmdf ALL include/mdf doxygen
+    COMMENT "MDF Library generating API documentation with Doxygen")
   endif()
 endif()
 

@@ -7,8 +7,10 @@
         "expat"
     ],
     "features": {
-        "mdflibdocument": {
-            "description": "Generate mdflib docs"
+        "mdflibdoc": {
+            "description": "Generate mdflib docs",
+            "dependencies": [
+            ]
         },
         "mdfviewer": {
             "description": "Build mdf viewer",
@@ -18,7 +20,6 @@
                 "boost-locale",
                 "wxwidgets"
             ]
-
         },
         "mdflibtest": {
             "description": "Build mdf tests",

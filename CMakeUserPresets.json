@@ -11,6 +11,23 @@
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe"
+            }
+        },
+        {
+            "name": "msvc32",
+            "displayName": "Visual Studio Community 2022 Release - x86",
+            "description": "Using compilers for Visual Studio 17 2022 (x86 architecture)",
+            "generator": "Visual Studio 17 2022",
+            "toolset": "host=x86",
+            "architecture": "win32",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_TARGET_TRIPLET": "x86-windows-static",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}",
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe"
@@ -20,9 +37,27 @@
     "buildPresets": [
         {
             "name": "msvc-debug",
-            "displayName": "Visual Studio Community 2022 Release - amd64 - Debug",
+            "displayName": "Debug",
             "configurePreset": "msvc",
             "configuration": "Debug"
+        },
+        {
+            "name": "msvc-release",
+            "displayName": "Release",
+            "configurePreset": "msvc",
+            "configuration": "Release"
+        },
+        {
+            "name": "msvc32-debug",
+            "displayName": "Debug",
+            "configurePreset": "msvc32",
+            "configuration": "Debug"
+        },
+        {
+            "name": "msvc32-release",
+            "displayName": "Release",
+            "configurePreset": "msvc32",
+            "configuration": "Release"
         }
     ]
 }

@@ -1,8 +1,10 @@
+install/
+
 .idea/
 
 # CMake
 cmake-build-*/
-
+CMakeUserPresets.json
 
 # File-based project format
 *.iws

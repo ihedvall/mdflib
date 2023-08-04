@@ -18,7 +18,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\mdflibrary\mdflibrary.vcxproj" />
+      <Reference Include="mdflibrary">
+        <HintPath>..\install\msvc\mdflibrary\bin\mdflibrary.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

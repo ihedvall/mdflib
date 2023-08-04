@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "mdflibrary_test": {
-      "commandName": "Project",
-      "nativeDebugging": true
-    }
-  }
-}

@@ -58,7 +58,7 @@ if(WIN32)
     LIBRARY DESTINATION mdflibrary/lib
     ARCHIVE DESTINATION mdflibrary/lib
     RUNTIME DESTINATION mdflibrary/bin
-    PUBLIC_HEADER DESTINATION mdf/include/mdflibrary)
+    PUBLIC_HEADER DESTINATION mdflibrary/include/mdflibrary)
 else()
   install(
     TARGETS mdflibrary

@@ -23,6 +23,9 @@ project(
   DESCRIPTION "Interface against MDF 3/4 files"
   LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_DEBUG_POSTFIX d)
+
 add_subdirectory(mdflib)
 
 if(MDF_BUILD_SHARED_LIB)
@@ -44,14 +47,14 @@ endif()
 if((CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC)
   include("script/doxygen.cmake")
   if(DOXYGEN_FOUND)
-  set(DOXYGEN_RECURSIVE NO)
-  set(DOXYGEN_REPEAT_BRIEF NO)
-  set(DOXYGEN_PROJECT_NAME "MDFLib")
-  set(DOXYGEN_HTML_EXTRA_STYLESHEET doxygen/utillib.css)
-  set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/manual)
-  doxygen_add_docs(
-    doc_libmdf ALL include/mdf doxygen
-    COMMENT "MDF Library generating API documentation with Doxygen")
+    set(DOXYGEN_RECURSIVE NO)
+    set(DOXYGEN_REPEAT_BRIEF NO)
+    set(DOXYGEN_PROJECT_NAME "MDFLib")
+    set(DOXYGEN_HTML_EXTRA_STYLESHEET doxygen/utillib.css)
+    set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs/manual)
+    doxygen_add_docs(
+      doc_libmdf ALL include/mdf doxygen
+      COMMENT "MDF Library generating API documentation with Doxygen")
   endif()
 endif()
 

@@ -11,7 +11,10 @@ project(
 
 set(CMAKE_CXX_STANDARD 20)
 
+include(GoogleTest)
+
 add_executable(test_mdf
+        src/main.cpp
         src/testcrypto.cpp
         src/testread.cpp src/testread.h
         src/testwrite.cpp src/testwrite.h
@@ -36,4 +39,4 @@ target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
 
 target_link_libraries(test_mdf PRIVATE mdf)
 
-add_test(AllTestsInMain main)
+gtest_discover_tests(test_mdf)

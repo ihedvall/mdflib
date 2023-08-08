@@ -70,7 +70,7 @@ jobs:
           configurePreset: 'msvc-multi-vcpkg'
 
           # This is the name of the CMakePresets.json's configuration to build the project.
-          buildPreset: 'msvc-multi-vcpkg'
+          buildPreset: 'msvc-multi-vcpkg-release'
 
       - name: Upload build
         uses: actions/upload-artifact@v3
@@ -137,7 +137,7 @@ jobs:
           configurePreset: 'ninja-multi-vcpkg'
 
           # This is the name of the CMakePresets.json's configuration to build the project.
-          buildPreset: 'ninja-multi-vcpkg'
+          buildPreset: 'ninja-multi-vcpkg-release'
 
       - name: Upload build
         uses: actions/upload-artifact@v3

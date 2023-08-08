@@ -1,6 +1,7 @@
 #include <mdflibrary/MdfExport.h>
 
 #include <iostream>
+using namespace MdfLibrary;
 
 int main() {
   auto* Writer = MdfWriterInit(mdf::MdfWriterType::Mdf4Basic, "test.mf4");

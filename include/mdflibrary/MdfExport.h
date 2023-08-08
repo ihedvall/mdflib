@@ -315,8 +315,8 @@ enum class ETagDataType : uint8_t {
 
 using namespace mdf;
 
-namespace MdfLibrary {
 extern "C" {
+namespace MdfLibrary {
 #pragma region MdfReader
 #define EXPORTINITFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfReader, FuncName, __VA_ARGS__)
@@ -730,7 +730,7 @@ EXPORTFEATUREFUNC(void, SetXmlSnippet, const char* xml);
 EXPORTFEATUREFUNC(void, AddCommonProperty, ETag* tag);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
-}
 }  // namespace MdfLibrary
+}
 
 #undef EXPORT

@@ -3,7 +3,7 @@
 
 if (MSVC)
     add_library(mdflibrary SHARED
-            ../include/mdflibrary/MdfExport.h src/MdfExport.cpp
+            src/MdfExport.cpp
             src/AssemblyInfo.cpp
             src/MdfAttachment.cpp src/MdfAttachment.h
             src/MdfChannel.cpp src/MdfChannel.h

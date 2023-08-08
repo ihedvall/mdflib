@@ -26,6 +26,7 @@ using namespace mdf;
 #pragma warning Unknown dynamic link import / export semantics.
 #endif
 
+extern "C" {
 namespace MdfLibrary {
 #pragma region MdfReader
 #define EXPORTINITFUNC(ReturnType, FuncName, ...) \
@@ -818,5 +819,5 @@ EXPORTFEATUREFUNC(void, AddCommonProperty, ETag* tag) {
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 }
-
+}
 #undef EXPORT

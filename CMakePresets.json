@@ -9,7 +9,6 @@
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-                "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
             }
         },
@@ -23,27 +22,44 @@
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-                "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
             }
         }
     ],
     "buildPresets": [
         {
-            "name": "ninja-multi-vcpkg",
-            "description": "Build ninja-multi-vcpkg Configurations",
-            "displayName": "Build ninja-multi-vcpkg",
+            "name": "ninja-multi-vcpkg-debug",
+            "description": "Build ninja-multi-vcpkg Debug",
+            "displayName": "Build ninja-multi-vcpkg Debug",
             "configurePreset": "ninja-multi-vcpkg",
+            "configuration": "Debug",
+            "targets": "all"
+        },
+        {
+            "name": "ninja-multi-vcpkg-release",
+            "description": "Build ninja-multi-vcpkg Release",
+            "displayName": "Build ninja-multi-vcpkg Release",
+            "configurePreset": "ninja-multi-vcpkg",
+            "configuration": "Release",
             "targets": [
                 "all",
                 "install"
             ]
         },
         {
-            "name": "msvc-multi-vcpkg",
-            "description": "Build msvc-multi-vcpkg Configurations",
-            "displayName": "Build msvc-multi-vcpkg",
+            "name": "msvc-multi-vcpkg-debug",
+            "description": "Build msvc-multi-vcpkg Debug",
+            "displayName": "Build msvc-multi-vcpkg Debug",
             "configurePreset": "msvc-multi-vcpkg",
+            "configuration": "Debug",
+            "targets": "ALL_BUILD"
+        },
+        {
+            "name": "msvc-multi-vcpkg-release",
+            "description": "Build msvc-multi-vcpkg Release",
+            "displayName": "Build msvc-multi-vcpkg Release",
+            "configurePreset": "msvc-multi-vcpkg",
+            "configuration": "Release",
             "targets": [
                 "ALL_BUILD",
                 "install"

@@ -364,10 +364,10 @@ EXPORTFEATUREFUNC(bool, FinalizeMeasurement);
 #pragma region MdfFile
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfFile, FuncName, MdfFile* file, ##__VA_ARGS__)
-EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment** pAttachment);
+EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment* pAttachment[]);
 EXPORTFEATUREFUNC(bool, GetFinalized, uint16_t& standard_flags,
                   uint16_t& custom_flags);
-EXPORTFEATUREFUNC(size_t, GetDataGroups, const IDataGroup** pDataGroup);
+EXPORTFEATUREFUNC(size_t, GetDataGroups, const IDataGroup* pDataGroup[]);
 EXPORTFEATUREFUNC(const char*, GetName);
 EXPORTFEATUREFUNC(void, SetName, const char* name);
 EXPORTFEATUREFUNC(const char*, GetFileName);
@@ -416,10 +416,10 @@ EXPORTFEATUREFUNC(bool, IsStartDistanceUsed);
 EXPORTFEATUREFUNC(double, GetStartDistance);
 EXPORTFEATUREFUNC(void, SetStartDistance, double distance);
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaDatas);
-EXPORTFEATUREFUNC(size_t, GetAttachments, IAttachment** pAttachments);
-EXPORTFEATUREFUNC(size_t, GetFileHistorys, IFileHistory** pFileHistorys);
-EXPORTFEATUREFUNC(size_t, GetEvents, IEvent** pEvents);
-EXPORTFEATUREFUNC(size_t, GetDataGroups, IDataGroup** pDataGroups);
+EXPORTFEATUREFUNC(size_t, GetAttachments, IAttachment* pAttachments[]);
+EXPORTFEATUREFUNC(size_t, GetFileHistorys, IFileHistory* pFileHistorys[]);
+EXPORTFEATUREFUNC(size_t, GetEvents, IEvent* pEvents[]);
+EXPORTFEATUREFUNC(size_t, GetDataGroups, IDataGroup* pDataGroups[]);
 EXPORTFEATUREFUNC(IAttachment*, CreateAttachment);
 EXPORTFEATUREFUNC(IFileHistory*, CreateFileHistory);
 #undef CreateEvent
@@ -435,7 +435,7 @@ EXPORTFEATUREFUNC(int64_t, GetIndex);
 EXPORTFEATUREFUNC(const char*, GetDescription);
 EXPORTFEATUREFUNC(uint8_t, GetRecordIdSize);
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaData);
-EXPORTFEATUREFUNC(size_t, GetChannelGroups, IChannelGroup** pChannelGroups);
+EXPORTFEATUREFUNC(size_t, GetChannelGroups, IChannelGroup* pChannelGroups[]);
 EXPORTFEATUREFUNC(bool, IsRead);
 EXPORTFEATUREFUNC(IMetaData*, CreateMetaData);
 EXPORTFEATUREFUNC(IChannelGroup*, CreateChannelGroup);
@@ -462,7 +462,7 @@ EXPORTFEATUREFUNC(void, SetFlags, uint16_t flags);
 EXPORTFEATUREFUNC(wchar_t, GetPathSeparator);
 EXPORTFEATUREFUNC(void, SetPathSeparator, wchar_t sep);
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaData);
-EXPORTFEATUREFUNC(size_t, GetChannels, IChannel** pChannels);
+EXPORTFEATUREFUNC(size_t, GetChannels, IChannel* pChannels[]);
 EXPORTFEATUREFUNC(const ISourceInformation*, GetSourceInformation);
 EXPORTFEATUREFUNC(const IChannel*, GetXChannel, const IChannel* ref_channel);
 EXPORTFEATUREFUNC(IMetaData*, CreateMetaData);
@@ -672,7 +672,7 @@ EXPORTFEATUREFUNC(const IEvent*, GetParentEvent);
 EXPORTFEATUREFUNC(void, SetParentEvent, IEvent* parent);
 EXPORTFEATUREFUNC(const IEvent*, GetRangeEvent);
 EXPORTFEATUREFUNC(void, SetRangeEvent, IEvent* range);
-EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment** pAttachment);
+EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment* pAttachment[]);
 EXPORTFEATUREFUNC(double, GetPreTrig);
 EXPORTFEATUREFUNC(void, SetPreTrig, double time);
 EXPORTFEATUREFUNC(double, GetPostTrig);

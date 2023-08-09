@@ -16,8 +16,12 @@ env:
 
 jobs:
   windows:
-    name: run on windows
-    runs-on: windows-latest
+    name: run on ${{matrix.os}}(${{matrix.arch}})
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        arch: [x64, x64_x86]
     env:
       vcpkgCommitId: 0895a813036f4d189e2bdd1b62741744614347b4
     steps:
@@ -67,10 +71,10 @@ jobs:
           # This is the name of the CMakePresets.json's configuration to use to generate
           # the project files. This configuration leverages the vcpkg.cmake toolchain file to
           # run vcpkg and install all dependencies specified in vcpkg.json.
-          configurePreset: 'msvc-multi-vcpkg'
+          configurePreset: 'msvc-multi-vcpkg-${{ matrix.arch }}'
 
           # This is the name of the CMakePresets.json's configuration to build the project.
-          buildPreset: 'msvc-multi-vcpkg-release'
+          buildPreset: 'msvc-multi-vcpkg-${{ matrix.arch }}-release'
 
       - name: Upload build
         uses: actions/upload-artifact@v3
@@ -78,13 +82,15 @@ jobs:
           name: mdflibs-${{runner.os}}-${{runner.arch}}
           path: install/msvc-multi-vcpkg/
   mac-and-ubuntu:
-    name: run on unix
+    name: run on ${{matrix.os}}(${{matrix.arch}})
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        # os: [macos-latest, ubuntu-latest]
-        # not supported macos currently
+        os: [ubuntu-latest, 
+            # macos-latest
+            # not supported macos currently
+        ]
+        arch: [x64]
     env:
       vcpkgCommitId: 0895a813036f4d189e2bdd1b62741744614347b4
     steps:

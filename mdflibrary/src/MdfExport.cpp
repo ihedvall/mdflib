@@ -101,7 +101,7 @@ EXPORTFEATUREFUNC(bool, FinalizeMeasurement) {
 #pragma region MdfFile
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfFile, FuncName, MdfFile* file, ##__VA_ARGS__)
-EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment** pAttachment) {
+EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment* pAttachment[]) {
   AttachmentList AttachmentList;
   file->Attachments(AttachmentList);
   if (pAttachment == nullptr) return AttachmentList.size();
@@ -110,7 +110,7 @@ EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment** pAttachment) {
     pAttachment[i] = AttachmentList[i];
   return AttachmentList.size();
 }
-EXPORTFEATUREFUNC(size_t, GetDataGroups, const IDataGroup** pDataGroup) {
+EXPORTFEATUREFUNC(size_t, GetDataGroups, const IDataGroup* pDataGroup[]) {
   DataGroupList DataGroupList;
   file->DataGroups(DataGroupList);
   if (pDataGroup == nullptr) return DataGroupList.size();
@@ -218,27 +218,27 @@ EXPORTFEATUREFUNC(void, SetStartDistance, double distance) {
   header->StartDistance(distance);
 }
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaDatas) { return header->MetaData(); }
-EXPORTFEATUREFUNC(size_t, GetAttachments, IAttachment** pAttachments) {
+EXPORTFEATUREFUNC(size_t, GetAttachments, IAttachment* pAttachments[]) {
   if (pAttachments == nullptr) return header->Attachments().size();
   auto attachments = header->Attachments();
   for (size_t i = 0; i < attachments.size(); ++i)
     pAttachments[i] = attachments[i];
   return attachments.size();
 }
-EXPORTFEATUREFUNC(size_t, GetFileHistorys, IFileHistory** pFileHistorys) {
+EXPORTFEATUREFUNC(size_t, GetFileHistorys, IFileHistory* pFileHistorys[]) {
   if (pFileHistorys == nullptr) return header->FileHistories().size();
   auto file_historys = header->FileHistories();
   for (size_t i = 0; i < file_historys.size(); ++i)
     pFileHistorys[i] = file_historys[i];
   return file_historys.size();
 }
-EXPORTFEATUREFUNC(size_t, GetEvents, IEvent** pEvents) {
+EXPORTFEATUREFUNC(size_t, GetEvents, IEvent* pEvents[]) {
   if (pEvents == nullptr) return header->Events().size();
   auto events = header->Events();
   for (size_t i = 0; i < events.size(); ++i) pEvents[i] = events[i];
   return events.size();
 }
-EXPORTFEATUREFUNC(size_t, GetDataGroups, IDataGroup** pDataGroups) {
+EXPORTFEATUREFUNC(size_t, GetDataGroups, IDataGroup* pDataGroups[]) {
   if (pDataGroups == nullptr) return header->DataGroups().size();
   auto data_groups = header->DataGroups();
   for (size_t i = 0; i < data_groups.size(); ++i)
@@ -268,7 +268,7 @@ EXPORTFEATUREFUNC(const char*, GetDescription) {
 }
 EXPORTFEATUREFUNC(uint8_t, GetRecordIdSize) { return group->RecordIdSize(); }
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaData) { return group->MetaData(); }
-EXPORTFEATUREFUNC(size_t, GetChannelGroups, IChannelGroup** pChannelGroups) {
+EXPORTFEATUREFUNC(size_t, GetChannelGroups, IChannelGroup* pChannelGroups[]) {
   if (pChannelGroups == nullptr) return group->ChannelGroups().size();
   auto channel_groups = group->ChannelGroups();
   for (size_t i = 0; i < channel_groups.size(); ++i)
@@ -315,7 +315,7 @@ EXPORTFEATUREFUNC(void, SetPathSeparator, wchar_t sep) {
   group->PathSeparator(sep);
 }
 EXPORTFEATUREFUNC(const IMetaData*, GetMetaData) { return group->MetaData(); }
-EXPORTFEATUREFUNC(size_t, GetChannels, IChannel** pChannels) {
+EXPORTFEATUREFUNC(size_t, GetChannels, IChannel* pChannels[]) {
   if (pChannels == nullptr) return group->Channels().size();
   auto channels = group->Channels();
   for (size_t i = 0; i < channels.size(); i++) pChannels[i] = channels[i];
@@ -709,7 +709,7 @@ EXPORTFEATUREFUNC(const IEvent*, GetRangeEvent) { return event->RangeEvent(); }
 EXPORTFEATUREFUNC(void, SetRangeEvent, IEvent* range) {
   event->RangeEvent(range);
 }
-EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment** pAttachment) {
+EXPORTFEATUREFUNC(size_t, GetAttachments, const IAttachment* pAttachment[]) {
   if (pAttachment == nullptr) return event->Attachments().size();
   auto attachment = event->Attachments();
   for (size_t i = 0; i < attachment.size(); ++i) pAttachment[i] = attachment[i];

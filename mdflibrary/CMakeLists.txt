@@ -26,14 +26,7 @@ if (MSVC)
   set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
 
 else()
-  add_library(mdflibrary SHARED ../include/mdflibrary/MdfExport.h
-                                src/MdfExport.cpp)
-  set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS
-                                              "-fvisibility=hidden")
-  set_target_properties(mdflibrary PROPERTIES LINK_FLAGS "-Wl,-rpath,'$ORIGIN'")
-
-  # set_target_properties(mdflibrary PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS
-  # "-m32")
+  add_library(mdflibrary SHARED src/MdfExport.cpp)
 endif()
 
 target_link_libraries(mdflibrary PRIVATE mdf)

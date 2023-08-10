@@ -7,11 +7,6 @@
         "expat"
     ],
     "features": {
-        "mdflibdoc": {
-            "description": "Generate mdflib docs",
-            "dependencies": [
-            ]
-        },
         "mdfviewer": {
             "description": "Build mdf viewer",
             "dependencies": [

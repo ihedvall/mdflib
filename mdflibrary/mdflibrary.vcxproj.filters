@@ -1,58 +1,58 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="AssemblyInfo.cpp">
+    <ClCompile Include="src\AssemblyInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfAttachment.cpp">
+    <ClCompile Include="src\MdfAttachment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfChannel.cpp">
+    <ClCompile Include="src\MdfChannel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfChannelArray.cpp">
+    <ClCompile Include="src\MdfChannelArray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfChannelConversion.cpp">
+    <ClCompile Include="src\MdfChannelConversion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfChannelGroup.cpp">
+    <ClCompile Include="src\MdfChannelGroup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfChannelObserver.cpp">
+    <ClCompile Include="src\MdfChannelObserver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfDataGroup.cpp">
+    <ClCompile Include="src\MdfDataGroup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfETag.cpp">
+    <ClCompile Include="src\MdfETag.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfEvent.cpp">
+    <ClCompile Include="src\MdfEvent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfFile.cpp">
+    <ClCompile Include="src\MdfFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfFileHistory.cpp">
+    <ClCompile Include="src\MdfFileHistory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfHeader.cpp">
+    <ClCompile Include="src\MdfHeader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mdflibrary.cpp">
+    <ClCompile Include="src\mdflibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfMetaData.cpp">
+    <ClCompile Include="src\MdfMetaData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfReader.cpp">
+    <ClCompile Include="src\MdfReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfSourceInformation.cpp">
+    <ClCompile Include="src\MdfSourceInformation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MdfWriter.cpp">
+    <ClCompile Include="src\MdfWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -60,55 +60,55 @@
     <ClInclude Include="..\include\mdflibrary\MdfExport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfAttachment.h">
+    <ClInclude Include="src\MdfAttachment.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfChannel.h">
+    <ClInclude Include="src\MdfChannel.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfChannelArray.h">
+    <ClInclude Include="src\MdfChannelArray.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfChannelConversion.h">
+    <ClInclude Include="src\MdfChannelConversion.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfChannelGroup.h">
+    <ClInclude Include="src\MdfChannelGroup.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfChannelObserver.h">
+    <ClInclude Include="src\MdfChannelObserver.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfDataGroup.h">
+    <ClInclude Include="src\MdfDataGroup.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfETag.h">
+    <ClInclude Include="src\MdfETag.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfEvent.h">
+    <ClInclude Include="src\MdfEvent.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfFile.h">
+    <ClInclude Include="src\MdfFile.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfFileHistory.h">
+    <ClInclude Include="src\MdfFileHistory.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfHeader.h">
+    <ClInclude Include="src\MdfHeader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="mdflibrary.h">
+    <ClInclude Include="src\mdflibrary.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfMetaData.h">
+    <ClInclude Include="src\MdfMetaData.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfReader.h">
+    <ClInclude Include="src\MdfReader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfSourceInformation.h">
+    <ClInclude Include="src\MdfSourceInformation.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="MdfWriter.h">
+    <ClInclude Include="src\MdfWriter.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -17,7 +17,7 @@
             "displayName": "MSVC Multi-Config Configure Settings(x64)",
             "description": "Configure with vcpkg toolchain",
             "generator": "Visual Studio 17 2022",
-            "toolset": "v143,version=14.36.32532,host=x64",
+            "toolset": "host=x64",
             "architecture": "x64",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
@@ -31,7 +31,7 @@
             "displayName": "MSVC Multi-Config Configure Settings(x64_x86)",
             "description": "Configure with vcpkg toolchain",
             "generator": "Visual Studio 17 2022",
-            "toolset": "v143,version=14.36.32532,host=x64",
+            "toolset": "host=x64",
             "architecture": "Win32",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {

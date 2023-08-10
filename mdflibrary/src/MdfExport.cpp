@@ -792,19 +792,22 @@ EXPORTFEATUREFUNC(double, GetPropertyAsFloat, const char* index) {
 EXPORTFEATUREFUNC(void, SetPropertyAsFloat, const char* index, double prop) {
   metadata->FloatProperty(index, prop);
 }
-EXPORTFEATUREFUNC(size_t, GetProperties, const ETag*& pProperty) {
+EXPORTFEATUREFUNC(size_t, GetProperties, const ETag* pProperty[]) {
+  if (pProperty == nullptr) return metadata->Properties().size();
   auto properties = metadata->Properties();
-  pProperty = &properties[0];
+  for (size_t i = 0; i < properties.size(); ++i) pProperty[i] = &properties[i];
   return properties.size();
 }
-EXPORTFEATUREFUNC(size_t, GetCommonProperties, const ETag*& pProperty) {
+EXPORTFEATUREFUNC(size_t, GetCommonProperties, const ETag* pProperty[]) {
+  if (pProperty == nullptr) return metadata->CommonProperties().size();
   auto properties = metadata->CommonProperties();
-  pProperty = &properties[0];
+  for (size_t i = 0; i < properties.size(); ++i) pProperty[i] = &properties[i];
   return properties.size();
 }
-EXPORTFEATUREFUNC(void, SetCommonProperties, const ETag* pProperty,
+EXPORTFEATUREFUNC(void, SetCommonProperties, const ETag* pProperty[],
                   size_t count) {
-  std::vector<ETag> properties(pProperty, pProperty + count);
+  std::vector<ETag> properties(count);
+  for (size_t i = 0; i < count; ++i) properties[i] = *pProperty[i];
   metadata->CommonProperties(properties);
 }
 EXPORTFEATUREFUNC(const char*, GetXmlSnippet) {

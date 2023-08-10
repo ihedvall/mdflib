@@ -1,5 +1,6 @@
 #pragma once
 #include "MdfAttachment.h"
+#include "MdfHeader.h"
 
 using namespace MdfLibrary::ExportFunctions;
 
@@ -9,8 +10,8 @@ class MdfFile {
   const mdf::MdfFile* file;
 
  public:
-  MdfFile(const mdf::MdfFile* file) { this->file = file; }
-  ~MdfFile() { this->file = nullptr; }
+  MdfFile(const mdf::MdfFile* file) : file(file) {}
+  ~MdfFile() { file = nullptr; }
   const char* GetName() { return MdfFileGetName(file); }
   void SetName(const char* name) { MdfFileSetName(file, name); }
   const char* GetFileName() { return MdfFileGetFileName(file); }
@@ -28,25 +29,25 @@ class MdfFile {
   }
   const MdfHeader GetHeader() { return MdfHeader(MdfFileGetHeader(file)); }
   bool GetIsMdf4() { return MdfFileGetIsMdf4(file); }
-  const std::vector<MdfAttachment> GetAttachments() {
+  std::vector<MdfAttachment> GetAttachments() {
     size_t count = MdfFileGetAttachments(file, nullptr);
     if (count <= 0) return std::vector<MdfAttachment>();
     auto pAttachments = new mdf::IAttachment*[count];
     MdfFileGetAttachments(file, pAttachments);
-    std::vector<MdfAttachment> attachments(count);
+    std::vector<MdfAttachment> attachments;
     for (size_t i = 0; i < count; i++)
-      attachments[i] = MdfAttachment(pAttachments[i]);
+      attachments.push_back(MdfAttachment(pAttachments[i]));
     delete[] pAttachments;
     return attachments;
   }
-  const std::vector<MdfDataGroup> GetDataGroups() {
+  std::vector<MdfDataGroup> GetDataGroups() {
     size_t count = MdfFileGetDataGroups(file, nullptr);
     if (count <= 0) return std::vector<MdfDataGroup>();
     auto pDataGroups = new mdf::IDataGroup*[count];
     MdfFileGetDataGroups(file, pDataGroups);
-    std::vector<MdfDataGroup> data_groups(count);
+    std::vector<MdfDataGroup> data_groups;
     for (size_t i = 0; i < count; i++)
-      data_groups[i] = MdfDataGroup(pDataGroups[i]);
+      data_groups.push_back(MdfDataGroup(pDataGroups[i]));
     delete[] pDataGroups;
     return data_groups;
   }

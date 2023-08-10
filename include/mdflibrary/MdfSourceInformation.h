@@ -9,10 +9,9 @@ class MdfSourceInformation {
   const mdf::ISourceInformation* sourceInformation;
 
  public:
-  MdfSourceInformation(const mdf::ISourceInformation* sourceInformation) {
-    this->sourceInformation = sourceInformation;
-  }
-  ~MdfSourceInformation() { this->sourceInformation = nullptr; }
+  MdfSourceInformation(const mdf::ISourceInformation* sourceInformation)
+      : sourceInformation(sourceInformation) {}
+  ~MdfSourceInformation() { sourceInformation = nullptr; }
   int64_t GetIndex() { return MdfSourceInformationGetIndex(sourceInformation); }
   const char* GetName() {
     return MdfSourceInformationGetName(sourceInformation);

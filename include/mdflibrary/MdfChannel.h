@@ -10,8 +10,8 @@ class MdfChannel {
   const mdf::IChannel* channel;
 
  public:
-  MdfChannel(const mdf::IChannel* channel) { this->channel = channel; }
-  ~MdfChannel() { this->channel = nullptr; }
+  MdfChannel(const mdf::IChannel* channel) : channel(channel) {}
+  ~MdfChannel() { channel = nullptr; }
   const mdf::IChannel* GetChannel() { return channel; }
   int64_t GetIndex() { return MdfChannelGetIndex(channel); }
   const char* GetName() { return MdfChannelGetName(channel); }

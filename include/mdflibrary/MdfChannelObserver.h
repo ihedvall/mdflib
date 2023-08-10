@@ -9,10 +9,8 @@ class MdfChannelObserver {
   mdf::IChannelObserver* observer;
 
  public:
-  MdfChannelObserver(mdf::IChannelObserver* observer) {
-    this->observer = observer;
-  }
-  ~MdfChannelObserver() { this->observer = nullptr; }
+  MdfChannelObserver(mdf::IChannelObserver* observer) : observer(observer) {}
+  ~MdfChannelObserver() { observer = nullptr; }
   int64_t GetNofSamples() { return MdfChannelObserverGetNofSamples(observer); }
   const char* GetName() { return MdfChannelObserverGetName(observer); }
   const char* GetUnit() { return MdfChannelObserverGetUnit(observer); }

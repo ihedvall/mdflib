@@ -11,8 +11,8 @@ class MdfMetaData {
   const mdf::IMetaData* metaData;
 
  public:
-  MdfMetaData(const mdf::IMetaData* metaData) { this->metaData = metaData; }
-  ~MdfMetaData() { this->metaData = nullptr; }
+  MdfMetaData(const mdf::IMetaData* metaData) : metaData(metaData) {}
+  ~MdfMetaData() { metaData = nullptr; }
   const char* GetPropertyAsString(const char* index) {
     return MdfMetaDataGetPropertyAsString(metaData, index);
   }
@@ -30,8 +30,8 @@ class MdfMetaData {
     if (count <= 0) return std::vector<MdfETag>();
     auto pTags = new const mdf::ETag*[count];
     MdfMetaDataGetProperties(metaData, pTags);
-    std::vector<MdfETag> tags(count);
-    for (size_t i = 0; i < count; i++) tags[i] = MdfETag(pTags[i]);
+    std::vector<MdfETag> tags;
+    for (size_t i = 0; i < count; i++) tags.push_back(MdfETag(pTags[i]));
     return tags;
   }
   std::vector<MdfETag> GetCommonProperties() {
@@ -39,8 +39,8 @@ class MdfMetaData {
     if (count <= 0) return std::vector<MdfETag>();
     auto pTags = new const mdf::ETag*[count];
     MdfMetaDataGetCommonProperties(metaData, pTags);
-    std::vector<MdfETag> tags(count);
-    for (size_t i = 0; i < count; i++) tags[i] = MdfETag(pTags[i]);
+    std::vector<MdfETag> tags;
+    for (size_t i = 0; i < count; i++) tags.push_back(MdfETag(pTags[i]));
     return tags;
   }
   void SetCommonProperties(std::vector<MdfETag*> pProperty, size_t count) {

@@ -1,6 +1,5 @@
 #pragma once
 #include "MdfFile.h"
-#include "MdfHeader.h"
 
 using namespace MdfLibrary::ExportFunctions;
 
@@ -10,8 +9,8 @@ class MdfReader {
   mdf::MdfReader* reader;
 
  public:
-  MdfReader(const char* filename) { reader = MdfReaderInit(filename); }
-  ~MdfReader() { this->reader = nullptr; }
+  MdfReader(const char* filename) : reader(MdfReaderInit(filename)) {}
+  ~MdfReader() { reader = nullptr; }
   int64_t GetIndex() { return MdfReaderGetIndex(reader); }
   bool IsOk() { return MdfReaderIsOk(reader); }
   const MdfFile GetFile() { return MdfFile(MdfReaderGetFile(reader)); }

@@ -9,8 +9,8 @@ class MdfAttachment {
   const mdf::IAttachment* attachment;
 
  public:
-  MdfAttachment(const mdf::IAttachment* attachment) { this->attachment = attachment; }
-  ~MdfAttachment() { this->attachment = nullptr; }
+  MdfAttachment(const mdf::IAttachment* attachment) : attachment(attachment) {}
+  ~MdfAttachment() { attachment = nullptr; }
   const mdf::IAttachment* GetAttachment() { return attachment; }
   int64_t GetIndex() { return MdfAttachmentGetIndex(attachment); }
   uint16_t GetCreatorIndex() {

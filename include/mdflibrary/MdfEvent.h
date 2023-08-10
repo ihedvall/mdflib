@@ -10,8 +10,8 @@ class MdfEvent {
   const mdf::IEvent* event;
 
  public:
-  MdfEvent(const mdf::IEvent* event) { this->event = event; }
-  ~MdfEvent() { this->event = nullptr; }
+  MdfEvent(const mdf::IEvent* event) : event(event) {}
+  ~MdfEvent() { event = nullptr; }
   int64_t GetIndex() { return MdfEventGetIndex(event); }
   const char* GetName() { return MdfEventGetName(event); }
   void SetName(const char* name) { MdfEventSetName(event, name); }
@@ -49,9 +49,9 @@ class MdfEvent {
     if (count <= 0) return std::vector<MdfAttachment>();
     auto pAttachments = new mdf::IAttachment*[count];
     MdfEventGetAttachments(event, pAttachments);
-    std::vector<MdfAttachment> attachments(count);
+    std::vector<MdfAttachment> attachments;
     for (size_t i = 0; i < count; i++)
-      attachments[i] = MdfAttachment(pAttachments[i]);
+      attachments.push_back(MdfAttachment(pAttachments[i]));
     return attachments;
   }
   double GetPreTrig() { return MdfEventGetPreTrig(event); }

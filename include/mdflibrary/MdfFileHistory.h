@@ -9,8 +9,8 @@ class MdfFileHistory {
   mdf::IFileHistory* history;
 
  public:
-  MdfFileHistory(mdf::IFileHistory* history) { this->history = history; }
-  ~MdfFileHistory() { this->history = nullptr; }
+  MdfFileHistory(mdf::IFileHistory* history) : history(history) {}
+  ~MdfFileHistory() { history = nullptr; }
   int64_t GetIndex() { return MdfFileHistoryGetIndex(history); }
   uint64_t GetTime() { return MdfFileHistoryGetTime(history); }
   void SetTime(uint64_t time) { MdfFileHistorySetTime(history, time); }

@@ -9,10 +9,9 @@ class MdfChannelConversion {
   const mdf::IChannelConversion* conversion;
 
  public:
-  MdfChannelConversion(const mdf::IChannelConversion* conversion) {
-    this->conversion = conversion;
-  }
-  ~MdfChannelConversion() { this->conversion = nullptr; }
+  MdfChannelConversion(const mdf::IChannelConversion* conversion)
+      : conversion(conversion) {}
+  ~MdfChannelConversion() { conversion = nullptr; }
   int64_t GetIndex() { return MdfChannelConversionGetIndex(conversion); }
   const char* GetName() { return MdfChannelConversionGetName(conversion); }
   void SetName(const char* name) {

@@ -4,8 +4,6 @@
 #include <cstdint>
 
 namespace mdf {
-
-#pragma region Classes
 class MdfReader;
 class MdfWriter;
 class MdfFile;
@@ -22,9 +20,9 @@ class IFileHistory;
 class IEvent;
 class ETag;
 class IMetaData;
-#pragma endregion
+}  // namespace mdf
 
-#pragma region Enumerations
+namespace MdfLibrary {
 /** \brief MDF writer types. */
 enum class MdfWriterType : int {
   Mdf3Basic = 0,  ///< Basic MDF version 3 writer.
@@ -299,8 +297,7 @@ enum class ETagDataType : uint8_t {
   TimeType = 6,     ///< Time value ISO
   DateTimeType = 7  ///< Date and Time ISO string (YYYY-MM-DD hh:mm:ss)
 };
-#pragma endregion
-}  // namespace mdf
+}  // namespace MdfLibrary
 
 #if defined(_WIN32)
 // WINDOWS
@@ -314,8 +311,6 @@ enum class ETagDataType : uint8_t {
 #else
 #pragma warning Unknown dynamic link import / export semantics.
 #endif
-
-using namespace mdf;
 
 extern "C" {
 namespace MdfLibrary::ExportFunctions {
@@ -357,7 +352,8 @@ EXPORTFEATUREFUNC(bool, GetCompressData);
 EXPORTFEATUREFUNC(void, SetCompressData, bool compress);
 EXPORTFEATUREFUNC(mdf::IDataGroup*, CreateDataGroup);
 EXPORTFEATUREFUNC(bool, InitMeasurement);
-EXPORTFEATUREFUNC(void, SaveSample, const mdf::IChannelGroup* group, uint64_t time);
+EXPORTFEATUREFUNC(void, SaveSample, const mdf::IChannelGroup* group,
+                  uint64_t time);
 EXPORTFEATUREFUNC(void, StartMeasurement, uint64_t start_time);
 EXPORTFEATUREFUNC(void, StopMeasurement, uint64_t stop_time);
 EXPORTFEATUREFUNC(bool, FinalizeMeasurement);
@@ -381,17 +377,17 @@ EXPORTFEATUREFUNC(bool, GetFinalized, uint16_t& standard_flags,
                   uint16_t& custom_flags);
 EXPORTFEATUREFUNC(const mdf::IHeader*, GetHeader);
 EXPORTFEATUREFUNC(bool, GetIsMdf4);
-EXPORTFEATUREFUNC(size_t, GetAttachments,
-                  const mdf::IAttachment* pAttachment[]);
-EXPORTFEATUREFUNC(size_t, GetDataGroups, const mdf::IDataGroup* pDataGroup[]);
+EXPORTFEATUREFUNC(size_t, GetAttachments, mdf::IAttachment* pAttachment[]);
+EXPORTFEATUREFUNC(size_t, GetDataGroups, mdf::IDataGroup* pDataGroup[]);
 EXPORTFEATUREFUNC(mdf::IAttachment*, CreateAttachment);
 EXPORTFEATUREFUNC(mdf::IDataGroup*, CreateDataGroup);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 
 #pragma region MdfHeader
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
-  EXPORT(ReturnType, MdfHeader, FuncName, const mdf::IHeader* header, ##__VA_ARGS__)
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                  \
+  EXPORT(ReturnType, MdfHeader, FuncName, const mdf::IHeader* header, \
+         ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
 EXPORTFEATUREFUNC(const char*, GetDescription);
 EXPORTFEATUREFUNC(void, SetDescription, const char* desc);
@@ -431,7 +427,7 @@ EXPORTFEATUREFUNC(mdf::IDataGroup*, CreateDataGroup);
 #pragma endregion
 
 #pragma region MdfDataGroup
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                 \
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                       \
   EXPORT(ReturnType, MdfDataGroup, FuncName, const mdf::IDataGroup* group, \
          ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
@@ -450,9 +446,9 @@ EXPORTFEATUREFUNC(void, ResetSample);
 #pragma endregion
 
 #pragma region MdfChannelGroup
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                       \
-  EXPORT(ReturnType, MdfChannelGroup, FuncName, const mdf::IChannelGroup* group, \
-         ##__VA_ARGS__)
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfChannelGroup, FuncName,      \
+         const mdf::IChannelGroup* group, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
 EXPORTFEATUREFUNC(uint64_t, GetRecordId);
 EXPORTFEATUREFUNC(const char*, GetName);
@@ -609,9 +605,9 @@ EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData);
 #pragma endregion
 
 #pragma region MdfAttachment
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                        \
-  EXPORT(ReturnType, MdfAttachment, FuncName, const mdf::IAttachment* attachment, \
-         ##__VA_ARGS__)
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfAttachment, FuncName,        \
+         const mdf::IAttachment* attachment, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
 EXPORTFEATUREFUNC(uint16_t, GetCreatorIndex);
 EXPORTFEATUREFUNC(void, SetCreatorIndex, uint16_t index);
@@ -677,8 +673,7 @@ EXPORTFEATUREFUNC(const mdf::IEvent*, GetParentEvent);
 EXPORTFEATUREFUNC(void, SetParentEvent, const mdf::IEvent* parent);
 EXPORTFEATUREFUNC(const mdf::IEvent*, GetRangeEvent);
 EXPORTFEATUREFUNC(void, SetRangeEvent, const mdf::IEvent* range);
-EXPORTFEATUREFUNC(size_t, GetAttachments,
-                  const mdf::IAttachment* pAttachment[]);
+EXPORTFEATUREFUNC(size_t, GetAttachments, mdf::IAttachment* pAttachment[]);
 EXPORTFEATUREFUNC(double, GetPreTrig);
 EXPORTFEATUREFUNC(void, SetPreTrig, double time);
 EXPORTFEATUREFUNC(double, GetPostTrig);
@@ -721,7 +716,7 @@ EXPORTFEATUREFUNC(void, SetValueAsUnsigned, uint64_t value);
 #pragma endregion
 
 #pragma region MdfMetaData
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                  \
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                        \
   EXPORT(ReturnType, MdfMetaData, FuncName, const mdf::IMetaData* metadata, \
          ##__VA_ARGS__)
 EXPORTFEATUREFUNC(const char*, GetPropertyAsString, const char* index);

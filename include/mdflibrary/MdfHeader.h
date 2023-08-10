@@ -11,8 +11,8 @@ class MdfHeader {
   const mdf::IHeader* header;
 
  public:
-  MdfHeader(const mdf::IHeader* header) { this->header = header; }
-  ~MdfHeader() { this->header = nullptr; }
+  MdfHeader(const mdf::IHeader* header) : header(header) {}
+  ~MdfHeader() { header = nullptr; }
   int64_t GetIndex() { return MdfHeaderGetIndex(header); }
   const char* GetDescription() { return MdfHeaderGetDescription(header); }
   void SetDescription(const char* desc) {
@@ -56,9 +56,9 @@ class MdfHeader {
     if (count <= 0) return std::vector<MdfAttachment>();
     auto pAttachments = new mdf::IAttachment*[count];
     MdfHeaderGetAttachments(header, pAttachments);
-    std::vector<MdfAttachment> attachments(count);
+    std::vector<MdfAttachment> attachments;
     for (size_t i = 0; i < count; i++)
-      attachments[i] = MdfAttachment(pAttachments[i]);
+      attachments.push_back(MdfAttachment(pAttachments[i]));
     delete[] pAttachments;
     return attachments;
   }
@@ -67,9 +67,9 @@ class MdfHeader {
     if (count <= 0) return std::vector<MdfFileHistory>();
     auto pFileHistorys = new mdf::IFileHistory*[count];
     MdfHeaderGetFileHistorys(header, pFileHistorys);
-    std::vector<MdfFileHistory> fileHistorys(count);
+    std::vector<MdfFileHistory> fileHistorys;
     for (size_t i = 0; i < count; i++)
-      fileHistorys[i] = MdfFileHistory(pFileHistorys[i]);
+      fileHistorys.push_back(MdfFileHistory(pFileHistorys[i]));
     delete[] pFileHistorys;
     return fileHistorys;
   }
@@ -78,8 +78,8 @@ class MdfHeader {
     if (count <= 0) return std::vector<MdfEvent>();
     auto pEvents = new mdf::IEvent*[count];
     MdfHeaderGetEvents(header, pEvents);
-    std::vector<MdfEvent> events(count);
-    for (size_t i = 0; i < count; i++) events[i] = MdfEvent(pEvents[i]);
+    std::vector<MdfEvent> events;
+    for (size_t i = 0; i < count; i++) events.push_back(MdfEvent(pEvents[i]));
     delete[] pEvents;
     return events;
   }
@@ -88,9 +88,9 @@ class MdfHeader {
     if (count <= 0) return std::vector<MdfDataGroup>();
     auto pDataGroups = new mdf::IDataGroup*[count];
     MdfHeaderGetDataGroups(header, pDataGroups);
-    std::vector<MdfDataGroup> dataGroups(count);
+    std::vector<MdfDataGroup> dataGroups;
     for (size_t i = 0; i < count; i++)
-      dataGroups[i] = MdfDataGroup(pDataGroups[i]);
+      dataGroups.push_back(MdfDataGroup(pDataGroups[i]));
     delete[] pDataGroups;
     return dataGroups;
   }

@@ -1,6 +1,5 @@
 #pragma once
 #include "MdfFile.h"
-#include "MdfHeader.h"
 
 using namespace MdfLibrary::ExportFunctions;
 
@@ -10,9 +9,8 @@ class MdfWriter {
   mdf::MdfWriter* writer;
 
  public:
-  MdfWriter(MdfWriterType type, const char* filename) {
-    writer = MdfWriterInit(type, filename);
-  }
+  MdfWriter(MdfWriterType type, const char* filename)
+      : writer(MdfWriterInit(type, filename)) {}
   ~MdfWriter() { MdfWriterUnInit(writer); }
   MdfFile GetFile() { return MdfFile(MdfWriterGetFile(writer)); }
   MdfHeader GetHeader() { return MdfHeader(MdfWriterGetHeader(writer)); }
@@ -25,7 +23,7 @@ class MdfWriter {
   }
   bool InitMeasurement() { return MdfWriterInitMeasurement(writer); }
   void SaveSample(MdfChannelGroup group, uint64_t time) {
-    MdfWriterSaveSample(writer, group.GetGroup(), time);
+    MdfWriterSaveSample(writer, group.GetChannelGroup(), time);
   }
   void StartMeasurement(uint64_t start_time) {
     MdfWriterStartMeasurement(writer, start_time);

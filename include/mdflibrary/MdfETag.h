@@ -9,9 +9,9 @@ class MdfETag {
   const mdf::ETag* eTag;
 
  public:
-  MdfETag(const mdf::ETag* eTag) { this->eTag = eTag; }
-  ~MdfETag() { this->eTag = nullptr; }
-  const mdf::ETag* GetETag() { return this->eTag; }
+  MdfETag(const mdf::ETag* eTag) : eTag(eTag) {}
+  ~MdfETag() { eTag = nullptr; }
+  const mdf::ETag* GetETag() { return eTag; }
   const char* GetName() { return MdfETagGetName(eTag); }
   void SetName(const char* name) { SetName(name); }
   const char* GetDescription() { return MdfETagGetDescription(eTag); }

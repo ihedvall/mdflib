@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+
 #include "MdfExport.h"
 
 using namespace MdfLibrary::ExportFunctions;
@@ -6,33 +8,56 @@ using namespace MdfLibrary::ExportFunctions;
 namespace MdfLibrary {
 class MdfAttachment {
  private:
-  const mdf::IAttachment* attachment;
+  mdf::IAttachment* attachment;
 
  public:
-  MdfAttachment(const mdf::IAttachment* attachment) : attachment(attachment) {}
+  MdfAttachment(mdf::IAttachment* attachment) : attachment(attachment) {
+    if (attachment == nullptr)
+      throw std::runtime_error("MdfAttachmentInit failed");
+  }
+  MdfAttachment(const mdf::IAttachment* attachment)
+      : MdfAttachment(const_cast<mdf::IAttachment*>(attachment)) {}
   ~MdfAttachment() { attachment = nullptr; }
-  const mdf::IAttachment* GetAttachment() { return attachment; }
-  int64_t GetIndex() { return MdfAttachmentGetIndex(attachment); }
-  uint16_t GetCreatorIndex() {
+  mdf::IAttachment* GetAttachment() const { return attachment; }
+  int64_t GetIndex() const { return MdfAttachmentGetIndex(attachment); }
+  uint16_t GetCreatorIndex() const {
     return MdfAttachmentGetCreatorIndex(attachment);
   }
   void SetCreatorIndex(uint16_t index) {
     MdfAttachmentSetCreatorIndex(attachment, index);
   }
-  bool GetEmbedded() { return MdfAttachmentGetEmbedded(attachment); }
+  bool GetEmbedded() const { return MdfAttachmentGetEmbedded(attachment); }
   void SetEmbedded(bool embedded) {
     MdfAttachmentSetEmbedded(attachment, embedded);
   }
-  bool GetCompressed() { return MdfAttachmentGetCompressed(attachment); }
+  bool GetCompressed() const { return MdfAttachmentGetCompressed(attachment); }
   void SetCompressed(bool compressed) {
     MdfAttachmentSetCompressed(attachment, compressed);
   }
-  const char* GetMd5() { return MdfAttachmentGetMd5(attachment); }
-  const char* GetFileName() { return MdfAttachmentGetFileName(attachment); }
+  std::string GetMd5() {
+    char str[32 + 1];
+    MdfAttachmentGetMd5(attachment, str);
+    return std::string(str);
+  }
+  std::string GetFileName() const {
+    std::string str;
+    size_t size = MdfAttachmentGetFileName(attachment, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfAttachmentGetFileName(attachment, str.data());
+    return str;
+  }
   void SetFileName(const char* name) {
     MdfAttachmentSetFileName(attachment, name);
   }
-  const char* GetFileType() { return MdfAttachmentGetFileType(attachment); }
+  std::string GetFileType() const {
+    std::string str;
+    size_t size = MdfAttachmentGetFileType(attachment, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfAttachmentGetFileType(attachment, str.data());
+    return str;
+  }
   void SetFileType(const char* type) {
     MdfAttachmentSetFileType(attachment, type);
   }

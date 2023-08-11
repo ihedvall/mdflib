@@ -48,6 +48,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+vcpkg_installed/
 
 # Visual Studio code
 .vscode/

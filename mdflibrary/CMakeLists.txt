@@ -34,7 +34,24 @@ target_link_libraries(mdflibrary PRIVATE mdf)
 target_include_directories(
   mdflibrary PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>)
 
-set(MDFLIBRARY_PUBLIC_HEADERS ../include/mdflibrary/MdfExport.h)
+set(MDFLIBRARY_PUBLIC_HEADERS 
+            ../include/mdflibrary/MdfExport.h
+            ../include/mdflibrary/MdfAttachment.h
+            ../include/mdflibrary/MdfChannel.h
+            ../include/mdflibrary/MdfChannelArray.h
+            ../include/mdflibrary/MdfChannelConversion.h
+            ../include/mdflibrary/MdfChannelGroup.h
+            ../include/mdflibrary/MdfChannelObserver.h
+            ../include/mdflibrary/MdfDataGroup.h
+            ../include/mdflibrary/MdfETag.h
+            ../include/mdflibrary/MdfEvent.h
+            ../include/mdflibrary/MdfFile.h
+            ../include/mdflibrary/MdfFileHistory.h
+            ../include/mdflibrary/MdfHeader.h
+            ../include/mdflibrary/MdfMetaData.h
+            ../include/mdflibrary/MdfReader.h
+            ../include/mdflibrary/MdfSourceInformation.h
+            ../include/mdflibrary/Mdfwriter.h)
 set_target_properties(mdflibrary PROPERTIES PUBLIC_HEADER
                                             "${MDFLIBRARY_PUBLIC_HEADERS}")
 get_target_property(PH1 mdflibrary PUBLIC_HEADER)

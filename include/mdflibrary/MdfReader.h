@@ -9,12 +9,19 @@ class MdfReader {
   mdf::MdfReader* reader;
 
  public:
-  MdfReader(const char* filename) : reader(MdfReaderInit(filename)) {}
-  ~MdfReader() { reader = nullptr; }
-  int64_t GetIndex() { return MdfReaderGetIndex(reader); }
+  MdfReader(const char* filename) : reader(MdfReaderInit(filename)) {
+    if (reader == nullptr) throw std::runtime_error("MdfReaderInit failed");
+  }
+  ~MdfReader() {
+    if (reader == nullptr) return;
+    MdfReaderUnInit(reader);
+    reader = nullptr;
+  }
+  MdfReader(const MdfReader&) = delete;
+  int64_t GetIndex() const { return MdfReaderGetIndex(reader); }
   bool IsOk() { return MdfReaderIsOk(reader); }
-  const MdfFile GetFile() { return MdfFile(MdfReaderGetFile(reader)); }
-  const MdfHeader GetHeader() { return MdfHeader(MdfReaderGetHeader(reader)); }
+  const MdfFile GetFile() const { return MdfFile(MdfReaderGetFile(reader)); }
+  MdfHeader GetHeader() const { return MdfHeader(MdfReaderGetHeader(reader)); }
   const MdfDataGroup GetDataGroup(size_t index) {
     return MdfDataGroup(MdfReaderGetDataGroup(reader, index));
   }

@@ -145,7 +145,22 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\mdflibrary\MdfAttachment.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfChannel.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfChannelConversion.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfChannelGroup.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfChannelObserver.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfDataGroup.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfETag.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfEvent.h" />
     <ClInclude Include="..\include\mdflibrary\MdfExport.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfFile.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfFileHistory.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfHeader.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfMetaData.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfReader.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfSourceInformation.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfWriter.h" />
     <ClInclude Include="src\MdfAttachment.h" />
     <ClInclude Include="src\MdfChannel.h" />
     <ClInclude Include="src\MdfChannelArray.h" />

@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+
 #include "MdfExport.h"
 
 using namespace MdfLibrary::ExportFunctions;
@@ -6,37 +8,105 @@ using namespace MdfLibrary::ExportFunctions;
 namespace MdfLibrary {
 class MdfETag {
  private:
-  const mdf::ETag* eTag;
+  mdf::ETag* eTag;
 
  public:
-  MdfETag(const mdf::ETag* eTag) : eTag(eTag) {}
-  ~MdfETag() { eTag = nullptr; }
-  const mdf::ETag* GetETag() { return eTag; }
-  const char* GetName() { return MdfETagGetName(eTag); }
-  void SetName(const char* name) { SetName(name); }
-  const char* GetDescription() { return MdfETagGetDescription(eTag); }
-  void SetDescription(const char* desc) { SetDescription(desc); }
-  const char* GetUnit() { return MdfETagGetUnit(eTag); }
-  void SetUnit(const char* unit) { SetUnit(unit); }
-  const char* GetUnitRef() { return MdfETagGetUnitRef(eTag); }
-  void SetUnitRef(const char* unit) { SetUnitRef(unit); }
-  const char* GetType() { return MdfETagGetType(eTag); }
-  void SetType(const char* type) { SetType(type); }
-  ETagDataType GetDataType() { return MdfETagGetDataType(eTag); }
-  void SetDataType(ETagDataType type) { SetDataType(type); }
-  const char* GetLanguage() { return MdfETagGetLanguage(eTag); }
-  void SetLanguage(const char* language) { SetLanguage(language); }
-  bool GetReadOnly() { return MdfETagGetReadOnly(eTag); }
-  void SetReadOnly(bool read_only) { SetReadOnly(read_only); }
-  const char* GetValueAsString() { return MdfETagGetValueAsString(eTag); }
-  void SetValueAsString(const char* value) { SetValueAsString(value); }
-  double GetValueAsFloat() { return MdfETagGetValueAsFloat(eTag); }
-  void SetValueAsFloat(double value) { SetValueAsFloat(value); }
-  bool GetValueAsBoolean() { return MdfETagGetValueAsBoolean(eTag); }
-  void SetValueAsBoolean(bool value) { SetValueAsBoolean(value); }
-  int64_t GetValueAsSigned() { return MdfETagGetValueAsSigned(eTag); }
-  void SetValueAsSigned(int64_t value) { SetValueAsSigned(value); }
-  uint64_t GetValueAsUnsigned() { return MdfETagGetValueAsUnsigned(eTag); }
-  void SetValueAsUnsigned(uint64_t value) { SetValueAsUnsigned(value); }
+  MdfETag(mdf::ETag* eTag) : eTag(eTag) {
+    if (eTag == nullptr) throw std::runtime_error("MdfETagInit failed");
+  }
+  MdfETag(const mdf::ETag* eTag) : MdfETag(const_cast<mdf::ETag*>(eTag)) {}
+  MdfETag() : MdfETag(MdfETagInit()) {}
+  ~MdfETag() {
+    if (eTag == nullptr) return;
+    MdfETagUnInit(eTag);
+    eTag = nullptr;
+  }
+  MdfETag(const MdfETag&) = delete;
+  MdfETag(MdfETag&& eTag) {
+    this->eTag = eTag.eTag;
+    eTag.eTag = nullptr;
+  }
+  mdf::ETag* GetETag() const { return eTag; }
+  std::string GetName() const {
+    std::string str;
+    size_t size = MdfETagGetName(eTag, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfETagGetName(eTag, str.data());
+    return str;
+  }
+  void SetName(const char* name) { MdfETagSetName(eTag, name); }
+  std::string GetDescription() const {
+    std::string str;
+    size_t size = MdfETagGetDescription(eTag, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfETagGetDescription(eTag, str.data());
+    return str;
+  }
+  void SetDescription(const char* desc) { MdfETagSetDescription(eTag, desc); }
+  std::string GetUnit() const {
+    std::string str;
+    size_t size = MdfETagGetUnit(eTag, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfETagGetUnit(eTag, str.data());
+    return str;
+  }
+  void SetUnit(const char* unit) { MdfETagSetUnit(eTag, unit); }
+  std::string GetUnitRef() const {
+    std::string str;
+    size_t size = MdfETagGetUnitRef(eTag, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfETagGetUnitRef(eTag, str.data());
+    return str;
+  }
+  void SetUnitRef(const char* unit) { MdfETagSetUnitRef(eTag, unit); }
+  std::string GetType() const {
+    std::string str;
+    size_t size = MdfETagGetType(eTag, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfETagGetType(eTag, str.data());
+    return str;
+  }
+  void SetType(const char* type) { MdfETagSetType(eTag, type); }
+  ETagDataType GetDataType() const { return MdfETagGetDataType(eTag); }
+  void SetDataType(ETagDataType type) { MdfETagSetDataType(eTag, type); }
+  std::string GetLanguage() const {
+    std::string str;
+    size_t size = MdfETagGetLanguage(eTag, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfETagGetLanguage(eTag, str.data());
+    return str;
+  }
+  void SetLanguage(const char* language) { MdfETagSetLanguage(eTag, language); }
+  bool GetReadOnly() const { return MdfETagGetReadOnly(eTag); }
+  void SetReadOnly(bool read_only) { MdfETagSetReadOnly(eTag, read_only); }
+  std::string GetValueAsString() const {
+    std::string str;
+    size_t size = MdfETagGetValueAsString(eTag, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfETagGetValueAsString(eTag, str.data());
+    return str;
+  }
+  void SetValueAsString(const char* value) {
+    MdfETagSetValueAsString(eTag, value);
+  }
+  double GetValueAsFloat() const { return MdfETagGetValueAsFloat(eTag); }
+  void SetValueAsFloat(double value) { MdfETagSetValueAsFloat(eTag, value); }
+  bool GetValueAsBoolean() const { return MdfETagGetValueAsBoolean(eTag); }
+  void SetValueAsBoolean(bool value) { MdfETagSetValueAsBoolean(eTag, value); }
+  int64_t GetValueAsSigned() const { return MdfETagGetValueAsSigned(eTag); }
+  void SetValueAsSigned(int64_t value) { MdfETagSetValueAsSigned(eTag, value); }
+  uint64_t GetValueAsUnsigned() const {
+    return MdfETagGetValueAsUnsigned(eTag);
+  }
+  void SetValueAsUnsigned(uint64_t value) {
+    MdfETagSetValueAsUnsigned(eTag, value);
+  }
 };
 }  // namespace MdfLibrary

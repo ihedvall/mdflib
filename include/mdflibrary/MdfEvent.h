@@ -7,58 +7,84 @@ using namespace MdfLibrary::ExportFunctions;
 namespace MdfLibrary {
 class MdfEvent {
  private:
-  const mdf::IEvent* event;
+  mdf::IEvent* event;
 
  public:
-  MdfEvent(const mdf::IEvent* event) : event(event) {}
+  MdfEvent(mdf::IEvent* event) : event(event) {
+    if (event == nullptr) throw std::runtime_error("MdfEventInit failed");
+  }
+  MdfEvent(const mdf::IEvent* event)
+      : MdfEvent(const_cast<mdf::IEvent*>(event)) {}
   ~MdfEvent() { event = nullptr; }
-  int64_t GetIndex() { return MdfEventGetIndex(event); }
-  const char* GetName() { return MdfEventGetName(event); }
+  int64_t GetIndex() const { return MdfEventGetIndex(event); }
+  std::string GetName() const {
+    std::string str;
+    size_t size = MdfEventGetName(event, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfEventGetName(event, str.data());
+    return str;
+  }
   void SetName(const char* name) { MdfEventSetName(event, name); }
-  const char* GetDescription() { return MdfEventGetDescription(event); }
+  std::string GetDescription() const {
+    std::string str;
+    size_t size = MdfEventGetDescription(event, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfEventGetDescription(event, str.data());
+    return str;
+  }
   void SetDescription(const char* desc) { MdfEventSetDescription(event, desc); }
-  const char* GetGroupName() { return MdfEventGetGroupName(event); }
+  std::string GetGroupName() const {
+    std::string str;
+    size_t size = MdfEventGetGroupName(event, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfEventGetGroupName(event, str.data());
+    return str;
+  }
   void SetGroupName(const char* group) { MdfEventSetGroupName(event, group); }
-  EventType GetType() { return MdfEventGetType(event); }
+  EventType GetType() const { return MdfEventGetType(event); }
   void SetType(EventType type) { MdfEventSetType(event, type); }
-  SyncType GetSync() { return MdfEventGetSync(event); }
+  SyncType GetSync() const { return MdfEventGetSync(event); }
   void SetSync(SyncType type) { MdfEventSetSync(event, type); }
-  RangeType GetRange() { return MdfEventGetRange(event); }
+  RangeType GetRange() const { return MdfEventGetRange(event); }
   void SetRange(RangeType type) { MdfEventSetRange(event, type); }
-  EventCause GetCause() { return MdfEventGetCause(event); }
+  EventCause GetCause() const { return MdfEventGetCause(event); }
   void SetCause(EventCause cause) { MdfEventSetCause(event, cause); }
-  int64_t GetCreatorIndex() { return MdfEventGetCreatorIndex(event); }
+  int64_t GetCreatorIndex() const { return MdfEventGetCreatorIndex(event); }
   void SetCreatorIndex(int64_t index) { MdfEventSetCreatorIndex(event, index); }
-  int64_t GetSyncValue() { return MdfEventGetSyncValue(event); }
+  int64_t GetSyncValue() const { return MdfEventGetSyncValue(event); }
   void SetSyncValue(int64_t value) { MdfEventSetSyncValue(event, value); }
   void SetSyncFactor(double factor) { MdfEventSetSyncFactor(event, factor); }
-  const MdfEvent GetParentEvent() {
+  const MdfEvent GetParentEvent() const {
     return MdfEvent(MdfEventGetParentEvent(event));
   }
   void SetParentEvent(MdfEvent parent) {
     MdfEventSetParentEvent(event, parent.event);
   }
-  const MdfEvent GetRangeEvent() {
+  const MdfEvent GetRangeEvent() const {
     return MdfEvent(MdfEventGetRangeEvent(event));
   }
   void SetRangeEvent(MdfEvent range) {
     MdfEventSetRangeEvent(event, range.event);
   }
-  std::vector<MdfAttachment> GetAttachments() {
+  std::vector<MdfAttachment> GetAttachments() const {
     size_t count = MdfEventGetAttachments(event, nullptr);
     if (count <= 0) return std::vector<MdfAttachment>();
-    auto pAttachments = new mdf::IAttachment*[count];
+    auto pAttachments = new const mdf::IAttachment*[count];
     MdfEventGetAttachments(event, pAttachments);
     std::vector<MdfAttachment> attachments;
     for (size_t i = 0; i < count; i++)
       attachments.push_back(MdfAttachment(pAttachments[i]));
+    delete[] pAttachments;
     return attachments;
   }
-  double GetPreTrig() { return MdfEventGetPreTrig(event); }
+  double GetPreTrig() const { return MdfEventGetPreTrig(event); }
   void SetPreTrig(double time) { MdfEventSetPreTrig(event, time); }
-  double GetPostTrig() { return MdfEventGetPostTrig(event); }
+  double GetPostTrig() const { return MdfEventGetPostTrig(event); }
   void SetPostTrig(double time) { MdfEventSetPostTrig(event, time); }
-  const MdfMetaData GetMetaData() {
+  const MdfMetaData GetMetaData() const {
     return MdfMetaData(MdfEventGetMetaData(event));
   }
   void AddAttachment(MdfAttachment attachment) {

@@ -1,7 +1,5 @@
 #pragma once
-#include <stddef.h>
-
-#include <cstdint>
+#include <stdint.h>
 
 namespace mdf {
 class MdfReader;
@@ -37,8 +35,8 @@ enum class MdfWriterType : int {
  * marked as 'Variable Length'. Avoid writing variable length data as it
  * may allocate a lot of memory as it flush at the end of the measurement.
  *
- * One channel in channel group (IChannelGroup), should be marked as a master
- * channel. This channel is typical relative sample time with seconds as
+ * One channel in channel group (mdf::IChannelGroup), should be marked as a
+ * master channel. This channel is typical relative sample time with seconds as
  * unit. The master channel is typical used on the X-axis when plotting data.
  *
  * The 'VirtualMaster' channel can be used if the sample number is linear
@@ -105,7 +103,7 @@ enum class ChannelDataType : uint8_t {
   ComplexBe = 16          ///< Complex value, big endian.
 };
 
-/** \brief Channel flags. See also IChannel::Flags().
+/** \brief Channel flags. See also mdf::IChannel::Flags().
  *
  */
 namespace CnFlag {
@@ -302,7 +300,7 @@ enum class ETagDataType : uint8_t {
 #if defined(_WIN32)
 // WINDOWS
 #define EXPORT(ReturnType, ClassName, FuncName, ...) \
-  __declspec(dllexport) ReturnType ClassName##FuncName(__VA_ARGS__)
+  __declspec(dllexport) ReturnType ClassName##FuncName(##__VA_ARGS__)
 #elif defined(__linux__)
 // LINUX
 #define EXPORT(ReturnType, ClassName, FuncName, ...) \
@@ -315,14 +313,10 @@ enum class ETagDataType : uint8_t {
 extern "C" {
 namespace MdfLibrary::ExportFunctions {
 #pragma region MdfReader
-#define EXPORTINITFUNC(ReturnType, FuncName, ...) \
-  EXPORT(ReturnType, MdfReader, FuncName, __VA_ARGS__)
-EXPORTINITFUNC(mdf::MdfReader*, Init, const char* filename);
-EXPORTINITFUNC(void, UnInit, mdf::MdfReader* reader);
-#undef EXPORTINITFUNC
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                    \
-  EXPORT(ReturnType, MdfReader, FuncName, const mdf::MdfReader* reader, \
-         ##__VA_ARGS__)
+EXPORT(mdf::MdfReader*, MdfReader, Init, const char* filename);
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfReader, FuncName, mdf::MdfReader* reader, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(void, UnInit);
 EXPORTFEATUREFUNC(int64_t, GetIndex);
 EXPORTFEATUREFUNC(bool, IsOk);
 EXPORTFEATUREFUNC(const mdf::MdfFile*, GetFile);
@@ -338,22 +332,18 @@ EXPORTFEATUREFUNC(bool, ReadData, const mdf::IDataGroup* group);
 #pragma endregion
 
 #pragma region MdfWriter
-#define EXPORTINITFUNC(ReturnType, FuncName, ...) \
-  EXPORT(ReturnType, MdfWriter, FuncName, ##__VA_ARGS__)
-EXPORTINITFUNC(mdf::MdfWriter*, Init, MdfWriterType type, const char* filename);
-EXPORTINITFUNC(void, UnInit, mdf::MdfWriter* writer);
-#undef EXPORTINITFUNC
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                    \
-  EXPORT(ReturnType, MdfWriter, FuncName, const mdf::MdfWriter* writer, \
-         ##__VA_ARGS__)
+EXPORT(mdf::MdfWriter*, MdfWriter, Init, MdfWriterType type,
+       const char* filename);
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfWriter, FuncName, mdf::MdfWriter* writer, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(void, UnInit);
 EXPORTFEATUREFUNC(mdf::MdfFile*, GetFile);
 EXPORTFEATUREFUNC(mdf::IHeader*, GetHeader);
 EXPORTFEATUREFUNC(bool, GetCompressData);
 EXPORTFEATUREFUNC(void, SetCompressData, bool compress);
 EXPORTFEATUREFUNC(mdf::IDataGroup*, CreateDataGroup);
 EXPORTFEATUREFUNC(bool, InitMeasurement);
-EXPORTFEATUREFUNC(void, SaveSample, const mdf::IChannelGroup* group,
-                  uint64_t time);
+EXPORTFEATUREFUNC(void, SaveSample, mdf::IChannelGroup* group, uint64_t time);
 EXPORTFEATUREFUNC(void, StartMeasurement, uint64_t start_time);
 EXPORTFEATUREFUNC(void, StopMeasurement, uint64_t stop_time);
 EXPORTFEATUREFUNC(bool, FinalizeMeasurement);
@@ -362,46 +352,46 @@ EXPORTFEATUREFUNC(bool, FinalizeMeasurement);
 
 #pragma region MdfFile
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
-  EXPORT(ReturnType, MdfFile, FuncName, const mdf::MdfFile* file, ##__VA_ARGS__)
-EXPORTFEATUREFUNC(const char*, GetName);
+  EXPORT(ReturnType, MdfFile, FuncName, mdf::MdfFile* file, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(size_t, GetName, char* name);
 EXPORTFEATUREFUNC(void, SetName, const char* name);
-EXPORTFEATUREFUNC(const char*, GetFileName);
+EXPORTFEATUREFUNC(size_t, GetFileName, char* filename);
 EXPORTFEATUREFUNC(void, SetFileName, const char* filename);
-EXPORTFEATUREFUNC(const char*, GetVersion);
+EXPORTFEATUREFUNC(size_t, GetVersion, char* version);
 EXPORTFEATUREFUNC(int, GetMainVersion);
 EXPORTFEATUREFUNC(int, GetMinorVersion);
 EXPORTFEATUREFUNC(void, SetMinorVersion, int minor);
-EXPORTFEATUREFUNC(const char*, GetProgramId);
+EXPORTFEATUREFUNC(size_t, GetProgramId, char* program_id);
 EXPORTFEATUREFUNC(void, SetProgramId, const char* program_id);
 EXPORTFEATUREFUNC(bool, GetFinalized, uint16_t& standard_flags,
                   uint16_t& custom_flags);
 EXPORTFEATUREFUNC(const mdf::IHeader*, GetHeader);
 EXPORTFEATUREFUNC(bool, GetIsMdf4);
-EXPORTFEATUREFUNC(size_t, GetAttachments, mdf::IAttachment* pAttachment[]);
-EXPORTFEATUREFUNC(size_t, GetDataGroups, mdf::IDataGroup* pDataGroup[]);
+EXPORTFEATUREFUNC(size_t, GetAttachments,
+                  const mdf::IAttachment* pAttachment[]);
+EXPORTFEATUREFUNC(size_t, GetDataGroups, const mdf::IDataGroup* pDataGroup[]);
 EXPORTFEATUREFUNC(mdf::IAttachment*, CreateAttachment);
 EXPORTFEATUREFUNC(mdf::IDataGroup*, CreateDataGroup);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 
 #pragma region MdfHeader
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                  \
-  EXPORT(ReturnType, MdfHeader, FuncName, const mdf::IHeader* header, \
-         ##__VA_ARGS__)
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfHeader, FuncName, mdf::IHeader* header, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
-EXPORTFEATUREFUNC(const char*, GetDescription);
+EXPORTFEATUREFUNC(size_t, GetDescription, char* desc);
 EXPORTFEATUREFUNC(void, SetDescription, const char* desc);
-EXPORTFEATUREFUNC(const char*, GetAuthor);
+EXPORTFEATUREFUNC(size_t, GetAuthor, char* author);
 EXPORTFEATUREFUNC(void, SetAuthor, const char* author);
-EXPORTFEATUREFUNC(const char*, GetDepartment);
+EXPORTFEATUREFUNC(size_t, GetDepartment, char* department);
 EXPORTFEATUREFUNC(void, SetDepartment, const char* department);
-EXPORTFEATUREFUNC(const char*, GetProject);
+EXPORTFEATUREFUNC(size_t, GetProject, char* project);
 EXPORTFEATUREFUNC(void, SetProject, const char* project);
-EXPORTFEATUREFUNC(const char*, GetSubject);
+EXPORTFEATUREFUNC(size_t, GetSubject, char* subject);
 EXPORTFEATUREFUNC(void, SetSubject, const char* subject);
-EXPORTFEATUREFUNC(const char*, GetMeasurementId);
+EXPORTFEATUREFUNC(size_t, GetMeasurementId, char* uuid);
 EXPORTFEATUREFUNC(void, SetMeasurementId, const char* uuid);
-EXPORTFEATUREFUNC(const char*, GetRecorderId);
+EXPORTFEATUREFUNC(size_t, GetRecorderId, char* uuid);
 EXPORTFEATUREFUNC(void, SetRecorderId, const char* uuid);
 EXPORTFEATUREFUNC(int64_t, GetRecorderIndex);
 EXPORTFEATUREFUNC(void, SetRecorderIndex, int64_t index);
@@ -427,11 +417,11 @@ EXPORTFEATUREFUNC(mdf::IDataGroup*, CreateDataGroup);
 #pragma endregion
 
 #pragma region MdfDataGroup
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                       \
-  EXPORT(ReturnType, MdfDataGroup, FuncName, const mdf::IDataGroup* group, \
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                 \
+  EXPORT(ReturnType, MdfDataGroup, FuncName, mdf::IDataGroup* group, \
          ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
-EXPORTFEATUREFUNC(const char*, GetDescription);
+EXPORTFEATUREFUNC(size_t, GetDescription, char* description);
 EXPORTFEATUREFUNC(uint8_t, GetRecordIdSize);
 EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaData);
 EXPORTFEATUREFUNC(size_t, GetChannelGroups,
@@ -451,9 +441,9 @@ EXPORTFEATUREFUNC(void, ResetSample);
          const mdf::IChannelGroup* group, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
 EXPORTFEATUREFUNC(uint64_t, GetRecordId);
-EXPORTFEATUREFUNC(const char*, GetName);
+EXPORTFEATUREFUNC(size_t, GetName, char* name);
 EXPORTFEATUREFUNC(void, SetName, const char* name);
-EXPORTFEATUREFUNC(const char*, GetDescription);
+EXPORTFEATUREFUNC(size_t, GetDescription, char* desc);
 EXPORTFEATUREFUNC(void, SetDescription, const char* desc);
 EXPORTFEATUREFUNC(uint64_t, GetNofSamples);
 EXPORTFEATUREFUNC(void, SetNofSamples, uint64_t samples);
@@ -473,18 +463,18 @@ EXPORTFEATUREFUNC(mdf::ISourceInformation*, CreateSourceInformation);
 #pragma endregion
 
 #pragma region MdfChannel
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                     \
-  EXPORT(ReturnType, MdfChannel, FuncName, const mdf::IChannel* channel, \
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)               \
+  EXPORT(ReturnType, MdfChannel, FuncName, mdf::IChannel* channel, \
          ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
-EXPORTFEATUREFUNC(const char*, GetName);
+EXPORTFEATUREFUNC(size_t, GetName, char* name);
 EXPORTFEATUREFUNC(void, SetName, const char* name);
-EXPORTFEATUREFUNC(const char*, GetDisplayName);
+EXPORTFEATUREFUNC(size_t, GetDisplayName, char* name);
 EXPORTFEATUREFUNC(void, SetDisplayName, const char* name);
-EXPORTFEATUREFUNC(const char*, GetDescription);
+EXPORTFEATUREFUNC(size_t, GetDescription, char* desc);
 EXPORTFEATUREFUNC(void, SetDescription, const char* desc);
 EXPORTFEATUREFUNC(bool, IsUnitUsed);
-EXPORTFEATUREFUNC(const char*, GetUnit);
+EXPORTFEATUREFUNC(size_t, GetUnit, char* unit);
 EXPORTFEATUREFUNC(void, SetUnit, const char* unit);
 EXPORTFEATUREFUNC(ChannelType, GetType);
 EXPORTFEATUREFUNC(void, SetType, ChannelType type);
@@ -535,11 +525,11 @@ EXPORTFEATUREFUNC(void, SetChannelValueAsArray, const uint8_t* value,
   EXPORT(ReturnType, MdfChannelConversion, FuncName, \
          const mdf::IChannelConversion* conv, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
-EXPORTFEATUREFUNC(const char*, GetName);
+EXPORTFEATUREFUNC(size_t, GetName, char* name);
 EXPORTFEATUREFUNC(void, SetName, const char* name);
-EXPORTFEATUREFUNC(const char*, GetDescription);
+EXPORTFEATUREFUNC(size_t, GetDescription, char* desc);
 EXPORTFEATUREFUNC(void, SetDescription, const char* desc);
-EXPORTFEATUREFUNC(const char*, GetUnit);
+EXPORTFEATUREFUNC(size_t, GetUnit, char* unit);
 EXPORTFEATUREFUNC(void, SetUnit, const char* unit);
 EXPORTFEATUREFUNC(ConversionType, GetType);
 EXPORTFEATUREFUNC(void, SetType, ConversionType type);
@@ -556,12 +546,21 @@ EXPORTFEATUREFUNC(mdf::IChannelConversion*, CreateInverse);
 #pragma endregion
 
 #pragma region MdfChannelObserver
+EXPORT(mdf::IChannelObserver*, MdfChannelObserver, Create,
+       mdf::IDataGroup* data_group, mdf::IChannelGroup* channel_group,
+       mdf::IChannel* channel);
+EXPORT(mdf::IChannelObserver*, MdfChannelObserver, CreateByChannelName,
+       mdf::IDataGroup* data_group, const char* channel_name);
+EXPORT(size_t, MdfChannelObserver, CreateForChannelGroup,
+       mdf::IDataGroup* data_group, mdf::IChannelGroup* channel_group,
+       mdf::IChannelObserver* pObservers[]);
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfChannelObserver, FuncName,   \
          const mdf::IChannelObserver* channel, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(void, UnInit);
 EXPORTFEATUREFUNC(int64_t, GetNofSamples);
-EXPORTFEATUREFUNC(const char*, GetName);
-EXPORTFEATUREFUNC(const char*, GetUnit);
+EXPORTFEATUREFUNC(size_t, GetName, char* name);
+EXPORTFEATUREFUNC(size_t, GetUnit, char* unit);
 EXPORTFEATUREFUNC(const mdf::IChannel*, GetChannel);
 EXPORTFEATUREFUNC(bool, IsMaster);
 EXPORTFEATUREFUNC(bool, GetChannelValueAsSigned, uint64_t sample,
@@ -569,15 +568,17 @@ EXPORTFEATUREFUNC(bool, GetChannelValueAsSigned, uint64_t sample,
 EXPORTFEATUREFUNC(bool, GetChannelValueAsUnSigned, uint64_t sample,
                   uint64_t& value);
 EXPORTFEATUREFUNC(bool, GetChannelValueAsFloat, uint64_t sample, double& value);
-EXPORTFEATUREFUNC(bool, GetChannelValueAsString, uint64_t sample, char*& value);
+EXPORTFEATUREFUNC(bool, GetChannelValueAsString, uint64_t sample, char* value,
+                  size_t& size);
 EXPORTFEATUREFUNC(bool, GetChannelValueAsArray, uint64_t sample,
-                  uint8_t*& value, size_t& size);
+                  uint8_t value[], size_t& size);
 EXPORTFEATUREFUNC(bool, GetEngValueAsSigned, uint64_t sample, int64_t& value);
 EXPORTFEATUREFUNC(bool, GetEngValueAsUnSigned, uint64_t sample,
                   uint64_t& value);
 EXPORTFEATUREFUNC(bool, GetEngValueAsFloat, uint64_t sample, double& value);
-EXPORTFEATUREFUNC(bool, GetEngValueAsString, uint64_t sample, char*& value);
-EXPORTFEATUREFUNC(bool, GetEngValueAsArray, uint64_t sample, uint8_t*& value,
+EXPORTFEATUREFUNC(bool, GetEngValueAsString, uint64_t sample, char* value,
+                  size_t& size);
+EXPORTFEATUREFUNC(bool, GetEngValueAsArray, uint64_t sample, uint8_t value[],
                   size_t& size);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
@@ -587,11 +588,11 @@ EXPORTFEATUREFUNC(bool, GetEngValueAsArray, uint64_t sample, uint8_t*& value,
   EXPORT(ReturnType, MdfSourceInformation, FuncName, \
          const mdf::ISourceInformation* source_information, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
-EXPORTFEATUREFUNC(const char*, GetName);
+EXPORTFEATUREFUNC(size_t, GetName, char* name);
 EXPORTFEATUREFUNC(void, SetName, const char* name);
-EXPORTFEATUREFUNC(const char*, GetDescription);
+EXPORTFEATUREFUNC(size_t, GetDescription, char* desc);
 EXPORTFEATUREFUNC(void, SetDescription, const char* desc);
-EXPORTFEATUREFUNC(const char*, GetPath);
+EXPORTFEATUREFUNC(size_t, GetPath, char* path);
 EXPORTFEATUREFUNC(void, SetPath, const char* path);
 EXPORTFEATUREFUNC(SourceType, GetType);
 EXPORTFEATUREFUNC(void, SetType, SourceType type);
@@ -615,11 +616,12 @@ EXPORTFEATUREFUNC(bool, GetEmbedded);
 EXPORTFEATUREFUNC(void, SetEmbedded, bool embedded);
 EXPORTFEATUREFUNC(bool, GetCompressed);
 EXPORTFEATUREFUNC(void, SetCompressed, bool compressed);
-EXPORTFEATUREFUNC(const char*, GetMd5);
-EXPORTFEATUREFUNC(const char*, GetFileName);
+EXPORTFEATUREFUNC(bool, GetMd5, char* md5);
+EXPORTFEATUREFUNC(size_t, GetFileName, char* name);
 EXPORTFEATUREFUNC(void, SetFileName, const char* name);
-EXPORTFEATUREFUNC(const char*, GetFileType);
+EXPORTFEATUREFUNC(size_t, GetFileType, char* type);
 EXPORTFEATUREFUNC(void, SetFileType, const char* type);
+
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 
@@ -631,29 +633,28 @@ EXPORTFEATUREFUNC(int64_t, GetIndex);
 EXPORTFEATUREFUNC(uint64_t, GetTime);
 EXPORTFEATUREFUNC(void, SetTime, uint64_t time);
 EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaData);
-EXPORTFEATUREFUNC(const char*, GetDescription);
+EXPORTFEATUREFUNC(size_t, GetDescription, char* desc);
 EXPORTFEATUREFUNC(void, SetDescription, const char* desc);
-EXPORTFEATUREFUNC(const char*, GetToolName);
+EXPORTFEATUREFUNC(size_t, GetToolName, char* name);
 EXPORTFEATUREFUNC(void, SetToolName, const char* name);
-EXPORTFEATUREFUNC(const char*, GetToolVendor);
+EXPORTFEATUREFUNC(size_t, GetToolVendor, char* vendor);
 EXPORTFEATUREFUNC(void, SetToolVendor, const char* vendor);
-EXPORTFEATUREFUNC(const char*, GetToolVersion);
+EXPORTFEATUREFUNC(size_t, GetToolVersion, char* version);
 EXPORTFEATUREFUNC(void, SetToolVersion, const char* version);
-EXPORTFEATUREFUNC(const char*, GetUserName);
+EXPORTFEATUREFUNC(size_t, GetUserName, char* user);
 EXPORTFEATUREFUNC(void, SetUserName, const char* user);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 
 #pragma region MdfEvent
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)               \
-  EXPORT(ReturnType, MdfEvent, FuncName, const mdf::IEvent* event, \
-         ##__VA_ARGS__)
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, MdfEvent, FuncName, mdf::IEvent* event, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex);
-EXPORTFEATUREFUNC(const char*, GetName);
+EXPORTFEATUREFUNC(size_t, GetName, char* name);
 EXPORTFEATUREFUNC(void, SetName, const char* name);
-EXPORTFEATUREFUNC(const char*, GetDescription);
+EXPORTFEATUREFUNC(size_t, GetDescription, char* desc);
 EXPORTFEATUREFUNC(void, SetDescription, const char* desc);
-EXPORTFEATUREFUNC(const char*, GetGroupName);
+EXPORTFEATUREFUNC(size_t, GetGroupName, char* group);
 EXPORTFEATUREFUNC(void, SetGroupName, const char* group);
 EXPORTFEATUREFUNC(EventType, GetType);
 EXPORTFEATUREFUNC(void, SetType, EventType type);
@@ -673,36 +674,40 @@ EXPORTFEATUREFUNC(const mdf::IEvent*, GetParentEvent);
 EXPORTFEATUREFUNC(void, SetParentEvent, const mdf::IEvent* parent);
 EXPORTFEATUREFUNC(const mdf::IEvent*, GetRangeEvent);
 EXPORTFEATUREFUNC(void, SetRangeEvent, const mdf::IEvent* range);
-EXPORTFEATUREFUNC(size_t, GetAttachments, mdf::IAttachment* pAttachment[]);
+EXPORTFEATUREFUNC(size_t, GetAttachments,
+                  const mdf::IAttachment* pAttachment[]);
 EXPORTFEATUREFUNC(double, GetPreTrig);
 EXPORTFEATUREFUNC(void, SetPreTrig, double time);
 EXPORTFEATUREFUNC(double, GetPostTrig);
 EXPORTFEATUREFUNC(void, SetPostTrig, double time);
 EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaData);
 EXPORTFEATUREFUNC(void, AddAttachment, const mdf::IAttachment* attachment);
+
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 
-#pragma region MdfETag
+#pragma region ETag
+EXPORT(mdf::ETag*, MdfETag, Init);
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
-  EXPORT(ReturnType, MdfETag, FuncName, const mdf::ETag* etag, ##__VA_ARGS__)
-EXPORTFEATUREFUNC(const char*, GetName);
+  EXPORT(ReturnType, MdfETag, FuncName, mdf::ETag* etag, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(size_t, UnInit);
+EXPORTFEATUREFUNC(size_t, GetName, char* name);
 EXPORTFEATUREFUNC(void, SetName, const char* name);
-EXPORTFEATUREFUNC(const char*, GetDescription);
+EXPORTFEATUREFUNC(size_t, GetDescription, char* desc);
 EXPORTFEATUREFUNC(void, SetDescription, const char* desc);
-EXPORTFEATUREFUNC(const char*, GetUnit);
+EXPORTFEATUREFUNC(size_t, GetUnit, char* unit);
 EXPORTFEATUREFUNC(void, SetUnit, const char* unit);
-EXPORTFEATUREFUNC(const char*, GetUnitRef);
+EXPORTFEATUREFUNC(size_t, GetUnitRef, char* unit);
 EXPORTFEATUREFUNC(void, SetUnitRef, const char* unit);
-EXPORTFEATUREFUNC(const char*, GetType);
+EXPORTFEATUREFUNC(size_t, GetType, char* type);
 EXPORTFEATUREFUNC(void, SetType, const char* type);
 EXPORTFEATUREFUNC(ETagDataType, GetDataType);
 EXPORTFEATUREFUNC(void, SetDataType, ETagDataType type);
-EXPORTFEATUREFUNC(const char*, GetLanguage);
+EXPORTFEATUREFUNC(size_t, GetLanguage, char* language);
 EXPORTFEATUREFUNC(void, SetLanguage, const char* language);
 EXPORTFEATUREFUNC(bool, GetReadOnly);
-EXPORTFEATUREFUNC(void, SetReadOnly, bool read_only);
-EXPORTFEATUREFUNC(const char*, GetValueAsString);
+EXPORTFEATUREFUNC(void, SetReadOnly, const bool read_only);
+EXPORTFEATUREFUNC(size_t, GetValueAsString, char* value);
 EXPORTFEATUREFUNC(void, SetValueAsString, const char* value);
 EXPORTFEATUREFUNC(double, GetValueAsFloat);
 EXPORTFEATUREFUNC(void, SetValueAsFloat, double value);
@@ -716,21 +721,21 @@ EXPORTFEATUREFUNC(void, SetValueAsUnsigned, uint64_t value);
 #pragma endregion
 
 #pragma region MdfMetaData
-#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                        \
-  EXPORT(ReturnType, MdfMetaData, FuncName, const mdf::IMetaData* metadata, \
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                  \
+  EXPORT(ReturnType, MdfMetaData, FuncName, mdf::IMetaData* metadata, \
          ##__VA_ARGS__)
-EXPORTFEATUREFUNC(const char*, GetPropertyAsString, const char* index);
+EXPORTFEATUREFUNC(size_t, GetPropertyAsString, const char* index, char* prop);
 EXPORTFEATUREFUNC(void, SetPropertyAsString, const char* index,
                   const char* prop);
 EXPORTFEATUREFUNC(double, GetPropertyAsFloat, const char* index);
 EXPORTFEATUREFUNC(void, SetPropertyAsFloat, const char* index, double prop);
-EXPORTFEATUREFUNC(size_t, GetProperties, const mdf::ETag* pProperty[]);
-EXPORTFEATUREFUNC(size_t, GetCommonProperties, const mdf::ETag* pProperty[]);
+EXPORTFEATUREFUNC(size_t, GetProperties, mdf::ETag* pProperty[]);
+EXPORTFEATUREFUNC(size_t, GetCommonProperties, mdf::ETag* pProperty[]);
 EXPORTFEATUREFUNC(void, SetCommonProperties, const mdf::ETag* pProperty[],
                   size_t count);
-EXPORTFEATUREFUNC(const char*, GetXmlSnippet);
+EXPORTFEATUREFUNC(size_t, GetXmlSnippet, char* xml);
 EXPORTFEATUREFUNC(void, SetXmlSnippet, const char* xml);
-EXPORTFEATUREFUNC(void, AddCommonProperty, const mdf::ETag* tag);
+EXPORTFEATUREFUNC(void, AddCommonProperty, mdf::ETag* tag);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 }  // namespace MdfLibrary::ExportFunctions

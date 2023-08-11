@@ -10,11 +10,18 @@ class MdfWriter {
 
  public:
   MdfWriter(MdfWriterType type, const char* filename)
-      : writer(MdfWriterInit(type, filename)) {}
-  ~MdfWriter() { MdfWriterUnInit(writer); }
-  MdfFile GetFile() { return MdfFile(MdfWriterGetFile(writer)); }
-  MdfHeader GetHeader() { return MdfHeader(MdfWriterGetHeader(writer)); }
-  bool GetCompressData() { return MdfWriterGetCompressData(writer); }
+      : writer(MdfWriterInit(type, filename)) {
+    if (writer == nullptr) throw std::runtime_error("MdfWriterInit failed");
+  }
+  ~MdfWriter() {
+    if (writer == nullptr) return;
+    MdfWriterUnInit(writer);
+    writer = nullptr;
+  }
+  MdfWriter(const MdfWriter&) = delete;
+  MdfFile GetFile() const { return MdfFile(MdfWriterGetFile(writer)); }
+  MdfHeader GetHeader() const { return MdfHeader(MdfWriterGetHeader(writer)); }
+  bool GetCompressData() const { return MdfWriterGetCompressData(writer); }
   void SetCompressData(bool compress) {
     MdfWriterSetCompressData(writer, compress);
   }

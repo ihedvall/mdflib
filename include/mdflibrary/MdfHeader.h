@@ -8,50 +8,103 @@ using namespace MdfLibrary::ExportFunctions;
 namespace MdfLibrary {
 class MdfHeader {
  private:
-  const mdf::IHeader* header;
+  mdf::IHeader* header;
 
  public:
-  MdfHeader(const mdf::IHeader* header) : header(header) {}
+  MdfHeader(mdf::IHeader* header) : header(header) {
+    if (header == nullptr) throw std::runtime_error("MdfHeaderInit failed");
+  }
+  MdfHeader(const mdf::IHeader* header)
+      : MdfHeader(const_cast<mdf::IHeader*>(header)) {}
   ~MdfHeader() { header = nullptr; }
-  int64_t GetIndex() { return MdfHeaderGetIndex(header); }
-  const char* GetDescription() { return MdfHeaderGetDescription(header); }
+  int64_t GetIndex() const { return MdfHeaderGetIndex(header); }
+  std::string GetDescription() const {
+    std::string str;
+    size_t size = MdfHeaderGetDescription(header, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfHeaderGetDescription(header, str.data());
+    return str;
+  }
   void SetDescription(const char* desc) {
     MdfHeaderSetDescription(header, desc);
   }
-  const char* GetAuthor() { return MdfHeaderGetAuthor(header); }
+  std::string GetAuthor() const {
+    std::string str;
+    size_t size = MdfHeaderGetAuthor(header, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfHeaderGetAuthor(header, str.data());
+    return str;
+  }
   void SetAuthor(const char* author) { MdfHeaderSetAuthor(header, author); }
-  const char* GetDepartment() { return MdfHeaderGetDepartment(header); }
+  std::string GetDepartment() const {
+    std::string str;
+    size_t size = MdfHeaderGetDepartment(header, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfHeaderGetDepartment(header, str.data());
+    return str;
+  }
   void SetDepartment(const char* department) {
     MdfHeaderSetDepartment(header, department);
   }
-  const char* GetProject() { return MdfHeaderGetProject(header); }
+  std::string GetProject() const {
+    std::string str;
+    size_t size = MdfHeaderGetProject(header, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfHeaderGetProject(header, str.data());
+    return str;
+  }
   void SetProject(const char* project) { MdfHeaderSetProject(header, project); }
-  const char* GetSubject() { return MdfHeaderGetSubject(header); }
+  std::string GetSubject() const {
+    std::string str;
+    size_t size = MdfHeaderGetSubject(header, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfHeaderGetSubject(header, str.data());
+    return str;
+  }
   void SetSubject(const char* subject) { MdfHeaderSetSubject(header, subject); }
-  const char* GetMeasurementId() { return MdfHeaderGetMeasurementId(header); }
+  std::string GetMeasurementId() const {
+    std::string str;
+    size_t size = MdfHeaderGetMeasurementId(header, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfHeaderGetMeasurementId(header, str.data());
+    return str;
+  }
   void SetMeasurementId(const char* uuid) {
     MdfHeaderSetMeasurementId(header, uuid);
   }
-  const char* GetRecorderId() { return MdfHeaderGetRecorderId(header); }
+  std::string GetRecorderId() const {
+    std::string str;
+    size_t size = MdfHeaderGetRecorderId(header, nullptr);
+    str.reserve(size + 1);
+    str.resize(size);
+    MdfHeaderGetRecorderId(header, str.data());
+    return str;
+  }
   void SetRecorderId(const char* uuid) { MdfHeaderSetRecorderId(header, uuid); }
-  int64_t GetRecorderIndex() { return MdfHeaderGetRecorderIndex(header); }
+  int64_t GetRecorderIndex() const { return MdfHeaderGetRecorderIndex(header); }
   void SetRecorderIndex(int64_t index) {
     MdfHeaderSetRecorderIndex(header, index);
   }
-  uint64_t GetStartTime() { return MdfHeaderGetStartTime(header); }
+  uint64_t GetStartTime() const { return MdfHeaderGetStartTime(header); }
   void SetStartTime(uint64_t time) { MdfHeaderSetStartTime(header, time); }
   bool IsStartAngleUsed() { return MdfHeaderIsStartAngleUsed(header); }
-  double GetStartAngle() { return MdfHeaderGetStartAngle(header); }
+  double GetStartAngle() const { return MdfHeaderGetStartAngle(header); }
   void SetStartAngle(double angle) { MdfHeaderSetStartAngle(header, angle); }
   bool IsStartDistanceUsed() { return MdfHeaderIsStartDistanceUsed(header); }
-  double GetStartDistance() { return MdfHeaderGetStartDistance(header); }
+  double GetStartDistance() const { return MdfHeaderGetStartDistance(header); }
   void SetStartDistance(double distance) {
     MdfHeaderSetStartDistance(header, distance);
   }
-  const MdfMetaData GetMetaDatas() {
+  const MdfMetaData GetMetaDatas() const {
     return MdfMetaData(MdfHeaderGetMetaDatas(header));
   }
-  std::vector<MdfAttachment> GetAttachments() {
+  std::vector<MdfAttachment> GetAttachments() const {
     size_t count = MdfHeaderGetAttachments(header, nullptr);
     if (count <= 0) return std::vector<MdfAttachment>();
     auto pAttachments = new mdf::IAttachment*[count];
@@ -62,7 +115,7 @@ class MdfHeader {
     delete[] pAttachments;
     return attachments;
   }
-  std::vector<MdfFileHistory> GetFileHistorys() {
+  std::vector<MdfFileHistory> GetFileHistorys() const {
     size_t count = MdfHeaderGetFileHistorys(header, nullptr);
     if (count <= 0) return std::vector<MdfFileHistory>();
     auto pFileHistorys = new mdf::IFileHistory*[count];
@@ -73,7 +126,7 @@ class MdfHeader {
     delete[] pFileHistorys;
     return fileHistorys;
   }
-  std::vector<MdfEvent> GetEvents() {
+  std::vector<MdfEvent> GetEvents() const {
     size_t count = MdfHeaderGetEvents(header, nullptr);
     if (count <= 0) return std::vector<MdfEvent>();
     auto pEvents = new mdf::IEvent*[count];
@@ -83,7 +136,7 @@ class MdfHeader {
     delete[] pEvents;
     return events;
   }
-  std::vector<MdfDataGroup> GetDataGroups() {
+  std::vector<MdfDataGroup> GetDataGroups() const {
     size_t count = MdfHeaderGetDataGroups(header, nullptr);
     if (count <= 0) return std::vector<MdfDataGroup>();
     auto pDataGroups = new mdf::IDataGroup*[count];

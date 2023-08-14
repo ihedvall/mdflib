@@ -15,12 +15,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_DEBUG_POSTFIX d)
 
 include("script/zlib.cmake")
-include("script/fetch_expat.cmake")
+include("script/expat.cmake")
 include("script/wxwidgets.cmake")
 include("script/googletest.cmake")
 include("script/doxygen.cmake")
 
-add_library(mdf STATIC
+add_library(mdf
         src/mdfblock.cpp src/mdfblock.h
         src/mdffile.cpp include/mdf/mdffile.h
         src/idblock.cpp src/idblock.h
@@ -104,15 +104,13 @@ add_library(mdf STATIC
         src/iblock.cpp include/mdf/iblock.h
         src/vlsddata.cpp src/vlsddata.h)
 
-target_link_libraries(mdf ${ZLIB_LIBRARIES} expat)
-
 target_include_directories(mdf PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         )
 
 target_include_directories(mdf PRIVATE ${ZLIB_INCLUDE_DIRS})
-target_include_directories(mdf PRIVATE ${expat_SOURCE_DIR}/expat/lib)
+target_include_directories(mdf PRIVATE ${EXPAT_INCLUDE_DIRS})
 
 target_compile_definitions(mdf PRIVATE XML_STATIC)
 

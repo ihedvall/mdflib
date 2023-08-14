@@ -38,7 +38,6 @@ set(MDFLIBRARY_PUBLIC_HEADERS
             ../include/mdflibrary/MdfExport.h
             ../include/mdflibrary/MdfAttachment.h
             ../include/mdflibrary/MdfChannel.h
-            ../include/mdflibrary/MdfChannelArray.h
             ../include/mdflibrary/MdfChannelConversion.h
             ../include/mdflibrary/MdfChannelGroup.h
             ../include/mdflibrary/MdfChannelObserver.h
@@ -51,7 +50,7 @@ set(MDFLIBRARY_PUBLIC_HEADERS
             ../include/mdflibrary/MdfMetaData.h
             ../include/mdflibrary/MdfReader.h
             ../include/mdflibrary/MdfSourceInformation.h
-            ../include/mdflibrary/Mdfwriter.h)
+            ../include/mdflibrary/MdfWriter.h)
 set_target_properties(mdflibrary PROPERTIES PUBLIC_HEADER
                                             "${MDFLIBRARY_PUBLIC_HEADERS}")
 get_target_property(PH1 mdflibrary PUBLIC_HEADER)

@@ -113,7 +113,7 @@ target_include_directories(mdf PRIVATE ${ZLIB_INCLUDE_DIRS})
 target_include_directories(mdf PRIVATE ${EXPAT_INCLUDE_DIRS})
 
 target_compile_definitions(mdf PRIVATE XML_STATIC)
-
+target_link_libraries(mdf ${ZLIB_LIBRARIES} ${EXPAT_LIBRARIES})
 set(MDF_PUBLIC_HEADERS
         include/mdf/cryptoutil.h
         include/mdf/etag.h

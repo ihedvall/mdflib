@@ -35,7 +35,7 @@ endif ()
 
 target_link_libraries(test_mdf PRIVATE mdf)
 target_link_libraries(test_mdf PRIVATE util)
-target_link_libraries(test_mdf PRIVATE expat)
+target_link_libraries(test_mdf PRIVATE ${EXPAT_LIBRARIES})
 target_link_libraries(test_mdf PRIVATE ${Boost_LIBRARIES})
 target_link_libraries(test_mdf PRIVATE ${ZLIB_LIBRARIES})
 target_link_libraries(test_mdf PRIVATE ${GTEST_BOTH_LIBRARIES})

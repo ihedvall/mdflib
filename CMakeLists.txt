@@ -17,6 +17,8 @@ if(MDF_BUILD_TOOL AND VCPKG)
 endif()
 option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
 if(MDF_BUILD_TEST AND VCPKG)
+  # GTest is not available for static linking
+  string(REPLACE "-static" "" VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
   list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
 endif()
 

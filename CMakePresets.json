@@ -22,7 +22,6 @@
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-                "VCPKG_TARGET_TRIPLET": "x64-windows-static",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
             }
         },
@@ -36,7 +35,6 @@
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-                "VCPKG_TARGET_TRIPLET": "x86-windows-static",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
             }
         }
@@ -98,6 +96,26 @@
                 "ALL_BUILD",
                 "install"
             ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "ninja-multi-vcpkg",
+            "description": "Build ninja-multi-vcpkg GTest",
+            "displayName": "Build ninja-multi-vcpkg GTest",
+            "configurePreset": "ninja-multi-vcpkg"
+        },
+        {
+            "name": "msvc-multi-vcpkg-x64",
+            "description": "Build msvc-multi-vcpkg-x64 GTest",
+            "displayName": "Build msvc-multi-vcpkg-x64 GTest",
+            "configurePreset": "msvc-multi-vcpkg-x64"
+        },
+        {
+            "name": "msvc-multi-vcpkg-x64_x86",
+            "description": "Build msvc-multi-vcpkg-x64_x86 GTest",
+            "displayName": "Build msvc-multi-vcpkg-x64_x86 GTest",
+            "configurePreset": "msvc-multi-vcpkg-x64_x86"
         }
     ]
 }

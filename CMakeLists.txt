@@ -9,7 +9,7 @@ option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF
 if(MDF_BUILD_TOOL)
   list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
 endif()
-option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." ON)
+option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
 if(MDF_BUILD_TEST)
   list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
 endif()

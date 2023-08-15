@@ -11,8 +11,6 @@ project(
 
 set(CMAKE_CXX_STANDARD 20)
 
-include(GoogleTest)
-
 add_executable(test_mdf
         src/main.cpp
         src/testcrypto.cpp
@@ -33,10 +31,16 @@ add_executable(test_mdf
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 
-find_package(GTest CONFIG REQUIRED)
-target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
-                                       GTest::gmock GTest::gmock_main)
+if(VCPKG)
+  find_package(GTest CONFIG REQUIRED)
+  target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
+                                        GTest::gmock GTest::gmock_main)
+else()
+  include("script/googletest.cmake")
+  target_link_libraries(test_mdf PRIVATE ${GTEST_BOTH_LIBRARIES})
+endif()
 
 target_link_libraries(test_mdf PRIVATE mdf)
 
+include(GoogleTest)
 gtest_discover_tests(test_mdf)

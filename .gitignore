@@ -60,3 +60,4 @@ build/
 *.user
 *.userosscache
 *.sln.docstates
+TestResults/

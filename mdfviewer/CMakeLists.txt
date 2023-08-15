@@ -44,17 +44,36 @@ endif()
 
 target_link_libraries(mdfview PRIVATE mdf)
 
-find_package(expat CONFIG REQUIRED)
-target_link_libraries(mdfview PRIVATE expat::expat)
+if(VCPKG)
+  find_package(expat CONFIG REQUIRED)
+  target_link_libraries(mdfview PRIVATE expat::expat)
 
-find_package(ZLIB REQUIRED)
-target_link_libraries(mdfview PRIVATE ZLIB::ZLIB)
+  find_package(ZLIB REQUIRED)
+  target_link_libraries(mdfview PRIVATE ZLIB::ZLIB)
 
-find_package(Boost REQUIRED COMPONENTS filesystem locale)
-target_link_libraries(mdfview PRIVATE Boost::boost Boost::filesystem Boost::locale)
+  find_package(Boost REQUIRED COMPONENTS filesystem locale)
+  target_link_libraries(mdfview PRIVATE Boost::boost Boost::filesystem Boost::locale)
 
-find_package(wxWidgets CONFIG REQUIRED)
-target_link_libraries(mdfview PRIVATE wx::core wx::base)
+  find_package(wxWidgets CONFIG REQUIRED)
+  target_link_libraries(mdfview PRIVATE wx::core wx::base)
+else()
+  include("../script/zlib.cmake")
+  include("../script/expat.cmake")
+  include("../script/wxwidgets.cmake")
+  include("../script/boost.cmake")
+
+  target_include_directories(mdfview PRIVATE ${wxWidgets_INCLUDE_DIRS})
+  target_include_directories(mdfview PRIVATE ${Boost_INCLUDE_DIRS})
+
+  target_compile_definitions(mdfview PRIVATE XML_STATIC)
+
+  target_link_libraries(mdfview PRIVATE ${EXPAT_LIBRARIES})
+  target_link_libraries(mdfview PRIVATE ${wxWidgets_LIBRARIES})
+  target_link_libraries(mdfview PRIVATE ${Boost_LIBRARIES})
+  target_link_libraries(mdfview PRIVATE ${ZLIB_LIBRARIES})
+  target_link_libraries(mdfview PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
+endif()
+
 
 if(MINGW)
   target_link_libraries(mdfview PRIVATE iconv)

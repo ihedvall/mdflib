@@ -85,11 +85,22 @@ add_library(mdf STATIC
         src/iblock.cpp ../include/mdf/iblock.h
         src/vlsddata.cpp src/vlsddata.h)
 
-find_package(ZLIB REQUIRED)
-target_link_libraries(mdf PRIVATE ZLIB::ZLIB)
+if(VCPKG)
+  find_package(ZLIB REQUIRED)
+  target_link_libraries(mdf PRIVATE ZLIB::ZLIB)
 
-find_package(expat CONFIG REQUIRED)
-target_link_libraries(mdf PRIVATE expat::expat)
+  find_package(expat CONFIG REQUIRED)
+  target_link_libraries(mdf PRIVATE expat::expat)
+else()
+  include("script/zlib.cmake")
+  include("script/expat.cmake")
+  
+  target_include_directories(mdf PRIVATE ${ZLIB_INCLUDE_DIRS})
+  target_include_directories(mdf PRIVATE ${EXPAT_INCLUDE_DIRS})
+
+  target_compile_definitions(mdf PRIVATE XML_STATIC)
+  target_link_libraries(mdf ${ZLIB_LIBRARIES} ${EXPAT_LIBRARIES})
+endif()
 
 target_include_directories(
   mdf PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>)

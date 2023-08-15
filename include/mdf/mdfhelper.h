@@ -151,6 +151,8 @@ class MdfHelper {
   static std::string Latin1ToUtf8(const std::string &latin1);
   /** \brief Converts a wide UTF16 string to an UTF8 string. */
   static std::string Utf16ToUtf8(const std::wstring &utf16);
+  /** \brief Converts a wide UTF8 string to an UTF16 string. */
+  static std::wstring Utf8ToUtf16(const std::string &utf8);
   /** \brief Returns tru if this computer uses Little Endian. */
   static bool ComputerUseLittleEndian();
 };

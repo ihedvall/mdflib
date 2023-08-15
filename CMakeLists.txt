@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 cmake_minimum_required(VERSION 3.20)
 
-if("${VCPKG_TARGET_TRIPLET}" STREQUAL "")
+if("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
   set(VCPKG OFF)
 else()
   set(VCPKG ON)

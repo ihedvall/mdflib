@@ -8,6 +8,8 @@
 #include <cerrno>
 #endif
 
+#include "mdf/mdfhelper.h"
+
 namespace Platform {
 
 int stricmp(const char *__s1, const char *__s2) {
@@ -57,7 +59,7 @@ int fileopen(std::FILE **out, const char *__restrict __filename,
              const char *__restrict __modes) {
   *out = nullptr;
 #if (_MSC_VER)
-  return fopen_s(out, __filename, __modes);
+  return _wfopen_s(out, mdf::MdfHelper::Utf8ToUtf16(__filename).c_str(), mdf::MdfHelper::Utf8ToUtf16(__modes).c_str());
 #else
   *out = fopen(__filename, __modes);
   if (!(*out)) {

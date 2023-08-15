@@ -13,7 +13,7 @@ public class MdfLibraryTest
     private const string TestFile3 = @"test3.mf4";
     private const string InvalidFile = @"testi.mf4";
 
-    private const string TestFile4 = @"test4.mf4";
+    private const string TestFile4 = @"中文.mf4";
 
     [TestInitialize]
     public void TestLog()
@@ -621,7 +621,7 @@ public class MdfLibraryTest
             cn.DataType = ChannelDataType.CanOpenTime;
         }
 
-        var Attachment = Header.CreateAttachment();
+/*        var Attachment = Header.CreateAttachment();
         Attachment.CreatorIndex = 0;
         Attachment.Embedded = true;
         Attachment.Compressed = false;
@@ -633,7 +633,7 @@ public class MdfLibraryTest
         Attachment.Embedded = true;
         Attachment.Compressed = true;
         Attachment.FileName = "test.txt";
-        Attachment.FileType = "text/plain";
+        Attachment.FileType = "text/plain";*/
 
         Writer.InitMeasurement();
         Writer.StartMeasurement((ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000));

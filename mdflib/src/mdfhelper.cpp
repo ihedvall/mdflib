@@ -285,9 +285,15 @@ std::string MdfHelper::Utf16ToUtf8(const std::wstring &utf16) {
   return utf8;
 }
 
+std::wstring MdfHelper::Utf8ToUtf16(const std::string &utf8) {
+  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+  const auto utf16 = convert.from_bytes(utf8);
+  return std::wstring(utf16.begin(), utf16.end());
+}
+
 bool MdfHelper::ComputerUseLittleEndian() {
   constexpr int num = 1;
-  return *(reinterpret_cast<const char*>(&num)) == 1;
+  return *(reinterpret_cast<const char *>(&num)) == 1;
 }
 
 }  // namespace mdf

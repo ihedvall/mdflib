@@ -17,9 +17,9 @@
 #include <filesystem>
 #include <memory>
 
+#include "dg3block.h"
 #include "mdfblock.h"
 #include "platform.h"
-#include "dg3block.h"
 
 using namespace std::filesystem;
 using namespace std::chrono_literals;
@@ -116,7 +116,8 @@ bool MdfWriter::InitMeasurement() {
   // Set up internal sample buffers so the last channel values can be stored
   const bool prep = PrepareForWriting();
   if (!prep) {
-    MDF_ERROR() << "Failed to prepare the file for writing. File: " << filename_;
+    MDF_ERROR() << "Failed to prepare the file for writing. File: "
+                << filename_;
     return false;
   }
   // 1: Save ID, HD, DG, AT, CG and CN blocks to the file.
@@ -129,10 +130,10 @@ bool MdfWriter::InitMeasurement() {
   }
 
   const bool write = mdf_file_->Write(file);
-  SetDataPosition(file); // Set up data position to end of file
+  SetDataPosition(file);  // Set up data position to end of file
   fclose(file);
-  start_time_ = 0; // Zero indicate not started
-  stop_time_ = 0;  // Zero indicate not stopped
+  start_time_ = 0;  // Zero indicate not started
+  stop_time_ = 0;   // Zero indicate not stopped
   // Start the working thread that handles the samples
   write_state_ = WriteState::Init;  // Waits for new samples
   work_thread_ = std::thread(&MdfWriter::WorkThread, this);
@@ -143,13 +144,13 @@ void MdfWriter::SaveSample(IChannelGroup& group, uint64_t time) {
   SampleRecord sample = group.GetSampleRecord();
   sample.timestamp = time;
   const auto itr_master = master_channels_.find(group.RecordId());
-  const auto* master = itr_master == master_channels_.cend() ?
-                       nullptr : itr_master->second;
+  const auto* master =
+      itr_master == master_channels_.cend() ? nullptr : itr_master->second;
   if (master != nullptr) {
     auto rel_ns = static_cast<int64_t>(sample.timestamp);
     rel_ns -= static_cast<int64_t>(start_time_);
     const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
-    master->SetTimestamp(rel_s,sample.record_buffer);
+    master->SetTimestamp(rel_s, sample.record_buffer);
   }
 
   std::lock_guard lock(locker_);
@@ -205,7 +206,7 @@ void MdfWriter::RecalculateTimeMaster() {
     if (master == nullptr) {
       continue;
     }
-    master->SetTimestamp(rel_s,sample.record_buffer);
+    master->SetTimestamp(rel_s, sample.record_buffer);
   }
 }
 
@@ -213,7 +214,7 @@ void MdfWriter::StartMeasurement(uint64_t start_time) {
   write_state_ = WriteState::StartMeas;
   start_time_ = start_time;
   RecalculateTimeMaster();
-  stop_time_ = 0; // Zero indicate not stopped
+  stop_time_ = 0;  // Zero indicate not stopped
   sample_event_.notify_one();
 
   // Set the time in the header if this is the first DG block in the file.
@@ -301,7 +302,7 @@ void MdfWriter::WorkThread() {
         break;
       }
       case WriteState::StartMeas: {
-        SaveQueue(lock); // Save the contents of the queue to file
+        SaveQueue(lock);  // Save the contents of the queue to file
         break;
       }
 
@@ -323,12 +324,12 @@ void MdfWriter::WorkThread() {
 
 void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
   // Save uncompressed data in last DG3 block
-  auto *header = Header();
+  auto* header = Header();
   if (header == nullptr) {
     return;
   }
 
-  auto *last_dg = header->LastDataGroup();
+  auto* last_dg = header->LastDataGroup();
   if (last_dg == nullptr) {
     return;
   }
@@ -357,7 +358,7 @@ void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
     // Write a sample last to file
     auto sample = sample_queue_.front();
     sample_queue_.pop_front();
-    if (stop_time_ > 0  && sample.timestamp > stop_time_) {
+    if (stop_time_ > 0 && sample.timestamp > stop_time_) {
       break;  // Skip this sample
     }
     lock.unlock();
@@ -396,8 +397,8 @@ void MdfWriter::IncrementNofSamples(uint64_t record_id) const {
   const auto list = data_group->ChannelGroups();
   std::for_each(list.cbegin(), list.cend(), [&](auto* group) {
     if (group != nullptr && group->RecordId() == record_id) {
-      group->IncrementSample(); // Increment internal sample counter
-      group->NofSamples(group->Sample()); // Update block counter
+      group->IncrementSample();            // Increment internal sample counter
+      group->NofSamples(group->Sample());  // Update block counter
     }
   });
 }
@@ -416,7 +417,7 @@ bool MdfWriter::WriteSignalData(std::FILE* file) {
 
 std::string MdfWriter::Name() const {
   try {
-    path filename(filename_);
+    path filename = u8path(filename_);
     return filename.stem().string();
   } catch (...) {
   }

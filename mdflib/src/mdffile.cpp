@@ -42,7 +42,7 @@ IAttachment* MdfFile::CreateAttachment() { return nullptr; }
 void MdfFile::FileName(const std::string& filename) {
   filename_ = filename;
   try {
-    auto temp = std::filesystem::path(filename);
+    auto temp = std::filesystem::u8path(filename);
     if (name_.empty()) {
       name_ = temp.stem().string();
     }

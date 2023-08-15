@@ -76,7 +76,7 @@ bool Deflate(FILE* in, FILE* out) {
 
 bool Deflate(const std::string& filename, ByteArray& buf_out) {
   try {
-    std::filesystem::path name(filename);
+    std::filesystem::path name = std::filesystem::u8path(filename);
     auto size = std::filesystem::file_size(name);
 
     std::FILE* file = nullptr;
@@ -94,7 +94,7 @@ bool Deflate(const std::string& filename, ByteArray& buf_out) {
       buf_out.resize(buf_in.size(), 0);
     }
     return Deflate(buf_in, buf_out);
-  } catch (const std::exception& ) {
+  } catch (const std::exception&) {
   }
   return false;
 }

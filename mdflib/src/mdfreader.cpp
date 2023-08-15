@@ -185,7 +185,7 @@ MdfReader::MdfReader(const std::string &filename) : filename_(filename) {
   // Need to create MDF3 of MDF4 file
   bool bExist = false;
   try {
-    std::filesystem::path p(filename_);
+    std::filesystem::path p = std::filesystem::u8path(filename_);
     if (std::filesystem::exists(p)) {
       bExist = true;
     }
@@ -235,7 +235,7 @@ MdfReader::~MdfReader() { Close(); }
 
 std::string MdfReader::ShortName() const {
   try {
-    std::filesystem::path file(filename_);
+    std::filesystem::path file = std::filesystem::u8path(filename_);
     return file.stem().string();
   } catch (const std::exception &) {
   }
@@ -390,7 +390,7 @@ bool MdfReader::ReadData(const IDataGroup &data_group) {
   return no_error;
 }
 
-const IHeader* MdfReader::GetHeader() const {
+const IHeader *MdfReader::GetHeader() const {
   const auto *file = GetFile();
   return file != nullptr ? file->Header() : nullptr;
 }

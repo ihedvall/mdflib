@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 #include "MdfMetaData.h"
 
@@ -24,10 +28,8 @@ class MdfFileHistory {
   }
   std::string GetDescription() const {
     std::string str;
-    size_t size = MdfFileHistoryGetDescription(history, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfFileHistoryGetDescription(history, str.data());
+    str.reserve(MdfFileHistoryGetDescription(history, nullptr) + 1);
+    str.resize(MdfFileHistoryGetDescription(history, str.data()));;
     return str;
   }
   void SetDescription(const char* desc) {
@@ -35,10 +37,8 @@ class MdfFileHistory {
   }
   std::string GetToolName() const {
     std::string str;
-    size_t size = MdfFileHistoryGetToolName(history, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfFileHistoryGetToolName(history, str.data());
+    str.reserve(MdfFileHistoryGetToolName(history, nullptr) + 1);
+    str.resize(MdfFileHistoryGetToolName(history, str.data()));;
     return str;
   }
   void SetToolName(const char* name) {
@@ -46,10 +46,8 @@ class MdfFileHistory {
   }
   std::string GetToolVendor() const {
     std::string str;
-    size_t size = MdfFileHistoryGetToolVendor(history, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfFileHistoryGetToolVendor(history, str.data());
+    str.reserve(MdfFileHistoryGetToolVendor(history, nullptr) + 1);
+    str.resize(MdfFileHistoryGetToolVendor(history, str.data()));;
     return str;
   }
   void SetToolVendor(const char* vendor) {
@@ -57,10 +55,8 @@ class MdfFileHistory {
   }
   std::string GetToolVersion() const {
     std::string str;
-    size_t size = MdfFileHistoryGetToolVersion(history, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfFileHistoryGetToolVersion(history, str.data());
+    str.reserve(MdfFileHistoryGetToolVersion(history, nullptr) + 1);
+    str.resize(MdfFileHistoryGetToolVersion(history, str.data()));;
     return str;
   }
   void SetToolVersion(const char* version) {
@@ -68,10 +64,8 @@ class MdfFileHistory {
   }
   std::string GetUserName() const {
     std::string str;
-    size_t size = MdfFileHistoryGetUserName(history, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfFileHistoryGetUserName(history, str.data());
+    str.reserve(MdfFileHistoryGetUserName(history, nullptr) + 1);
+    str.resize(MdfFileHistoryGetUserName(history, str.data()));;
     return str;
   }
   void SetUserName(const char* user) {

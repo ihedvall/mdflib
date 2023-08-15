@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 #include <stdint.h>
 

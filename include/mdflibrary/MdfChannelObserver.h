@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 #include "MdfDataGroup.h"
 
@@ -38,18 +42,14 @@ class MdfChannelObserver {
   }
   std::string GetName() const {
     std::string str;
-    size_t size = MdfChannelObserverGetName(observer, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfChannelObserverGetName(observer, str.data());
+    str.reserve(MdfChannelObserverGetName(observer, nullptr) + 1);
+    str.resize(MdfChannelObserverGetName(observer, str.data()));;
     return str;
   }
   std::string GetUnit() const {
     std::string str;
-    size_t size = MdfChannelObserverGetUnit(observer, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfChannelObserverGetUnit(observer, str.data());
+    str.reserve(MdfChannelObserverGetUnit(observer, nullptr) + 1);
+    str.resize(MdfChannelObserverGetUnit(observer, str.data()));;
     return str;
   }
   const MdfChannel GetChannel() const {

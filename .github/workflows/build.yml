@@ -71,10 +71,10 @@ jobs:
           # This is the name of the CMakePresets.json's configuration to use to generate
           # the project files. This configuration leverages the vcpkg.cmake toolchain file to
           # run vcpkg and install all dependencies specified in vcpkg.json.
-          configurePreset: 'msvc-multi-vcpkg-${{ matrix.arch }}-workflow'
+          configurePreset: 'msvc-multi-vcpkg-${{ matrix.arch }}'
 
           # This is the name of the CMakePresets.json's configuration to build the project.
-          buildPreset: 'msvc-multi-vcpkg-${{ matrix.arch }}-workflow-release'
+          buildPreset: 'msvc-multi-vcpkg-${{ matrix.arch }}-release'
 
       - name: Upload build
         uses: actions/upload-artifact@v3

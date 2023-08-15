@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 #include <vector>
 
@@ -19,10 +23,8 @@ class MdfMetaData {
   ~MdfMetaData() { metaData = nullptr; }
   std::string GetPropertyAsString(const char* index) {
     std::string str;
-    size_t size = MdfMetaDataGetPropertyAsString(metaData, index, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfMetaDataGetPropertyAsString(metaData, index, str.data());
+    str.reserve(MdfMetaDataGetPropertyAsString(metaData, index, nullptr) + 1);
+    str.resize(MdfMetaDataGetPropertyAsString(metaData, index, str.data()));;
     return str;
   }
   void SetPropertyAsString(const char* index, const char* prop) {
@@ -62,10 +64,8 @@ class MdfMetaData {
   }
   std::string GetXmlSnippet() const {
     std::string str;
-    size_t size = MdfMetaDataGetXmlSnippet(metaData, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfMetaDataGetXmlSnippet(metaData, str.data());
+    str.reserve(MdfMetaDataGetXmlSnippet(metaData, nullptr) + 1);
+    str.resize(MdfMetaDataGetXmlSnippet(metaData, str.data()));;
     return str;
   }
   void SetXmlSnippet(const char* xml) {

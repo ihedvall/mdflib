@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 #include "MdfAttachment.h"
 #include "MdfMetaData.h"
@@ -19,28 +23,22 @@ class MdfEvent {
   int64_t GetIndex() const { return MdfEventGetIndex(event); }
   std::string GetName() const {
     std::string str;
-    size_t size = MdfEventGetName(event, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfEventGetName(event, str.data());
+    str.reserve(MdfEventGetName(event, nullptr) + 1);
+    str.resize(MdfEventGetName(event, str.data()));;
     return str;
   }
   void SetName(const char* name) { MdfEventSetName(event, name); }
   std::string GetDescription() const {
     std::string str;
-    size_t size = MdfEventGetDescription(event, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfEventGetDescription(event, str.data());
+    str.reserve(MdfEventGetDescription(event, nullptr) + 1);
+    str.resize(MdfEventGetDescription(event, str.data()));;
     return str;
   }
   void SetDescription(const char* desc) { MdfEventSetDescription(event, desc); }
   std::string GetGroupName() const {
     std::string str;
-    size_t size = MdfEventGetGroupName(event, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfEventGetGroupName(event, str.data());
+    str.reserve(MdfEventGetGroupName(event, nullptr) + 1);
+    str.resize(MdfEventGetGroupName(event, str.data()));;
     return str;
   }
   void SetGroupName(const char* group) { MdfEventSetGroupName(event, group); }

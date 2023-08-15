@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #include <filesystem>
 #include <iostream>
 
@@ -31,88 +35,144 @@ void c_example() {
     MdfFileHistorySetToolVersion(History, "2.3");
     MdfFileHistorySetUserName(History, "Ducky");
 
-    auto* dg = MdfWriterCreateDataGroup(Writer);
-    std::cout << "DataGroup: " << dg << std::endl;
-    auto* cg = MdfDataGroupCreateChannelGroup(dg);
-    std::cout << "ChannelGroup: " << cg << std::endl;
-    MdfChannelGroupSetName(cg, "Test");
-    MdfChannelGroupSetDescription(cg, "Test channel group");
+    {  // DataGroup 1
+      auto* dg = MdfWriterCreateDataGroup(Writer);
+      std::cout << "DataGroup: " << dg << std::endl;
+      auto* cg1 = MdfDataGroupCreateChannelGroup(dg);
+      std::cout << "ChannelGroup1: " << cg1 << std::endl;
+      MdfChannelGroupSetName(cg1, "Test 1");
+      MdfChannelGroupSetDescription(cg1, "Test channel group");
+      auto* cg2 = MdfDataGroupCreateChannelGroup(dg);
+      std::cout << "ChannelGroup2: " << cg2 << std::endl;
+      MdfChannelGroupSetName(cg2, "Test 2");
+      MdfChannelGroupSetDescription(cg2, "Test channel group");
 
-    auto* si = MdfChannelGroupCreateSourceInformation(cg);
-    std::cout << "SourceInformation: " << si << std::endl;
-    MdfSourceInformationSetName(si, "SI-Name");
-    MdfSourceInformationSetPath(si, "SI-Path");
-    MdfSourceInformationSetDescription(si, "SI-Desc");
-    MdfSourceInformationSetType(si, SourceType::Bus);
-    MdfSourceInformationSetBus(si, BusType::Can);
+      auto* si = MdfChannelGroupCreateSourceInformation(cg1);
+      std::cout << "SourceInformation: " << si << std::endl;
+      MdfSourceInformationSetName(si, "SI-Name");
+      MdfSourceInformationSetPath(si, "SI-Path");
+      MdfSourceInformationSetDescription(si, "SI-Desc");
+      MdfSourceInformationSetType(si, SourceType::Bus);
+      MdfSourceInformationSetBus(si, BusType::Can);
 
-    {
-      auto* cn = MdfChannelGroupCreateChannel(cg);
-      std::cout << "Channel: " << cn << std::endl;
-      MdfChannelSetName(cn, "Time");
-      MdfChannelSetDescription(cn, "Time channel");
-      MdfChannelSetType(cn, ChannelType::Master);
-      MdfChannelSetSync(cn, ChannelSyncType::Time);
-      MdfChannelSetDataType(cn, ChannelDataType::FloatLe);
-      MdfChannelSetDataBytes(cn, 4);
-      MdfChannelSetUnit(cn, "s");
-      MdfChannelSetRange(cn, 0, 100);
-    }
+      mdf::IChannel* pChannel1[3];
+      {
+        pChannel1[0] = MdfChannelGroupCreateChannel(cg1);
+        std::cout << "Channel: " << pChannel1[0] << std::endl;
+        MdfChannelSetName(pChannel1[0], "Time");
+        MdfChannelSetDescription(pChannel1[0], "Time channel");
+        MdfChannelSetType(pChannel1[0], ChannelType::Master);
+        MdfChannelSetSync(pChannel1[0], ChannelSyncType::Time);
+        MdfChannelSetDataType(pChannel1[0], ChannelDataType::FloatLe);
+        MdfChannelSetDataBytes(pChannel1[0], 4);
+        MdfChannelSetUnit(pChannel1[0], "s");
+        MdfChannelSetRange(pChannel1[0], 0, 100);
+      }
 
-    {
-      auto* cn = MdfChannelGroupCreateChannel(cg);
-      MdfChannelSetName(cn, "SignedLe");
-      MdfChannelSetDescription(cn, "int32_t");
-      MdfChannelSetType(cn, ChannelType::FixedLength);
-      MdfChannelSetDataType(cn, ChannelDataType::SignedIntegerLe);
-      MdfChannelSetDataBytes(cn, sizeof(int32_t));
-    }
-    {
-      auto* cn = MdfChannelGroupCreateChannel(cg);
-      MdfChannelSetName(cn, "SignedBe");
-      MdfChannelSetDescription(cn, "int8_t");
-      MdfChannelSetType(cn, ChannelType::FixedLength);
-      MdfChannelSetDataType(cn, ChannelDataType::SignedIntegerLe);
-      MdfChannelSetDataBytes(cn, sizeof(int8_t));
-    }
-    {
-      auto* cn = MdfChannelGroupCreateChannel(cg);
-      MdfChannelSetName(cn, "FloatLe");
-      MdfChannelSetDescription(cn, "float");
-      MdfChannelSetType(cn, ChannelType::FixedLength);
-      MdfChannelSetDataType(cn, ChannelDataType::FloatLe);
-      MdfChannelSetDataBytes(cn, sizeof(float));
-    }
-    {
-      auto* cn = MdfChannelGroupCreateChannel(cg);
-      MdfChannelSetName(cn, "FloatBe");
-      MdfChannelSetDescription(cn, "double");
-      MdfChannelSetType(cn, ChannelType::FixedLength);
-      MdfChannelSetDataType(cn, ChannelDataType::FloatBe);
-      MdfChannelSetDataBytes(cn, sizeof(double));
-    }
+      {
+        pChannel1[1] = MdfChannelGroupCreateChannel(cg1);
+        MdfChannelSetName(pChannel1[1], "SignedLe");
+        MdfChannelSetDescription(pChannel1[1], "int32_t");
+        MdfChannelSetType(pChannel1[1], ChannelType::FixedLength);
+        MdfChannelSetDataType(pChannel1[1], ChannelDataType::SignedIntegerLe);
+        MdfChannelSetDataBytes(pChannel1[1], sizeof(int32_t));
+      }
+      {
+        pChannel1[2] = MdfChannelGroupCreateChannel(cg1);
+        MdfChannelSetName(pChannel1[2], "SignedBe");
+        MdfChannelSetDescription(pChannel1[2], "int8_t");
+        MdfChannelSetType(pChannel1[2], ChannelType::FixedLength);
+        MdfChannelSetDataType(pChannel1[2], ChannelDataType::SignedIntegerLe);
+        MdfChannelSetDataBytes(pChannel1[2], sizeof(int8_t));
+      }
 
-    size_t size = MdfChannelGroupGetChannels(cg, nullptr);
-    std::cout << "ChannelGroupGetChannels: " << size << std::endl;
-    auto pChannel = new mdf::IChannel*[size];
-    size = MdfChannelGroupGetChannels(cg, pChannel);
-    for (size_t i = 0; i < size; i++) {
-      std::cout << "Channel" << i << ": " << pChannel[i] << std::endl;
-    }
+      mdf::IChannel* pChannel2[3];
+      {
+        pChannel2[0] = MdfChannelGroupCreateChannel(cg2);
+        std::cout << "Channel: " << pChannel2[0] << std::endl;
+        MdfChannelSetName(pChannel2[0], "Time");
+        MdfChannelSetDescription(pChannel2[0], "Time channel");
+        MdfChannelSetType(pChannel2[0], ChannelType::Master);
+        MdfChannelSetSync(pChannel2[0], ChannelSyncType::Time);
+        MdfChannelSetDataType(pChannel2[0], ChannelDataType::FloatLe);
+        MdfChannelSetDataBytes(pChannel2[0], 4);
+        MdfChannelSetUnit(pChannel2[0], "s");
+        MdfChannelSetRange(pChannel2[0], 0, 100);
+      }
 
-    MdfWriterInitMeasurement(Writer);
-    MdfWriterStartMeasurement(Writer, 100000000);
-    std::cout << "Start measure" << std::endl;
-    for (size_t i = 0; i < 50; i++) {
-      MdfChannelSetChannelValueAsFloat(pChannel[1], i * 2);
-      MdfChannelSetChannelValueAsFloat(pChannel[2], i * 3);
-      MdfChannelSetChannelValueAsFloat(pChannel[3], i * 4);
-      MdfChannelSetChannelValueAsFloat(pChannel[4], i * 5);
-      MdfWriterSaveSample(Writer, cg, 100000000 + i * 1000000);
+      {
+        pChannel2[1] = MdfChannelGroupCreateChannel(cg2);
+        MdfChannelSetName(pChannel2[1], "SignedLe");
+        MdfChannelSetDescription(pChannel2[1], "int32_t");
+        MdfChannelSetType(pChannel2[1], ChannelType::FixedLength);
+        MdfChannelSetDataType(pChannel2[1], ChannelDataType::SignedIntegerLe);
+        MdfChannelSetDataBytes(pChannel2[1], sizeof(int32_t));
+      }
+      {
+        pChannel2[2] = MdfChannelGroupCreateChannel(cg2);
+        MdfChannelSetName(pChannel2[2], "FloatBe");
+        MdfChannelSetDescription(pChannel2[2], "double");
+        MdfChannelSetType(pChannel2[2], ChannelType::FixedLength);
+        MdfChannelSetDataType(pChannel2[2], ChannelDataType::FloatBe);
+        MdfChannelSetDataBytes(pChannel2[2], sizeof(double));
+      }
+
+      MdfWriterInitMeasurement(Writer);
+      MdfWriterStartMeasurement(Writer, 100000000);
+      std::cout << "Start measure" << std::endl;
+      for (size_t i = 0; i < 50; i++) {
+        MdfChannelSetChannelValueAsFloat(pChannel1[1], i * 2);
+        MdfChannelSetChannelValueAsFloat(pChannel1[2], i * 3);
+        MdfChannelSetChannelValueAsFloat(pChannel2[1], i * 4);
+        MdfChannelSetChannelValueAsFloat(pChannel2[2], i * 5);
+        MdfWriterSaveSample(Writer, cg1, 100000000 + i * 10000);
+        MdfWriterSaveSample(Writer, cg2, 100000000 + i * 10000);
+      }
+      std::cout << "Stop measure" << std::endl;
+      MdfWriterStopMeasurement(Writer, 1100000000);
+      MdfWriterFinalizeMeasurement(Writer);
     }
-    std::cout << "Stop measure" << std::endl;
-    MdfWriterStopMeasurement(Writer, 1100000000);
-    MdfWriterFinalizeMeasurement(Writer);
+    {  // DataGroup 2
+      auto* dg = MdfHeaderCreateDataGroup(Header);
+      auto* cg = MdfDataGroupCreateChannelGroup(dg);
+      std::cout << "ChannelGroup: " << cg << std::endl;
+      MdfChannelGroupSetName(cg, "Test");
+      MdfChannelGroupSetDescription(cg, "Test channel group");
+
+      mdf::IChannel* pChannel[2];
+      {
+        pChannel[0] = MdfChannelGroupCreateChannel(cg);
+        std::cout << "Channel: " << pChannel[0] << std::endl;
+        MdfChannelSetName(pChannel[0], "Time");
+        MdfChannelSetDescription(pChannel[0], "Time channel");
+        MdfChannelSetType(pChannel[0], ChannelType::Master);
+        MdfChannelSetSync(pChannel[0], ChannelSyncType::Time);
+        MdfChannelSetDataType(pChannel[0], ChannelDataType::FloatLe);
+        MdfChannelSetDataBytes(pChannel[0], 4);
+        MdfChannelSetUnit(pChannel[0], "s");
+        MdfChannelSetRange(pChannel[0], 0, 100);
+      }
+
+      {
+        pChannel[1] = MdfChannelGroupCreateChannel(cg);
+        MdfChannelSetName(pChannel[1], "SignedLe");
+        MdfChannelSetDescription(pChannel[1], "int32_t");
+        MdfChannelSetType(pChannel[1], ChannelType::FixedLength);
+        MdfChannelSetDataType(pChannel[1], ChannelDataType::SignedIntegerLe);
+        MdfChannelSetDataBytes(pChannel[1], sizeof(int32_t));
+      }
+
+      MdfWriterInitMeasurement(Writer);
+      MdfWriterStartMeasurement(Writer, 100000000);
+      std::cout << "Start measure" << std::endl;
+      for (size_t i = 0; i < 90; i++) {
+        MdfChannelSetChannelValueAsFloat(pChannel[1], i * 2);
+        MdfWriterSaveSample(Writer, cg, 100000000 + i * 1000);
+      }
+      std::cout << "Stop measure" << std::endl;
+      MdfWriterStopMeasurement(Writer, 1100000000);
+      MdfWriterFinalizeMeasurement(Writer);
+    }
   }
 }
 
@@ -208,11 +268,11 @@ void cpp_example() {
     Writer.StartMeasurement(100000000);
     std::cout << "Start measure" << std::endl;
     for (size_t i = 0; i < 50; i++) {
-      channels[1].SetChannelValue(i * 2);
-      channels[2].SetChannelValue(i * 3);
-      channels[3].SetChannelValue(i * 4);
-      channels[4].SetChannelValue(i * 5);
-      Writer.SaveSample(cg, 100000000 + i * 1000000);
+      channels[1].SetChannelValue((uint64_t)i * 2);
+      channels[2].SetChannelValue((uint64_t)i * 3);
+      channels[3].SetChannelValue((uint64_t)i * 4);
+      channels[4].SetChannelValue((uint64_t)i * 5);
+      Writer.SaveSample(cg, 100000000 + i * 1000);
       std::cout << "Save sample " << i << std::endl;
     }
     std::cout << "Stop measure" << std::endl;

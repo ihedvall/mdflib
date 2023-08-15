@@ -9,7 +9,7 @@ project(
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(mdflibraryexample ../include/mdflibrary/MdfExport.h src/test.cpp)
+add_executable(mdflibraryexample src/test.cpp)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set_target_properties(mdflibraryexample PROPERTIES LINK_FLAGS
                                                   "-Wl,-rpath,'$ORIGIN'")

@@ -1,5 +1,10 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 #include <string>
+#include <stdexcept>
 
 #include "MdfExport.h"
 
@@ -29,46 +34,36 @@ class MdfETag {
   mdf::ETag* GetETag() const { return eTag; }
   std::string GetName() const {
     std::string str;
-    size_t size = MdfETagGetName(eTag, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfETagGetName(eTag, str.data());
+    str.reserve(MdfETagGetName(eTag, nullptr) + 1);
+    str.resize(MdfETagGetName(eTag, str.data()));;
     return str;
   }
   void SetName(const char* name) { MdfETagSetName(eTag, name); }
   std::string GetDescription() const {
     std::string str;
-    size_t size = MdfETagGetDescription(eTag, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfETagGetDescription(eTag, str.data());
+    str.reserve(MdfETagGetDescription(eTag, nullptr) + 1);
+    str.resize(MdfETagGetDescription(eTag, str.data()));;
     return str;
   }
   void SetDescription(const char* desc) { MdfETagSetDescription(eTag, desc); }
   std::string GetUnit() const {
     std::string str;
-    size_t size = MdfETagGetUnit(eTag, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfETagGetUnit(eTag, str.data());
+    str.reserve(MdfETagGetUnit(eTag, nullptr) + 1);
+    str.resize(MdfETagGetUnit(eTag, str.data()));;
     return str;
   }
   void SetUnit(const char* unit) { MdfETagSetUnit(eTag, unit); }
   std::string GetUnitRef() const {
     std::string str;
-    size_t size = MdfETagGetUnitRef(eTag, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfETagGetUnitRef(eTag, str.data());
+    str.reserve(MdfETagGetUnitRef(eTag, nullptr) + 1);
+    str.resize(MdfETagGetUnitRef(eTag, str.data()));;
     return str;
   }
   void SetUnitRef(const char* unit) { MdfETagSetUnitRef(eTag, unit); }
   std::string GetType() const {
     std::string str;
-    size_t size = MdfETagGetType(eTag, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfETagGetType(eTag, str.data());
+    str.reserve(MdfETagGetType(eTag, nullptr) + 1);
+    str.resize(MdfETagGetType(eTag, str.data()));;
     return str;
   }
   void SetType(const char* type) { MdfETagSetType(eTag, type); }
@@ -76,10 +71,8 @@ class MdfETag {
   void SetDataType(ETagDataType type) { MdfETagSetDataType(eTag, type); }
   std::string GetLanguage() const {
     std::string str;
-    size_t size = MdfETagGetLanguage(eTag, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfETagGetLanguage(eTag, str.data());
+    str.reserve(MdfETagGetLanguage(eTag, nullptr) + 1);
+    str.resize(MdfETagGetLanguage(eTag, str.data()));;
     return str;
   }
   void SetLanguage(const char* language) { MdfETagSetLanguage(eTag, language); }
@@ -87,10 +80,8 @@ class MdfETag {
   void SetReadOnly(bool read_only) { MdfETagSetReadOnly(eTag, read_only); }
   std::string GetValueAsString() const {
     std::string str;
-    size_t size = MdfETagGetValueAsString(eTag, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfETagGetValueAsString(eTag, str.data());
+    str.reserve(MdfETagGetValueAsString(eTag, nullptr) + 1);
+    str.resize(MdfETagGetValueAsString(eTag, str.data()));;
     return str;
   }
   void SetValueAsString(const char* value) {

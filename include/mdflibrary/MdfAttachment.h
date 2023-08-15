@@ -1,5 +1,10 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 #include <string>
+#include <stdexcept>
 
 #include "MdfExport.h"
 
@@ -41,10 +46,8 @@ class MdfAttachment {
   }
   std::string GetFileName() const {
     std::string str;
-    size_t size = MdfAttachmentGetFileName(attachment, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfAttachmentGetFileName(attachment, str.data());
+    str.reserve(MdfAttachmentGetFileName(attachment, nullptr) + 1);
+    str.resize(MdfAttachmentGetFileName(attachment, str.data()));;
     return str;
   }
   void SetFileName(const char* name) {
@@ -52,10 +55,8 @@ class MdfAttachment {
   }
   std::string GetFileType() const {
     std::string str;
-    size_t size = MdfAttachmentGetFileType(attachment, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfAttachmentGetFileType(attachment, str.data());
+    str.reserve(MdfAttachmentGetFileType(attachment, nullptr) + 1);
+    str.resize(MdfAttachmentGetFileType(attachment, str.data()));;
     return str;
   }
   void SetFileType(const char* type) {

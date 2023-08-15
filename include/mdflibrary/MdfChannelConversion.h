@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 #include <string>
 
@@ -23,10 +27,8 @@ class MdfChannelConversion {
   int64_t GetIndex() const { return MdfChannelConversionGetIndex(conversion); }
   std::string GetName() const {
     std::string str;
-    size_t size = MdfChannelConversionGetName(conversion, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfChannelConversionGetName(conversion, str.data());
+    str.reserve(MdfChannelConversionGetName(conversion, nullptr) + 1);
+    str.resize(MdfChannelConversionGetName(conversion, str.data()));;
     return str;
   }
   void SetName(const char* name) {
@@ -34,10 +36,8 @@ class MdfChannelConversion {
   }
   std::string GetDescription() const {
     std::string str;
-    size_t size = MdfChannelConversionGetDescription(conversion, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfChannelConversionGetDescription(conversion, str.data());
+    str.reserve(MdfChannelConversionGetDescription(conversion, nullptr) + 1);
+    str.resize(MdfChannelConversionGetDescription(conversion, str.data()));;
     return str;
   }
   void SetDescription(const char* desc) {
@@ -45,10 +45,8 @@ class MdfChannelConversion {
   }
   std::string GetUnit() const {
     std::string str;
-    size_t size = MdfChannelConversionGetUnit(conversion, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfChannelConversionGetUnit(conversion, str.data());
+    str.reserve(MdfChannelConversionGetUnit(conversion, nullptr) + 1);
+    str.resize(MdfChannelConversionGetUnit(conversion, str.data()));;
     return str;
   }
   void SetUnit(const char* unit) {

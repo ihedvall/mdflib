@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 #include "MdfChannel.h"
 
@@ -21,19 +25,15 @@ class MdfChannelGroup {
   uint64_t GetRecordId() const { return MdfChannelGroupGetRecordId(group); }
   std::string GetName() const {
     std::string str;
-    size_t size = MdfChannelGroupGetName(group, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfChannelGroupGetName(group, str.data());
+    str.reserve(MdfChannelGroupGetName(group, nullptr) + 1);
+    str.resize(MdfChannelGroupGetName(group, str.data()));;
     return str;
   }
   void SetName(const char* name) { MdfChannelGroupSetName(group, name); }
   std::string GetDescription() const {
     std::string str;
-    size_t size = MdfChannelGroupGetDescription(group, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfChannelGroupGetDescription(group, str.data());
+    str.reserve(MdfChannelGroupGetDescription(group, nullptr) + 1);
+    str.resize(MdfChannelGroupGetDescription(group, str.data()));;
     return str;
   }
   void SetDescription(const char* desc) {

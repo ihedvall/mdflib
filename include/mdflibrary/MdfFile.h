@@ -1,3 +1,7 @@
+/*
+ * Copyright 2023 Simplxs
+ * SPDX-License-Identifier: MIT
+ */
 #pragma once
 #include "MdfAttachment.h"
 #include "MdfHeader.h"
@@ -18,28 +22,22 @@ class MdfFile {
   ~MdfFile() { file = nullptr; }
   std::string GetName() const {
     std::string str;
-    size_t size = MdfFileGetName(file, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfFileGetName(file, str.data());
+    str.reserve(MdfFileGetName(file, nullptr) + 1);
+    str.resize(MdfFileGetName(file, str.data()));;
     return str;
   }
   void SetName(const char* name) { MdfFileSetName(file, name); }
   std::string GetFileName() const {
     std::string str;
-    size_t size = MdfFileGetFileName(file, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfFileGetFileName(file, str.data());
+    str.reserve(MdfFileGetFileName(file, nullptr) + 1);
+    str.resize(MdfFileGetFileName(file, str.data()));;
     return str;
   }
   void SetFileName(const char* filename) { MdfFileSetFileName(file, filename); }
   std::string GetVersion() const {
     std::string str;
-    size_t size = MdfFileGetVersion(file, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfFileGetVersion(file, str.data());
+    str.reserve(MdfFileGetVersion(file, nullptr) + 1);
+    str.resize(MdfFileGetVersion(file, str.data()));;
     return str;
   }
   int GetMainVersion() const { return MdfFileGetMainVersion(file); }
@@ -47,10 +45,8 @@ class MdfFile {
   void SetMinorVersion(int minor) { MdfFileSetMinorVersion(file, minor); }
   std::string GetProgramId() const {
     std::string str;
-    size_t size = MdfFileGetProgramId(file, nullptr);
-    str.reserve(size + 1);
-    str.resize(size);
-    MdfFileGetProgramId(file, str.data());
+    str.reserve(MdfFileGetProgramId(file, nullptr) + 1);
+    str.resize(MdfFileGetProgramId(file, str.data()));;
     return str;
   }
   void SetProgramId(const char* program_id) {

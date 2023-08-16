@@ -208,9 +208,9 @@ std::string MdfHelper::FormatDouble(double value, uint8_t decimals, bool fixed,
     text = std::to_string(value_int);
   } else {
     char format[20]{};
-    sprintf(format, "%%.%df", static_cast<int>(decimals));
+    snprintf(format, sizeof(format), "%%.%df", static_cast<int>(decimals));
     char temp[200]{};
-    sprintf(temp, format, value);
+    snprintf(temp, sizeof(temp), format, value);
     text = temp;
   }
 
@@ -219,7 +219,7 @@ std::string MdfHelper::FormatDouble(double value, uint8_t decimals, bool fixed,
   const auto size = text.size();
   if (size > static_cast<size_t>(6 + decimals)) {
     char temp[200]{};
-    sprintf(temp, "%G", value);
+    snprintf(temp, sizeof(temp), "%G", value);
     text = temp;
   }
 

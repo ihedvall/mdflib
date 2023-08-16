@@ -11,6 +11,7 @@
 
 #include "mdf/mdflogstream.h"
 
+#include "platform.h"
 namespace {
 
 #define F(x, y, z) ((z) ^ ((x) & ((y) ^ (z))))
@@ -241,7 +242,8 @@ bool CreateMd5FileChecksum(const std::string &file, std::vector<uint8_t> &md5) {
   try {
     std::filesystem::path p = std::filesystem::u8path(file);
     if (std::filesystem::exists(p)) {
-      std::FILE *f = fopen(file.c_str(), "rb");
+      std::FILE *f = nullptr;
+      Platform::fileopen(&f, file.c_str(), "rb");
       if (f != nullptr) {
         std::array<uint8_t, 10000> temp{};
         MD5_CTX ctx{};

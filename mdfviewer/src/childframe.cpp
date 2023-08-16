@@ -197,7 +197,7 @@ void ChildFrame::RedrawTreeList() {
 
   left_->DeleteAllItems();
 
-  auto* doc = wxDynamicCast(GetDocument(),MdfDocument ); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+  auto* doc = wxDynamicCast(GetDocument(), MdfDocument); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (doc == nullptr) {
     return;
   }
@@ -361,7 +361,7 @@ void ChildFrame::RedrawAttachment(const detail::Hd4Block &hd, const wxTreeItemId
     if (!filename.empty()) {
       block_string << " (" << filename << ")";
     }
-    left_->AppendItem(at_root, block_string.str(),
+    left_->AppendItem(at_root, wxString::FromUTF8(block_string.str()),
                       TREE_AT, TREE_AT, new BlockAddress(at4->FilePosition()));
   }
 }
@@ -1200,19 +1200,19 @@ void ChildFrame::RedrawAttachmentView() {
     if (attachment == nullptr) {
       continue;
     }
-    std::string name;
-    std::string path;
+    std::u8string name;
+    std::u8string path;
     try {
-      std::filesystem::path fullname(attachment->FileName());
-      name = fullname.filename().string();
-      path = fullname.parent_path().string();
+      std::filesystem::path fullname = std::filesystem::u8path(attachment->FileName());
+      name = fullname.filename().u8string();
+      path = fullname.parent_path().u8string();
     } catch (const std::exception& ) {
 
     }
-    const auto index = attachment_view_->InsertItem(line, wxString::FromUTF8(name));
+    const auto index = attachment_view_->InsertItem(line, wxString::FromUTF8((const char*)name.c_str()));
     attachment_view_->SetItem(index, 1, attachment->IsEmbedded() ? "Yes" : "");
     attachment_view_->SetItem(index, 2, wxString::FromUTF8(attachment->FileType()));
-    attachment_view_->SetItem(index, 3, wxString::FromUTF8(path));
+    attachment_view_->SetItem(index, 3, wxString::FromUTF8((const char*)path.c_str()));
     ++line;
   }
 }

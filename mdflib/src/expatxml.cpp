@@ -8,6 +8,7 @@
 #include <filesystem>
 
 #include "mdf/mdflogstream.h"
+#include "platform.h"
 
 namespace {
 void StartElementHandler(void *userData, const XML_Char *name,
@@ -104,7 +105,8 @@ void ExpatXml::XmlDecl(const XML_Char *version, const XML_Char *encoding,
 bool ExpatXml::ParseFile() {
   Reset();
 
-  std::FILE *file = std::fopen(filename_.c_str(), "r");
+  std::FILE *file = nullptr;
+  Platform::fileopen(&file, filename_.c_str(), "r");
   if (file == nullptr) {
     return false;
   }

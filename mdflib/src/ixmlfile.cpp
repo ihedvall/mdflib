@@ -65,7 +65,7 @@ bool IXmlFile::WriteFile() {
     return false;
   }
   try {
-    std::ofstream file(filename_.c_str(),
+    std::ofstream file(std::filesystem::u8path(filename_),
                        std::ofstream::out | std::ofstream::trunc);
     if (!file.is_open()) {
       MDF_ERROR() << "Couldn't open file for writing. File: " << filename_;

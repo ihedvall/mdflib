@@ -115,7 +115,8 @@ void At4Block::GetBlockProperty(BlockPropertyList& dest) const {
   if (Link(kIndexFilename) > 0) {
     try {
       std::filesystem::path p = std::filesystem::u8path(filename_);
-      name = p.filename().string();
+      const auto& u8str = p.filename().u8string();
+      name = std::string(u8str.begin(), u8str.end());
     } catch (const std::exception&) {
       name = "<invalid>";
     }
@@ -231,7 +232,8 @@ void At4Block::ReadData(std::FILE* file, const std::string& dest_file) const {
   }
   SetFilePosition(file, data_position_);
   if (IsEmbedded()) {
-    auto* dest = fopen(dest_file.c_str(), "wb");
+    FILE* dest = nullptr;
+    Platform::fileopen(&dest, dest_file.c_str(), "wb");
     if (dest == nullptr) {
       throw std::ios_base::failure("Failed to open the destination file");
     }

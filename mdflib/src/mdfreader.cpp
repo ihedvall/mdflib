@@ -24,7 +24,8 @@ using namespace std::chrono_literals;
 namespace mdf {
 
 bool IsMdfFile(const std::string &filename) {
-  auto *file = std::fopen(filename.c_str(), "rb");
+  FILE* file = nullptr;
+  Platform::fileopen(&file, filename.c_str(), "rb");
   if (file == nullptr) {
     return false;
   }

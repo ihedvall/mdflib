@@ -20,6 +20,7 @@ class MdfViewer : public wxApp {
 
   void OpenFile(const std::string& filename) const;
 
+  // ANSI coding
   const std::string& GetMyTempDir() const {
     return my_temp_dir_;
   }

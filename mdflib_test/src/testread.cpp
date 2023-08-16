@@ -118,7 +118,8 @@ TEST_F(TestRead, IdBlock)  // NOLINT
   EXPECT_EQ(id.Version(), 410);
 }
 
-TEST_F(TestRead, DISABLED_Benchmark) {
+TEST_F(TestRead, Benchmark) {
+  GTEST_SKIP();
   {
     MdfReader oRead("K:/test/mdf/net/testfiles/test.mf4");
     const auto start = std::chrono::steady_clock::now();

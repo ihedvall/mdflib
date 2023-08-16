@@ -1,7 +1,6 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
 
-enable_testing()
 
 project(
   TestMdf
@@ -36,7 +35,8 @@ if(VCPKG)
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
                                         GTest::gmock GTest::gmock_main)
 else()
-  include("script/googletest.cmake")
+  include("../script/googletest.cmake")
+  target_include_directories(test_mdf PRIVATE ${GTEST_INCLUDE_DIRS})
   target_link_libraries(test_mdf PRIVATE ${GTEST_BOTH_LIBRARIES})
 endif()
 

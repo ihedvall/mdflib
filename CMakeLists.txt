@@ -40,6 +40,7 @@ if(MDF_BUILD_SHARED_LIB)
 endif()
 
 if(MDF_BUILD_TEST)
+  enable_testing()
   add_subdirectory(mdflib_test)
 endif()
 

@@ -13,7 +13,7 @@ using namespace std::filesystem;
 
 namespace {
 
-constexpr std::string_view kSourceFile = "k:/test/mdf/ct/cyclelow.mf4";
+constexpr std::string_view kSourceFile = "k:/test/mdf/mdf4_1/ct/cyclelow.mf4";
 constexpr std::string_view kTestDir = "o:/test/util";
 constexpr std::string_view kTestFileName = "source.bin";
 constexpr std::string_view kDeflateFileName = "source.zip";

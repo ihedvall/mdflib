@@ -103,7 +103,7 @@ else()
 endif()
 
 target_include_directories(
-  mdf PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>)
+  mdf PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
 
 # set_target_properties(mdflib PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS
 # "-m32")

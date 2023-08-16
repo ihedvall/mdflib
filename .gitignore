@@ -1,8 +1,10 @@
+install/
+
 .idea/
 
 # CMake
 cmake-build-*/
-
+CMakeUserPresets.json
 
 # File-based project format
 *.iws
@@ -46,6 +48,11 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+vcpkg_installed/
+
+# Visual Studio code
+.vscode/
+build/
 
 # User-specific files
 *.rsuser

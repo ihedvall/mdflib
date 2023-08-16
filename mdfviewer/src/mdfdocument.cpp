@@ -30,7 +30,7 @@ namespace {
  * Note that if the observer list only have one channel, the file will add the samples as first column.
  * The same applies if the first channel not is a master channel.
  * @param list Sample observer list containing samples.
- * @return Full path to the created file or an empty string if the function fails.
+ * @return Full path (ANSI coding) to the created file or an empty string if the function fails.
  */
 std::string CreateCsvFile(const mdf::ChannelObserverList& list) {
   if (list.empty()) {
@@ -150,7 +150,7 @@ wxEND_EVENT_TABLE()
 bool MdfDocument::OnOpenDocument(const wxString &filename) {
 
   wxBusyCursor wait;
-  reader_ = std::make_unique<MdfReader>(filename.ToStdString()); // Note that the file is now open
+  reader_ = std::make_unique<MdfReader>(std::string(filename.mb_str(wxConvUTF8))); // Note that the file is now open
   bool parse = reader_->IsOk();
   if (!parse) {
     LOG_ERROR() << "The file is not an MDF file. File: "
@@ -212,15 +212,15 @@ void MdfDocument::OnSaveAttachment(wxCommandEvent &event) {
 
   wxFileDialog save_dialog(wxGetActiveWindow(), "Select the file name for the attachment",
                            "",
-                           at4->FileName(),
+                           wxString::FromUTF8(at4->FileName()),
                            "All Files (*.*)|*.*",
                            wxFD_OVERWRITE_PROMPT | wxFD_SAVE);
   auto ret = save_dialog.ShowModal();
   if (ret != wxID_OK) {
     return;
   }
-  std::string filename = save_dialog.GetPath().ToStdString();
-  const auto ok = reader_->ExportAttachmentData(*at4,filename);
+  std::string filename = std::string(save_dialog.GetPath().mb_str(wxConvUTF8));
+  const auto ok = reader_->ExportAttachmentData(*at4, filename);
   if (!ok) {
     wxMessageBox("Failed to create the file.\nMore information in the log file.",
                  "File Save Error",
@@ -231,7 +231,7 @@ void MdfDocument::OnSaveAttachment(wxCommandEvent &event) {
   std::ostringstream open;
   open << "Do you want to open the file ?" << std::endl
     << "File: " << filename;
-  auto o = wxMessageBox(open.str(),"Open File",
+  auto o = wxMessageBox(wxString::FromUTF8(open.str()),"Open File",
                  wxYES_NO | wxNO_DEFAULT | wxCENTRE | wxICON_QUESTION);
   if (o == wxYES) {
     auto& app = wxGetApp();

@@ -164,12 +164,12 @@ void MainFrame::OnDropFiles(wxDropFilesEvent& event) {
   for (int ii = 0; ii < count; ++ii) {
     try {
       const auto& file = list[ii];
-      std::filesystem::path p(file.ToStdString());
+      std::filesystem::path p(file.ToStdWstring());
       if (!std::filesystem::exists(p)) {
         continue;
       }
-
-      const bool mdf = mdf::IsMdfFile(p.string());
+      const auto& u8str = p.u8string();
+      const bool mdf = mdf::IsMdfFile(std::string(u8str.begin(), u8str.end()));
       if (!mdf) {
         continue;
       }

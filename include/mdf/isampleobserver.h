@@ -23,7 +23,7 @@ class ISampleObserver {
    * @param record_id Record ID (channel group identity).
    * @param record Sample record (excluding the record ID.
    */
-  virtual void OnSample(size_t sample, uint64_t record_id,
+  virtual void OnSample(uint64_t sample, uint64_t record_id,
                         const std::vector<uint8_t>& record) = 0;
 };
 

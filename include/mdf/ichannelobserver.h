@@ -48,7 +48,7 @@ class IChannelObserver : public ISampleObserver {
   IChannelObserver& operator=(const IChannelObserver&) = delete;
   IChannelObserver& operator=(IChannelObserver&&) = delete;
 
-  [[nodiscard]] virtual size_t NofSamples()
+  [[nodiscard]] virtual uint64_t NofSamples()
       const = 0; ///< Returns number of samples.
 
   [[nodiscard]] std::string Name() const; ///< Channel name
@@ -67,7 +67,7 @@ class IChannelObserver : public ISampleObserver {
    * @return True if value is valid.
    */
   template <typename V>
-  bool GetChannelValue(size_t sample, V& value) const;
+  bool GetChannelValue(uint64_t sample, V& value) const;
 
   /** \brief Returns the engineering value for a specific value.
    *
@@ -78,11 +78,11 @@ class IChannelObserver : public ISampleObserver {
    * @return True if the value is valid.
    */
   template <typename V>
-  bool GetEngValue(size_t sample, V& value) const;
+  bool GetEngValue(uint64_t sample, V& value) const;
 };
 
 template <typename V>
-bool IChannelObserver::GetChannelValue(size_t sample, V& value) const {
+bool IChannelObserver::GetChannelValue(uint64_t sample, V& value) const {
   bool valid = false;
   value = {};
   switch (channel_.DataType()) {
@@ -156,7 +156,7 @@ bool IChannelObserver::GetChannelValue(uint64_t sample,
 
 
 template <typename V>
-bool IChannelObserver::GetEngValue(size_t sample, V& value) const {
+bool IChannelObserver::GetEngValue(uint64_t sample, V& value) const {
   const auto* conversion = channel_.ChannelConversion();
   if (conversion == nullptr) {
     return GetChannelValue(sample, value);

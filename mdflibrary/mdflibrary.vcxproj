@@ -32,14 +32,14 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
-    <CLRSupport>NetCore</CLRSupport>
+    <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
-    <CLRSupport>NetCore</CLRSupport>
+    <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -92,36 +92,41 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
-    <Link>
-      <AdditionalDependencies>zlibstaticd.lib;libexpatd.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>K:\zlib\master\lib;K:\expat\master\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions);XML_STATIC</PreprocessorDefinitions>
+      <CompileAsManaged>true</CompileAsManaged>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>../include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
-    <Link>
-      <AdditionalDependencies />
-    </Link>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions);XML_STATIC</PreprocessorDefinitions>
+      <CompileAsManaged>true</CompileAsManaged>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>../include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
-    <Link>
-      <AdditionalDependencies />
-    </Link>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -135,55 +140,67 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
-    <Link>
-      <AdditionalLibraryDirectories>K:\zlib\master\lib;K:\expat\master\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>zlibstatic.lib;libexpat.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="MdfAttachment.h" />
-    <ClInclude Include="MdfChannel.h" />
-    <ClInclude Include="MdfChannelArray.h" />
-    <ClInclude Include="MdfChannelConversion.h" />
-    <ClInclude Include="MdfChannelGroup.h" />
-    <ClInclude Include="MdfChannelObserver.h" />
-    <ClInclude Include="MdfDataGroup.h" />
-    <ClInclude Include="MdfETag.h" />
-    <ClInclude Include="MdfEvent.h" />
-    <ClInclude Include="MdfFile.h" />
-    <ClInclude Include="MdfFileHistory.h" />
-    <ClInclude Include="MdfHeader.h" />
-    <ClInclude Include="mdflibrary.h" />
-    <ClInclude Include="MdfMetaData.h" />
-    <ClInclude Include="MdfReader.h" />
-    <ClInclude Include="MdfSourceInformation.h" />
-    <ClInclude Include="MdfWriter.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfAttachment.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfChannel.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfChannelConversion.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfChannelGroup.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfChannelObserver.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfDataGroup.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfETag.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfEvent.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfExport.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfFile.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfFileHistory.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfHeader.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfMetaData.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfReader.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfSourceInformation.h" />
+    <ClInclude Include="..\include\mdflibrary\MdfWriter.h" />
+    <ClInclude Include="src\MdfAttachment.h" />
+    <ClInclude Include="src\MdfChannel.h" />
+    <ClInclude Include="src\MdfChannelArray.h" />
+    <ClInclude Include="src\MdfChannelConversion.h" />
+    <ClInclude Include="src\MdfChannelGroup.h" />
+    <ClInclude Include="src\MdfChannelObserver.h" />
+    <ClInclude Include="src\MdfDataGroup.h" />
+    <ClInclude Include="src\MdfETag.h" />
+    <ClInclude Include="src\MdfEvent.h" />
+    <ClInclude Include="src\MdfFile.h" />
+    <ClInclude Include="src\MdfFileHistory.h" />
+    <ClInclude Include="src\MdfHeader.h" />
+    <ClInclude Include="src\mdflibrary.h" />
+    <ClInclude Include="src\MdfMetaData.h" />
+    <ClInclude Include="src\MdfReader.h" />
+    <ClInclude Include="src\MdfSourceInformation.h" />
+    <ClInclude Include="src\MdfWriter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="MdfAttachment.cpp" />
-    <ClCompile Include="MdfChannel.cpp" />
-    <ClCompile Include="MdfChannelArray.cpp" />
-    <ClCompile Include="MdfChannelConversion.cpp" />
-    <ClCompile Include="MdfChannelGroup.cpp" />
-    <ClCompile Include="MdfChannelObserver.cpp" />
-    <ClCompile Include="MdfDataGroup.cpp" />
-    <ClCompile Include="MdfETag.cpp" />
-    <ClCompile Include="MdfEvent.cpp" />
-    <ClCompile Include="MdfFile.cpp" />
-    <ClCompile Include="MdfFileHistory.cpp" />
-    <ClCompile Include="MdfHeader.cpp" />
-    <ClCompile Include="mdflibrary.cpp" />
-    <ClCompile Include="MdfMetaData.cpp" />
-    <ClCompile Include="MdfReader.cpp" />
-    <ClCompile Include="MdfSourceInformation.cpp" />
-    <ClCompile Include="MdfWriter.cpp" />
+    <ClCompile Include="src\AssemblyInfo.cpp" />
+    <ClCompile Include="src\MdfAttachment.cpp" />
+    <ClCompile Include="src\MdfChannel.cpp" />
+    <ClCompile Include="src\MdfChannelArray.cpp" />
+    <ClCompile Include="src\MdfChannelConversion.cpp" />
+    <ClCompile Include="src\MdfChannelGroup.cpp" />
+    <ClCompile Include="src\MdfChannelObserver.cpp" />
+    <ClCompile Include="src\MdfDataGroup.cpp" />
+    <ClCompile Include="src\MdfETag.cpp" />
+    <ClCompile Include="src\MdfEvent.cpp" />
+    <ClCompile Include="src\MdfFile.cpp" />
+    <ClCompile Include="src\MdfFileHistory.cpp" />
+    <ClCompile Include="src\MdfHeader.cpp" />
+    <ClCompile Include="src\mdflibrary.cpp" />
+    <ClCompile Include="src\MdfMetaData.cpp" />
+    <ClCompile Include="src\MdfReader.cpp" />
+    <ClCompile Include="src\MdfSourceInformation.cpp" />
+    <ClCompile Include="src\MdfWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\mdflib.vcxproj">
+    <ProjectReference Include="..\mdflib\mdflib.vcxproj">
       <Project>{4ea4c08d-2555-493b-b3b6-0e26381d0a09}</Project>
     </ProjectReference>
   </ItemGroup>

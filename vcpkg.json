@@ -1,0 +1,26 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "mdflib",
+    "version": "2.0",
+    "dependencies": [
+        "zlib",
+        "expat"
+    ],
+    "features": {
+        "mdfviewer": {
+            "description": "Build mdf viewer",
+            "dependencies": [
+                "boost-filesystem",
+                "boost-process",
+                "boost-locale",
+                "wxwidgets"
+            ]
+        },
+        "mdflibtest": {
+            "description": "Build mdf tests",
+            "dependencies": [
+                "gtest"
+            ]
+        }
+    }
+}

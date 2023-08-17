@@ -31,10 +31,16 @@ int strnicmp(const char *__s1, const char *__s2, size_t __n) {
 void strerror(int __errnum, char *__buf, size_t __buflen) {
 #if (_WIN32)
   strerror_s(__buf, __buflen, __errnum);
+#elif (__APPLE__)
+  int err = strerror_r(__errnum, __buf, __buflen);
+  if (err == 0)
+  {
+    
+  }
 #else
   auto* dummy = strerror_r(__errnum, __buf, __buflen);
-  if (dummy == nullptr) {
-
+  if (dummy != nullptr) {
+    strcpy(__buf, dummy);
   }
 #endif
 }
@@ -42,6 +48,8 @@ void strerror(int __errnum, char *__buf, size_t __buflen) {
 int64_t ftell64(std::FILE *__stream) {
 #if (_MSC_VER)
   return _ftelli64(__stream);
+#elif (__APPLE__)
+  return ftell64(__stream);
 #else
   return ftello64(__stream);
 #endif
@@ -50,6 +58,8 @@ int64_t ftell64(std::FILE *__stream) {
 int fseek64(std::FILE *__stream, int64_t __off, int __whence) {
 #if (_MSC_VER)
   return _fseeki64(__stream, __off, __whence);
+#elif (__APPLE__)
+  return fseek64(__stream, __off, __whence);
 #else
   return fseeko64(__stream, __off, __whence);
 #endif

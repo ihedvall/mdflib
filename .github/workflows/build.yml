@@ -137,13 +137,13 @@
             # This is the name of the CMakePresets.json's configuration to use to generate
             # the project files. This configuration leverages the vcpkg.cmake toolchain file to
             # run vcpkg and install all dependencies specified in vcpkg.json.
-            configurePreset: 'ninja-multi-vcpkg'
+            configurePreset: 'ninja-multi-vcpkg-${{ matrix.arch }}'
   
             # This is the name of the CMakePresets.json's configuration to build the project.
-            buildPreset: 'ninja-multi-vcpkg-release'
+            buildPreset: 'ninja-multi-vcpkg-${{ matrix.arch }}-release'
   
         - name: Upload build
           uses: actions/upload-artifact@v3
           with:
             name: mdflibs-${{ matrix.os }}-${{ matrix.arch }}
-            path: install/ninja-multi-vcpkg/
+            path: install/ninja-multi-vcpkg-${{ matrix.arch }}/

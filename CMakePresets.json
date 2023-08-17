@@ -2,7 +2,7 @@
     "version": 2,
     "configurePresets": [
         {
-            "name": "ninja-multi-vcpkg",
+            "name": "ninja-multi-vcpkg-x64",
             "displayName": "Ninja Multi-Config Configure Settings",
             "description": "Configure with vcpkg toolchain",
             "generator": "Ninja",
@@ -43,18 +43,18 @@
     ],
     "buildPresets": [
         {
-            "name": "ninja-multi-vcpkg-debug",
-            "description": "Build ninja-multi-vcpkg Debug",
-            "displayName": "Build ninja-multi-vcpkg Debug",
-            "configurePreset": "ninja-multi-vcpkg",
+            "name": "ninja-multi-vcpkg-x64-debug",
+            "description": "Build ninja-multi-vcpkg-x64 Debug",
+            "displayName": "Build ninja-multi-vcpkg-x64 Debug",
+            "configurePreset": "ninja-multi-vcpkg-x64",
             "configuration": "Debug",
             "targets": "all"
         },
         {
-            "name": "ninja-multi-vcpkg-release",
-            "description": "Build ninja-multi-vcpkg Release",
-            "displayName": "Build ninja-multi-vcpkg Release",
-            "configurePreset": "ninja-multi-vcpkg",
+            "name": "ninja-multi-vcpkg-x64-release",
+            "description": "Build ninja-multi-vcpkg-x64 Release",
+            "displayName": "Build ninja-multi-vcpkg-x64 Release",
+            "configurePreset": "ninja-multi-vcpkg-x64",
             "configuration": "Release",
             "targets": [
                 "all",
@@ -102,10 +102,10 @@
     ],
     "testPresets": [
         {
-            "name": "ninja-multi-vcpkg",
-            "description": "Build ninja-multi-vcpkg GTest",
-            "displayName": "Build ninja-multi-vcpkg GTest",
-            "configurePreset": "ninja-multi-vcpkg"
+            "name": "ninja-multi-vcpkg-x64",
+            "description": "Build ninja-multi-vcpkg-x64 GTest",
+            "displayName": "Build ninja-multi-vcpkg-x64 GTest",
+            "configurePreset": "ninja-multi-vcpkg-x64"
         },
         {
             "name": "msvc-multi-vcpkg-x64",

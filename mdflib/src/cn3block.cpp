@@ -292,7 +292,7 @@ size_t Cn3Block::Write(std::FILE *file) {
     bytes += WriteNumber(file, sample_rate_);
     bytes += WriteNumber(file, static_cast<uint32_t>(long_name_link));
     bytes += WriteNumber(file, static_cast<uint32_t>(display_name_link));
-    bytes += ReadNumber(file, byte_offset_);
+    bytes += WriteNumber(file, byte_offset_);
   }
 
   if (cc_block_ && Link(kIndexCc) <= 0) {

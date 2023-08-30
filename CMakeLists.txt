@@ -8,7 +8,7 @@ else()
   set(VCPKG ON)
 endif()
 
-option(MDF_BUILD_SHARED_LIB "Build shared library." OFF)
+option(MDF_BUILD_SHARED_LIB "Build shared library." ON)
 option(MDF_BUILD_SHARED_LIB_EXAMPLE "Build MdfLibrary Example." OFF)
 option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)

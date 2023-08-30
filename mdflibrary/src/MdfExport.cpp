@@ -20,9 +20,13 @@ using namespace mdf;
 #elif defined(__linux__)
 // LINUX
 #define EXPORT(ReturnType, ClassName, FuncName, ...) \
-  __attribute__((visibility("default")))             \
+  ReturnType ClassName##FuncName(__VA_ARGS__)
+#elif defined(__APPLE__)
+// MACOS
+#define EXPORT(ReturnType, ClassName, FuncName, ...) \
   ReturnType ClassName##FuncName(__VA_ARGS__)
 #else
+// UNKNOWN
 #pragma warning Unknown dynamic link import / export semantics.
 #endif
 

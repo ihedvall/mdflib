@@ -176,6 +176,7 @@ size_t Cg4Block::Read(std::FILE *file) {
 size_t Cg4Block::Write(std::FILE *file) {
   const bool update = FilePosition() > 0;  // True if already written to file
   const auto master = (flags_ & CgFlag::RemoteMaster) != 0;
+  const auto vlsd = (flags_ & CgFlag::VlsdChannel) != 0;
   if (!update) {
     block_type_ = "##CG";
     block_length_ = 24 + (6 * 8) + 8 + 8 + 2 + 2 + 4 + 4 + 4;
@@ -186,18 +187,31 @@ size_t Cg4Block::Write(std::FILE *file) {
   }
 
 
-  WriteLink4List(file, cn_list_, kIndexCn, 0);
+  WriteLink4List(file, cn_list_, kIndexCn,
+                 UpdateOption::DoNotUpdateWrittenBlock);
   WriteTx4(file, kIndexName, acquisition_name_);
   WriteBlock4(file, si_block_, kIndexSi);
-  WriteLink4List(file, sr_list_, kIndexSr, 0);
+  WriteLink4List(file, sr_list_, kIndexSr,
+                 UpdateOption::DoNotUpdateWrittenBlock);
   WriteMdComment(file, kIndexMd);
   // ToDo: Remote master handling
 
   auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
   if (update) {
+    // Update number of samples
     if (nof_samples_position_ > 0) {
       SetFilePosition(file, nof_samples_position_);
       WriteNumber(file, nof_samples_);
+    }
+    // Update VLSD size (which is a 64-bit value, low 32-bit)
+    if (nof_data_position_ > 0) {
+      SetFilePosition(file, nof_data_position_);
+      WriteNumber(file, nof_data_bytes_);
+    }
+    // Update VLSD size (which is a 64-bit value, high 32-bit)
+    if (nof_invalid_position_ > 0) {
+      SetFilePosition(file, nof_invalid_position_);
+      WriteNumber(file, nof_invalid_bytes_);
     }
     bytes = block_length_;
   } else {
@@ -207,9 +221,44 @@ size_t Cg4Block::Write(std::FILE *file) {
     bytes += WriteNumber(file, flags_);
     bytes += WriteNumber(file, path_separator_);
     bytes += WriteBytes(file, 4);
+    // Save the nof data and invalid bytes in case of a VLSD group.
+    // Number data bytes is the lower 32-bit and number invalid bytes is the
+    // 32-bit higher value.
+    if (vlsd) {
+      nof_data_position_ = GetFilePosition(file);
+    }
     bytes += WriteNumber(file, nof_data_bytes_);
+    if (vlsd) {
+      nof_invalid_position_ = GetFilePosition(file);
+    }
     bytes += WriteNumber(file, nof_invalid_bytes_);
     UpdateBlockSize(file, bytes);
+    // If this is a VLSD block, the referenced channels shall set its
+    // signal data index to this block position.
+    if (vlsd) {
+      const auto block_position = FilePosition();
+      auto cn_list = Channels(); // This list include the composite channels
+      for (auto* channel : cn_list) {
+        if (channel != nullptr &&
+            channel->Type() == ChannelType::VariableLength) {
+          dynamic_cast<Cn4Block*>(channel)->UpdateDataLink(file, block_position);
+        }
+      }
+    }
+    // Must scan through the channels and detect if any MLSD channel exist
+    // and update its signal index. First need to find the length channel
+    // block position. Then set the signal data index to that value
+    const auto* data_length = GetChannel(".DataLength");
+    if (data_length != nullptr) {
+      auto cn_list = Channels(); // This list include the composite channels
+      const auto block_position = data_length->Index();
+      for (auto* channel : cn_list) {
+        if (channel != nullptr && channel->Type() == ChannelType::MaxLength) {
+          dynamic_cast<Cn4Block*>(channel)->UpdateDataLink(file, block_position);
+        }
+      }
+    }
+
   }
   return bytes;
 }
@@ -389,26 +438,30 @@ IChannel *Cg4Block::CreateChannel() {
 }
 
 void Cg4Block::PrepareForWriting() {
+  if (Flags() & CgFlag::VlsdChannel) {
+    // This is a specialized CG group with variable length
+    // channel. Some channels in other groups may reference this group.
+    // This group may not contain any channels.
+    nof_data_bytes_ = 0;
+    nof_invalid_bytes_ = 0;
+    sample_buffer_.clear();
+    return;
+  }
+
   // Calculates number of data bytes
   nof_data_bytes_ = 0;
   size_t byte_offset = 0;
-  for (auto &channel1 : cn_list_) {
-    if (!channel1) {
-      continue;
-    }
-    channel1->PrepareForWriting(byte_offset);
-    const auto bytes = channel1->DataBytes();
-    nof_data_bytes_ += channel1->DataBytes();
-    byte_offset += channel1->DataBytes();
-  }
-
   size_t invalid_bit_offset = 0;
-  for (auto &channel2 : cn_list_) {
-    if (!channel2) {
+  for (auto &channel : cn_list_) {
+    if (!channel) {
       continue;
     }
-    if (channel2->Flags() & CnFlag::InvalidValid) {
-      channel2->SetInvalidOffset(invalid_bit_offset);
+    channel->PrepareForWriting(byte_offset);
+    nof_data_bytes_ += channel->DataBytes();
+    byte_offset += channel->DataBytes();
+
+    if (channel->Flags() & CnFlag::InvalidValid) {
+      channel->SetInvalidOffset(invalid_bit_offset);
       ++invalid_bit_offset;
     }
   }

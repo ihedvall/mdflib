@@ -19,6 +19,12 @@
 
 namespace mdf::detail {
 
+enum class UpdateOption : int {
+  DoNotUpdateWrittenBlock = 0,
+  DoUpdateOnlyLastBlock = 1,
+  DoUpdateAllBlocks = 2
+};
+
 class Md4Block;
 using BlockPropertyList = std::vector<BlockProperty>;
 
@@ -199,7 +205,7 @@ class MdfBlock {
   template <typename T>
   void WriteLink4List(std::FILE *file,
                       std::vector<std::unique_ptr<T>> &block_list,
-                      size_t link_index, size_t update_option);
+                      size_t link_index, UpdateOption update_option);
 
   template <typename T>
   void WriteBlock4(std::FILE *file, std::unique_ptr<T> &block,
@@ -225,6 +231,7 @@ std::size_t MdfBlock::ReadNumber(std::FILE *file, T &dest) const {
   }
   return sizeof(T);
 }
+
 template <typename T>
 std::size_t MdfBlock::WriteNumber(std::FILE *file, const T &source) const {
   if (file == nullptr) {
@@ -275,15 +282,17 @@ void MdfBlock::WriteBlock4(std::FILE *file, std::unique_ptr<T> &block,
 template <typename T>
 void MdfBlock::WriteLink4List(std::FILE *file,
                             std::vector<std::unique_ptr<T>> &block_list,
-                            size_t link_index, size_t update_option) {
+                            size_t link_index, UpdateOption update_option) {
   for (size_t index = 0; index < block_list.size(); ++index) {
     auto &block = block_list[index];
     const bool last_block = index + 1 >= block_list.size();
     if (!block) {
       continue;
     }
-    bool need_update = block->FilePosition() <= 0 || update_option == 2;
-    if (block->FilePosition() > 0 && last_block && update_option == 1) {
+    bool need_update = block->FilePosition() <= 0 ||
+                       update_option == UpdateOption::DoUpdateAllBlocks;
+    if (block->FilePosition() > 0 && last_block &&
+        update_option == UpdateOption::DoUpdateOnlyLastBlock) {
       need_update = true;
     }
 

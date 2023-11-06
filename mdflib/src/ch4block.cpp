@@ -67,7 +67,8 @@ size_t Ch4Block::Read(std::FILE *file) {  // NOLINT
 size_t Ch4Block::Write(std::FILE *file) {  // NOLINT
   const auto update = FilePosition() > 0;
   if (update) {
-    WriteLink4List(file, ch_list_, kIndexCh, 0);
+    WriteLink4List(file, ch_list_, kIndexCh,
+                   UpdateOption::DoNotUpdateWrittenBlock);
     return block_length_;
   }
   nof_elements_ = static_cast<uint32_t>(element_list_.size());
@@ -87,7 +88,8 @@ size_t Ch4Block::Write(std::FILE *file) {  // NOLINT
   }
   WriteTx4(file, kIndexTx, name_);
   WriteMdComment(file, kIndexMd);
-  WriteLink4List(file, ch_list_, kIndexCh, 0);
+  WriteLink4List(file, ch_list_, kIndexCh,
+                 UpdateOption::DoNotUpdateWrittenBlock);
 
   size_t bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file, nof_elements_);

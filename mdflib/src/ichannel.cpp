@@ -988,4 +988,19 @@ void IChannel::SetTimestamp(double timestamp,
   }
 }
 
+IChannel *IChannel::CreateChannelComposition(const std::string_view &name) {
+  auto list = ChannelCompositions();
+  auto itr = std::find_if(list.begin(), list.end(), [&] (auto* channel) {
+    return channel != nullptr && channel->Name() == name;
+  });
+  if (itr != list.end()) {
+    return *itr;
+  }
+  auto* new_channel = CreateChannelComposition();
+  if (new_channel != nullptr) {
+    new_channel->Name(name.data());
+  }
+  return new_channel;
+}
+
 }  // end namespace mdf

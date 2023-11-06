@@ -1,7 +1,7 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-// Platform indipendend functions
+// Platform independent functions
 
 #include <cstddef>
 #include <cstdint>

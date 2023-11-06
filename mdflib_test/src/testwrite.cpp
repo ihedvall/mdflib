@@ -1995,4 +1995,60 @@ TEST_F(TestWrite, Mdf4Master) {
   }
 }
 
+TEST_F(TestWrite, Mdf4CanConfig) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("canconfig.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  writer->BusType(MdfBusType::CAN);
+  writer->StorageType(MdfStorageType::MlsdStorage);
+  writer->MaxLength(8);
+  EXPECT_TRUE(writer->CreateBusLogConfiguration());
+
+  writer->PreTrigTime(1.0);
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+/*
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+  }
+  */
+}
+
 }  // end namespace mdf::test

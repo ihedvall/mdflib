@@ -446,16 +446,21 @@ size_t Hd4Block::Write(std::FILE* file) {
   if (!update) {
     UpdateBlockSize(file, bytes);
   }
-  WriteLink4List(file, fh_list_, kIndexFh, 0);
+  WriteLink4List(file, fh_list_, kIndexFh,
+                 UpdateOption::DoNotUpdateWrittenBlock);
   WriteMdComment(file, kIndexMd);
-  WriteLink4List(file, at_list_, kIndexAt, 0);
-  WriteLink4List(file, ch_list_, kIndexCh, 0);
-  WriteLink4List(file, ev_list_, kIndexEv, 0);
+  WriteLink4List(file, at_list_, kIndexAt,
+                 UpdateOption::DoNotUpdateWrittenBlock);
+  WriteLink4List(file, ch_list_, kIndexCh,
+                 UpdateOption::DoNotUpdateWrittenBlock);
+  WriteLink4List(file, ev_list_, kIndexEv,
+                 UpdateOption::DoNotUpdateWrittenBlock);
 
   // Always write the list of DG last as it may contain a DT block that shall
   // be appended with data bytes. The DT block must be the last written block
   // in these cases.
-  WriteLink4List(file, dg_list_, kIndexDg, 1);  // Always rewrite last DG block
+  WriteLink4List(file, dg_list_, kIndexDg,
+       UpdateOption::DoUpdateOnlyLastBlock);  // Always rewrite last DG block
   return bytes;
 }
 

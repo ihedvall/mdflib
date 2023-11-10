@@ -7,6 +7,8 @@
 
 #include "mdf/mdfhelper.h"
 
+#include <algorithm>
+
 namespace mdf {
 
 SampleRecord IChannelGroup::GetSampleRecord() const {

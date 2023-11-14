@@ -255,7 +255,7 @@ void At4Block::ReadData(std::FILE* file, const std::string& dest_file) const {
     std::vector<uint8_t> md5(16, 0xFF);
     CreateMd5FileChecksum(dest_file, md5);
     if (md5 != md5_) {
-      throw std::runtime_error("Mismatching MD5 checksums");
+      throw std::runtime_error("Mismatched MD5 checksums");
     }
   }
 }

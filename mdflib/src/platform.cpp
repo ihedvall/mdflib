@@ -37,6 +37,8 @@ void strerror(int __errnum, char *__buf, size_t __buflen) {
   {
     
   }
+#elif (__EMSCRIPTEN__)
+  strerror_r(__errnum, __buf, __buflen);
 #else
   auto* dummy = strerror_r(__errnum, __buf, __buflen);
   if (dummy != nullptr) {

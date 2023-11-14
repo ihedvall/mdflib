@@ -6,7 +6,9 @@
 #include <string>
 
 #include "bigbuffer.h"
+#ifndef __EMSCRIPTEN__
 #include "half.hpp"
+#endif
 #include "littlebuffer.h"
 #include "mdf/mdfhelper.h"
 

@@ -50,9 +50,9 @@ void CreateChannelObserverForChannelGroup(const IDataGroup& data_group,
  */
 class MdfReader {
  public:
-  explicit MdfReader(
-      const std::string& filename);  ///< Constructor that opens the file and
-                                     ///< read ID and HD block.
+  ///< Constructor that opens the file and
+  ///< read ID and HD block.
+  explicit MdfReader(const std::string& filename);
   virtual ~MdfReader();  ///< Destructor that close any open file and destructs.
 
   MdfReader() = delete;
@@ -104,8 +104,8 @@ class MdfReader {
   bool ExportAttachmentData(const IAttachment& attachment,
                             const std::string& dest_file);
 
-  bool ReadData(const IDataGroup& data_group);  ///< Reads the sample data. See
-                                                ///< sample observer.
+  /// Reads the sample data. See sample observer.
+  bool ReadData(const IDataGroup& data_group);
 
  private:
   std::FILE* file_ = nullptr;          ///< Pointer to the file stream.

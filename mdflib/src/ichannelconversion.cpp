@@ -57,7 +57,7 @@ bool IChannelConversion::ConvertRational(double channel_value,
 
   eng_value = (Parameter(0) * std::pow(channel_value, 2)) +
               (Parameter(1) * channel_value) + Parameter(2);
-  const double div = (Parameter(3) * std::pow(channel_value, 2)) +
+  const double div = (Parameter(3) * std::pow(channel_value, 2.)) +
                      (Parameter(4) * channel_value) + Parameter(5);
   if (div == 0.0) {
     return false;

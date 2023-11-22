@@ -4,8 +4,7 @@
  */
 #include "mdfblock.h"
 
-#include <stdio.h>
-
+#include <cstdio>
 #include <chrono>
 #include <ios>
 #include <sstream>

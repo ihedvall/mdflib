@@ -4,6 +4,7 @@
  */
 #include "dg4block.h"
 
+#include <filesystem>
 #include <stdexcept>
 #include <algorithm>
 
@@ -190,6 +191,12 @@ void Dg4Block::ReadData(std::FILE* file) const {
 
   bool close_data_file = false;
   std::FILE* data_file = nullptr;
+#ifdef _WIN32
+    const auto now = std::chrono::system_clock::now();
+    std::wstring tmppath = std::filesystem::temp_directory_path()
+        .append("mdflib-" + std::to_string(now.time_since_epoch().count()));
+#endif
+
   size_t data_size = 0;
   if (block_list.size() == 1 && block_list[0] &&
       block_list[0]->BlockType() == "DT") {  // If DT read from file directly
@@ -202,6 +209,12 @@ void Dg4Block::ReadData(std::FILE* file) const {
   } else {
     close_data_file = true;
     data_file = std::tmpfile();
+#ifdef _WIN32
+    // std::tmpfile() sometimes returns nullpointer on windows, workaround:
+    if (data_file == nullptr) {
+      data_file = _wfopen(tmppath.c_str(), L"wb+");
+    }
+#endif
     data_size = CopyDataToFile(block_list, file, data_file);
     std::rewind(data_file);  // SetFilePosition(data_file,0);
   }
@@ -211,6 +224,9 @@ void Dg4Block::ReadData(std::FILE* file) const {
   ParseDataRecords(data_file, data_size);
   if (data_file != nullptr && close_data_file) {
     fclose(data_file);
+#ifdef _WIN32
+    _wremove(tmppath.c_str());
+#endif
   }
 
   for (const auto& cg : cg_list_) {

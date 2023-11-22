@@ -629,7 +629,7 @@ void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
           cc_length->Parameter(index++,key);
           cc_length->Parameter(index++,CanMessage::DlcToLength(key));
         }
-        cc_length->Parameter(index, 0ULL);
+        cc_length->Parameter(index, 0UL);
       }
     }
   }
@@ -739,7 +739,7 @@ void MdfWriter::CreateCanRemoteFrameChannel(IChannelGroup& group) {
           cc_length->Parameter(index++,key);
           cc_length->Parameter(index++,CanMessage::DlcToLength(key));
         }
-        cc_length->Parameter(index, 0ULL);
+        cc_length->Parameter(index, 0UL);
       }
     }
   }
@@ -821,7 +821,7 @@ void MdfWriter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
           cc_length->Parameter(index++,key);
           cc_length->Parameter(index++,CanMessage::DlcToLength(key));
         }
-        cc_length->Parameter(index, 0ULL);
+        cc_length->Parameter(index, 0UL);
       }
     }
   }

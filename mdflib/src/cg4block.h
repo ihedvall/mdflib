@@ -104,9 +104,9 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   Cn4List cn_list_;
   Sr4List sr_list_;
 
-  int64_t nof_samples_position_ = 0;
-
-
+  int64_t nof_samples_position_ = 0; ///< Nof samples file position
+  int64_t nof_data_position_ = 0; ///< File position for lower VLSD 32-bit
+  int64_t nof_invalid_position_ = 0;///< File position for higher VLSD 32-bit
 };
 
 }  // namespace mdf::detail

@@ -57,7 +57,8 @@ size_t Hl4Block::Write(std::FILE *file) {
       FilePosition() > 0;  // Write or update the values inside the block
   if (update) {
     // Note that the block_list is used for the dl_list
-    WriteLink4List(file, block_list_,kIndexNext, 0); // Only save non-updated
+    WriteLink4List(file, block_list_,kIndexNext,
+               UpdateOption::DoNotUpdateWrittenBlock); // Only save non-updated
     return block_length_;
   }
 
@@ -70,7 +71,8 @@ size_t Hl4Block::Write(std::FILE *file) {
 
   UpdateBlockSize(file, bytes);
 
-  WriteLink4List(file, block_list_,kIndexNext, 0); // Only save non-updated
+  WriteLink4List(file, block_list_,kIndexNext,
+            UpdateOption::DoNotUpdateWrittenBlock); // Only save non-updated
   return bytes;
 }
 }  // namespace mdf::detail

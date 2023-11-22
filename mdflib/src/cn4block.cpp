@@ -142,13 +142,19 @@ std::string MakeFlagString(uint32_t flag) {
     s << (s.str().empty() ? "Virtual" : ",Virtual");
   }
   if (flag & 0x400) {
-    s << (s.str().empty() ? "Event" : ",Event");
+    s << (s.str().empty() ? "Bus Event" : ",Bus Event");
   }
   if (flag & 0x800) {
     s << (s.str().empty() ? "Monotonous" : ",Monotonous");
   }
   if (flag & 0x1000) {
-    s << (s.str().empty() ? "X" : ",X");
+    s << (s.str().empty() ? "Default X" : ",Default X");
+  }
+  if (flag & 0x2000) {
+    s << (s.str().empty() ? "Signal Event" : ",Signal Event");
+  }
+  if (flag & 0x4000) {
+    s << (s.str().empty() ? "VLSD" : ",VLSD");
   }
   return s.str();
 }
@@ -179,7 +185,12 @@ namespace mdf::detail {
 
 Cn4Block::Cn4Block() { block_type_ = "##CN"; }
 
+void Cn4Block::UpdateDataLink(std::FILE *file, int64_t position) {
+  UpdateLink(file, kIndexData, position);
+}
+
 int64_t Cn4Block::DataLink() const { return Link(kIndexData); }
+
 
 std::vector<int64_t> Cn4Block::AtLinkList() const {
   std::vector<int64_t> link_list;
@@ -409,7 +420,8 @@ size_t Cn4Block::Write(std::FILE *file) {
   }
   block_length_ += 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 1 + 1 + 2 + (6 * 8);
   link_list_.resize(8 + nof_attachments_ + (default_x ? 1 : 0), 0);
-  WriteLink4List(file, cx_list_, kIndexCx, 0);
+  WriteLink4List(file, cx_list_, kIndexCx,
+                 UpdateOption::DoNotUpdateWrittenBlock);
   WriteTx4(file, kIndexName, name_);
   WriteBlock4(file, si_block_, kIndexSi);
   WriteBlock4(file, cc_block_, kIndexCc);
@@ -509,8 +521,13 @@ void Cn4Block::ReadData(std::FILE *file) const {
   }
 }
 
+void Cn4Block::BitCount(size_t bits) {bit_count_ = bits;}
 size_t Cn4Block::BitCount() const { return bit_count_; }
+
+void Cn4Block::BitOffset(size_t bits) {bit_offset_ = bits;}
 size_t Cn4Block::BitOffset() const { return bit_offset_; }
+
+void Cn4Block::ByteOffset(size_t bytes) {byte_offset_ = bytes; }
 size_t Cn4Block::ByteOffset() const { return byte_offset_; }
 
 bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
@@ -758,6 +775,7 @@ void Cn4Block::DataType(ChannelDataType type) {
 void Cn4Block::DataBytes(size_t nof_bytes) {
   bit_count_ = nof_bytes * 8;
 }
+
 void Cn4Block::SamplingRate(double sampling_rate) {}
 double Cn4Block::SamplingRate() const { return 0; }
 
@@ -837,7 +855,30 @@ IChannelConversion *Cn4Block::CreateChannelConversion() {
   cc_block_->ChannelDataType(data_type_);
   return cc_block_.get();
 }
+
+IChannel *Cn4Block::CreateChannelComposition() {
+  auto block = std::make_unique<Cn4Block>();
+  block->Init(*this);
+  cx_list_.push_back(std::move(block));
+  return dynamic_cast<IChannel*>(cx_list_.back().get());
+}
+
+std::vector<IChannel *> Cn4Block::ChannelCompositions() {
+  std::vector<IChannel*> list;
+  for ( auto& itr : cx_list_) {
+    try {
+      auto* channel = dynamic_cast<IChannel*>(itr.get());
+      if (channel != nullptr) {
+        list.emplace_back(channel);
+      }
+    } catch (const std::exception&) {
+    }
+  }
+  return list;
+}
+
 void Cn4Block::Flags(uint32_t flags) {flags_ = flags; }
+
 uint32_t Cn4Block::Flags() const { return flags_; }
 
 void Cn4Block::PrepareForWriting(size_t offset) {
@@ -853,6 +894,7 @@ void Cn4Block::PrepareForWriting(size_t offset) {
       break;
 
     case ChannelType::MaxLength:
+      // Fixed length of the byte array but another channel holds actual length
     case ChannelType::Sync:
     case ChannelType::FixedLength:
       // Length fixed below or by user
@@ -861,7 +903,7 @@ void Cn4Block::PrepareForWriting(size_t offset) {
     case ChannelType::VariableLength:
       // Store unsigned 32/64-bit index to variable block
       if (bit_count_ == 0) {
-        bit_count_ = 8 * 8;
+        bit_count_ = 8 * 8; // Assume 64 bit index
       }
       return;
 
@@ -992,7 +1034,7 @@ bool Cn4Block::GetValid(const std::vector<uint8_t> &record_buffer) const {
 size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
   size_t bytes = 0;
 
-  if (file == nullptr) {
+  if (file == nullptr || Type() == ChannelType::MaxLength) {
     return 0;
   };
   if (data_list_.empty()) {
@@ -1054,5 +1096,6 @@ void Cn4Block::ClearData() {
   data_map_.clear();
   DataListBlock::ClearData();
 }
+
 
 }  // namespace mdf::detail

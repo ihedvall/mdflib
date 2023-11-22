@@ -70,7 +70,7 @@ bool Mdf4Writer::PrepareForWriting() {
 
   // Only the last DG block is updated. So go to the last
   // DG block and add an uncompressed DT block to the DG block
-  // or a HL/DL/DZ thing for compressed data.
+  // or an HL/DL/DZ thing for compressed data.
   auto *last_dg = header->LastDataGroup();
   if (last_dg == nullptr) {
     return true;
@@ -82,6 +82,7 @@ bool Mdf4Writer::PrepareForWriting() {
   }
   if (CompressData()) {
     auto hl4 = std::make_unique<Hl4Block>();
+    hl4->Init(*dg4);
   } else {
     // The data block list should include a DT block that we later will append
     // samples (buffers) to.
@@ -98,10 +99,12 @@ bool Mdf4Writer::PrepareForWriting() {
       continue;
     }
     auto* cg4 = dynamic_cast<Cg4Block*>(group);
-    if (cg4 != nullptr) {
-      cg4->PrepareForWriting();
+    if (cg4 == nullptr) {
+      continue;
     }
+    cg4->PrepareForWriting();
   }
+
   return true;
 }
 

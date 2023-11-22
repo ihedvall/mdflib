@@ -320,8 +320,16 @@ size_t Cn3Block::Write(std::FILE *file) {
   return bytes;
 }
 
+void Cn3Block::BitCount(size_t bits ) { nof_bits_ = bits; }
 size_t Cn3Block::BitCount() const { return nof_bits_; }
+
+void Cn3Block::BitOffset(size_t bits ) { start_offset_ = bits; }
 size_t Cn3Block::BitOffset() const { return start_offset_ % 8; }
+
+void Cn3Block::ByteOffset(size_t bytes) {
+
+}
+
 size_t Cn3Block::ByteOffset() const {
   return (static_cast<size_t>(start_offset_) / 8) + byte_offset_;
 }
@@ -495,6 +503,11 @@ IChannelConversion *Cn3Block::CreateChannelConversion() {
     cc_block_->Init(*this);
   }
   return cc_block_.get();
+}
+
+IChannel *Cn3Block::CreateChannelComposition() { return nullptr; }
+std::vector<IChannel *> Cn3Block::ChannelCompositions() {
+  return std::vector<IChannel *>();
 }
 
 }  // namespace mdf::detail

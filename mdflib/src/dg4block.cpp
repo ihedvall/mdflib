@@ -107,7 +107,8 @@ size_t Dg4Block::Write(std::FILE* file) {
     link_list_.resize(4, 0);
   }
 
-  WriteLink4List(file, cg_list_, kIndexCg, 2); // Save nof samples in CG block
+  WriteLink4List(file, cg_list_, kIndexCg,
+              UpdateOption::DoUpdateAllBlocks); // Save nof samples in CG block
   WriteMdComment(file, kIndexMd);
 
 
@@ -122,7 +123,8 @@ size_t Dg4Block::Write(std::FILE* file) {
   // Need to write any data block so it is positioned last in the file
   // as any DT block should be appended with data bytes. The DT block must be
   // last in the file
-  WriteLink4List(file, block_list_, kIndexData, 2); // Update last HL or DT
+  WriteLink4List(file, block_list_, kIndexData,
+                 UpdateOption::DoUpdateAllBlocks); // Update last HL or DT
   return bytes;
 }
 size_t Dg4Block::DataSize() const { return DataListBlock::DataSize(); }
@@ -393,9 +395,13 @@ bool Dg4Block::UpdateDtBlocks(std::FILE *file) {
     return false;
   }
   dt_block->UpdateDataSize(file);
+
   return true;
 }
 
+// Update the unfinished payload data (DT) block. This function update the
+// channel group (CG) and a CG-VLSD channel group regarding cycle count
+// and offsets (VLSD)
 bool Dg4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
                                      bool update_vlsd) {
   auto& block_list = DataBlockList();
@@ -404,6 +410,8 @@ bool Dg4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
     MDF_DEBUG() << "No last data block to update.";
     return true;
   }
+  // It is the last DT block in the list that can be updated. If it isn't a DT
+  // block, we cannot finish the file.
   auto* last_block = block_list.back().get();
   if (last_block == nullptr || last_block->BlockType() != "DT") {
     MDF_DEBUG() << "Last data block is not a DT block.";
@@ -421,16 +429,17 @@ bool Dg4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
     count += ReadRecordId(file,record_id);
     const auto* cg_block = FindCgRecordId(record_id);
     if (cg_block == nullptr) {
+      MDF_DEBUG() << "Failed to find the CG block. Record ID: " << record_id;
       break;
     }
-    auto* temp = const_cast<Cg4Block*>(cg_block);
-    const auto vlsd = (temp->Flags() & CgFlag::VlsdChannel) != 0;
+    auto* cg4 = const_cast<Cg4Block*>(cg_block);
+    const auto vlsd = (cg4->Flags() & CgFlag::VlsdChannel) != 0;
     if (!vlsd && update_cg) {
-      count += temp->UpdateCycleCounter(file);
+      count += cg4->UpdateCycleCounter(file); // Increment the cycle counter
     } else if (vlsd && update_vlsd) {
-      count += temp->UpdateVlsdSize(file);
+      count += cg4->UpdateVlsdSize(file); // Update size and offset
     } else {
-      count += temp->StepRecord(file);
+      count += cg4->StepRecord(file); //
     }
   }
   return true;

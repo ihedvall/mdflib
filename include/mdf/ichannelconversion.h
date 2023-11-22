@@ -194,13 +194,19 @@ class IChannelConversion : public IBlock {
    */
   void Parameter(size_t index, double parameter);
 
-  /** \brief Returns the parameter
+  /** \brief Returns the parameter (double)
    *
    * @param index
    * @return Parameter floating point value
    */
   [[nodiscard]] double Parameter(size_t index) const;
 
+  /** \brief Returns the parameter as a bit field (uint64_t)
+   *
+   * @param index
+   * @return Parameter floating point value
+   */
+  [[nodiscard]] uint64_t ParameterUint(size_t index) const;
   /** \brief Sets an unsigned integer parameter value.
    *
    * @param index Parameter index to set.

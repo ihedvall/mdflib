@@ -9,6 +9,7 @@
 #include "mdf3writer.h"
 #include "mdf4file.h"
 #include "mdf4writer.h"
+#include "mdfbuslogger.h"
 #include "mdf/mdflogstream.h"
 
 using namespace mdf::detail;
@@ -31,6 +32,11 @@ std::unique_ptr<MdfWriter> MdfFactory::CreateMdfWriter(MdfWriterType type) {
       break;
     }
 
+    case MdfWriterType::MdfBusLogger: {
+      auto mdf4 = std::make_unique<MdfBusLogger>();
+      writer = std::move(mdf4);
+      break;
+    }
     default:
       break;
   }

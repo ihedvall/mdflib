@@ -82,7 +82,9 @@ class Cn4Block : public DataListBlock, public IChannel {
   void ClearData() const { data_list_.clear(); }
   const std::vector<uint8_t>& DataList() const { return data_list_; }
 
+  void UpdateDataLink(std::FILE *file, int64_t position);
   [[nodiscard]] int64_t DataLink() const;
+
   [[nodiscard]] std::vector<int64_t> AtLinkList() const;
   [[nodiscard]] std::vector<int64_t> XAxisLinkList() const;
 
@@ -112,10 +114,18 @@ class Cn4Block : public DataListBlock, public IChannel {
   void SetValid(bool valid) override;
   bool GetValid(const std::vector<uint8_t> &record_buffer) const override;
   void ClearData() override;
+
+  void BitCount(size_t bits) override;
+  [[nodiscard]] size_t BitCount() const override;
+  void BitOffset(size_t bits) override;
+  [[nodiscard]] size_t BitOffset() const override;
+  void ByteOffset(size_t bytes) override;
+  [[nodiscard]] size_t ByteOffset() const override;
+  IChannel* CreateChannelComposition() override;
+  std::vector<IChannel*> ChannelCompositions() override;
+
  protected:
-  size_t BitCount() const override;    ///< Returns number of bits in value.
-  size_t BitOffset() const override;   ///< Returns bit offset (0..7).
-  size_t ByteOffset() const override;  ///< Returns byte offset in record.
+
   bool GetTextValue(const std::vector<uint8_t>& record_buffer,
                     std::string& dest) const override;
   bool GetByteArrayValue(const std::vector<uint8_t>& record_buffer,

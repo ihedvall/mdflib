@@ -87,8 +87,20 @@ class IChannelGroup : public IBlock {
 
   /** \brief Returns a list of channels. */
   [[nodiscard]] virtual std::vector<IChannel*> Channels() const = 0;
-  /** \brief Create a new channel. */
+
+  /** \brief Creates a new channel. */
   [[nodiscard]] virtual IChannel* CreateChannel() = 0;
+
+  /** \brief Creates a new channel or returns an existing channel. */
+  [[nodiscard]] virtual IChannel* CreateChannel(const std::string_view& name);
+
+  /** \brief Returns an existing channels part of name.
+   *
+   * Note that the function search for a name that includes the search name.
+   * Example if the search name is '.DataLength', the signal with the name
+   * 'CAN_DataFrame.DataLength' will be returned
+   * the name instead of the full name*/
+  [[nodiscard]] virtual IChannel* GetChannel(const std::string_view& name);
 
   /** \brief Returns an external reference channel. */
   [[nodiscard]] virtual const IChannel* GetXChannel(

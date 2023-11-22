@@ -309,11 +309,40 @@ void IChannelConversion::Parameter(size_t index, double parameter) {
 }
 
 double IChannelConversion::Parameter(size_t index) const {
-  return index < value_list_.size() ?
-               std::get<double>(value_list_[index]) : 0.0;
+  double value = 0.0;
+  if (index < value_list_.size() ) {
+    const auto& val = value_list_[index];
+    if (std::holds_alternative<double>(val)) {
+      value = std::get<double>(val);
+    } else if (std::holds_alternative<uint64_t>(val)) {
+      value = static_cast<double>(std::get<uint64_t>(val));
+    }
+  }
+  return value;
+}
+
+uint64_t IChannelConversion::ParameterUint(size_t index) const {
+  uint64_t value = 0;
+  if (index < value_list_.size() ) {
+    const auto& val = value_list_[index];
+    if (std::holds_alternative<double>(val)) {
+      value = static_cast<uint64_t>(std::get<double>(val));
+    } else if (std::holds_alternative<uint64_t>(val)) {
+      value = std::get<uint64_t>(val);
+    }
+  }
+  return value;
 }
 
 void IChannelConversion::Parameter(size_t index, uint64_t parameter) {
+  switch (Type()) {
+    case ConversionType::BitfieldToText:
+      break;
+
+    default:
+      Parameter(index, static_cast<double>(parameter));
+      return;
+  }
   while (index >= value_list_.size()) {
     value_list_.emplace_back(0ULL);
   }

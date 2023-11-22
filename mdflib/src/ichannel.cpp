@@ -203,7 +203,7 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
     for (auto i = first_byte; i <= last_byte; ++i) {
       value <<= 8;
       value |= record_buffer[i];
-    }
+      }
 
     // Apply offset
     value >>= BitOffset();

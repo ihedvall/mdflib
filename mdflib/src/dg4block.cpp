@@ -4,6 +4,7 @@
  */
 #include "dg4block.h"
 
+#include <filesystem>
 #include <stdexcept>
 #include <algorithm>
 
@@ -202,6 +203,15 @@ void Dg4Block::ReadData(std::FILE* file) const {
   } else {
     close_data_file = true;
     data_file = std::tmpfile();
+#ifdef _WIN32
+    // std::tmpfile() sometimes returns nullpointer on windows, workaround:
+    if (data_file == nullptr) {
+      const auto now = std::chrono::system_clock::now();
+      std::wstring tmppath = std::filesystem::temp_directory_path()
+                                 .append("mdflib-" + std::to_string(now.time_since_epoch().count()));
+      data_file = _wfopen(tmppath.c_str(), L"wb+");
+    }
+#endif
     data_size = CopyDataToFile(block_list, file, data_file);
     std::rewind(data_file);  // SetFilePosition(data_file,0);
   }

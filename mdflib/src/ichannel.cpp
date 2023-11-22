@@ -195,50 +195,37 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
                          ? 0x01 : 0x00;
   } else {
     // Need to bit mask copy everything.
-    // | In[0] | In[1] |  <-- in_byte index
-    //    <-- BitOffset() (0.7)
-    //    <-- BitCount() number of bits
-    auto in_offset = static_cast<uint8_t>(BitOffset()); // Bit inside 1 byte
-    size_t in_byte = ByteOffset();
-    uint8_t out_offset = 0;
-    size_t out_byte = 0;
-    uint8_t last_bit = 0; // Needed for signed integer
+    const auto first_byte = ByteOffset();
+    const auto last_byte = first_byte + nof_bytes - 1;
 
-    for (auto ii = 0; ii < BitCount(); ++ii) {
-      const uint8_t in_mask = 0x01 << in_offset;
-      const uint8_t out_mask = 0x01 << out_offset;
+    // Combine bytes
+    uint64_t value = 0;
+    for (auto i = first_byte; i <= last_byte; ++i) {
+      value <<= 8;
+      value |= record_buffer[i];
+    }
 
-      if (record_buffer[in_byte] & in_mask) {
-        data_buffer[out_byte] |= out_mask;
-        last_bit = out_mask;
-      } else {
-        last_bit = 0x00;
-      }
+    // Apply offset
+    value >>= BitOffset();
 
-      if (in_offset == 7) {
-        in_offset = 0;
-        ++in_byte;
-      } else {
-        ++in_offset;
-      }
+    // Apply mask
+    const uint64_t bit_limit_mask = (1ULL << BitCount()) - 1;
+    value &= bit_limit_mask;
 
-      if (out_offset == 7) {
-        out_offset = 0;
-        ++out_byte;
-      } else {
-        ++out_offset;
+    // Apply sign extension
+    if (DataType() == ChannelDataType::SignedIntegerLe ||
+                            DataType() == ChannelDataType::SignedIntegerBe) {
+      const bool is_negative = (value & (0x01ULL << (BitCount() - 1))) != 0;
+      if (is_negative) {
+        const uint64_t sign_extension_mask = ~((1ULL << BitCount()) - 1);
+        value |= sign_extension_mask;
       }
     }
 
-    // Fix for signed integer
-    const bool signed_int = DataType() == ChannelDataType::SignedIntegerLe ||
-                            DataType() == ChannelDataType::SignedIntegerBe;
-    if (signed_int && last_bit != 0) {
-      // Negative value. Need to ill remaining bits in byte with 1
-      while (out_offset > 0 && out_offset < 8) {
-        data_buffer[out_byte] |= 0x01 << out_offset;
-        ++out_offset;
-      }
+    // Copy to output buffer
+    for (auto i = 0; i < nof_bytes; ++i) {
+      data_buffer[nof_bytes - i - 1] = static_cast<uint8_t>(value & 0xFF);
+      value >>= 8;
     }
   }
 
@@ -986,6 +973,21 @@ void IChannel::SetTimestamp(double timestamp,
     default:
       break;
   }
+}
+
+IChannel *IChannel::CreateChannelComposition(const std::string_view &name) {
+  auto list = ChannelCompositions();
+  auto itr = std::find_if(list.begin(), list.end(), [&] (auto* channel) {
+    return channel != nullptr && channel->Name() == name;
+  });
+  if (itr != list.end()) {
+    return *itr;
+  }
+  auto* new_channel = CreateChannelComposition();
+  if (new_channel != nullptr) {
+    new_channel->Name(name.data());
+  }
+  return new_channel;
 }
 
 }  // end namespace mdf

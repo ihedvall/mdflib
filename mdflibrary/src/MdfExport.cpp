@@ -21,6 +21,10 @@ using namespace mdf;
 // LINUX
 #define EXPORT(ReturnType, ClassName, FuncName, ...) \
   ReturnType ClassName##FuncName(__VA_ARGS__)
+#elif defined(__CYGWIN__)
+// CYGWIN
+#define EXPORT(ReturnType, ClassName, FuncName, ...) \
+  ReturnType ClassName##FuncName(__VA_ARGS__)
 #elif defined(__APPLE__)
 // MACOS
 #define EXPORT(ReturnType, ClassName, FuncName, ...) \

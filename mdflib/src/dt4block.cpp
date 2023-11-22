@@ -4,6 +4,8 @@
  */
 
 #include "dt4block.h"
+#include "mdf/mdflogstream.h"
+
 namespace mdf::detail {
 
 Dt4Block::Dt4Block() {
@@ -38,6 +40,7 @@ void Dt4Block::UpdateDataSize(std::FILE *file) {
   if (data_size > 0) {
     block_length_ = 24 + static_cast<uint64_t>(data_size);
   }
+  MDF_DEBUG() << "Updated the last DT block data size. Size: " << data_size;
 }
 
 size_t Dt4Block::Write(std::FILE *file) {

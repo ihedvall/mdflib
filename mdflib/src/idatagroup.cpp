@@ -53,4 +53,29 @@ void IDataGroup::RecordIdSize(uint8_t id_size) {}
 
 uint8_t IDataGroup::RecordIdSize() const { return 0; }
 
+
+bool IDataGroup::IsEmpty() const {
+  // Check if any samples have been stored.
+  const auto cg_list = ChannelGroups();
+  return std::all_of(cg_list.cbegin(), cg_list.cend(), [] (const auto* group) {
+    return group != nullptr &&  group->NofSamples() == 0;
+  });
+}
+
+IChannelGroup *IDataGroup::CreateChannelGroup(const std::string_view &name) {
+  auto cg_list = ChannelGroups();
+  auto itr = std::find_if(cg_list.begin(), cg_list.end(),
+                          [&] (const auto* group) {
+    return group != nullptr && strcmp(group->Name().c_str(), name.data()) == 0;
+  });
+  if (itr != cg_list.end()) {
+    return *itr;
+  }
+  auto* new_group = CreateChannelGroup();
+  if (new_group != nullptr) {
+    new_group->Name(name.data());
+  }
+  return new_group;
+}
+
 }  // namespace mdf

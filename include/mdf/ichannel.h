@@ -202,6 +202,31 @@ class IChannel : public IBlock  {
   /** \brief Creates a conversion block. */
   [[nodiscard]] virtual IChannelConversion *CreateChannelConversion() = 0;
 
+  /** \brief Creates a composition channel.
+   *
+   * Creates a composition channel block. Composition channels reference their
+   * bit length and bit offset to its parent channel. In reality, the parent
+   * channel must be a byte array.
+   */
+  [[nodiscard]] virtual IChannel *CreateChannelComposition() = 0;
+
+  /** \brief Creates a composition channel with a specific name or returns an
+   * existing channel.
+   *
+   * Creates a composition channel block. Composition channels reference their
+   * bit length and bit offset to its parent channel. In reality, the parent
+   * channel must be a byte array.
+   */
+  [[nodiscard]] virtual IChannel *CreateChannelComposition(
+      const std::string_view& name);
+  /** \brief Creates a composition channel.
+   *
+   * Creates a composition channel block. Composition channels reference their
+   * bit length and bit offset to its parent channel. In reality, the parent
+   * channel must be a byte array.
+   */
+  [[nodiscard]] virtual std::vector<IChannel*> ChannelCompositions() = 0;
+
   /** \brief Returns true if the channel is a number. */
   [[nodiscard]] bool IsNumber() const {
     // Need to check the cc at well if it is a value to text conversion
@@ -286,13 +311,45 @@ class IChannel : public IBlock  {
 
   void SetTimestamp(double timestamp, std::vector<uint8_t> &record_buffer) const;
 
+  /** \brief Sets the size of data in bits.
+   *
+   * This function shall only be used for MDF4 files and for composition
+   * channels. Composition channels reference their parent byte array channel.
+   * For ordinary channels, the bit size and offset is calculated when the
+   * measurement is initialized.
+   * @param bits Number of bits.
+   */
+  virtual void BitCount(size_t bits) = 0;
+
+  /** \brief Returns the data size in number of bits */
+  [[nodiscard]] virtual size_t BitCount()const = 0;
+
+  /** \brief Sets the offset to data in bits.
+   *
+   * This function shall only be used for MDF4 files and for composition
+   * channels. Composition channels reference their parent byte array channel.
+   * For ordinary channels, the bit size and offset is calculated when the
+   * measurement is initialized.
+   * @param bits Offset to data.
+   */
+  virtual void BitOffset(size_t bits) = 0;
+
+  /** \brief Returns offset to data (0..7). */
+  [[nodiscard]] virtual size_t BitOffset() const = 0;
+
+  /** \brief Sets the byte offset in record to to data.
+   *
+   * This function shall only be used for MDF4 files and for composition
+   * channels. Composition channels reference their parent byte array channel.
+   * For ordinary channels, the bit size and offset is calculated when the
+   * measurement is initialized.
+   * @param bytes Offset to data.
+   */
+  virtual void ByteOffset(size_t bytes) = 0;
+
+  /** \brief Returns the byte offset to data in the record. */
+  [[nodiscard]] virtual size_t ByteOffset() const = 0;
  protected:
-  [[nodiscard]] virtual size_t BitCount()
-      const = 0;  ///< Returns number of bits in value.
-  [[nodiscard]] virtual size_t BitOffset()
-      const = 0;  ///< Returns bit offset (0..7).
-  [[nodiscard]] virtual size_t ByteOffset()
-      const = 0;  ///< Returns byte offset in record.
 
   /** \brief Support function that copies a record to a data block. */
   virtual void CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,

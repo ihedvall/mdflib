@@ -19,6 +19,41 @@
  */
 namespace mdf {
 
+/** \brief Enumerate that defines type of bus. Only relevant for bus logging.
+ *
+ * Enumerate that is used when doing bus logging. The enumerate is used when
+ * creating default channel and channel group names.
+ */
+enum class MdfBusType : int {
+  CAN,      ///< CAN or CAN-FD bus
+  LIN,      ///< LIN bus
+  FlexRay,  ///< FlexRay bus
+  MOST,     ///< MOST bus
+  Ethernet, ///< Ethernet bus
+  UNKNOWN
+};
+
+/** \brief Enumerate that defines how the raw data is stored. By default
+ * the fixed length record is stored. Only used when doing bus logging.
+ *
+ * The fixed length storage is using one SD-block per byte array. The SD block
+ * is temporary stored in primary memory instead of store it on disc. This
+ * storage type is not recommended for bus logging.
+ *
+ * The variable length storage uses an extra CG-record for byte array data.
+ * The storage type is used for bus logging where payload data is more than 8
+ * byte.
+ *
+ * The maximum length storage shall be used when payload data is 8 bytes or
+ * less. It is typically used when logging CAN messages which have 0-8 data
+ * payload.
+ */
+enum class MdfStorageType : int {
+  FixedLengthStorage, ///< The default is to use fixed length records.
+  VlsdStorage,        ///< Using variable length storage.
+  MlsdStorage,        ///< Using maximum length storage
+};
+
 class IChannelGroup;
 class IChannel;
 class IChannelConversion;
@@ -77,8 +112,8 @@ class MdfWriter {
 
   /** \brief Initiate the file.
    *
-   * Initiate the writer by defining which file is shall work with. Note that
-   * appending existing file is supported.
+   * Initiate the writer by defining which file it shall work with. Note that
+   * appending an existing file is supported.
    * @param filename Filename with full path.
    * @return Returns true if the function was successful.
    */
@@ -113,6 +148,15 @@ class MdfWriter {
   MdfFile* GetFile() { return mdf_file_.get(); }
 
   [[nodiscard]] IHeader* Header() const; ///< Returns the header block (HD).
+
+  /** \brief Creates all default DG, CG and CN blocks that bus loggers uses.
+   *
+   * This function create all data groups, channel groups and channels for
+   * a typical bus logger. Before calling this function, set the bus and
+   * storage types as this function uses these settings.
+   */
+  bool CreateBusLogConfiguration();
+
   /** \brief Create a new data group (DG) block. */
   [[nodiscard]] IDataGroup* CreateDataGroup();
   /** \brief Create a new channel group (CG) block. */
@@ -135,6 +179,51 @@ class MdfWriter {
   /** \brief Stop the sample queue and write all unwritten blocks to
    * the file.*/
   virtual bool FinalizeMeasurement();
+
+  /** \brief Only used when doing bus logging. It defines the default
+   * channel and channel group names when doing bus logging.
+   * @param type Type of bus.
+   */
+  void BusType(MdfBusType type) { bus_type_ = type; }
+
+  /** \brief Returns the type of bus the MDF file is associated with. Only
+   * used when doing bus logging.
+   * @return Type of bus.
+   */
+  [[nodiscard]] MdfBusType BusType() const { return bus_type_; }
+
+  /** \brief Returns the bus type as text. */
+  [[nodiscard]] std::string_view BusTypeAsString() const;
+
+  /** \brief Only used when doing bus logging. It defines how raw data is
+   * stored.
+   *
+   * Defines how the raw data (payload) is stored. Only used when doing bus
+   * logging.
+   *
+   * By default the fixed length storage is used. This means that the data
+   * records have fixed length. This is the traditional way of storage.
+   * Variable length channels as strings, are stored in separate signal data
+   * blocks (SD).
+   *
+   * The Variable Length Signal Data (VLSD) is stored in the data block. In
+   * practice this option is only used when doing bus logging.
+   *
+   * The Maximum Length Signal Data is typicallay used when logging CAN bus
+   * traffic
+   * @param type Type of storage.
+   */
+  void StorageType(MdfStorageType type) { storage_type_ = type; }
+
+  /** \brief Returns the type of data storage the MDF file is associated with.
+   * Only used when doing bus logging.
+   * @return Type of data storage.
+   */
+  [[nodiscard]] MdfStorageType StorageType() const { return storage_type_; }
+
+  void MaxLength(size_t max_length) {max_length_ = max_length;};
+  [[nodiscard]] size_t MaxLength() const { return max_length_; }
+
    /** \brief If set to true, the data block will be compressed. */
   void CompressData(bool compress) {compress_data_ = compress;}
   /** \brief Returns true if the data block is compressed. */
@@ -185,10 +274,84 @@ class MdfWriter {
   /** \brief Set the last file position. */
   virtual void SetLastPosition(std::FILE* file) = 0;
 
+
  private:
   bool compress_data_ = false; ///< True if the data shall be compressed.
+  MdfBusType bus_type_ = MdfBusType::UNKNOWN;
+  MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;
+  size_t max_length_ = 8; ///< Max data byte storage
   std::map<uint64_t, const IChannel*> master_channels_; ///< List of master channels
   void RecalculateTimeMaster();
+  void CreateCanConfig(IDataGroup& dg_block);
+
+  /** \brief Create the composition channels for a data frame
+  *
+  * The composition layout is as above. Note that the
+  * \verbatim
+  * Byte Remarks
+  * 0:   LSB Message ID 32-bit unsigned
+  * 1:
+  * 2:
+  * 3:   MSB Bit 31 is the IDE (extended bit)
+  * 4:   BusChannel (High 4 bit), DLC (Low 4 bits)
+  * 5:   Flags (8 bits)
+  * 6:   64-bit Index into Signal Data or VLSD block. For MLSD
+  * 7:   this stores the data bytes
+  * ..
+  * N:
+  * \endverbatim
+  * @param parent The The CAN Data Frame channel object.
+  */
+  void CreateCanDataFrameChannel(IChannelGroup& group) const;
+
+  /** \brief Create the composition channels for a remote frame
+  *
+  * The composition layout is as above. Note that the
+  * \verbatim
+  * Byte Remarks
+  * 0:   LSB Message ID 32-bit unsigned
+  * 1:
+  * 2:
+  * 3:   MSB Bit 31 is the IDE (extended bit)
+  * 4:   BusChannel (High 4 bit), DLC (Low 4 bits)
+  * 5:   Flags (8 bits)
+  * \endverbatim
+  * @param parent The The CAN Data Frame channel object.
+   */
+  void CreateCanRemoteFrameChannel(IChannelGroup& group);
+
+  /** \brief Create the composition channels for an error frame
+  *
+  * The composition layout is as above. Note that the
+  * \verbatim
+  * Byte Remarks
+  * 0:   LSB Message ID 32-bit unsigned
+  * 1:
+  * 2:
+  * 3:   MSB Bit 31 is the IDE (extended bit)
+  * 4:   BusChannel (High 4 bit), DLC (Low 4 bits)
+  * 5:   Flags (8 bits)
+  * 6:   Bit position
+  * 7:   Error Type
+  * 8:   64-bit Index into Signal Data or VLSD block. For MLSD
+  * 9:   this stores the data bytes
+  * ..
+  * N:
+  * \endverbatim
+  * @param parent The The CAN Data Frame channel object.
+   */
+  void CreateCanErrorFrameChannel(IChannelGroup& group) const;
+
+  /** \brief Create the composition channels for an error frame
+  *
+  * The composition layout is as above. Note that the
+  * \verbatim
+  * Byte Remarks
+  * 0:   BusChannel (High 4 bit), Flags (Low 4 bits)
+  * \endverbatim
+  * @param parent The The CAN Data Frame channel object.
+   */
+  static void CreateCanOverloadFrameChannel(IChannelGroup& group);
 };
 
 }  // namespace mdf

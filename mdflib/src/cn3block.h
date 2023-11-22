@@ -69,13 +69,18 @@ class Cn3Block : public DataListBlock, public IChannel {
 
   [[nodiscard]] Ce3Block* Ce3() const { return ce_block_.get(); }
 
+  void BitCount(size_t bits) override;
+  [[nodiscard]] size_t BitCount() const override;
+
+  void BitOffset(size_t bits) override;
+  [[nodiscard]] size_t BitOffset() const override;
+
+  void ByteOffset(size_t bytes) override;
+  [[nodiscard]] size_t ByteOffset() const override;
+  IChannel* CreateChannelComposition() override;
+  std::vector<IChannel*> ChannelCompositions() override;
+
  protected:
-  [[nodiscard]] size_t BitCount()
-      const override;  ///< Returns number of bits in value.
-  [[nodiscard]] size_t BitOffset()
-      const override;  ///< Returns bit offset (0..7).
-  [[nodiscard]] size_t ByteOffset()
-      const override;  ///< Returns byte offset in record.
 
   [[nodiscard]] std::vector<uint8_t>& SampleBuffer() const override;
 

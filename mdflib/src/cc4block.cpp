@@ -209,9 +209,15 @@ size_t Cc4Block::Read(std::FILE* file) {  // NOLINT
 
   value_list_.clear();
   for (uint16_t ii = 0; ii < nof_values_; ++ii) {
-    double temp = 0;
-    bytes += ReadNumber(file, temp);
-    value_list_.emplace_back(temp);
+    if (Type() == ConversionType::BitfieldToText) {
+      uint64_t temp = 0;
+      bytes += ReadNumber(file, temp);
+      value_list_.emplace_back(temp);
+    } else {
+      double temp = 0;
+      bytes += ReadNumber(file, temp);
+      value_list_.emplace_back(temp);
+    }
   }
 
   name_ = ReadTx4(file, kIndexName);
@@ -290,8 +296,14 @@ size_t Cc4Block::Write(std::FILE* file) {  // NOLINT
   bytes += WriteNumber(file, range_min_);
   bytes += WriteNumber(file, range_max_);
   for (uint16_t index_n = 0; index_n < nof_values_; ++index_n) {
-    bytes += WriteNumber(file, value_list_[index_n]);
-    // ToDo: Fix variant check if uint64_t or double
+    const auto& val = value_list_[index_n];
+    if (std::holds_alternative<double>(val)) {
+      bytes += WriteNumber(file, std::get<double>(val));
+    } else if (std::holds_alternative<uint64_t>(val)) {
+      bytes += WriteNumber(file, std::get<uint64_t>(val));
+    } else {
+      bytes += WriteNumber(file, 0.0);
+    }
   }
   UpdateBlockSize(file, bytes);
   return bytes;

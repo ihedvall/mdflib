@@ -15,8 +15,10 @@ namespace mdf {
 /** \brief MDF writer types. */
 enum class MdfWriterType : int {
   Mdf3Basic = 0, ///< Basic MDF version 3 writer.
-  Mdf4Basic = 1  ///< Basic MDF version 4 writer.
+  Mdf4Basic = 1,  ///< Basic MDF version 4 writer.
+  MdfBusLogger = 2, ///< Specialized bus logger writer.
 };
+
 /** \brief MDF file type. */
 enum class MdfFileType : int {
   Mdf3FileType = 0, ///< MDF version 3 file.

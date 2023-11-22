@@ -53,8 +53,13 @@ class IDataGroup : public IBlock {
 
   /** \brief Returns a list of channel groups. */
   [[nodiscard]] virtual std::vector<IChannelGroup*> ChannelGroups() const = 0;
+
   /** \brief Create a new empty channel group. */
   [[nodiscard]] virtual IChannelGroup* CreateChannelGroup() = 0;
+
+  /** \brief Create a new channel group or return the existing group. */
+  [[nodiscard]] IChannelGroup* CreateChannelGroup(
+      const std::string_view& name);
 
   /** \brief Create or return the existing meta-data (MD) block. */
   [[nodiscard]] virtual IMetaData* CreateMetaData();
@@ -78,6 +83,10 @@ class IDataGroup : public IBlock {
   void SetAsRead(bool mark_as_read = true) const {
     mark_as_read_ = mark_as_read;
   }
+
+  /** \brief Returns true if no samples has been stored yet. */
+  [[nodiscard]] bool IsEmpty() const;
+
   /** \brief Return true if the DG blocks data has been read not the DG block
    * itself.  */
   [[nodiscard]] bool IsRead() const { return mark_as_read_; }
@@ -94,6 +103,8 @@ class IDataGroup : public IBlock {
 
  private:
   mutable bool mark_as_read_ = false; ///< True if the data block has been read.
+
+
 };
 
 }  // namespace mdf

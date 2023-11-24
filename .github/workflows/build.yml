@@ -5,13 +5,12 @@
   on:
     push:
       branches:
-      - master
+      - main
     pull_request:
-    page_build:
     workflow_dispatch:
   
   env:
-    IS_RELEASE: ${{ github.event_name == 'push' && github.ref_type == 'tag' && startswith(github.ref_name, 'v') }}
+    vcpkgCommitId: cd5e746ec203c8c3c61647e0886a8df8c1e78e41
   
   
   jobs:
@@ -22,8 +21,6 @@
         matrix:
           os: [windows-latest]
           arch: [x64, x64_x86]
-      env:
-        vcpkgCommitId: 9edb1b8e590cc086563301d735cae4b6e732d2d2
       steps:
         - name: Checkout repository
           uses: actions/checkout@v3
@@ -88,8 +85,6 @@
         matrix:
           os: [ubuntu-latest, macos-latest]
           arch: [x64]
-      env:
-        vcpkgCommitId: 9edb1b8e590cc086563301d735cae4b6e732d2d2
       steps:
         - name: Checkout repository
           uses: actions/checkout@v3

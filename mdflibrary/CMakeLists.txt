@@ -1,7 +1,7 @@
 # Copyright 2023 Simplxs
 # SPDX-License-Identifier: MIT
 
-if (MSVC)
+if (MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36)
     add_library(mdflibrary SHARED
             src/MdfExport.cpp
             src/AssemblyInfo.cpp
@@ -24,7 +24,6 @@ if (MSVC)
             src/Mdfwriter.cpp src/Mdfwriter.h
             )
   set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
-
 else()
   add_library(mdflibrary SHARED src/MdfExport.cpp)
 endif()

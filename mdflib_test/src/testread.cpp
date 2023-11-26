@@ -82,6 +82,9 @@ TEST_F(TestRead, MdfReader)  // NOLINT
 
 TEST_F(TestRead, MdfFile)  // NOLINT
 {
+  if (mdf_list.empty()) {
+    GTEST_SKIP();
+  }
   for (const auto &itr : mdf_list) {
     MdfReader oRead(itr.second);
     EXPECT_TRUE(oRead.ReadMeasurementInfo()) << itr.second;
@@ -105,6 +108,10 @@ TEST_F(TestRead, MdfFile)  // NOLINT
 TEST_F(TestRead, IdBlock)  // NOLINT
 {
   const std::string file = GetMdfFile("Vector_CustomExtensions_CNcomment");
+  // Check that the file exist. If not skip the test
+  if (file.empty()) {
+    GTEST_SKIP();
+  }
   MdfReader oRead(file);
   EXPECT_TRUE(oRead.IsOk()) << file;
 

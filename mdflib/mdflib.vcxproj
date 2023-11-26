@@ -85,6 +85,26 @@
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgUseMD>true</VcpkgUseMD>
+    <VcpkgInstalledDir>C:\vcpkg\vcpkg</VcpkgInstalledDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgUseMD>true</VcpkgUseMD>
+    <VcpkgInstalledDir>C:\vcpkg\vcpkg</VcpkgInstalledDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgUseMD>true</VcpkgUseMD>
+    <VcpkgInstalledDir>C:\vcpkg\vcpkg</VcpkgInstalledDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+    <VcpkgUseMD>true</VcpkgUseMD>
+    <VcpkgInstalledDir>C:\vcpkg\vcpkg</VcpkgInstalledDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -93,6 +113,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -110,6 +132,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -164,6 +188,7 @@
     <ClCompile Include="src\bigbuffer.cpp" />
     <ClCompile Include="src\blockproperty.cpp" />
     <ClCompile Include="src\ca4block.cpp" />
+    <ClCompile Include="src\canmessage.cpp" />
     <ClCompile Include="src\cc3block.cpp" />
     <ClCompile Include="src\cc4block.cpp" />
     <ClCompile Include="src\cd3block.cpp" />
@@ -218,6 +243,7 @@
     <ClCompile Include="src\mdf4timestamp.cpp" />
     <ClCompile Include="src\mdf4writer.cpp" />
     <ClCompile Include="src\mdfblock.cpp" />
+    <ClCompile Include="src\mdfbuslogger.cpp" />
     <ClCompile Include="src\mdffactory.cpp" />
     <ClCompile Include="src\mdffile.cpp" />
     <ClCompile Include="src\mdfhelper.cpp" />
@@ -242,6 +268,7 @@
     <ClCompile Include="src\zlibutil.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\mdf\canmessage.h" />
     <ClInclude Include="..\include\mdf\cryptoutil.h" />
     <ClInclude Include="..\include\mdf\etag.h" />
     <ClInclude Include="..\include\mdf\iattachment.h" />
@@ -310,6 +337,7 @@
     <ClInclude Include="src\mdf4timestamp.h" />
     <ClInclude Include="src\mdf4writer.h" />
     <ClInclude Include="src\mdfblock.h" />
+    <ClInclude Include="src\mdfbuslogger.h" />
     <ClInclude Include="src\platform.h" />
     <ClInclude Include="src\pr3block.h" />
     <ClInclude Include="src\rd4block.h" />

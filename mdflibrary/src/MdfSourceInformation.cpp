@@ -2,13 +2,9 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string>
-#include <msclr/marshal_cppstd.h>
 
 #include "MdfSourceInformation.h"
 #include "mdflibrary.h"
-
-using namespace msclr::interop;
 
 namespace MdfLibrary {
 

@@ -10,10 +10,10 @@ using namespace Security::Permissions;
 [assembly:AssemblyConfigurationAttribute(L"")];
 [assembly:AssemblyCompanyAttribute(L"Open Source")];
 [assembly:AssemblyProductAttribute(L"MdfLibrary")];
-[assembly:AssemblyCopyrightAttribute(L"Copyright (c) 2022 Ingemar Hedvall")];
+[assembly:AssemblyCopyrightAttribute(L"Copyright (c) 2023 Ingemar Hedvall")];
 [assembly:AssemblyTrademarkAttribute(L"")];
 [assembly:AssemblyCultureAttribute(L"")];
 
-[assembly:AssemblyVersionAttribute(L"1.0.*")];
+[assembly:AssemblyVersionAttribute(L"2.0.*")];
 
 [assembly:ComVisible(false)];

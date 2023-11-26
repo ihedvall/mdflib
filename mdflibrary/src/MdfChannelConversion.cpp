@@ -2,13 +2,9 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string>
-#include <msclr/marshal_cppstd.h>
 
 #include "MdfChannelConversion.h"
 #include "mdflibrary.h"
-
-using namespace msclr::interop;
 
 namespace MdfLibrary {
 
@@ -119,10 +115,56 @@ MdfChannelConversion^ MdfChannelConversion::Inverse::get() {
   return temp != nullptr ? gcnew MdfChannelConversion(temp) : nullptr;
 }
 
+MdfMetaData^ MdfChannelConversion::MetaData::get() {
+  auto* temp = conversion_ != nullptr ?
+    conversion_->MetaData() : nullptr;
+  return temp != nullptr ? gcnew MdfMetaData(temp) : nullptr;
+}
+
 MdfChannelConversion^ MdfChannelConversion::CreateInverse() {
   auto* temp = conversion_ != nullptr ?
     conversion_->CreateInverse() : nullptr;
   return gcnew MdfChannelConversion(temp);  
+}
+
+MdfMetaData^ MdfChannelConversion::CreateMetaData() {
+  auto* temp = conversion_ != nullptr ?
+    conversion_->CreateMetaData() : nullptr;
+  return gcnew MdfMetaData(temp);  
+}
+
+String^ MdfChannelConversion::Formula::get() {
+  return conversion_ != nullptr ?
+    MdfLibrary::Utf8Conversion(conversion_->Formula()) :
+    gcnew String("");
+}
+
+void MdfChannelConversion::Formula::set(String^ formula) {
+  if (conversion_ != nullptr) {
+    conversion_->Formula(MdfLibrary::Utf8Conversion(formula));
+  }
+}
+
+double MdfChannelConversion::Parameter::get(int index) {
+  return conversion_ != nullptr ?
+    conversion_->Parameter(static_cast<uint32_t>(index)) : 0.0;  
+}
+
+void MdfChannelConversion::Parameter::set(int index, double parameter) {
+  if (conversion_ != nullptr) {
+    conversion_->Parameter(static_cast<uint32_t>(index), parameter);
+  }  
+}
+
+uint64_t MdfChannelConversion::ParameterUInt::get(int index) {
+  return conversion_ != nullptr ?
+    conversion_->ParameterUint(static_cast<uint32_t>(index)) : 0;  
+}
+
+void MdfChannelConversion::ParameterUInt::set(int index, uint64_t parameter) {
+  if (conversion_ != nullptr) {
+    conversion_->Parameter(static_cast<uint32_t>(index), parameter);
+  }  
 }
 
 MdfChannelConversion::

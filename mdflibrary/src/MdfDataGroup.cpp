@@ -2,12 +2,9 @@
 * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string>
-#include <msclr/marshal_cppstd.h>
+
 #include "MdfDataGroup.h"
 #include "mdflibrary.h"
-
-using namespace msclr::interop;
 
 namespace MdfLibrary {
 
@@ -49,16 +46,25 @@ array<MdfChannelGroup^>^ MdfDataGroup::ChannelGroups::get() {
 }
 
 MdfMetaData^ MdfDataGroup::MetaData::get() {
-  const auto* temp = group_ != nullptr ?
-    group_->MetaData() : nullptr;
-  return temp != nullptr ?
-    gcnew MdfMetaData(const_cast<mdf::IMetaData*>(temp)) : nullptr; 
+  auto* temp = group_ != nullptr ? group_->MetaData() : nullptr;
+  return temp != nullptr ? gcnew MdfMetaData(temp) : nullptr; 
 }
 
 MdfChannelGroup^ MdfDataGroup::CreateChannelGroup() {
   auto* temp = group_ != nullptr ?
     group_->CreateChannelGroup() : nullptr;
   return gcnew MdfChannelGroup(temp);
+}
+
+MdfChannelGroup^ MdfDataGroup::GetChannelGroup(String^ groupName) {
+  if (groupName == nullptr) {
+    return nullptr;
+  }
+  const auto name = MdfLibrary::Utf8Conversion(groupName);
+  auto* channelGroup = group_ != nullptr ?
+    group_->GetChannelGroup(name) : nullptr;
+  return channelGroup != nullptr ?
+    gcnew MdfChannelGroup(channelGroup) : nullptr;
 }
 
 MdfMetaData^ MdfDataGroup::CreateMetaData() {
@@ -71,7 +77,7 @@ bool MdfDataGroup::IsRead::get() {
   return group_ != nullptr ? group_->IsRead() : false;
 }
 
-MdfChannelGroup^ MdfDataGroup::FindParentChannelGroup(MdfChannel^ channel) {
+MdfChannelGroup^ MdfDataGroup::FindParentChannelGroup(const MdfChannel^ channel) {
   const auto* input =
     channel != nullptr ? channel->channel_ : nullptr;
   if (input == nullptr) {
@@ -80,8 +86,7 @@ MdfChannelGroup^ MdfDataGroup::FindParentChannelGroup(MdfChannel^ channel) {
   
   const auto* temp = group_ != nullptr ?
     group_->FindParentChannelGroup(*input) : nullptr;
-  return temp != nullptr ?
-    gcnew MdfChannelGroup(const_cast<mdf::IChannelGroup*>(temp)) : nullptr;  
+  return temp != nullptr ? gcnew MdfChannelGroup(const_cast<mdf::IChannelGroup*>(temp)) : nullptr;  
 }
 
 void MdfDataGroup::ResetSample() {
@@ -92,7 +97,6 @@ void MdfDataGroup::ResetSample() {
 
 MdfDataGroup::MdfDataGroup(mdf::IDataGroup* group)
   : group_(group) {
-
 }
 
 }

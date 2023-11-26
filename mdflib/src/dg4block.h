@@ -38,7 +38,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
 
   void ReadData(std::FILE* file) const;
   IMetaData* CreateMetaData() override;
-  const IMetaData* MetaData() const override;
+  IMetaData* MetaData() const override;
   void RecordIdSize(uint8_t id_size) override;
   uint8_t RecordIdSize() const override;
   size_t Write(std::FILE* file) override;
@@ -49,6 +49,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
 
   [[nodiscard]] const IChannelGroup *FindParentChannelGroup(
       const IChannel &channel) const override;
+  [[nodiscard]] Cg4Block* FindCgRecordId(uint64_t record_id) const;
  private:
   uint8_t rec_id_size_ = 0;
   /* 7 byte reserved */
@@ -56,7 +57,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
 
   void ParseDataRecords(std::FILE* file, size_t nof_data_bytes) const;
   size_t ReadRecordId(std::FILE* file, uint64_t& record_id) const;
-  const Cg4Block* FindCgRecordId(uint64_t record_id) const;
+
 };
 
 }  // namespace mdf::detail

@@ -156,8 +156,8 @@ class IChannel : public IBlock  {
   virtual void DataType(ChannelDataType type) = 0; ///< Sets the data type.
   [[nodiscard]] virtual ChannelDataType DataType() const = 0; ///< Data type.
 
-  virtual void DataBytes(size_t nof_bytes) = 0; ///< Sets the data size (bytes)
-  [[nodiscard]] virtual size_t DataBytes() const = 0; ///< Data size (bytes);
+  virtual void DataBytes(uint64_t nof_bytes) = 0; ///< Sets the data size (bytes)
+  [[nodiscard]] virtual uint64_t DataBytes() const = 0; ///< Data size (bytes);
 
   /** \brief Number of decimals (floating points)  */
   [[nodiscard]] virtual uint8_t Decimals() const = 0;
@@ -191,13 +191,13 @@ class IChannel : public IBlock  {
   [[nodiscard]] virtual double SamplingRate() const = 0;
 
   /** \brief Returns the source information, if any. */
-  [[nodiscard]] virtual const ISourceInformation *SourceInformation() const;
+  [[nodiscard]] virtual ISourceInformation *SourceInformation() const;
 
   /** \brief Creates a source information block. */
   [[nodiscard]] virtual ISourceInformation* CreateSourceInformation();
 
   /** \brief Returns the conversion block, if any. */
-  [[nodiscard]] virtual const IChannelConversion *ChannelConversion() const = 0;
+  [[nodiscard]] virtual IChannelConversion *ChannelConversion() const = 0;
 
   /** \brief Creates a conversion block. */
   [[nodiscard]] virtual IChannelConversion *CreateChannelConversion() = 0;
@@ -237,11 +237,11 @@ class IChannel : public IBlock  {
     return DataType() <= ChannelDataType::FloatBe;
   }
 
-  /** \brief Creates a met-data (MD) block. */
+  /** \brief Creates a metadata (MD) block. */
   [[nodiscard]] virtual IMetaData* CreateMetaData();
 
   /** \brief Returns the  meta-data (MD) block if it exist. */
-  [[nodiscard]] virtual const IMetaData* MetaData() const;
+  [[nodiscard]] virtual IMetaData* MetaData() const;
 
   /** \brief Sets the VLSD record id.
    *
@@ -251,8 +251,8 @@ class IChannel : public IBlock  {
    * of the VLSD block.
    * @param record_id Record id of the block storing the data bytes.
    */
-  void CgRecordId(uint64_t record_id) const {
-    cg_record_id_ = record_id;
+  void VlsdRecordId(uint64_t record_id) const {
+    vlsd_record_id_ = record_id;
   }
 
   /** \brief Returns the VLSD record id.
@@ -263,8 +263,8 @@ class IChannel : public IBlock  {
    * of the VLSD block.
    * @return Record id of the block storing the data bytes.
    */
-  [[nodiscard]] uint64_t CgRecordId() const {
-    return cg_record_id_;
+  [[nodiscard]] uint64_t VlsdRecordId() const {
+    return vlsd_record_id_;
   }
 
   /** \brief Parse out the channel value from a data record.
@@ -308,7 +308,15 @@ class IChannel : public IBlock  {
     */
   virtual bool GetTextValue(const std::vector<uint8_t> &record_buffer,
                             std::string &dest) const;
-
+  /** \brief The function change the supplied records time channel value.
+   *
+   * The function update the record buffer with a new time. This function is
+   * for internal use and its purpose is to change the timestamps in
+   * the sample cache queue, from absolute time to relative time. This
+   * happens when the MdfWriter::StartMeasurement() function is called
+   * @param timestamp Relative time in seconds.
+   * @param record_buffer The record buffer to update.
+   */
   void SetTimestamp(double timestamp, std::vector<uint8_t> &record_buffer) const;
 
   /** \brief Sets the size of data in bits.
@@ -319,10 +327,10 @@ class IChannel : public IBlock  {
    * measurement is initialized.
    * @param bits Number of bits.
    */
-  virtual void BitCount(size_t bits) = 0;
+  virtual void BitCount(uint32_t bits) = 0;
 
   /** \brief Returns the data size in number of bits */
-  [[nodiscard]] virtual size_t BitCount()const = 0;
+  [[nodiscard]] virtual uint32_t BitCount() const = 0;
 
   /** \brief Sets the offset to data in bits.
    *
@@ -332,10 +340,10 @@ class IChannel : public IBlock  {
    * measurement is initialized.
    * @param bits Offset to data.
    */
-  virtual void BitOffset(size_t bits) = 0;
+  virtual void BitOffset(uint16_t bits) = 0;
 
   /** \brief Returns offset to data (0..7). */
-  [[nodiscard]] virtual size_t BitOffset() const = 0;
+  [[nodiscard]] virtual uint16_t BitOffset() const = 0;
 
   /** \brief Sets the byte offset in record to to data.
    *
@@ -345,10 +353,10 @@ class IChannel : public IBlock  {
    * measurement is initialized.
    * @param bytes Offset to data.
    */
-  virtual void ByteOffset(size_t bytes) = 0;
+  virtual void ByteOffset(uint32_t bytes) = 0;
 
   /** \brief Returns the byte offset to data in the record. */
-  [[nodiscard]] virtual size_t ByteOffset() const = 0;
+  [[nodiscard]] virtual uint32_t ByteOffset() const = 0;
  protected:
 
   /** \brief Support function that copies a record to a data block. */
@@ -401,7 +409,8 @@ class IChannel : public IBlock  {
   virtual void SetByteArray(const std::vector<uint8_t> &value, bool valid);
 
  private:
-  mutable uint64_t cg_record_id_ = 0; ///< Used to fix the VLSD CG block.
+
+  mutable uint64_t vlsd_record_id_ = 0; ///< Used to fix the VLSD CG block.
 };
 
 template <typename T>

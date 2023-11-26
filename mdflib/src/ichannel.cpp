@@ -389,7 +389,7 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer,
 bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
                                  std::vector<uint8_t> &dest) const {
 
-  if (Type() == ChannelType::VariableLength && CgRecordId() > 0) {
+  if (Type() == ChannelType::VariableLength && VlsdRecordId() > 0) {
     dest = record_buffer;
   } else {
     if (dest.size() != DataBytes()) {
@@ -920,9 +920,9 @@ std::optional<std::pair<double, double>> IChannel::ExtLimit() const {
   return {};
 }
 IMetaData *IChannel::CreateMetaData() { return nullptr; }
-const IMetaData *IChannel::MetaData() const { return nullptr; }
+IMetaData *IChannel::MetaData() const { return nullptr; }
 
-const ISourceInformation *IChannel::SourceInformation() const {
+ISourceInformation *IChannel::SourceInformation() const {
   // Only supported by MDF4
   return nullptr;
 }

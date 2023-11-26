@@ -303,7 +303,7 @@ IMetaData* Hd4Block::CreateMetaData() {
   return MdfBlock::CreateMetaData();
 }
 
-const IMetaData* Hd4Block::MetaData() const {
+IMetaData* Hd4Block::MetaData() const {
   return MdfBlock::MetaData();
 }
 

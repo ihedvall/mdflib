@@ -99,8 +99,9 @@ class IChannelGroup : public IBlock {
    * Note that the function search for a name that includes the search name.
    * Example if the search name is '.DataLength', the signal with the name
    * 'CAN_DataFrame.DataLength' will be returned
-   * the name instead of the full name*/
+   * the name instead of the full name */
   [[nodiscard]] virtual IChannel* GetChannel(const std::string_view& name);
+
 
   /** \brief Returns an external reference channel. */
   [[nodiscard]] virtual const IChannel* GetXChannel(
@@ -109,7 +110,7 @@ class IChannelGroup : public IBlock {
   /** \brief Create a source information (SI) block. */
   [[nodiscard]] virtual ISourceInformation* CreateSourceInformation();
 
-  [[nodiscard]] virtual const ISourceInformation* SourceInformation()
+  [[nodiscard]] virtual ISourceInformation* SourceInformation()
       const; ///< Returns the source information (SI) block if it exist. */
 
   /** \brief Support function that creates a sample record. */
@@ -123,7 +124,7 @@ class IChannelGroup : public IBlock {
   [[nodiscard]] virtual IMetaData* CreateMetaData();
 
   /** \brief Returns the meta-data (MD) block if it exist. */
-  [[nodiscard]] virtual const IMetaData* MetaData() const;
+  [[nodiscard]] virtual IMetaData* MetaData() const;
  protected:
   mutable std::vector<uint8_t>
       sample_buffer_;  ///< Temporary record when saving samples.

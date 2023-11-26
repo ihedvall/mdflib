@@ -172,7 +172,7 @@ class IHeader : public IBlock {
    * Returns meta data as a text string typically as an XML snippets.
    * @return Returns meta data or a null pointer if no MD block.
    */
-  [[nodiscard]] virtual const IMetaData* MetaData() const;
+  [[nodiscard]] virtual IMetaData* MetaData() const;
 
   /** \brief Create a new attachment block.
    *

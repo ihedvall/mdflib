@@ -10,7 +10,7 @@
 namespace mdf {
 IChannelConversion *IChannelConversion::CreateInverse() { return nullptr; }
 
-const IChannelConversion *IChannelConversion::Inverse() const {
+IChannelConversion *IChannelConversion::Inverse() const {
   return nullptr;
 }
 
@@ -176,8 +176,8 @@ bool IChannelConversion::ConvertValueToValueInterpolate(
   }
 
   for (uint16_t n = 0; n < nof_values_; ++n) {
-    const size_t key_index = n * 2;
-    const size_t value_index = key_index + 1;
+    const uint32_t key_index = n * 2;
+    const uint32_t value_index = key_index + 1;
     if (value_index >= value_list_.size()) {
       break;
     }
@@ -216,8 +216,8 @@ bool IChannelConversion::ConvertValueToValue(double channel_value,
   }
 
   for (uint16_t n = 0; n < nof_values_; ++n) {
-    const size_t key_index = n * 2;
-    const size_t value_index = key_index + 1;
+    const uint32_t key_index = n * 2;
+    const uint32_t value_index = key_index + 1;
     if (value_index >= value_list_.size()) {
       break;
     }
@@ -256,9 +256,9 @@ bool IChannelConversion::ConvertValueRangeToValue(double channel_value,
   }
 
   for (uint16_t n = 0; n < nof_values_; ++n) {
-    size_t key_min_index = n * 2;
-    size_t key_max_index = key_min_index + 1;
-    size_t value_index = key_min_index + 2;
+    const uint32_t key_min_index = n * 2;
+    const uint32_t key_max_index = key_min_index + 1;
+    const uint32_t value_index = key_min_index + 2;
     if (value_index >= value_list_.size()) {
       break;
     }
@@ -301,14 +301,14 @@ bool IChannelConversion::ConvertTextToTranslation(
   return false;
 }
 
-void IChannelConversion::Parameter(size_t index, double parameter) {
+void IChannelConversion::Parameter(uint32_t index, double parameter) {
   while (index >= value_list_.size()) {
     value_list_.emplace_back(0.0);
   }
   value_list_[index] = parameter;
 }
 
-double IChannelConversion::Parameter(size_t index) const {
+double IChannelConversion::Parameter(uint32_t index) const {
   double value = 0.0;
   if (index < value_list_.size() ) {
     const auto& val = value_list_[index];
@@ -321,7 +321,7 @@ double IChannelConversion::Parameter(size_t index) const {
   return value;
 }
 
-uint64_t IChannelConversion::ParameterUint(size_t index) const {
+uint64_t IChannelConversion::ParameterUint(uint32_t index) const {
   uint64_t value = 0;
   if (index < value_list_.size() ) {
     const auto& val = value_list_[index];
@@ -334,7 +334,7 @@ uint64_t IChannelConversion::ParameterUint(size_t index) const {
   return value;
 }
 
-void IChannelConversion::Parameter(size_t index, uint64_t parameter) {
+void IChannelConversion::Parameter(uint32_t index, uint64_t parameter) {
   switch (Type()) {
     case ConversionType::BitfieldToText:
       break;
@@ -359,7 +359,7 @@ std::string IChannelConversion::Description() const { return {}; }
 
 void IChannelConversion::Decimals(uint8_t decimals) {}
 IMetaData *IChannelConversion::CreateMetaData() { return nullptr; }
-const IMetaData *IChannelConversion::MetaData() const { return nullptr; }
+IMetaData *IChannelConversion::MetaData() const { return nullptr; }
 
 void IChannelConversion::Formula(const std::string &formula) {
   formula_ = formula;

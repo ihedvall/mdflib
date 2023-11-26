@@ -31,7 +31,7 @@ class At4Block : public MdfBlock, public IAttachment {
     return MdfBlock::CreateMetaData();
   };
 
-  [[nodiscard]] const IMetaData* MetaData() const override {
+  [[nodiscard]] IMetaData* MetaData() const override {
     return MdfBlock::MetaData();
   };
 

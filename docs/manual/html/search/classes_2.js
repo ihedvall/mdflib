@@ -1,10 +1,18 @@
 var searchData=
 [
-  ['mdffactory_0',['MdfFactory',['../classmdf_1_1_mdf_factory.html',1,'mdf']]],
-  ['mdffile_1',['MdfFile',['../classmdf_1_1_mdf_file.html',1,'mdf']]],
-  ['mdfhelper_2',['MdfHelper',['../classmdf_1_1_mdf_helper.html',1,'mdf']]],
-  ['mdflocation_3',['MdfLocation',['../struct_mdf_location.html',1,'']]],
-  ['mdflogstream_4',['MdfLogStream',['../classmdf_1_1_mdf_log_stream.html',1,'mdf']]],
-  ['mdfreader_5',['MdfReader',['../classmdf_1_1_mdf_reader.html',1,'mdf']]],
-  ['mdfwriter_6',['MdfWriter',['../classmdf_1_1_mdf_writer.html',1,'mdf']]]
+  ['iattachment_0',['IAttachment',['../classmdf_1_1_i_attachment.html',1,'mdf']]],
+  ['iblock_1',['IBlock',['../classmdf_1_1_i_block.html',1,'mdf']]],
+  ['ichannel_2',['IChannel',['../classmdf_1_1_i_channel.html',1,'mdf']]],
+  ['ichannelarray_3',['IChannelArray',['../classmdf_1_1_i_channel_array.html',1,'mdf']]],
+  ['ichannelconversion_4',['IChannelConversion',['../classmdf_1_1_i_channel_conversion.html',1,'mdf']]],
+  ['ichannelgroup_5',['IChannelGroup',['../classmdf_1_1_i_channel_group.html',1,'mdf']]],
+  ['ichannelhierarchy_6',['IChannelHierarchy',['../classmdf_1_1_i_channel_hierarchy.html',1,'mdf']]],
+  ['ichannelobserver_7',['IChannelObserver',['../classmdf_1_1_i_channel_observer.html',1,'mdf']]],
+  ['idatagroup_8',['IDataGroup',['../classmdf_1_1_i_data_group.html',1,'mdf']]],
+  ['ievent_9',['IEvent',['../classmdf_1_1_i_event.html',1,'mdf']]],
+  ['ifilehistory_10',['IFileHistory',['../classmdf_1_1_i_file_history.html',1,'mdf']]],
+  ['iheader_11',['IHeader',['../classmdf_1_1_i_header.html',1,'mdf']]],
+  ['imetadata_12',['IMetaData',['../classmdf_1_1_i_meta_data.html',1,'mdf']]],
+  ['isampleobserver_13',['ISampleObserver',['../classmdf_1_1_i_sample_observer.html',1,'mdf']]],
+  ['isourceinformation_14',['ISourceInformation',['../classmdf_1_1_i_source_information.html',1,'mdf']]]
 ];

@@ -27,11 +27,13 @@ class Mdf4Writer : public MdfWriter {
   void SetDataPosition(std::FILE* file) override;
   bool WriteSignalData(std::FILE* file) override;
  private:
-  time_t save_timer_ = 0;
   uint64_t offset_ = 0;
+  /** \brief Calculates number of DZ blocks in the sample queue */
   [[nodiscard]] size_t CalculateNofDzBlocks();
   void SaveQueueCompressed(std::unique_lock<std::mutex>& lock);
-  void CleanQueueCompressed(std::unique_lock<std::mutex>& lock);
+
+  /** \brief Save one DZ block from the sample queue. */
+  void CleanQueueCompressed(std::unique_lock<std::mutex>& lock, bool finalize);
 };
 
 }  // namespace mdf::detail

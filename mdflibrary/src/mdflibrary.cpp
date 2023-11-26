@@ -4,6 +4,8 @@
  */
 
 #include <string>
+#include <locale>
+
 #include <mdf/mdffactory.h>
 #include <mdf/mdfreader.h>
 #include <msclr/marshal_cppstd.h>
@@ -111,20 +113,23 @@ array<MdfChannelObserver^>^ MdfLibrary::CreateChannelObserverForChannelGroup(
 }
 
 String^ MdfLibrary::Utf8Conversion(const std::string& utf8_string) {
-  array<byte>^ c_array = gcnew array<byte>(utf8_string.length());
+  array<byte>^ c_array =
+    gcnew array<byte>(static_cast<int>(utf8_string.length()));
   for (int i = 0; i < utf8_string.length(); i++) c_array[i] = utf8_string[i];
 
   System::Text::Encoding^ u8enc = System::Text::Encoding::UTF8;
   return u8enc->GetString(c_array);
 }
 
-std::string MdfLibrary::Utf8Conversion(String^ string) {
-  array<byte>^ c_array = System::Text::Encoding::UTF8->GetBytes(string);
+std::string MdfLibrary::Utf8Conversion(String^ text) {
+
+  array<byte>^ c_array = System::Text::Encoding::UTF8->GetBytes(text);
 
   std::string utf8_string;
   utf8_string.resize(c_array->Length);
   for (int i = 0; i < c_array->Length; i++) utf8_string[i] = c_array[i];
   return utf8_string;
+ 
 }
 
 void MdfLibrary::FireLogEvent(MdfLogSeverity severity, String^ function,

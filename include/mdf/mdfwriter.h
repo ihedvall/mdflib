@@ -13,7 +13,9 @@
 #include <map>
 
 #include "mdf/mdffile.h"
-#include "samplerecord.h"
+#include "mdf/samplerecord.h"
+#include "mdf/canmessage.h"
+
 /** \file mdfwriter.h
  * \brief Interface against an MDF writer object.
  */
@@ -30,7 +32,7 @@ enum class MdfBusType : int {
   FlexRay,  ///< FlexRay bus
   MOST,     ///< MOST bus
   Ethernet, ///< Ethernet bus
-  UNKNOWN
+  UNKNOWN   ///< Unknown bus type (Default)
 };
 
 /** \brief Enumerate that defines how the raw data is stored. By default
@@ -156,7 +158,7 @@ class MdfWriter {
    * storage types as this function uses these settings.
    */
   bool CreateBusLogConfiguration();
-
+  
   /** \brief Create a new data group (DG) block. */
   [[nodiscard]] IDataGroup* CreateDataGroup();
   /** \brief Create a new channel group (CG) block. */
@@ -170,8 +172,36 @@ class MdfWriter {
    * file.
    */
   virtual bool InitMeasurement();
-  /** \brief Saves a sample record for a channel group. */
+
+  /** \brief Saves a sample record for a channel group.
+   *
+   * Call this function after all channel values have been updated with
+   * the latest value. The function creates the a record byte buffer and
+   * puts the buffer onto an internal sample buffer.
+   *
+   * The time shall be absolute time (nano-seconds since 1970-01-01). Note
+   * that the function or actually the internal queue, assume that the
+   * samples are added in chronological order. The time will be converted
+   * to a relative time before it is stored onto the disc. The will be relative
+   * to the start time, see StartMeasurement() function.
+   */
   void SaveSample(IChannelGroup& group, uint64_t time);
+
+  /** \brief Saves a CAN message into a bus logger channel group.
+   *
+   * This function replace the normal SaveSample() function. It shall be used
+   * when logging CAN/CAN-FD messages into a standard ASAM bus logger
+   * configuration.
+   *
+   * As before the function creates a record byte array and puts it onto an
+   * internal sample buffer. The time shall be absolute time (ns since 1970).
+   * @param group  Reference to the channel group (CG).
+   * @param time   Absolute time nano-seconds since 1970.
+   * @param msg    The CAN message to store.
+   */
+  void SaveCanMessage(IChannelGroup& group, uint64_t time,
+                      const CanMessage& msg);
+
   /** \brief Starts the measurement. */
   virtual void StartMeasurement(uint64_t start_time);
   /** \brief Stops the measurement. */
@@ -182,7 +212,11 @@ class MdfWriter {
 
   /** \brief Only used when doing bus logging. It defines the default
    * channel and channel group names when doing bus logging.
-   * @param type Type of bus.
+   *
+   * When using the MDF writer as a bus logger, the naming of channel groups
+   * and channels are defined in an ASAM standard. The naming is depending on
+   * the basic low level protocol.
+   * @param type Type of basic protocol on the bus.
    */
   void BusType(MdfBusType type) { bus_type_ = type; }
 
@@ -221,8 +255,18 @@ class MdfWriter {
    */
   [[nodiscard]] MdfStorageType StorageType() const { return storage_type_; }
 
-  void MaxLength(size_t max_length) {max_length_ = max_length;};
-  [[nodiscard]] size_t MaxLength() const { return max_length_; }
+  /** \brief Sets max number of payload data bytes.
+   *
+   * Number of payload data bytes is default set to  8 bytes. Standard CAN
+   * may have max 8 byte of data while CAN FD can have up to 64 bytes data
+   * bytes. If you should store CAN FD data, you should set the max length to
+   * 64 bytes.
+   * @param max_length Maximum number of payload data bytes.
+   */
+  void MaxLength(uint32_t max_length) {max_length_ = max_length;};
+
+  /** \brief Returns maximum number of payload data bytes. */
+  [[nodiscard]] uint32_t MaxLength() const { return max_length_; }
 
    /** \brief If set to true, the data block will be compressed. */
   void CompressData(bool compress) {compress_data_ = compress;}
@@ -279,7 +323,7 @@ class MdfWriter {
   bool compress_data_ = false; ///< True if the data shall be compressed.
   MdfBusType bus_type_ = MdfBusType::UNKNOWN;
   MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;
-  size_t max_length_ = 8; ///< Max data byte storage
+  uint32_t max_length_ = 8; ///< Max data byte storage
   std::map<uint64_t, const IChannel*> master_channels_; ///< List of master channels
   void RecalculateTimeMaster();
   void CreateCanConfig(IDataGroup& dg_block);
@@ -318,7 +362,7 @@ class MdfWriter {
   * \endverbatim
   * @param parent The The CAN Data Frame channel object.
    */
-  void CreateCanRemoteFrameChannel(IChannelGroup& group);
+  void CreateCanRemoteFrameChannel(IChannelGroup& group) const;
 
   /** \brief Create the composition channels for an error frame
   *

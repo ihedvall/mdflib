@@ -1,9 +1,10 @@
+using System;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace mdflibrary_test;
-
 using MdfLibrary;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+
 
 [TestClass]
 public class MdfLibraryTest
@@ -14,16 +15,38 @@ public class MdfLibraryTest
     private const string InvalidFile = @"testi.mf4";
 
     private const string TestFile4 = @"中文.mf4";
-
-    [TestInitialize]
-    public void TestLog()
-    {
+    private const string TestFile5 = @"test5.mf4";
+    
+    [ClassInitialize]
+    public static void ClassInit(TestContext testContext) 
+    {    
+        Console.WriteLine("Unit tests started.");
         MdfLibrary.Instance.LogEvent += (MdfLogSeverity severity, string function, string message) =>
         {
+
             Console.WriteLine("{0} {1} {2}", severity, function, message);
         };
     }
 
+
+    [ClassCleanup]
+    public static void ClassCleanup()
+    {
+        Console.WriteLine("Unit tests exited.");
+    }
+
+    [TestInitialize]
+    public  void TestInit()
+    {            
+    
+    }
+ 
+    [TestCleanup]
+    public  void TestExit()
+    {
+
+    }
+    
     [TestMethod]
     public void TestStatic()
     {
@@ -431,73 +454,123 @@ public class MdfLibraryTest
     }
 
     [TestMethod]
-    public void TestCanMessage()
-    {
-        var reader = new MdfReader(TestFile3);
-        Assert.IsTrue(reader.ReadEverythingButData());
-        reader.Close();
-
-        var file = reader.File;
-        var header = file.Header;
-        var datagroup = header.DataGroups[0];
-        var group = datagroup.ChannelGroups[0];
-        List<MdfChannelObserver> list = new List<MdfChannelObserver>();
-
-        var time = MdfLibrary.CreateChannelObserverByChannelName(datagroup,
-            "Timestamp");
-        Assert.IsNotNull(time);
-        var ident = MdfLibrary.CreateChannelObserverByChannelName(datagroup,
-            "CAN_DataFrame.ID");
-        Assert.IsNotNull(ident);
-        var data = MdfLibrary.CreateChannelObserverByChannelName(datagroup,
-            "CAN_DataFrame.DataBytes");
-        Assert.IsNotNull(data);
-
-        list.Add(time);
-        list.Add(ident);
-        list.Add(data);
-
-        reader.Open();
-        reader.ReadData(datagroup);
-        reader.Close();
-
-        double time_value = 0;
-        bool time_valid = false;
-
-        ulong ident_value = 0;
-        bool ident_valid = false;
-
-        byte[] data_value = new byte[8];
-        bool data_valid = false;
-
-        string data_string = "";
-
-        for (ulong sample = 0; sample < 10; ++sample)
+    public void TestBusLogging()
+    {           
+        const string testFile = "can_bus_logger.mf4";
+        if (File.Exists(testFile))
         {
-            time_valid = time.GetEngValueAsFloat(sample, ref time_value);
-            ident_valid = ident.GetEngValueAsUnsigned(sample, ref ident_value);
-            data_valid = data.GetEngValueAsArray(sample, ref data_value);
-            data.GetEngValueAsString(sample, ref data_string);
-            Console.WriteLine("Valid: {0} {1} {2} {3}", sample, time_valid, ident_valid, data_valid);
-            Console.WriteLine("Sample: {0} {1} {2} {3}", sample, time_value, ident_value, data_string);
-            Console.Write("Sample: {0} ", sample);
-            foreach (var val in data_value)
+            File.Delete(testFile);
+        }
+
+        {
+            var writer = new MdfWriter(MdfWriterType.MdfBusLogger);
+            Assert.IsNotNull(writer);
+            Assert.IsTrue(writer.Init(testFile));
+            writer.BusType = MdfBusType.CAN;
+            writer.StorageType = MdfStorageType.VlsdStorage;
+            writer.MaxLength = 8;
+            
+            var header = writer.Header;
+            header.Author = "Caller";
+            header.Department = "Home Alone";
+            header.Description = "Testing i";
+            header.Project = "Mdf3WriteHD";
+            header.StartTime = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
+            header.Subject = "PXY";
+
+            var history = header.CreateFileHistory(); 
+            history.Time = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
+            history.Description = "Initial stuff";
+            history.ToolName = "Unit Test";
+            history.ToolVendor = "ACME";
+            history.ToolVersion = "2.3";
+            history.UserName = "Ducky";
+
+            Assert.IsTrue(writer.CreateBusLogConfiguration());
+            var lastDg = header.LastDataGroup;
+            Assert.IsNotNull(lastDg);
+
+            var dataGroup = lastDg.GetChannelGroup("CAN_DataFrame");
+            Assert.IsNotNull(dataGroup);
+         
+            Assert.IsTrue(writer.InitMeasurement());
+            var timestamp = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
+            writer.StartMeasurement(timestamp);
+            Console.WriteLine("Start Time: {0}/{1} ", writer.StartTime, timestamp);
+            Assert.AreEqual(writer.StartTime, timestamp);
+
+            var message = new CanMessage();
+            message.MessageId = 12;
+
+            message.DataBytes = new byte[] {0x01,0x02};
+            for (var sample = 0; sample < 100; ++sample)
             {
-                Console.Write("{0:X2} ", val);
+                writer.SaveCanMessage(dataGroup, timestamp, message);
+                timestamp += 10000000;
             }
-            Console.WriteLine("");
+            writer.StopMeasurement(timestamp);
+            Assert.AreEqual(writer.StopTime, timestamp);
+            Assert.IsTrue(writer.FinalizeMeasurement());
+        }
+        {
+            var reader = new MdfReader(testFile);
+            Assert.IsTrue(reader.ReadEverythingButData());
+            reader.Close();
+
+            var file = reader.File;
+            var header = file.Header;
+            var datagroup = header.DataGroups[0];
+
+            var time = MdfLibrary.CreateChannelObserverByChannelName(datagroup,
+                "t");
+            Assert.IsNotNull(time);
+            var ident = MdfLibrary.CreateChannelObserverByChannelName(datagroup,
+                "CAN_DataFrame.ID");
+            Assert.IsNotNull(ident);
+            var data = MdfLibrary.CreateChannelObserverByChannelName(datagroup,
+                "CAN_DataFrame.DataBytes");
+            Assert.IsNotNull(data);
+
+            reader.Open();
+            Assert.IsTrue(reader.ReadData(datagroup));
+            reader.Close();
+
+
+
+            for (ulong sample = 0; sample < time.NofSamples; ++sample)
+            {               
+                double timeValue = 0;
+                var timeValid = time.GetEngValueAsFloat(sample, ref timeValue); 
+                
+                ulong identValue = 0;
+                var identValid = ident.GetEngValueAsUnsigned(sample, ref identValue);
+                
+                var dataValue = Array.Empty<byte>();
+                var dataValid = data.GetEngValueAsArray(sample, ref dataValue);            
+                var dataString = "";
+                data.GetEngValueAsString(sample, ref dataString);
+                Console.WriteLine("Valid: {0} {1} {2} {3}", sample, timeValid, identValid, dataValid);
+                Console.WriteLine("Sample: {0} {1} {2} {3}", sample, timeValue, identValue, dataString);
+                Console.Write("Sample: {0} ", sample);
+                foreach (var val in dataValue)
+                {
+                    Console.Write("{0:X2} ", val);
+                }
+
+                Console.WriteLine("");
+            }
         }
     }
 
     [TestMethod]
     public void TestWriter()
     {
-        if(File.Exists(TestFile4))
+        if(File.Exists(TestFile5))
         {
-            File.Delete(TestFile4);
+            File.Delete(TestFile5);
         }
         var Writer = new MdfWriter(MdfWriterType.Mdf4Basic);
-        Writer.Init(TestFile4);
+        Writer.Init(TestFile5);
         var Header = Writer.Header;
         Header.Author = "Caller";
         Header.Department = "Home Alone";

@@ -496,9 +496,9 @@ IMetaData *MdfBlock::CreateMetaData() {
   return dynamic_cast<IMetaData *>(md_comment_.get());
 }
 
-const IMetaData *MdfBlock::MetaData() const {
+IMetaData *MdfBlock::MetaData() const {
   return !md_comment_ ? nullptr
-                      : dynamic_cast<const IMetaData *>(md_comment_.get());
+                      : dynamic_cast<IMetaData *>(md_comment_.get());
 }
 
 }  // namespace mdf::detail

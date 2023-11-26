@@ -1,9 +1,18 @@
 <map id="include/mdf/imetadata.h" name="include/mdf/imetadata.h">
-<area shape="rect" id="node1" title=" " alt="" coords="79,5,239,31"/>
-<area shape="rect" id="node2" title=" " alt="" coords="179,152,234,177"/>
-<area shape="rect" id="node3" title=" " alt="" coords="5,152,61,177"/>
-<area shape="rect" id="node4" href="$etag_8h.html" title="Simple wrapper around meta data items." alt="" coords="79,79,161,104"/>
-<area shape="rect" id="node6" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="237,79,329,104"/>
-<area shape="rect" id="node5" title=" " alt="" coords="85,152,155,177"/>
-<area shape="rect" id="node7" title=" " alt="" coords="259,152,320,177"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="79,5,239,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="179,152,234,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,30,201,138,196,140,160,32"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,61,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="134,33,100,52,69,80,52,109,41,139,36,137,47,107,65,77,97,48,131,28"/>
+<area shape="rect" id="Node000004" href="$etag_8h.html" title="Simple wrapper around meta data items." alt="" coords="79,79,161,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="155,32,135,68,130,65,150,30"/>
+<area shape="rect" id="Node000006" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="237,79,329,104"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="180,28,252,69,249,74,177,33"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="136,102,184,141,180,145,132,106"/>
+<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="108,106,60,145,56,141,104,102"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="85,152,155,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="123,104,123,138,117,138,117,104"/>
+<area shape="poly" id="edge9_Node000006_Node000002" title=" " alt="" coords="272,106,231,144,227,141,269,102"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="259,152,320,177"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="286,104,290,138,284,139,281,105"/>
 </map>

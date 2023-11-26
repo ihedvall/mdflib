@@ -63,7 +63,7 @@ class Ev4Block : public MdfBlock, public IEvent {
   [[nodiscard]] const std::vector<const IAttachment *> &Attachments()
       const override;
   IMetaData *CreateMetaData() override;
-  [[nodiscard]] const IMetaData *MetaData() const override;
+  [[nodiscard]] IMetaData *MetaData() const override;
 
  private:
   uint8_t type_ = static_cast<uint8_t>(EventType::Marker);

@@ -2,13 +2,8 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string>
-#include <msclr/marshal_cppstd.h>
-
 #include "MdfAttachment.h"
 #include "mdflibrary.h"
-
-using namespace msclr::interop;
 
 namespace MdfLibrary {
 
@@ -80,6 +75,16 @@ void MdfAttachment::FileType::set(String^ type) {
   if (attachment_ != nullptr) {
     attachment_->FileType(MdfLibrary::Utf8Conversion(type));
   }
+}
+
+MdfMetaData^ MdfAttachment::MetaData::get() {
+ return attachment_ != nullptr ?
+   gcnew MdfMetaData( attachment_->MetaData()) : nullptr;
+}
+
+MdfMetaData^ MdfAttachment::CreateMetaData() {
+  return gcnew MdfMetaData(attachment_ != nullptr ?
+    attachment_->CreateMetaData() : nullptr);
 }
 
 }

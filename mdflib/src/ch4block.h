@@ -32,7 +32,7 @@ class Ch4Block : public MdfBlock, public IChannelHierarchy {
   void Description(const std::string &desc) override;
 
   IMetaData *CreateMetaData() override;
-  [[nodiscard]] const IMetaData *MetaData() const override;
+  [[nodiscard]] IMetaData *MetaData() const override;
 
   void AddElementLink(const ElementLink &element) override;
   [[nodiscard]] const std::vector<ElementLink> &ElementLinks() const override;

@@ -34,7 +34,7 @@ class Si4Block : public MdfBlock, public ISourceInformation {
   [[nodiscard]] uint8_t Flags() const override;
 
   IMetaData *CreateMetaData() override;
-  [[nodiscard]] const IMetaData *MetaData() const override;
+  [[nodiscard]] IMetaData *MetaData() const override;
 
   void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;

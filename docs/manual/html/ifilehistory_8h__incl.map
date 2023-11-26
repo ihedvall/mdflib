@@ -1,10 +1,23 @@
 <map id="include/mdf/ifilehistory.h" name="include/mdf/ifilehistory.h">
-<area shape="rect" id="node1" title=" " alt="" coords="54,5,215,31"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,225,67,251"/>
-<area shape="rect" id="node3" title=" " alt="" coords="151,225,206,251"/>
-<area shape="rect" id="node4" href="$imetadata_8h.html" title=" " alt="" coords="199,79,313,104"/>
-<area shape="rect" id="node8" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="31,152,123,177"/>
-<area shape="rect" id="node5" title=" " alt="" coords="341,225,397,251"/>
-<area shape="rect" id="node6" href="$etag_8h.html" title="Simple wrapper around meta data items." alt="" coords="249,152,332,177"/>
-<area shape="rect" id="node7" title=" " alt="" coords="248,225,317,251"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="54,5,215,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,225,67,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,33,69,81,41,115,21,153,18,168,19,183,27,212,21,213,13,184,13,167,16,151,37,112,65,77,117,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="151,225,206,251"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="140,30,176,211,171,212,134,32"/>
+<area shape="rect" id="Node000004" href="$imetadata_8h.html" title=" " alt="" coords="199,79,313,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="156,28,226,69,223,74,153,33"/>
+<area shape="rect" id="Node000008" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="31,152,123,177"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="132,32,89,140,84,138,127,30"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="252,106,194,215,189,212,247,103"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="341,225,397,251"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="283,102,316,122,346,150,361,181,369,211,364,212,356,183,342,154,313,126,281,106"/>
+<area shape="rect" id="Node000006" href="$etag_8h.html" title="Simple wrapper around meta data items." alt="" coords="249,152,332,177"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="264,103,281,138,277,141,259,106"/>
+<area shape="poly" id="edge10_Node000004_Node000008" title=" " alt="" coords="228,107,120,149,118,144,226,102"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="274,180,210,220,207,215,271,175"/>
+<area shape="poly" id="edge9_Node000006_Node000005" title=" " alt="" coords="305,175,348,214,345,218,302,179"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="248,225,317,251"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="292,178,288,212,283,212,287,177"/>
+<area shape="poly" id="edge11_Node000008_Node000002" title=" " alt="" coords="73,179,52,215,47,212,68,176"/>
+<area shape="poly" id="edge12_Node000008_Node000003" title=" " alt="" coords="95,175,152,215,149,219,92,180"/>
 </map>

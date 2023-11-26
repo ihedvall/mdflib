@@ -8,10 +8,10 @@ namespace mdf::detail {
 
 namespace Hl4Flags {
 
-constexpr uint8_t EqualLength = 0x01;
-constexpr uint8_t TimeValues = 0x02;
-constexpr uint8_t AngleValues = 0x04;
-constexpr uint8_t DistanceValues = 0x08;
+constexpr uint16_t EqualLength = 0x01;
+constexpr uint16_t TimeValues = 0x02;
+constexpr uint16_t AngleValues = 0x04;
+constexpr uint16_t DistanceValues = 0x08;
 
 }
 
@@ -22,8 +22,8 @@ enum class Hl4ZipType : uint8_t {
 
 class Hl4Block : public DataListBlock {
  public:
-  void Flags(uint8_t flags) { flags_ = flags; }
-  [[nodiscard]] uint8_t Flags() const { return flags_; }
+  void Flags(uint16_t flags) { flags_ = flags; }
+  [[nodiscard]] uint16_t Flags() const { return flags_; }
 
   void Type(Hl4ZipType type) { type_ = static_cast<uint8_t>(type); }
   [[nodiscard]] Hl4ZipType Type() const {

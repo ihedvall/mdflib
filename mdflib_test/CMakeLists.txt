@@ -37,7 +37,7 @@ if(VCPKG)
 else()
   include("../script/googletest.cmake")
   target_include_directories(test_mdf PRIVATE ${GTEST_INCLUDE_DIRS})
-  target_link_libraries(test_mdf PRIVATE ${GTEST_BOTH_LIBRARIES})
+  target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main)
 endif()
 
 target_link_libraries(test_mdf PRIVATE mdf)

@@ -3,14 +3,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <string>
-#include <msclr/marshal_cppstd.h>
 #include <mdf/ichannel.h>
 
 #include "MdfChannelObserver.h"
 #include "mdflibrary.h"
 
-using namespace msclr::interop;
+
 using namespace System;
 
 namespace MdfLibrary {

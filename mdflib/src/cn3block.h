@@ -41,10 +41,10 @@ class Cn3Block : public DataListBlock, public IChannel {
   void DataType(ChannelDataType type) override;
   [[nodiscard]] ChannelDataType DataType() const override;
 
-  void DataBytes(size_t nof_bytes) override;
-  [[nodiscard]] size_t DataBytes() const override;
+  void DataBytes(uint64_t nof_bytes) override;
+  [[nodiscard]] uint64_t DataBytes() const override;
 
-  [[nodiscard]] const IChannelConversion* ChannelConversion() const override;
+  [[nodiscard]] IChannelConversion* ChannelConversion() const override;
   IChannelConversion *CreateChannelConversion() override;
 
   void SamplingRate(double sampling_rate) override;
@@ -61,7 +61,6 @@ class Cn3Block : public DataListBlock, public IChannel {
   size_t Write(std::FILE* file) override;
 
   void AddCc3(std::unique_ptr<Cc3Block>& cc3);
-  void ByteOffset(uint16_t byte_offset);
 
   [[nodiscard]] Cc3Block* Cc3() const { return cc_block_.get(); }
 
@@ -69,14 +68,15 @@ class Cn3Block : public DataListBlock, public IChannel {
 
   [[nodiscard]] Ce3Block* Ce3() const { return ce_block_.get(); }
 
-  void BitCount(size_t bits) override;
-  [[nodiscard]] size_t BitCount() const override;
+  void BitCount(uint32_t bits) override;
+  [[nodiscard]] uint32_t BitCount() const override;
 
-  void BitOffset(size_t bits) override;
-  [[nodiscard]] size_t BitOffset() const override;
+  void BitOffset(uint16_t bits) override;
+  [[nodiscard]] uint16_t BitOffset() const override;
 
-  void ByteOffset(size_t bytes) override;
-  [[nodiscard]] size_t ByteOffset() const override;
+  void ByteOffset(uint32_t bytes) override;
+  [[nodiscard]] uint32_t ByteOffset() const override;
+  
   IChannel* CreateChannelComposition() override;
   std::vector<IChannel*> ChannelCompositions() override;
 

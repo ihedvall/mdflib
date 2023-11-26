@@ -77,7 +77,12 @@ MdfWriter* MdfFactory::CreateMdfWriterEx(MdfWriterType type) {
       writer = new Mdf4Writer();
       break;
     }
-
+    
+    case MdfWriterType::MdfBusLogger: {
+      writer = new MdfBusLogger();
+      break;
+    }
+    
     default:
       break;
   }

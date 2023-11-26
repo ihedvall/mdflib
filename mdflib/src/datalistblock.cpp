@@ -118,6 +118,9 @@ void DataListBlock::ReadLinkList(std::FILE* file, size_t data_index,
       std::string block_type = ReadBlockType(file);
 
       SetFilePosition(file, link);
+      // Note that we only read in data block that this list own. If it points
+      // to a CG or CN block, this means that someone else is reading in this
+      // block.
       if (block_type == "DT") {
         auto dt = std::make_unique<Dt4Block>();
         dt->Init(*this);

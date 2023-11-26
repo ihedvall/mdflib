@@ -2,12 +2,8 @@
 * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string>
-#include <msclr/marshal_cppstd.h>
 #include "MdfHeader.h"
 #include "mdflibrary.h"
-
-using namespace msclr::interop;
 
 namespace MdfLibrary {
 
@@ -132,9 +128,9 @@ void MdfHeader::StartDistance::set(double distance) {
 }
 
 MdfMetaData^ MdfHeader::MetaData::get() {
-  const auto* temp = header_ != nullptr ? header_->MetaData() : nullptr;
+  auto* temp = header_ != nullptr ? header_->MetaData() : nullptr;
   return  temp != nullptr ?
-    gcnew MdfMetaData(const_cast<mdf::IMetaData*>(temp)) : nullptr; 
+    gcnew MdfMetaData(temp) : nullptr; 
 }
 
 array<MdfAttachment^>^ MdfHeader::Attachments::get() {
@@ -183,6 +179,11 @@ array<MdfDataGroup^>^ MdfHeader::DataGroups::get() {
     temp[static_cast<int>(index)] = gcnew MdfDataGroup(list[index]);
   }
   return temp;    
+}
+
+MdfDataGroup^ MdfHeader::LastDataGroup::get() {
+  auto* group = header_ != nullptr ? header_->LastDataGroup() : nullptr;
+  return group != nullptr ? gcnew MdfDataGroup(group) : nullptr;
 }
 
 MdfAttachment^ MdfHeader::CreateAttachment() {

@@ -21,10 +21,11 @@ public:
 
   property bool IsRead { bool get(); }
 
-  MdfMetaData ^ CreateMetaData();
-  MdfChannelGroup ^ CreateChannelGroup();
+  MdfMetaData^ CreateMetaData();
+  MdfChannelGroup^ CreateChannelGroup();
+  MdfChannelGroup^ GetChannelGroup(String^ groupName);
 
-  MdfChannelGroup^ FindParentChannelGroup(MdfChannel^ channel);
+  MdfChannelGroup^ FindParentChannelGroup(const MdfChannel^ channel);
   void ResetSample();
   
 private:

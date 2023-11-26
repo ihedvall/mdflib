@@ -43,7 +43,7 @@ void IDataGroup::ResetSample() const {
 
 IMetaData *IDataGroup::CreateMetaData() { return nullptr; }
 
-const IMetaData *IDataGroup::MetaData() const { return nullptr; }
+IMetaData *IDataGroup::MetaData() const { return nullptr; }
 
 void IDataGroup::Description(const std::string &) {}
 
@@ -66,7 +66,7 @@ IChannelGroup *IDataGroup::CreateChannelGroup(const std::string_view &name) {
   auto cg_list = ChannelGroups();
   auto itr = std::find_if(cg_list.begin(), cg_list.end(),
                           [&] (const auto* group) {
-    return group != nullptr && strcmp(group->Name().c_str(), name.data()) == 0;
+    return group != nullptr && group->Name() == name;
   });
   if (itr != cg_list.end()) {
     return *itr;
@@ -78,4 +78,21 @@ IChannelGroup *IDataGroup::CreateChannelGroup(const std::string_view &name) {
   return new_group;
 }
 
+IChannelGroup *IDataGroup::GetChannelGroup(const std::string_view &name) const {
+  auto cg_list = ChannelGroups();
+  auto itr = std::find_if(cg_list.begin(), cg_list.end(),
+      [&] (const auto* group) {
+    return group != nullptr && group->Name() == name;
+  });
+  return itr != cg_list.end() ? *itr : nullptr;
+}
+
+IChannelGroup *IDataGroup::GetChannelGroup(uint64_t record_id) const {
+  auto cg_list = ChannelGroups();
+  auto itr = std::find_if(cg_list.begin(), cg_list.end(),
+                [&] (const auto* group) {
+                  return group != nullptr && group->RecordId() == record_id;
+                });
+  return itr != cg_list.end() ? *itr : nullptr;
+}
 }  // namespace mdf

@@ -5,7 +5,7 @@
 
 #pragma once
 #include <mdf/iattachment.h>
-
+#include "MdfMetaData.h"
 using namespace System;
 
 namespace MdfLibrary {
@@ -20,6 +20,8 @@ public:
   property String^ Md5 {String^ get(); }
   property String^ FileName { String^ get(); void set(String^ name); }
   property String^ FileType { String^ get(); void set(String^ type); }
+  property MdfMetaData^ MetaData { MdfMetaData^ get();}
+  MdfMetaData^ CreateMetaData();
   
 private:
   MdfAttachment() {};

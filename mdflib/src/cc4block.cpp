@@ -136,7 +136,7 @@ IChannelConversion* Cc4Block::CreateInverse() {
   return cc_block_.get();
 }
 
-const IChannelConversion* Cc4Block::Inverse() const {
+IChannelConversion* Cc4Block::Inverse() const {
   return cc_block_ ? cc_block_.get() : nullptr;
 }
 
@@ -187,7 +187,7 @@ void Cc4Block::GetBlockProperty(BlockPropertyList& dest) const {
   dest.emplace_back("Nof Values", std::to_string(nof_values_));
   dest.emplace_back("Min Range", ToString(range_min_));
   dest.emplace_back("Max Range", ToString(range_max_));
-  for (size_t ii = 0; ii < value_list_.size(); ++ii) {
+  for (uint32_t ii = 0; ii < static_cast<uint32_t>(value_list_.size()); ++ii) {
     std::ostringstream label;
     label << "Value " << ii;
     dest.emplace_back(label.str(), ToString(Parameter(ii)) );
@@ -383,8 +383,8 @@ bool Cc4Block::ConvertValueRangeToText(double channel_value,
   // First iterate to find the ref
   size_t ref_index = ref_list_.size() - 1;  // Default CC/TX
   for (uint16_t n = 0; n < nof_values_; ++n) {
-    size_t key_min_index = n * 2;
-    size_t key_max_index = key_min_index + 1;
+    const uint32_t key_min_index = n * 2;
+    const uint32_t key_max_index = key_min_index + 1;
     if (key_max_index >= value_list_.size()) {
       break;
     }
@@ -431,7 +431,8 @@ bool Cc4Block::ConvertTextToValue(const std::string& channel_value,
   if (value_list_.empty()) {
     return false;
   }
-  size_t value_index = value_list_.size() - 1;  // Default value
+  // Initialize to default value index
+  auto value_index = static_cast<uint32_t>(value_list_.size() - 1);  
   for (uint16_t n = 0; n < nof_values_; ++n) {
     if (n >= ref_list_.size()) {
       break;

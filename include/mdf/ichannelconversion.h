@@ -141,7 +141,6 @@ constexpr uint16_t StatusString = 0x0004; ///< Status string flag.
  */
 class IChannelConversion : public IBlock {
 
-
  public:
   ~IChannelConversion() override = default;
 
@@ -167,7 +166,7 @@ class IChannelConversion : public IBlock {
   [[nodiscard]] virtual IChannelConversion* CreateInverse();
 
   /** \brief Returns the inverse conversion block. Seldom in use. */
-  [[nodiscard]] virtual const IChannelConversion* Inverse() const;
+  [[nodiscard]] virtual IChannelConversion* Inverse() const;
 
   virtual void Range(double min, double max); ///< Sets the range.
   [[nodiscard]] virtual std::optional<std::pair<double, double>> Range()
@@ -180,7 +179,7 @@ class IChannelConversion : public IBlock {
   [[nodiscard]] virtual IMetaData* CreateMetaData();
 
   /** \brief Returns the meta-data block. */
-  [[nodiscard]] virtual const IMetaData* MetaData() const;
+  [[nodiscard]] virtual IMetaData* MetaData() const;
 
   /** \brief Sets the formula string. */
   virtual void Formula( const std::string& formula);
@@ -192,27 +191,27 @@ class IChannelConversion : public IBlock {
    * @param index Parameter index to set.
    * @param parameter Value to set.
    */
-  void Parameter(size_t index, double parameter);
+  void Parameter(uint32_t index, double parameter);
 
   /** \brief Returns the parameter (double)
    *
    * @param index
    * @return Parameter floating point value
    */
-  [[nodiscard]] double Parameter(size_t index) const;
+  [[nodiscard]] double Parameter(uint32_t index) const;
 
   /** \brief Returns the parameter as a bit field (uint64_t)
    *
    * @param index
    * @return Parameter floating point value
    */
-  [[nodiscard]] uint64_t ParameterUint(size_t index) const;
+  [[nodiscard]] uint64_t ParameterUint(uint32_t index) const;
   /** \brief Sets an unsigned integer parameter value.
    *
    * @param index Parameter index to set.
    * @param parameter Value to set.
    */
-  void Parameter(size_t index, uint64_t parameter);
+  void Parameter(uint32_t index, uint64_t parameter);
 
   /** \brief Sets text reference (TX) block
    *

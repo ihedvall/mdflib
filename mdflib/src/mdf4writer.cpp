@@ -94,14 +94,11 @@ bool Mdf4Writer::PrepareForWriting() {
 
   // Size the sample buffers for each CG block
   auto cg_list = dg4->ChannelGroups();
-  for (auto* group : cg_list) {
-    if (group == nullptr) {
+  for (auto& cg4 : dg4->Cg4()) {
+    if (!cg4) {
       continue;
     }
-    auto* cg4 = dynamic_cast<Cg4Block*>(group);
-    if (cg4 == nullptr) {
-      continue;
-    }
+    // I need to update the CN to CG reference
     cg4->PrepareForWriting();
   }
 
@@ -156,51 +153,62 @@ void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
 
   TrimQueue();
 
+  const auto id_size = dg4->RecordIdSize();
+
   while (!sample_queue_.empty()) {
     // Write a sample last to file
-    const auto sample = sample_queue_.front();
+    auto sample = sample_queue_.front();
     sample_queue_.pop_front();
 
     if (stop_time_ > 0 && sample.timestamp > stop_time_) {
       break;
     }
+    auto* cg4 = dg4->FindCgRecordId(sample.record_id);
+    if (cg4 == nullptr) {
+      continue;
+    }
     lock.unlock();
 
-    const auto id_size = dg4->RecordIdSize();
-    switch (id_size) {
-      case 0:
-        // No Record ID to store
-        break;
 
-      case 1: {
-        const auto id = static_cast<uint8_t>(sample.record_id);
-        dg4->WriteNumber(file, id);
-        break;
+    auto* vlsd_group = sample.vlsd_data ?
+                       dg4->FindCgRecordId(sample.record_id + 1) : nullptr;
+    // The next group must have the VLSD flag set otherwise it's not a VLSD group.
+    if (vlsd_group != nullptr && (vlsd_group->Flags() & CgFlag::VlsdChannel) == 0) {
+      vlsd_group = nullptr;
+    }
+    auto* cn4 = sample.vlsd_data && vlsd_group == nullptr ?
+                  cg4->FindSdChannel() : nullptr;
+    // If the sample holds VLSD data, save this data first and then update
+    // the data index. VLSD data is stored in SD or CG. A dirty trick is that
+    // the VLSD CG must have the next record_id
+    if (vlsd_group != nullptr) {
+      // Store as a VLSD record
+      const auto vlsd_index = vlsd_group->WriteVlsdSample(file, id_size,
+                                                    sample.vlsd_buffer);
+      // Update the sample buffer with the new vlsd_index. Index is always
+      // last 8 bytes in sample buffer
+      const LittleBuffer buff(vlsd_index);
+      if (sample.record_buffer.size() >= 8) {
+        const auto index_pos =
+            static_cast<int>(sample.record_buffer.size() - 8);
+        std::copy(buff.cbegin(), buff.cend(),
+                  std::next(sample.record_buffer.begin(), index_pos) );
       }
-
-      case 2: {
-        const auto id = static_cast<uint16_t>(sample.record_id);
-        dg4->WriteNumber(file, id);
-        break;
+    } else if (cn4 != nullptr) {
+      // Store as SD data on VLSD channel
+      const auto vlsd_index = cn4->WriteSdSample(sample.vlsd_buffer);
+      // Update the sample buffer with the new vlsd_index. Index is always
+      // last 8 bytes in sample buffer
+      const LittleBuffer buff(vlsd_index);
+      if (sample.record_buffer.size() >= 8) {
+        const auto index_pos =
+            static_cast<int>(sample.record_buffer.size() - 8);
+        std::copy(buff.cbegin(), buff.cend(),
+                  std::next(sample.record_buffer.begin(), index_pos) );
       }
-
-      case 4: {
-        const auto id = static_cast<uint32_t>(sample.record_id);
-        dg4->WriteNumber(file, id);
-        break;
-      }
-
-      default: {
-        const auto id = static_cast<uint64_t>(sample.record_id);
-        dg4->WriteNumber(file, id);
-        break;
-      }
-
     }
 
-    fwrite(sample.record_buffer.data(), 1, sample.record_buffer.size(), file);
-
-    IncrementNofSamples(sample.record_id);
+    cg4->WriteSample(file, id_size, sample.record_buffer);
     lock.lock();
   }
 
@@ -216,7 +224,7 @@ void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
 
 void Mdf4Writer::CleanQueue(std::unique_lock<std::mutex>& lock) {
   if (CompressData()) {
-    CleanQueueCompressed(lock);
+    CleanQueueCompressed(lock, true);
     return;
   }
   SaveQueue(lock);
@@ -230,24 +238,11 @@ void Mdf4Writer::SaveQueueCompressed(std::unique_lock<std::mutex>& lock) {
     // Only save full 4MB DZ blocks
     return;
   }
-  constexpr time_t min10 = 10 * 60;
-  const time_t now = time(nullptr);
-  if (start_time_== 0) {
-    save_timer_ = 0;
-  } else if (save_timer_ == 0) {
-    save_timer_ = now + min10;
-  }
-
-  if (nof_dz < 5 && now < save_timer_) {
-    // If less than 5 * 4MB within 10 minutes, wait with saving to file
-    return;
-  }
-  // Save all blocks to file
-  save_timer_ = now + min10;
-  CleanQueueCompressed(lock);
+  CleanQueueCompressed(lock, false); // Saves one DZ block only
 }
 
-void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock) {
+void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
+                                      bool finalize) {
   // Save compressed data in last DG block by appending HL/DL and DZ/DT blocks
   constexpr size_t buffer_max = 4'000'000;
   if (sample_queue_.empty()) {
@@ -269,6 +264,7 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock) {
   if (dg4 == nullptr) {
     return;
   }
+
 
   if (dg4->DataBlockList().empty()) {
     auto& hl4_list = dg4->DataBlockList();
@@ -295,87 +291,119 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock) {
 
   SetLastPosition(file);
 
-  lock.lock();
-  TrimQueue();
-
   std::vector<uint8_t> buffer;
   buffer.reserve(4'000'000);
 
   // Create DL block
   auto dl4 = std::make_unique<Dl4Block>();
   dl4->Flags(0);
-
   size_t dz_count = 0;
   dl4->Offset(dz_count, offset_);
 
+  const auto id_size = dg4->RecordIdSize();
+
+  lock.lock();
+  TrimQueue();
+
   while (!sample_queue_.empty()) {
-    const auto sample = sample_queue_.front();
+    auto sample = sample_queue_.front();
     sample_queue_.pop_front();
 
     if (stop_time_ > 0 && sample.timestamp > stop_time_) {
       // No more data.
       break;
     }
-    const size_t max_index = sample.record_buffer.size()
+    lock.unlock(); // Need to unlock the sample queue while file operation
+
+    size_t max_index = sample.record_buffer.size()
                              + dg4->RecordIdSize()
                              + buffer.size();
+    if (sample.vlsd_data ) {
+      max_index += sample.vlsd_buffer.size() + 4 + id_size;
+    }
+
+    // Check if this DZ block is full (4MB). If break out.
     if (max_index >= buffer_max) {
+      // If the measurement should be finalized, we need to create a new
+      // DZ block and put the remaining samples there. If not we can break
+      // here and assume that the next cyclic call will handle the next DZ
+      // block.
+      if (finalize) {
+        // Purge the buffer to a DZ block and add it to the last DL block
+        auto dz4 = std::make_unique<Dz4Block>();
+        dz4->OrigBlockType("DT");
+        dz4->Type(Dz4ZipType::Deflate);
+        dz4->Data(buffer);
+        dl4->Offset(dz_count, offset_);
+        ++dz_count;
+        offset_ += buffer.size();
+        dl4->DataBlockList().push_back(std::move(dz4));
 
-      // Purge the buffer to a DZ block and add it to the last DL block
-      auto dz4 = std::make_unique<Dz4Block>();
-      dz4->OrigBlockType("DT");
-      dz4->Type(Dz4ZipType::Deflate);
-      dz4->Data(buffer);
-      dl4->Offset(dz_count, offset_);
-      ++dz_count;
-      offset_ += buffer.size();
-      dl4->DataBlockList().push_back(std::move(dz4));
 
-
-      buffer.clear();
-      buffer.reserve(buffer_max);
+        buffer.clear();
+        buffer.reserve(buffer_max);
+      } else {
+        lock.lock(); // Lock the sample queue when leaving the while loop.
+        break;
+      }
+    }
+    // The following handling is similar as with uncompressed data but instead
+    // of saving to file, we need to save it to a temporary buffer.
+    auto* cg4 = dg4->FindCgRecordId(sample.record_id);
+    if (cg4 == nullptr) {
+      // Should not happen but lost sample is
+      lock.lock();
+      continue;
     }
 
-    const auto id_size = dg4->RecordIdSize();
-    switch (id_size) {
-      case 0:
-        // No Record ID to store
-        break;
-
-      case 1: {
-        const auto id = static_cast<uint8_t>(sample.record_id);
-        LittleBuffer<uint8_t> temp(id);
-        buffer.insert(buffer.end(), temp.cbegin(), temp.cend());
-        break;
-      }
-
-      case 2: {
-        const auto id = static_cast<uint16_t>(sample.record_id);
-        LittleBuffer<uint16_t> temp(id);
-        buffer.insert(buffer.end(), temp.cbegin(), temp.cend());
-        break;
-      }
-
-      case 4: {
-        const auto id = static_cast<uint32_t>(sample.record_id);
-        LittleBuffer<uint32_t> temp(id);
-        buffer.insert(buffer.end(), temp.cbegin(), temp.cend());
-        break;
-      }
-
-      default: {
-        const auto id = static_cast<uint64_t>(sample.record_id);
-        LittleBuffer<uint64_t> temp(id);
-        buffer.insert(buffer.end(), temp.cbegin(), temp.cend());
-        break;
-      }
-
+    // If the sample have vlsd data, it could be stored in the next VLSD CG or
+    // in a SD block.
+    auto* vlsd_group = sample.vlsd_data ?
+                       dg4->FindCgRecordId(sample.record_id + 1) : nullptr;
+    // The next group must have the VLSD flag set otherwise it's not a VLSD group.
+    if (vlsd_group != nullptr &&
+        (vlsd_group->Flags() & CgFlag::VlsdChannel) == 0) {
+      vlsd_group = nullptr;
     }
-    buffer.insert(buffer.end(), sample.record_buffer.cbegin(),
-                  sample.record_buffer.cend());
-    IncrementNofSamples(sample.record_id);
+    // Needs a pointer to the channel in case of VLSD SD storage
+    auto* cn4 = sample.vlsd_data && vlsd_group == nullptr ?
+                        cg4->FindSdChannel() : nullptr;
+    // If the sample holds VLSD data, save this data first and then update
+    // the data index. VLSD data is stored in SD or CG. A dirty trick is that
+    // the VLSD CG must have the next record_id
+
+    if (vlsd_group != nullptr) {
+      // Store as a VLSD record
+      const auto vlsd_index = vlsd_group->WriteCompressedVlsdSample(buffer,
+                                                                    id_size,
+                                                          sample.vlsd_buffer);
+      // Update the sample buffer with the new vlsd_index. Index is always
+      // last 8 bytes in sample buffer
+      const LittleBuffer buff(vlsd_index);
+      if (sample.record_buffer.size() >= 8) {
+        const auto index_pos =
+            static_cast<int>(sample.record_buffer.size() - 8);
+        std::copy(buff.cbegin(), buff.cend(),
+                  std::next(sample.record_buffer.begin(), index_pos) );
+      }
+    } else if (cn4 != nullptr) {
+      // Store as SD data on VLSD channel
+      const auto vlsd_index = cn4->WriteSdSample(sample.vlsd_buffer);
+      // Update the sample buffer with the new vlsd_index. Index is always
+      // last 8 bytes in sample buffer
+      const LittleBuffer buff(vlsd_index);
+      if (sample.record_buffer.size() >= 8) {
+        const auto index_pos =
+            static_cast<int>(sample.record_buffer.size() - 8);
+        std::copy(buff.cbegin(), buff.cend(),
+                  std::next(sample.record_buffer.begin(), index_pos) );
+      }
+    }
+    cg4->WriteCompressedSample(buffer, id_size, sample.record_buffer);
+    lock.lock();
   }
 
+  lock.unlock();
 
   if (!buffer.empty()) {
     if (buffer.size() > 100) {
@@ -397,10 +425,11 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock) {
   }
   hl4->DataBlockList().push_back(std::move(dl4));
 
-  lock.unlock();
+
   dg4->Write(file); // Flush out data
   fclose(file);
   lock.lock();
+
   hl4->ClearData(); // Remove temp data
 }
 
@@ -436,6 +465,9 @@ void Mdf4Writer::SetDataPosition(std::FILE* file) {
 }
 
 size_t Mdf4Writer::CalculateNofDzBlocks() {
+  // The sample queue is locked but the queue is trimmed
+  // First make a list record ID -> record size
+
   const auto *header = Header();
   if (header == nullptr) {
     return 0;
@@ -451,15 +483,35 @@ size_t Mdf4Writer::CalculateNofDzBlocks() {
     return 0;
   }
 
-  uint64_t nof_bytes = 0;
+  bool vlsd = false;
+  const auto id_size = dg4->RecordIdSize();
+  std::map<uint64_t, size_t> id_size_list;
   const auto& cg4_list = dg4->Cg4();
   for (const auto& cg4 : cg4_list) {
-    if (!cg4 || cg4->NofSamples() == 0) {
+    if (!cg4) {
+      continue;
+    }
+    // Ignore any VLSD CG group. There size is calculated later.
+    if (cg4->Flags() & CgFlag::VlsdChannel) {
+      // Indicate if the samples extra bytes should be counted
+      vlsd = true;
+      id_size_list.emplace(cg4->RecordId(), 0);
       continue;
     }
     const auto& sample_buffer = cg4->SampleBuffer();
-    const uint64_t record_size  = dg4->RecordIdSize() + sample_buffer.size();
-    nof_bytes += cg4->NofSamples() * record_size;
+    const auto record_size = id_size + sample_buffer.size();
+    id_size_list.emplace(cg4->RecordId(), record_size);
+  }
+  uint64_t nof_bytes = 0; // Total
+  for(const auto& sample : sample_queue_) {
+    const auto itr = id_size_list.find(sample.record_id);
+    if (itr == id_size_list.cend()) {
+      continue;
+    }
+    nof_bytes += itr->second;
+    if (vlsd) {
+      nof_bytes += id_size + 4 + sample.vlsd_buffer.size();
+    }
   }
   return (nof_bytes / 4'000'000) + 1;
 }

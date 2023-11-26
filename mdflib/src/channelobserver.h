@@ -93,7 +93,7 @@ class ChannelObserver : public IChannelObserver {
 
         // This channel may reference a CG blocks another record id
       case ChannelType::VariableLength: {
-        if (record_id_ == record_id && channel_.CgRecordId() == 0) {
+        if (record_id_ == record_id && channel_.VlsdRecordId() == 0) {
           uint64_t index = 0;
           bool valid = channel_.GetUnsignedValue(record, index);
           if (sample < index_list_.size()) {
@@ -107,8 +107,8 @@ class ChannelObserver : public IChannelObserver {
           if (sample < value_list_.size()) {
             value_list_[sample] = value;
           }
-        } else if (channel_.CgRecordId() > 0 &&
-                   record_id == channel_.CgRecordId()) {
+        } else if (channel_.VlsdRecordId() > 0 &&
+                   record_id == channel_.VlsdRecordId()) {
           // Add the VLSD sample data to this channel
           T value{};
           const bool valid = channel_.GetChannelValue(record, value);

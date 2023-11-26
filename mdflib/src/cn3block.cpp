@@ -58,7 +58,7 @@ std::string Cn3Block::Name() const {
   return long_name_.empty() ? short_name_ : long_name_;
 }
 
-const IChannelConversion *Cn3Block::ChannelConversion() const {
+IChannelConversion *Cn3Block::ChannelConversion() const {
   return cc_block_.get();
 }
 
@@ -122,7 +122,7 @@ ChannelType Cn3Block::Type() const {
   return channel_type_ == 1 ? ChannelType::Master : ChannelType::FixedLength;
 }
 
-size_t Cn3Block::DataBytes() const {
+uint64_t Cn3Block::DataBytes() const {
   return (static_cast<size_t>(nof_bits_) / 8) + (nof_bits_ % 8 > 0 ? 1 : 0);
 }
 
@@ -320,21 +320,23 @@ size_t Cn3Block::Write(std::FILE *file) {
   return bytes;
 }
 
-void Cn3Block::BitCount(size_t bits ) { nof_bits_ = bits; }
-size_t Cn3Block::BitCount() const { return nof_bits_; }
-
-void Cn3Block::BitOffset(size_t bits ) { start_offset_ = bits; }
-size_t Cn3Block::BitOffset() const { return start_offset_ % 8; }
-
-void Cn3Block::ByteOffset(size_t bytes) {
-
+void Cn3Block::BitCount(uint32_t bits ) {
+  nof_bits_ = static_cast<uint16_t>(bits);
 }
 
-size_t Cn3Block::ByteOffset() const {
-  return (static_cast<size_t>(start_offset_) / 8) + byte_offset_;
+uint32_t Cn3Block::BitCount() const { return nof_bits_; }
+
+void Cn3Block::BitOffset(uint16_t bits ) {
+  start_offset_ = bits;
 }
 
-void Cn3Block::ByteOffset(uint16_t byte_offset) {
+uint16_t Cn3Block::BitOffset() const { return start_offset_ % 8; }
+
+uint32_t Cn3Block::ByteOffset() const {
+  return (static_cast<uint32_t>(start_offset_) / 8) + byte_offset_;
+}
+
+void Cn3Block::ByteOffset(uint32_t byte_offset) {
   if (byte_offset < 0x2000) {
     start_offset_ = static_cast<uint16_t>(byte_offset * 8);
     byte_offset_ = 0;
@@ -470,7 +472,7 @@ void Cn3Block::DataType(ChannelDataType type) {
   }
 }
 
-void Cn3Block::DataBytes(size_t nof_bytes) {
+void Cn3Block::DataBytes(uint64_t nof_bytes) {
   nof_bits_ = static_cast<uint16_t>(nof_bytes * 8);
   if (nof_bytes == 8 &&
       (signal_type_ == 2 || signal_type_ == 11 || signal_type_ == 15)) {

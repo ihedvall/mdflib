@@ -1,10 +1,21 @@
 <map id="include/mdf/mdfhelper.h" name="include/mdf/mdfhelper.h">
-<area shape="rect" id="node1" title="Support class for the MDF library." alt="" coords="144,5,303,31"/>
-<area shape="rect" id="node2" href="$ichannel_8h.html" title="The define an interface against a channel block (CN)." alt="" coords="148,152,299,177"/>
-<area shape="rect" id="node6" href="$ichannelobserver_8h.html" title="A channel observer is holds a list of channel samples for a channel." alt="" coords="267,225,465,251"/>
-<area shape="rect" id="node8" href="$ichannelconversion_8h.html" title="Defines a channel conversion (CC) block." alt="" coords="117,79,329,104"/>
-<area shape="rect" id="node3" href="$ichannelgroup_8h.html" title="Defines an interface against a channel group (CG) block." alt="" coords="5,225,188,251"/>
-<area shape="rect" id="node4" href="$ichannelhierarchy_8h.html" title="The channel hierarchy (CH) block defines channel dependencies." alt="" coords="5,372,209,397"/>
-<area shape="rect" id="node5" href="$idatagroup_8h.html" title="Interface to a data group (DG) block." alt="" coords="26,299,189,324"/>
-<area shape="rect" id="node7" href="$mdfreader_8h_source.html" title=" " alt="" coords="286,299,446,324"/>
+<area shape="rect" id="Node000001" title="Support class for the MDF library." alt="" coords="144,5,303,31"/>
+<area shape="rect" id="Node000002" href="$ichannel_8h.html" title="The define an interface against a channel block (CN)." alt="" coords="148,152,299,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,38,139,50,115,65,103,83,103,92,107,103,120,119,137,132,175,149,173,154,134,136,116,123,102,105,97,93,98,81,112,61,136,45,165,33"/>
+<area shape="rect" id="Node000006" href="$ichannelobserver_8h.html" title="A channel observer is holds a list of channel samples for a channel." alt="" coords="267,225,465,251"/>
+<area shape="poly" id="edge11_Node000001_Node000006" title=" " alt="" coords="283,33,316,51,344,77,363,116,371,158,372,197,370,225,365,225,367,197,366,159,358,118,340,80,313,55,280,38"/>
+<area shape="rect" id="Node000008" href="$ichannelconversion_8h.html" title="Defines a channel conversion (CC) block." alt="" coords="117,79,329,104"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="226,44,226,79,221,79,221,44"/>
+<area shape="rect" id="Node000003" href="$ichannelgroup_8h.html" title="Defines an interface against a channel group (CG) block." alt="" coords="5,225,188,251"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="192,186,119,227,116,223,190,182"/>
+<area shape="rect" id="Node000004" href="$ichannelhierarchy_8h.html" title="The channel hierarchy (CH) block defines channel dependencies." alt="" coords="5,372,209,397"/>
+<area shape="poly" id="edge6_Node000002_Node000004" title=" " alt="" coords="229,191,227,255,219,292,203,325,190,342,173,355,139,374,137,370,170,351,186,338,198,323,213,290,221,254,223,191"/>
+<area shape="poly" id="edge7_Node000002_Node000006" title=" " alt="" coords="260,181,344,223,341,227,257,186"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="60,259,39,272,22,288,13,305,16,323,28,338,42,351,76,370,73,374,39,355,24,342,12,325,8,304,18,285,36,268,57,255"/>
+<area shape="rect" id="Node000005" href="$idatagroup_8h.html" title="Interface to a data group (DG) block." alt="" coords="26,299,189,324"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="103,264,108,298,103,299,98,265"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="110,338,110,372,105,372,105,338"/>
+<area shape="rect" id="Node000007" href="$mdfreader_8h_source.html" title=" " alt="" coords="286,299,446,324"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="369,264,369,299,363,299,363,264"/>
+<area shape="poly" id="edge10_Node000008_Node000002" title=" " alt="" coords="226,118,226,152,221,152,221,118"/>
 </map>

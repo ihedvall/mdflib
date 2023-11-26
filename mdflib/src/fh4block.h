@@ -20,7 +20,7 @@ class Fh4Block : public MdfBlock, public IFileHistory {
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
   [[nodiscard]] IMetaData* CreateMetaData() override;
-  [[nodiscard]] const IMetaData* MetaData() const override;
+  [[nodiscard]] IMetaData* MetaData() const override;
   size_t Read(std::FILE* file) override;
   size_t Write(std::FILE* file) override;
 

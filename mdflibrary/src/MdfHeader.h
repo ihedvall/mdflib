@@ -38,6 +38,7 @@ public:
   property array<MdfFileHistory^>^ FileHistories { array<MdfFileHistory^>^ get(); }
   property array<MdfEvent^>^ Events { array<MdfEvent^>^ get(); }
   property array<MdfDataGroup^>^ DataGroups { array<MdfDataGroup^>^ get(); }
+  property MdfDataGroup^ LastDataGroup { MdfDataGroup^ get();} 
 
   MdfAttachment^ CreateAttachment();
   MdfFileHistory^ CreateFileHistory();

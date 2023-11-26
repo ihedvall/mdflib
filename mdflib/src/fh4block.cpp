@@ -56,7 +56,7 @@ IMetaData *Fh4Block::CreateMetaData() {
   return MdfBlock::CreateMetaData();
 }
 
-const IMetaData *Fh4Block::MetaData() const {
+IMetaData *Fh4Block::MetaData() const {
   return MdfBlock::MetaData();
 }
 

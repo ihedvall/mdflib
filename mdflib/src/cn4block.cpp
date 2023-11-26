@@ -234,16 +234,20 @@ void Cn4Block::Description(const std::string &description) {
 
 std::string Cn4Block::Description() const { return MdText(); }
 
-const IChannelConversion *Cn4Block::ChannelConversion() const {
+IChannelConversion *Cn4Block::ChannelConversion() const {
   return cc_block_.get();
 }
+
 ChannelDataType Cn4Block::DataType() const {
   return static_cast<ChannelDataType>(data_type_);
 }
+
 ChannelType Cn4Block::Type() const { return static_cast<ChannelType>(type_); }
-size_t Cn4Block::DataBytes() const {
+
+uint64_t Cn4Block::DataBytes() const {
   return (static_cast<size_t>(bit_count_) / 8) + (bit_count_ % 8 > 0 ? 1 : 0);
 }
+
 uint8_t Cn4Block::Decimals() const {
   auto max = static_cast<uint8_t>(
       DataBytes() == 4 ? std::numeric_limits<float>::max_digits10
@@ -521,21 +525,30 @@ void Cn4Block::ReadData(std::FILE *file) const {
   }
 }
 
-void Cn4Block::BitCount(size_t bits) {bit_count_ = bits;}
-size_t Cn4Block::BitCount() const { return bit_count_; }
+void Cn4Block::BitCount(uint32_t bits) {
+  bit_count_ = bits;
+}
 
-void Cn4Block::BitOffset(size_t bits) {bit_offset_ = bits;}
-size_t Cn4Block::BitOffset() const { return bit_offset_; }
+uint32_t Cn4Block::BitCount() const { return bit_count_; }
 
-void Cn4Block::ByteOffset(size_t bytes) {byte_offset_ = bytes; }
-size_t Cn4Block::ByteOffset() const { return byte_offset_; }
+void Cn4Block::BitOffset(uint16_t bits) {
+  bit_offset_ = static_cast<uint8_t>(bits);
+}
+
+uint16_t Cn4Block::BitOffset() const { return bit_offset_; }
+
+void Cn4Block::ByteOffset(uint32_t bytes) {
+  byte_offset_ = bytes;
+}
+
+uint32_t Cn4Block::ByteOffset() const { return byte_offset_; }
 
 bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
                             std::string &dest) const {
   auto offset = ByteOffset();
-  auto nof_bytes = BitCount() / 8;
+  size_t nof_bytes = BitCount() / 8;
 
-  if (Type() == ChannelType::VariableLength && CgRecordId() > 0) {
+  if (Type() == ChannelType::VariableLength && VlsdRecordId() > 0) {
     offset = 0;
     nof_bytes = record_buffer.size();
   }
@@ -543,7 +556,7 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
   std::vector<uint8_t> temp;
   bool valid = true;
   dest.clear();
-  if (Type() == ChannelType::VariableLength && CgRecordId() == 0) {
+  if (Type() == ChannelType::VariableLength && VlsdRecordId() == 0) {
     // Index into the local data buffer
     uint64_t index = 0;
     valid = GetUnsignedValue(record_buffer, index);
@@ -642,37 +655,42 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
 bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
                             std::vector<uint8_t> &dest) const {
   auto offset = ByteOffset();
-  auto nof_bytes = BitCount() / 8;
+  uint64_t nof_bytes = BitCount() / 8;
+  bool valid = true;
 
-  if (Type() == ChannelType::VariableLength && CgRecordId() > 0) {
+  if (Type() == ChannelType::VariableLength && VlsdRecordId() > 0) {
+    // If this is a VLSD channel and its data link points to a CG block, that
+    // CG block holds no signals. The VLSD CG block record are VLSD. If the data
+    // link pointed on an SD block, the that block holds the variable length
+    // data. The destination
     offset = 0;
     nof_bytes = record_buffer.size();
+  } else if (Type() == ChannelType::MaxLength && mlsd_channel_ != nullptr ) {
+    // Number of bytes is on another channel
+    valid = mlsd_channel_->GetUnsignedValue(record_buffer, nof_bytes);
   }
 
-  std::vector<uint8_t> temp;
-  bool valid = true;
-  dest.clear();
-
-  if (Type() == ChannelType::VariableLength && CgRecordId() == 0) {
-    // Index into the local data buffer
-    uint64_t index = 0;
+  if (Type() == ChannelType::VariableLength && VlsdRecordId() == 0) {
+    // Index into the local data buffer. Variable length record is stored
+    // in a SD block.
+    uint64_t index = 0;  // Actual offset into the data block.
     valid = GetUnsignedValue(record_buffer, index);
     if (index + 4 > data_list_.size()) {
       return false;
     }
     const LittleBuffer<uint32_t> length(data_list_, index);
-    temp.resize(length.value(), 0);
+    dest.resize(length.value(), 0);
     if (index + 4 + length.value() <= data_list_.size()) {
-      memcpy(temp.data(), data_list_.data() + index + 4, length.value());
+      memcpy(dest.data(), data_list_.data() + index + 4, length.value());
     } else {
       valid = false;
     }
     offset = 0;
   } else {
-    temp.resize(nof_bytes);
-    memcpy(temp.data(), record_buffer.data() + offset, nof_bytes);
+    dest.resize(nof_bytes);
+    memcpy(dest.data(), record_buffer.data() + offset, nof_bytes);
   }
-  dest = temp;
+
   return valid;
 }
 
@@ -772,8 +790,8 @@ void Cn4Block::DataType(ChannelDataType type) {
   }
 }
 
-void Cn4Block::DataBytes(size_t nof_bytes) {
-  bit_count_ = nof_bytes * 8;
+void Cn4Block::DataBytes(uint64_t nof_bytes) {
+  bit_count_ = static_cast<uint32_t>(nof_bytes * 8);
 }
 
 void Cn4Block::SamplingRate(double sampling_rate) {}
@@ -784,7 +802,13 @@ std::vector<uint8_t> &Cn4Block::SampleBuffer() const {
 }
 void Cn4Block::Init(const MdfBlock &id_block) {
   MdfBlock::Init(id_block);
-  cg_block_ = dynamic_cast<const Cg4Block *>(&id_block);
+  if (id_block.BlockType() == "CG") {
+    cg_block_ = dynamic_cast<const Cg4Block *>(&id_block);
+  } else if (id_block.BlockType() == "CN") {
+    auto* channel = dynamic_cast<const Cn4Block *>(&id_block);
+    // Handle composite channels
+    cg_block_ = channel != nullptr ? channel->cg_block_ : nullptr;
+  }
 }
 
 void Cn4Block::AddCc4(std::unique_ptr<Cc4Block> &cc4) {
@@ -835,7 +859,7 @@ std::optional<std::pair<double, double>> Cn4Block::ExtLimit() const {
              : IChannel::Limit();
 }
 
-const ISourceInformation *Cn4Block::SourceInformation() const {
+ISourceInformation *Cn4Block::SourceInformation() const {
   return si_block_.get();
 }
 
@@ -883,7 +907,7 @@ uint32_t Cn4Block::Flags() const { return flags_; }
 
 void Cn4Block::PrepareForWriting(size_t offset) {
   bit_offset_ = 0;
-  byte_offset_ = offset;
+  byte_offset_ = static_cast<uint32_t>(offset);
   data_list_.clear(); // Temporary storage of signal data (SD)
   data_map_.clear();
   // The bit count may be set by the user.
@@ -1034,9 +1058,12 @@ bool Cn4Block::GetValid(const std::vector<uint8_t> &record_buffer) const {
 size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
   size_t bytes = 0;
 
-  if (file == nullptr || Type() == ChannelType::MaxLength) {
+  if (file == nullptr || Type() == ChannelType::MaxLength ||
+      (Type() == ChannelType::VariableLength && VlsdRecordId() > 0) ) {
+    // Signal data is updated elsewhere
     return 0;
   };
+
   if (data_list_.empty()) {
     UpdateLink(file, kIndexData, 0); // No data link
   } else if (!compress || data_list_.size() <= 100 ){
@@ -1097,5 +1124,16 @@ void Cn4Block::ClearData() {
   DataListBlock::ClearData();
 }
 
+uint64_t Cn4Block::WriteSdSample(const std::vector<uint8_t> &buffer) {
+  // Save old index as this is the index which new data bytes are inserted
+  auto index = static_cast<uint64_t>(data_list_.size());
+
+  // 32-bits length
+  const LittleBuffer<uint32_t> length(static_cast<uint32_t>(buffer.size()));
+  data_list_.insert(data_list_.end(),length.cbegin(), length.cend());
+  // Now add data bytes
+  data_list_.insert(data_list_.end(),buffer.cbegin(), buffer.cend());
+  return index;
+}
 
 }  // namespace mdf::detail

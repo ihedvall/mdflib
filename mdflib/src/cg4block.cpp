@@ -79,12 +79,13 @@ const IChannel *Cg4Block::GetXChannel(const IChannel &reference) const {
   }
 
   // First check if the channel have a dedicated X channel reference
-  auto x_axis_list = cn4->XAxisLinkList();
+  const auto x_axis_list = cn4->XAxisLinkList();
   // As we are returning a channel pointer, we must assume that it belongs to
   // this group
   if (x_axis_list.size() == 3 && x_axis_list[1] == Index() && x_axis_list[2]) {
     const auto channel_index = x_axis_list[2];
-    auto find = std::find_if(cn_list_.cbegin(), cn_list_.cend(),
+    const auto find =
+      std::find_if(cn_list_.cbegin(), cn_list_.cend(),
                              [&](const auto &p) {
       if (!p) {
         return false;
@@ -98,7 +99,8 @@ const IChannel *Cg4Block::GetXChannel(const IChannel &reference) const {
   }
 
   // Search for the master channel in the group
-  auto master = std::find_if(cn_list_.cbegin(), cn_list_.cend(),
+  const auto master =
+    std::find_if(cn_list_.cbegin(), cn_list_.cend(),
                              [&](const auto &x) {
     if (!x) {
       return false;
@@ -139,7 +141,7 @@ void Cg4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Nof Samples", std::to_string(nof_samples_));
   dest.emplace_back("Flags", MakeFlagString(flags_));
 
-  wchar_t path_separator[2] = {path_separator_,0};
+  const wchar_t path_separator[2] = {static_cast<wchar_t>(path_separator_),0};
   std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 
   dest.emplace_back("Path Separator", converter.to_bytes(path_separator));
@@ -233,24 +235,13 @@ size_t Cg4Block::Write(std::FILE *file) {
     }
     bytes += WriteNumber(file, nof_invalid_bytes_);
     UpdateBlockSize(file, bytes);
-    // If this is a VLSD block, the referenced channels shall set its
-    // signal data index to this block position.
-    if (vlsd) {
-      const auto block_position = FilePosition();
-      auto cn_list = Channels(); // This list include the composite channels
-      for (auto* channel : cn_list) {
-        if (channel != nullptr &&
-            channel->Type() == ChannelType::VariableLength) {
-          dynamic_cast<Cn4Block*>(channel)->UpdateDataLink(file, block_position);
-        }
-      }
-    }
+
     // Must scan through the channels and detect if any MLSD channel exist
     // and update its signal index. First need to find the length channel
     // block position. Then set the signal data index to that value
     const auto* data_length = GetChannel(".DataLength");
     if (data_length != nullptr) {
-      auto cn_list = Channels(); // This list include the composite channels
+      const auto cn_list = Channels(); // This list include the composite channels
       const auto block_position = data_length->Index();
       for (auto* channel : cn_list) {
         if (channel != nullptr && channel->Type() == ChannelType::MaxLength) {
@@ -319,7 +310,7 @@ size_t Cg4Block::ReadDataRecord(std::FILE *file,
     }
   } else {
     // Normal fixed length records
-    size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
+    const size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
     std::vector<uint8_t> record(record_size, 0);
     count = std::fread(record.data(), 1, record.size(), file);
     const size_t sample = Sample();
@@ -373,7 +364,7 @@ ISourceInformation *Cg4Block::CreateSourceInformation() {
   return si_block_.get();
 }
 
-const ISourceInformation *Cg4Block::SourceInformation() const {
+ISourceInformation *Cg4Block::SourceInformation() const {
   return si_block_ ? si_block_.get() : nullptr;
 }
 
@@ -390,7 +381,7 @@ size_t Cg4Block::UpdateCycleCounter(std::FILE *file) {
     ++nof_samples_;
   } else {
     // Normal fixed length records
-    size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
+    const size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
     count += StepFilePosition(file, record_size);
     ++nof_samples_;
   }
@@ -418,7 +409,7 @@ size_t Cg4Block::UpdateVlsdSize(std::FILE *file) {
     ++nof_samples_;
   } else {
     // Normal fixed length records
-    size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
+    const size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
     count += StepFilePosition(file, record_size);
     ++nof_samples_;
   }
@@ -438,26 +429,27 @@ IChannel *Cg4Block::CreateChannel() {
 }
 
 void Cg4Block::PrepareForWriting() {
+  nof_data_bytes_ = 0;
+  vlsd_index_ = 0;
   if (Flags() & CgFlag::VlsdChannel) {
     // This is a specialized CG group with variable length
     // channel. Some channels in other groups may reference this group.
     // This group may not contain any channels.
-    nof_data_bytes_ = 0;
     nof_invalid_bytes_ = 0;
     sample_buffer_.clear();
     return;
   }
 
   // Calculates number of data bytes
-  nof_data_bytes_ = 0;
+
   size_t byte_offset = 0;
   size_t invalid_bit_offset = 0;
-  for (auto &channel : cn_list_) {
+  for (const auto &channel : cn_list_) {
     if (!channel) {
       continue;
     }
     channel->PrepareForWriting(byte_offset);
-    nof_data_bytes_ += channel->DataBytes();
+    nof_data_bytes_ += static_cast<uint32_t>(channel->DataBytes());
     byte_offset += channel->DataBytes();
 
     if (channel->Flags() & CnFlag::InvalidValid) {
@@ -469,9 +461,9 @@ void Cg4Block::PrepareForWriting() {
   if (invalid_bit_offset == 0) {
     nof_invalid_bytes_ = 0;
   } else if ((invalid_bit_offset % 8) > 0) {
-    nof_invalid_bytes_ = (invalid_bit_offset / 8) + 1;
+    nof_invalid_bytes_ = static_cast<uint32_t>((invalid_bit_offset / 8) + 1);
   } else {
-    nof_invalid_bytes_ = invalid_bit_offset / 8;
+    nof_invalid_bytes_ = static_cast<uint32_t>(invalid_bit_offset / 8);
   }
 
   if (const auto total_size = nof_invalid_bytes_ + nof_data_bytes_;
@@ -482,5 +474,231 @@ void Cg4Block::PrepareForWriting() {
   }
 }
 
+void Cg4Block::WriteSample(FILE *file, uint8_t record_id_size,
+                                   const std::vector<uint8_t> &buffer) {
+  switch (record_id_size) {
+    case 0:
+      // No Record ID to store
+      break;
 
+    case 1: {
+      const auto id = static_cast<uint8_t>(RecordId());
+      WriteNumber(file, id);
+      break;
+    }
+
+    case 2: {
+      const auto id = static_cast<uint16_t>(RecordId());
+      WriteNumber(file, id);
+      break;
+    }
+
+    case 4: {
+      const auto id = static_cast<uint32_t>(RecordId());
+      WriteNumber(file, id);
+      break;
+    }
+
+    default: {
+      const auto id = RecordId();
+      WriteNumber(file, id);
+      break;
+    }
+
+  }
+  fwrite(buffer.data(), 1, buffer.size(), file);
+  IncrementSample();            // Increment internal sample counter
+  NofSamples(Sample());
+}
+
+void Cg4Block::WriteCompressedSample(std::vector<uint8_t>& dest,
+                                     uint8_t record_id_size,
+                                     const std::vector<uint8_t> &buffer) {
+  switch (record_id_size) {
+    case 0:
+      // No Record ID to store
+      break;
+
+    case 1: {
+      const auto id = static_cast<uint8_t>(RecordId());
+      const LittleBuffer ident(id);
+      std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
+      break;
+    }
+
+    case 2: {
+      const auto id = static_cast<uint16_t>(RecordId());
+      const LittleBuffer ident(id);
+      std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
+      break;
+    }
+
+    case 4: {
+      const auto id = static_cast<uint32_t>(RecordId());
+      const LittleBuffer ident(id);
+      std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
+      break;
+    }
+
+    default: {
+      const auto id = RecordId();
+      const LittleBuffer ident(id);
+      std::copy(ident.cbegin(), ident.cend(),
+        std::back_inserter(dest));
+      break;
+    }
+  }
+  std::copy(buffer.cbegin(), buffer.cend(),
+    std::back_inserter(dest));
+  IncrementSample();            // Increment internal sample counter
+  NofSamples(Sample());
+}
+
+uint64_t Cg4Block::WriteVlsdSample(FILE *file, uint8_t record_id_size,
+                                   const std::vector<uint8_t> &buffer) {
+  const uint64_t vlsd_index = vlsd_index_; // Temporary store the old index
+  uint64_t total_count = nof_invalid_bytes_;
+  total_count <<= 32;
+  total_count += nof_data_bytes_;
+
+  switch (record_id_size) {
+    case 0:
+      // No Record ID to store
+      break;
+
+    case 1: {
+      const auto id = static_cast<uint8_t>(RecordId());
+      total_count += WriteNumber(file, id);
+      break;
+    }
+
+    case 2: {
+      const auto id = static_cast<uint16_t>(RecordId());
+      total_count += WriteNumber(file, id);
+      break;
+    }
+
+    case 4: {
+      const auto id = static_cast<uint32_t>(RecordId());
+      total_count += WriteNumber(file, id);
+      break;
+    }
+
+    default: {
+      const auto id = RecordId();
+      total_count += WriteNumber(file, id);
+      break;
+    }
+
+  }
+  const auto length = static_cast<uint32_t>(buffer.size());
+  const LittleBuffer buff(length);
+  const auto length_count = fwrite(buff.data(), 1, sizeof(length), file);
+  total_count += length_count;
+  const auto buffer_count = fwrite(buffer.data(), 1, buffer.size(), file);
+  total_count += buffer_count;
+  IncrementSample();            // Increment internal sample counter
+  NofSamples(Sample());
+
+  vlsd_index_ += length_count + buffer_count; // Happens to be the VLSD CG
+                                              // length. So update it as well
+  nof_data_bytes_ = static_cast<uint32_t>(total_count & 0xFFFFFFFF);
+  nof_invalid_bytes_ = static_cast<uint32_t>(total_count >> 32);
+  return vlsd_index; // Note it returns the old index
+}
+
+uint64_t Cg4Block::WriteCompressedVlsdSample(std::vector<uint8_t>& dest,
+                                             uint8_t record_id_size,
+                                   const std::vector<uint8_t> &buffer) {
+  const uint64_t vlsd_index = vlsd_index_; // Temporary store the old index
+  uint64_t total_count = nof_invalid_bytes_;
+  total_count <<= 32;
+  total_count += nof_data_bytes_;
+
+  switch (record_id_size) {
+    case 0:
+      // No Record ID to store
+      break;
+
+    case 1: {
+      const auto id = static_cast<uint8_t>(RecordId());
+      const LittleBuffer ident(id);
+      std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
+      total_count += ident.size();
+      break;
+    }
+
+    case 2: {
+      const auto id = static_cast<uint16_t>(RecordId());
+      const LittleBuffer ident(id);
+      std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
+      total_count += ident.size();
+      break;
+    }
+
+    case 4: {
+      const auto id = static_cast<uint32_t>(RecordId());
+      const LittleBuffer ident(id);
+      std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
+      total_count += ident.size();
+      break;
+    }
+
+    default: {
+      const auto id = RecordId();
+      const LittleBuffer ident(id);
+      std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
+      total_count += ident.size();
+      break;
+    }
+  }
+
+  const auto length = static_cast<uint32_t>(buffer.size());
+
+  const LittleBuffer buff(length);
+  std::copy(buff.cbegin(), buff.cend(), std::back_inserter(dest));
+  total_count += buff.size();
+
+  std::copy(buffer.cbegin(), buffer.cend(), std::back_inserter(dest));
+  total_count += buffer.size();
+  IncrementSample();            // Increment internal sample counter
+  NofSamples(Sample());
+
+  vlsd_index_ += buff.size() + buffer.size();
+  nof_data_bytes_ = static_cast<uint32_t>(total_count & 0xFFFFFFFF);
+  nof_invalid_bytes_ = static_cast<uint32_t>(total_count >> 32);
+  return vlsd_index; // Note it returns the old index
+}
+
+Cn4Block *Cg4Block::FindSdChannel() const {
+  auto cn_list = Channels();
+  const auto itr =
+    std::find_if(cn_list.begin(), cn_list.end(),
+      [](const auto* channel) {
+    return channel != nullptr &&
+           channel->Type() == ChannelType::VariableLength &&
+           channel->VlsdRecordId() == 0;
+  });
+
+  if (itr == cn_list.end()) {
+    return nullptr;
+  }
+  return dynamic_cast<Cn4Block*>(*itr);
+}
+
+Cn4Block *Cg4Block::FindVlsdChannel(uint64_t record_id) const {
+  auto cn_list = Channels();
+  const auto itr =
+    std::find_if(cn_list.begin(), cn_list.end(),
+                          [&] (const auto* channel) {
+                            return channel != nullptr &&
+                                   channel->Type() == ChannelType::VariableLength &&
+                                   channel->VlsdRecordId() == record_id;
+                          });
+
+  if (itr == cn_list.end()) {
+    return nullptr;
+  }
+  return dynamic_cast<Cn4Block*>(*itr);
+}
 }  // namespace mdf::detail

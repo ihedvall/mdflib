@@ -29,7 +29,7 @@ std::optional<double> IHeader::StartDistance() const { return {}; }
 
 IMetaData *IHeader::CreateMetaData() { return nullptr; }
 
-const IMetaData *IHeader::MetaData() const { return nullptr; }
+IMetaData *IHeader::MetaData() const { return nullptr; }
 
 IAttachment *IHeader::CreateAttachment() { return nullptr; }
 

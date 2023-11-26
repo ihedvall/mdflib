@@ -61,10 +61,16 @@ class IDataGroup : public IBlock {
   [[nodiscard]] IChannelGroup* CreateChannelGroup(
       const std::string_view& name);
 
+  /** \brief Returns the existing group by its name. */
+  [[nodiscard]] IChannelGroup* GetChannelGroup(const std::string_view& name) const;
+
+  /** \brief Return a channel group by its record id. */
+  [[nodiscard]] IChannelGroup* GetChannelGroup(uint64_t record_id) const;
+
   /** \brief Create or return the existing meta-data (MD) block. */
   [[nodiscard]] virtual IMetaData* CreateMetaData();
   /** \brief Returns the existing meta-data (MD) block if it exist. */
-  [[nodiscard]] virtual const IMetaData* MetaData() const;
+  [[nodiscard]] virtual IMetaData* MetaData() const;
 
   /** \brief Internal function that attach a sample observer to the
    *  measurement block.  */

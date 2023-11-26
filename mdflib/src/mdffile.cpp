@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <string>
 
+#include "at4block.h"
 #include "mdf/mdflogstream.h"
 
 namespace mdf {
@@ -42,12 +43,13 @@ IAttachment* MdfFile::CreateAttachment() { return nullptr; }
 void MdfFile::FileName(const std::string& filename) {
   filename_ = filename;
   try {
-    auto temp = std::filesystem::u8path(filename);
+    
+    const auto temp = std::filesystem::u8path(filename);
     if (name_.empty()) {
-      name_ = temp.stem().string();
+      name_ = temp.stem().u8string();
     }
   } catch (const std::exception& err) {
-    MDF_ERROR() << "Invallid file name detected. Error: " << err.what()
+    MDF_ERROR() << "Invalid file name detected. Error: " << err.what()
                 << ", File: " << filename;
   }
 }

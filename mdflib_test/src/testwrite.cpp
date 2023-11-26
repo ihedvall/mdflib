@@ -1995,12 +1995,195 @@ TEST_F(TestWrite, Mdf4Master) {
   }
 }
 
-TEST_F(TestWrite, Mdf4CanConfig) {
+TEST_F(TestWrite, Mdf4CanSdStorage ) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
   path mdf_file(kTestDir);
-  mdf_file.append("canconfig.mf4");
+  mdf_file.append("can_sd_storage.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  writer->BusType(MdfBusType::CAN); // Defines the CG/CN names
+  writer->StorageType(MdfStorageType::FixedLengthStorage); // Variable length to SD
+  writer->MaxLength(8); // No meaning in this type of storage
+  EXPECT_TRUE(writer->CreateBusLogConfiguration()); // Creates all DG/CG/CN
+  writer->PreTrigTime(0.0);
+  writer->CompressData(false);
+
+  auto* last_dg = header->LastDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
+
+  auto* can_data_frame = last_dg->GetChannelGroup("CAN_DataFrame");
+  auto* can_remote_frame = last_dg->GetChannelGroup("CAN_RemoteFrame");
+  auto* can_error_frame = last_dg->GetChannelGroup("CAN_ErrorFrame");
+  auto* can_overload_frame = last_dg->GetChannelGroup("CAN_OverloadFrame");
+
+  ASSERT_TRUE(can_data_frame != nullptr);
+  ASSERT_TRUE(can_remote_frame != nullptr);
+  ASSERT_TRUE(can_error_frame != nullptr);
+  ASSERT_TRUE(can_overload_frame != nullptr);
+
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  size_t sample;
+  for (sample = 0; sample < 10; ++sample) {
+      // Assigna some dummy data
+    auto value = static_cast<double>(sample) + 0.23;
+    std::vector<uint8_t> data;
+    data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
+
+    CanMessage msg;
+    msg.MessageId(123);
+    msg.ExtendedId(true);
+    msg.BusChannel(11);
+    EXPECT_EQ(msg.BusChannel(), 11);
+    msg.DataBytes(data);
+
+      // Add dummy message to all for message types. Not realistic
+      // but makes the test simpler.
+    writer->SaveCanMessage(*can_data_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_remote_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_error_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_overload_frame, tick_time, msg);
+    tick_time += 1'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 4);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    EXPECT_EQ(observer->NofSamples(), 10);
+  }
+
+}
+
+TEST_F(TestWrite, Mdf4VlsdCanConfig) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("can_vlsd_storage.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  writer->BusType(MdfBusType::CAN);
+  writer->StorageType(MdfStorageType::VlsdStorage);
+  writer->MaxLength(8);
+  EXPECT_TRUE(writer->CreateBusLogConfiguration());
+  writer->PreTrigTime(0.0);
+  writer->CompressData(false);
+  auto* last_dg = header->LastDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
+
+  auto* can_data_frame = last_dg->GetChannelGroup("CAN_DataFrame");
+  auto* can_remote_frame = last_dg->GetChannelGroup("CAN_RemoteFrame");
+  auto* can_error_frame = last_dg->GetChannelGroup("CAN_ErrorFrame");
+  auto* can_overload_frame = last_dg->GetChannelGroup("CAN_OverloadFrame");
+
+  ASSERT_TRUE(can_data_frame != nullptr);
+  ASSERT_TRUE(can_remote_frame != nullptr);
+  ASSERT_TRUE(can_error_frame != nullptr);
+  ASSERT_TRUE(can_overload_frame != nullptr);
+
+
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  for (size_t sample = 0; sample < 100'000; ++sample) {
+
+    auto value = static_cast<double>(sample) + 0.23;
+    std::vector<uint8_t> data;
+    data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
+
+    CanMessage msg;
+    msg.MessageId(123);
+    msg.ExtendedId(true);
+    msg.BusChannel(11);
+    EXPECT_EQ(msg.BusChannel(), 11);
+    msg.DataBytes(data);
+
+    // Add dummy message to all for message types. Not realistic
+    // but makes the test simpler.
+    writer->SaveCanMessage(*can_data_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_remote_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_error_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_overload_frame, tick_time, msg);
+    tick_time += 1'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 6);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    EXPECT_EQ(observer->NofSamples(), 100'000);
+  }
+
+}
+
+TEST_F(TestWrite, Mdf4MlsdCanConfig) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("can_mlsd_storage.mf4");
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
   writer->Init(mdf_file.string());
@@ -2016,15 +2199,49 @@ TEST_F(TestWrite, Mdf4CanConfig) {
   writer->StorageType(MdfStorageType::MlsdStorage);
   writer->MaxLength(8);
   EXPECT_TRUE(writer->CreateBusLogConfiguration());
+  writer->PreTrigTime(0.0);
+  writer->CompressData(false);
+  auto* last_dg = header->LastDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
 
-  writer->PreTrigTime(1.0);
+  auto* can_data_frame = last_dg->GetChannelGroup("CAN_DataFrame");
+  auto* can_remote_frame = last_dg->GetChannelGroup("CAN_RemoteFrame");
+  auto* can_error_frame = last_dg->GetChannelGroup("CAN_ErrorFrame");
+  auto* can_overload_frame = last_dg->GetChannelGroup("CAN_OverloadFrame");
+
+  ASSERT_TRUE(can_data_frame != nullptr);
+  ASSERT_TRUE(can_remote_frame != nullptr);
+  ASSERT_TRUE(can_error_frame != nullptr);
+  ASSERT_TRUE(can_overload_frame != nullptr);
+
+
   writer->InitMeasurement();
   auto tick_time = TimeStampToNs();
   writer->StartMeasurement(tick_time);
+  for (size_t sample = 0; sample < 100'000; ++sample) {
 
+    auto value = static_cast<double>(sample) + 0.23;
+    std::vector<uint8_t> data;
+    data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
+
+    CanMessage msg;
+    msg.MessageId(123);
+    msg.ExtendedId(true);
+    msg.BusChannel(11);
+    EXPECT_EQ(msg.BusChannel(), 11);
+    msg.DataBytes(data);
+
+    // Add dummy message to all for message types. Not realistic
+    // but makes the test simpler.
+    writer->SaveCanMessage(*can_data_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_remote_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_error_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_overload_frame, tick_time, msg);
+    tick_time += 1'000'000;
+  }
   writer->StopMeasurement(tick_time);
   writer->FinalizeMeasurement();
-/*
+
   MdfReader reader(mdf_file.string());
   ChannelObserverList observer_list;
 
@@ -2037,7 +2254,7 @@ TEST_F(TestWrite, Mdf4CanConfig) {
 
   for (auto* dg4 : dg_list) {
     const auto cg_list = dg4->ChannelGroups();
-    EXPECT_EQ(cg_list.size(), 1);
+    EXPECT_EQ(cg_list.size(), 4);
     for (auto* cg4 : cg_list) {
       CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
     }
@@ -2047,8 +2264,284 @@ TEST_F(TestWrite, Mdf4CanConfig) {
 
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
+    EXPECT_EQ(observer->NofSamples(), 100'000);
   }
-  */
+
+}
+
+TEST_F(TestWrite, Mdf4CompressedCanSdStorage ) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("compressed_can_sd_storage.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  writer->BusType(MdfBusType::CAN); // Defines the CG/CN names
+  writer->StorageType(MdfStorageType::FixedLengthStorage); // Variable length to SD
+  writer->MaxLength(8); // No meaning in this type of storage
+  EXPECT_TRUE(writer->CreateBusLogConfiguration()); // Creates all DG/CG/CN
+  writer->PreTrigTime(0.0);
+  writer->CompressData(true);
+
+  auto* last_dg = header->LastDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
+
+  auto* can_data_frame = last_dg->GetChannelGroup("CAN_DataFrame");
+  auto* can_remote_frame = last_dg->GetChannelGroup("CAN_RemoteFrame");
+  auto* can_error_frame = last_dg->GetChannelGroup("CAN_ErrorFrame");
+  auto* can_overload_frame = last_dg->GetChannelGroup("CAN_OverloadFrame");
+
+  ASSERT_TRUE(can_data_frame != nullptr);
+  ASSERT_TRUE(can_remote_frame != nullptr);
+  ASSERT_TRUE(can_error_frame != nullptr);
+  ASSERT_TRUE(can_overload_frame != nullptr);
+
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  size_t sample;
+  for (sample = 0; sample < 10; ++sample) {
+    // Assigna some dummy data
+    auto value = static_cast<double>(sample) + 0.23;
+    std::vector<uint8_t> data;
+    data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
+
+    CanMessage msg;
+    msg.MessageId(123);
+    msg.ExtendedId(true);
+    msg.BusChannel(11);
+    EXPECT_EQ(msg.BusChannel(), 11);
+    msg.DataBytes(data);
+
+    // Add dummy message to all for message types. Not realistic
+    // but makes the test simpler.
+    writer->SaveCanMessage(*can_data_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_remote_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_error_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_overload_frame, tick_time, msg);
+    tick_time += 1'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 4);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    EXPECT_EQ(observer->NofSamples(), 10);
+  }
+
+}
+
+TEST_F(TestWrite, Mdf4CompressedVlsdCanConfig) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("compressed_can_vlsd_storage.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  writer->BusType(MdfBusType::CAN);
+  writer->StorageType(MdfStorageType::VlsdStorage);
+  writer->MaxLength(8);
+
+  EXPECT_TRUE(writer->CreateBusLogConfiguration());
+  writer->PreTrigTime(0.0);
+  writer->CompressData(true);
+  auto* last_dg = header->LastDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
+
+  auto* can_data_frame = last_dg->GetChannelGroup("CAN_DataFrame");
+  auto* can_remote_frame = last_dg->GetChannelGroup("CAN_RemoteFrame");
+  auto* can_error_frame = last_dg->GetChannelGroup("CAN_ErrorFrame");
+  auto* can_overload_frame = last_dg->GetChannelGroup("CAN_OverloadFrame");
+
+  ASSERT_TRUE(can_data_frame != nullptr);
+  ASSERT_TRUE(can_remote_frame != nullptr);
+  ASSERT_TRUE(can_error_frame != nullptr);
+  ASSERT_TRUE(can_overload_frame != nullptr);
+
+
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  for (size_t sample = 0; sample < 100'000; ++sample) {
+
+    auto value = static_cast<double>(sample) + 0.23;
+    std::vector<uint8_t> data;
+    data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
+
+    CanMessage msg;
+    msg.MessageId(123);
+    msg.ExtendedId(true);
+    msg.BusChannel(11);
+    EXPECT_EQ(msg.BusChannel(), 11);
+    msg.DataBytes(data);
+
+    // Add dummy message to all for message types. Not realistic
+    // but makes the test simpler.
+    writer->SaveCanMessage(*can_data_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_remote_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_error_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_overload_frame, tick_time, msg);
+    tick_time += 1'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 6);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    EXPECT_EQ(observer->NofSamples(), 100'000);
+  }
+
+}
+
+TEST_F(TestWrite, Mdf4CompressedMlsdCanConfig) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("compressed_can_mlsd_storage.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  writer->BusType(MdfBusType::CAN);
+  writer->StorageType(MdfStorageType::MlsdStorage);
+  writer->MaxLength(8);
+  EXPECT_TRUE(writer->CreateBusLogConfiguration());
+  writer->PreTrigTime(0.0);
+  writer->CompressData(true);
+  auto* last_dg = header->LastDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
+
+  auto* can_data_frame = last_dg->GetChannelGroup("CAN_DataFrame");
+  auto* can_remote_frame = last_dg->GetChannelGroup("CAN_RemoteFrame");
+  auto* can_error_frame = last_dg->GetChannelGroup("CAN_ErrorFrame");
+  auto* can_overload_frame = last_dg->GetChannelGroup("CAN_OverloadFrame");
+
+  ASSERT_TRUE(can_data_frame != nullptr);
+  ASSERT_TRUE(can_remote_frame != nullptr);
+  ASSERT_TRUE(can_error_frame != nullptr);
+  ASSERT_TRUE(can_overload_frame != nullptr);
+
+
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  for (size_t sample = 0; sample < 100'000; ++sample) {
+
+    auto value = static_cast<double>(sample) + 0.23;
+    std::vector<uint8_t> data;
+    data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
+
+    CanMessage msg;
+    msg.MessageId(123);
+    msg.ExtendedId(true);
+    msg.BusChannel(11);
+    EXPECT_EQ(msg.BusChannel(), 11);
+    msg.DataBytes(data);
+
+    // Add dummy message to all for message types. Not realistic
+    // but makes the test simpler.
+    writer->SaveCanMessage(*can_data_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_remote_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_error_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_overload_frame, tick_time, msg);
+    tick_time += 1'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 4);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    EXPECT_EQ(observer->NofSamples(), 100'000);
+  }
+
 }
 
 }  // end namespace mdf::test

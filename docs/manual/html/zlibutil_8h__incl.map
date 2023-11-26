@@ -1,6 +1,9 @@
 <map id="include/mdf/zlibutil.h" name="include/mdf/zlibutil.h">
-<area shape="rect" id="node1" title="Various ZLIB compress functions." alt="" coords="44,5,184,31"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,79,63,104"/>
-<area shape="rect" id="node3" title=" " alt="" coords="87,79,141,104"/>
-<area shape="rect" id="node4" title=" " alt="" coords="166,79,222,104"/>
+<area shape="rect" id="Node000001" title="Various ZLIB compress functions." alt="" coords="44,5,184,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,63,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,33,59,72,55,68,99,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="87,79,141,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="117,31,117,65,111,65,111,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="166,79,222,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="129,29,173,68,169,72,125,33"/>
 </map>

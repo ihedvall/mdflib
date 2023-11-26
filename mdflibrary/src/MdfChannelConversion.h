@@ -5,8 +5,10 @@
 
 #pragma once
 #include <mdf/ichannelconversion.h>
+#include "MdfMetaData.h"
 
 using namespace System;
+
 namespace MdfLibrary {
 
 public enum class ConversionType : Byte {
@@ -21,7 +23,8 @@ public enum class ConversionType : Byte {
   ValueRangeToText = 8,
   TextToValue = 9,
   TextToTranslation = 10,
-
+  BitfieldToText = 11,
+  
   // MDF 3 types
   Polynomial = 30,
   Exponential = 31,
@@ -58,7 +61,18 @@ public:
 
   property UInt16 Flags { UInt16 get(); void set(UInt16 flags); }
   property MdfChannelConversion^ Inverse { MdfChannelConversion^ get(); }
+  property MdfMetaData^ MetaData { MdfMetaData^ get(); }
+  property String^ Formula { String^ get(); void set(String^ formula); }
+  property double Parameter[int] {
+    double get( int index);
+    void set(int index, double parameter);
+  }
+  property uint64_t ParameterUInt[int] {
+     uint64_t get( int index);
+     void set(int index, uint64_t parameter);
+  }  
   MdfChannelConversion^ CreateInverse();
+  MdfMetaData^ CreateMetaData();
 private:
   MdfChannelConversion() {};
 

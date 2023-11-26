@@ -1,0 +1,11 @@
+<map id="include/mdf/canmessage.h" name="include/mdf/canmessage.h">
+<area shape="rect" id="Node000001" title="Simple wrapper around a CAN or CAN FD message." alt="" coords="42,5,219,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,152,67,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,33,79,52,53,80,42,109,38,139,33,138,37,108,48,77,75,48,105,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="155,152,211,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,28,188,48,202,61,213,78,217,94,216,111,202,142,197,140,210,110,212,95,208,80,198,65,185,52,155,33"/>
+<area shape="rect" id="Node000004" href="$samplerecord_8h.html" title=" " alt="" coords="63,79,199,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="133,31,133,65,128,65,128,31"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="117,106,64,146,61,141,114,102"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="141,103,168,139,164,142,137,106"/>
+</map>

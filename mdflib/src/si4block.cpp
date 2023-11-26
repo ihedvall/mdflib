@@ -165,7 +165,7 @@ IMetaData *Si4Block::CreateMetaData() {
   return MdfBlock::CreateMetaData();
 }
 
-const IMetaData *Si4Block::MetaData() const {
+IMetaData *Si4Block::MetaData() const {
   return MdfBlock::MetaData();
 }
 

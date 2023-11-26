@@ -1,10 +1,20 @@
 <map id="include/mdf/mdffile.h" name="include/mdf/mdffile.h">
-<area shape="rect" id="node1" title="Interface against an MDF file object." alt="" coords="56,5,196,31"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,79,63,104"/>
-<area shape="rect" id="node3" title=" " alt="" coords="204,225,259,251"/>
-<area shape="rect" id="node4" title=" " alt="" coords="138,152,194,177"/>
-<area shape="rect" id="node5" href="$iheader_8h.html" title="Interface against a HD block." alt="" coords="189,79,289,104"/>
-<area shape="rect" id="node6" title=" " alt="" coords="269,152,335,177"/>
-<area shape="rect" id="node7" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="360,152,452,177"/>
-<area shape="rect" id="node8" title=" " alt="" coords="375,225,437,251"/>
+<area shape="rect" id="Node000001" title="Interface against an MDF file object." alt="" coords="56,5,196,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,63,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,33,61,72,58,68,110,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="204,225,259,251"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="125,32,118,59,113,97,115,138,120,158,128,176,141,192,156,205,192,223,189,227,153,209,137,195,124,179,115,159,110,139,108,97,113,58,120,30"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="138,152,194,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="132,30,162,138,157,139,127,32"/>
+<area shape="rect" id="Node000005" href="$iheader_8h.html" title="Interface against a HD block." alt="" coords="189,79,289,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="146,28,211,69,208,74,143,33"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="241,105,235,212,230,211,236,104"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="229,106,190,144,186,140,225,102"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="269,152,335,177"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="252,103,285,140,281,143,248,106"/>
+<area shape="rect" id="Node000007" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="360,152,452,177"/>
+<area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="267,102,367,144,365,149,265,106"/>
+<area shape="poly" id="edge10_Node000007_Node000003" title=" " alt="" coords="379,180,272,223,270,218,377,175"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="375,225,437,251"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="409,178,409,212,403,212,403,178"/>
 </map>

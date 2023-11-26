@@ -132,7 +132,7 @@ IMetaData *Ch4Block::CreateMetaData() {
   return MdfBlock::CreateMetaData();
 }
 
-const IMetaData *Ch4Block::MetaData() const {
+IMetaData *Ch4Block::MetaData() const {
   return MdfBlock::MetaData();
 }
 

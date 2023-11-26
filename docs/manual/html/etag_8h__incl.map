@@ -1,6 +1,9 @@
 <map id="include/mdf/etag.h" name="include/mdf/etag.h">
-<area shape="rect" id="node1" title="Simple wrapper around meta data items." alt="" coords="63,5,191,31"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,79,75,104"/>
-<area shape="rect" id="node3" title=" " alt="" coords="99,79,154,104"/>
-<area shape="rect" id="node4" title=" " alt="" coords="179,79,235,104"/>
+<area shape="rect" id="Node000001" title="Simple wrapper around meta data items." alt="" coords="63,5,191,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,75,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,33,66,72,63,68,111,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="99,79,154,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,31,129,65,124,65,124,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="179,79,235,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="141,29,185,68,182,72,138,33"/>
 </map>

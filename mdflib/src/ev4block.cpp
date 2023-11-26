@@ -304,7 +304,7 @@ IMetaData *Ev4Block::CreateMetaData() {
   return MdfBlock::CreateMetaData();
 }
 
-const IMetaData *Ev4Block::MetaData() const {
+IMetaData *Ev4Block::MetaData() const {
   return MdfBlock::MetaData();
 }
 

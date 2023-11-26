@@ -3,59 +3,103 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <msclr/marshal_cppstd.h>
-
-#include <string>
-
 #include "MdfWriter.h"
 #include "mdflibrary.h"
-
-using namespace msclr::interop;
 
 namespace MdfLibrary {
 
 MdfWriter::MdfWriter(MdfWriterType writer_type) {
-  writer_ =
-      mdf::MdfFactory::CreateMdfWriterEx(static_cast<mdf::MdfWriterType>(writer_type));
+  writer_ = mdf::MdfFactory::CreateMdfWriterEx(
+        static_cast<mdf::MdfWriterType>(writer_type));
 }
 
 MdfWriter::~MdfWriter() { this->!MdfWriter(); }
 
 MdfWriter::!MdfWriter() {
-  if (writer_ == nullptr) {
-	return;
+  if (writer_ != nullptr) {
+    delete writer_;
+    writer_ = nullptr;
   }
-  delete writer_;
-  writer_ = nullptr;
 }
 
 MdfFile^ MdfWriter::File::get() {
-  auto* mdf_file = writer_ != nullptr
-                       ? const_cast<mdf::MdfFile*>(writer_->GetFile())
-                       : nullptr;
+  auto* mdf_file = writer_ != nullptr ? writer_->GetFile() : nullptr;
   return mdf_file != nullptr ? gcnew MdfFile(mdf_file) : nullptr;
 }
 
 MdfHeader^ MdfWriter::Header::get() {
-  auto* header = writer_ != nullptr
-                     ? const_cast<mdf::IHeader*>(writer_->Header())
-                     : nullptr;
+  auto* header = writer_ != nullptr ? writer_->Header() : nullptr;
   return header != nullptr ? gcnew MdfHeader(header) : nullptr;
 }
 
+bool MdfWriter::IsFileNew::get() {
+  return writer_  != nullptr ? writer_->IsFileNew() : false;
+}
+
 void MdfWriter::CompressData::set(bool compress) {
-  if (writer_ != nullptr) 
-	writer_->CompressData(compress);
-  
+  if (writer_ != nullptr)  {
+    writer_->CompressData(compress);
+  }  
 }
 
 bool MdfWriter::CompressData::get() {
-    auto compress = writer_ != nullptr ? writer_->CompressData() : false;
-    return compress; 
+    return  writer_ != nullptr ? writer_->CompressData() : false;
+}
+
+void MdfWriter::PreTrigTime::set(double preTrigTime) {
+  if (writer_ != nullptr) {
+    writer_->PreTrigTime(preTrigTime);
+  }
+}
+
+double MdfWriter::PreTrigTime::get() {
+  return writer_ != nullptr ? writer_->PreTrigTime() : 0.0;
+}
+
+uint64_t MdfWriter::StartTime::get() {
+  return writer_ != nullptr ? writer_->StartTime(): 0;
+}
+
+uint64_t MdfWriter::StopTime::get() {
+  return writer_ != nullptr ? writer_->StopTime(): 0;
+}
+
+void MdfWriter::BusType::set(MdfBusType type) {
+  if (writer_ != nullptr) {
+    writer_->BusType(static_cast<mdf::MdfBusType>(type));
+  }
+}
+
+MdfBusType MdfWriter::BusType::get() {
+  return writer_ != nullptr ? static_cast<MdfBusType>(writer_->BusType()) :
+    MdfBusType::UNKNOWN;
+}
+
+void MdfWriter::StorageType::set(MdfStorageType type) {
+  if (writer_ != nullptr) {
+    writer_->StorageType(static_cast<mdf::MdfStorageType>(type));
+  }
+}
+
+MdfStorageType MdfWriter::StorageType::get() {
+  return writer_ != nullptr ?
+    static_cast<MdfStorageType>(writer_->StorageType()) :
+    MdfStorageType::FixedLengthStorage;
+}
+
+void MdfWriter::MaxLength::set(uint32_t length) {
+  if (writer_ != nullptr) {
+    writer_->MaxLength(length);
+  }
+}
+
+uint32_t MdfWriter::MaxLength::get() {
+  return writer_ != nullptr ? writer_->MaxLength() : 8;
 }
 
 bool MdfWriter::Init(String^ path_name) {
-  return writer_->Init(MdfLibrary::Utf8Conversion(path_name));
+  return writer_ != nullptr ?
+    writer_->Init(MdfLibrary::Utf8Conversion(path_name)) : false;
 }
 
 MdfDataGroup^ MdfWriter::CreateDataGroup() {
@@ -63,36 +107,42 @@ MdfDataGroup^ MdfWriter::CreateDataGroup() {
   return data_group != nullptr ? gcnew MdfDataGroup(data_group) : nullptr;
 }
 
+bool MdfWriter::CreateBusLogConfiguration() {
+  return  writer_ != nullptr ? writer_->CreateBusLogConfiguration() : false;
+}
+
 bool MdfWriter::InitMeasurement() {
-    if (writer_ != nullptr) {
-		return writer_->InitMeasurement();
-	}
-	return false;
+  return writer_ != nullptr ?writer_->InitMeasurement() : false;
 }
 
 void MdfWriter::SaveSample(MdfChannelGroup^ group, uint64_t time) {
-        if (writer_ != nullptr) {
-                writer_->SaveSample(*(group->group_), time);
-        }
+  if (writer_ != nullptr && group != nullptr) {
+    writer_->SaveSample(*group->group_, time);
+  }
+}
+
+void MdfWriter::SaveCanMessage(MdfChannelGroup^ group, uint64_t time,
+    const CanMessage^ message) {
+  if (writer_ != nullptr && group != nullptr && message != nullptr) {
+    writer_->SaveCanMessage(*group->group_, time,*message->msg_);
+  }
+  
 }
 
 void MdfWriter::StartMeasurement(uint64_t start_time) {
-    if (writer_ != nullptr) {
-		writer_->StartMeasurement(start_time);
+  if (writer_ != nullptr) {
+    writer_->StartMeasurement(start_time);
   }
 }
 
 void MdfWriter::StopMeasurement(uint64_t stop_time) {
-    if (writer_ != nullptr) {
-		writer_->StopMeasurement(stop_time);
+  if (writer_ != nullptr) {
+    writer_->StopMeasurement(stop_time);
   }
 }
 
 bool MdfWriter::FinalizeMeasurement() {
-    if (writer_ != nullptr) {
-                return writer_->FinalizeMeasurement();
-    }
-    return false;
+  return writer_ != nullptr ? writer_->FinalizeMeasurement() : false;
 }
 
 }  // namespace MdfLibrary

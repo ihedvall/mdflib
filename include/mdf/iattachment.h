@@ -20,7 +20,7 @@ namespace mdf {
  */
 class IAttachment : public IBlock {
  public:
-  virtual ~IAttachment() = default; ///< Default destructor
+  virtual ~IAttachment() override = default; ///< Default destructor
 
   /** \brief Sets the Creator index. */
   virtual void CreatorIndex(uint16_t creator) = 0;
@@ -89,7 +89,7 @@ class IAttachment : public IBlock {
    * Returns existing meta-data block. Note, may return nullptr.
    * @return Pointer to a IMeteData block or nullptr if it doesn't exists.
    */
-  [[nodiscard]] virtual const IMetaData* MetaData() const = 0;
+  [[nodiscard]] virtual IMetaData* MetaData() const = 0;
 };
 
 }  // namespace mdf

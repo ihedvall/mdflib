@@ -1,8 +1,0 @@
-<map id="include/mdf/ifilehistory.h" name="include/mdf/ifilehistory.h">
-<area shape="rect" id="node1" title=" " alt="" coords="22,5,183,32"/>
-<area shape="rect" id="node2" href="$iheader_8h.html" title="Interface against a HD block." alt="" coords="30,80,175,107"/>
-<area shape="rect" id="node3" href="$mdffile_8h_source.html" title=" " alt="" coords="32,155,172,181"/>
-<area shape="rect" id="node4" href="$mdffactory_8h_source.html" title=" " alt="" coords="53,304,216,331"/>
-<area shape="rect" id="node5" href="$mdfreader_8h_source.html" title=" " alt="" coords="22,229,182,256"/>
-<area shape="rect" id="node6" href="$mdfwriter_8h_source.html" title=" " alt="" coords="206,229,361,256"/>
-</map>

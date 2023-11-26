@@ -45,7 +45,7 @@ class Cc4Block : public MdfBlock, public IChannelConversion {
   [[nodiscard]] bool IsDecimalUsed() const override;
 
   [[nodiscard]] IChannelConversion* CreateInverse() override;
-  [[nodiscard]] const IChannelConversion* Inverse() const override;
+  [[nodiscard]] IChannelConversion* Inverse() const override;
 
   void Range(double min, double max) override;
   [[nodiscard]] std::optional<std::pair<double, double>> Range() const override;
@@ -56,7 +56,7 @@ class Cc4Block : public MdfBlock, public IChannelConversion {
   [[nodiscard]] IMetaData* CreateMetaData() override {
     return MdfBlock::CreateMetaData();
   }
-  [[nodiscard]] const IMetaData* MetaData() const override {
+  [[nodiscard]] IMetaData* MetaData() const override {
     return MdfBlock::MetaData();
   }
 

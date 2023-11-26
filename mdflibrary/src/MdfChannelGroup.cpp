@@ -2,13 +2,9 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string>
-#include <msclr/marshal_cppstd.h>
 
 #include "MdfChannelGroup.h"
 #include "mdflibrary.h"
-
-using namespace msclr::interop;
 
 namespace MdfLibrary {
 int64_t MdfChannelGroup::Index::get() {
@@ -89,9 +85,15 @@ array<MdfChannel^>^ MdfChannelGroup::Channels::get() {
   return temp;
 }
 
+MdfMetaData^ MdfChannelGroup::MetaData::get() {
+  auto* temp = group_ != nullptr ?
+    group_->MetaData() : nullptr;
+  return temp != nullptr ? gcnew MdfMetaData(temp) : nullptr;
+}
+
 MdfSourceInformation^ MdfChannelGroup::SourceInformation::get() {
   auto* temp = group_ != nullptr ?
-    const_cast<mdf::ISourceInformation*>(group_->SourceInformation()) : nullptr;
+    group_->SourceInformation() : nullptr;
   return temp != nullptr ? gcnew MdfSourceInformation(temp) : nullptr;
 }
 

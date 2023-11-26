@@ -1,5 +1,8 @@
 <map id="include/mdf/ichannelgroup.h" name="include/mdf/ichannelgroup.h">
-<area shape="rect" id="node1" title="Defines an interface against a channel group (CG) block." alt="" coords="16,5,199,31"/>
-<area shape="rect" id="node2" href="$ichannelhierarchy_8h.html" title="The channel hierarchy (CH) block defines channel dependencies." alt="" coords="5,152,209,177"/>
-<area shape="rect" id="node3" href="$idatagroup_8h.html" title="Interface to a data group (DG) block." alt="" coords="86,79,249,104"/>
+<area shape="rect" id="Node000001" title="Defines an interface against a channel group (CG) block." alt="" coords="16,5,199,31"/>
+<area shape="rect" id="Node000002" href="$ichannelhierarchy_8h.html" title="The channel hierarchy (CH) block defines channel dependencies." alt="" coords="5,152,209,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,43,77,79,76,99,81,118,100,150,95,153,76,120,70,99,71,78,89,41"/>
+<area shape="rect" id="Node000003" href="$idatagroup_8h.html" title="Interface to a data group (DG) block." alt="" coords="86,79,249,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="128,40,160,77,156,80,124,43"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="151,116,119,154,115,150,147,113"/>
 </map>

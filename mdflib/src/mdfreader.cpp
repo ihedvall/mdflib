@@ -237,7 +237,7 @@ MdfReader::~MdfReader() { Close(); }
 std::string MdfReader::ShortName() const {
   try {
     std::filesystem::path file = std::filesystem::u8path(filename_);
-    return file.stem().string();
+    return file.stem().u8string();
   } catch (const std::exception &) {
   }
   return {};

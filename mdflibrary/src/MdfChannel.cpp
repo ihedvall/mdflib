@@ -2,12 +2,9 @@
  * Copyright 2022 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include <string>
-#include <msclr/marshal_cppstd.h>
+
 #include "MdfChannel.h"
 #include "mdflibrary.h"
-
-using namespace msclr::interop;
 
 namespace MdfLibrary {
 
@@ -110,11 +107,11 @@ void MdfChannel::Flags::set(CnFlag flags) {
   if (channel_ != nullptr) channel_->Flags(static_cast<uint32_t>(flags));
 }
 
-size_t MdfChannel::DataBytes::get() {
+uint64_t MdfChannel::DataBytes::get() {
   return channel_ != nullptr ? channel_->DataBytes() : 0;
 }
 
-void MdfChannel::DataBytes::set(size_t bytes) {
+void MdfChannel::DataBytes::set(uint64_t bytes) {
   if (channel_ != nullptr) {
     channel_->DataBytes(bytes);
   }
@@ -219,32 +216,87 @@ void MdfChannel::SamplingRate::set(double rate) {
   }
 }
 
+uint64_t MdfChannel::VlsdRecordId::get() {
+  return channel_ != nullptr ? channel_->VlsdRecordId() : 0;
+}
+
+void MdfChannel::VlsdRecordId::set(uint64_t recordId) {
+  if (channel_ != nullptr) {
+    channel_->VlsdRecordId(recordId);
+  }
+}
+
+uint32_t MdfChannel::BitCount::get() {
+  return channel_ != nullptr ? channel_->BitCount() : 0; 
+}
+
+void MdfChannel::BitCount::set(uint32_t bits) {
+  if (channel_ != nullptr) {
+    channel_->BitCount(bits);
+  }
+}
+
+uint16_t MdfChannel::BitOffset::get() {
+  return channel_ != nullptr ? channel_->BitOffset() : 0; 
+}
+
+void MdfChannel::BitOffset::set(uint16_t bits) {
+  if (channel_ != nullptr) {
+    channel_->BitOffset(bits);
+  }
+}
+
 MdfSourceInformation^ MdfChannel::SourceInformation::get() {
-  auto* temp =
-      channel_ != nullptr
-          ? const_cast<mdf::ISourceInformation*>(channel_->SourceInformation())
-          : nullptr;
+  auto* temp = channel_ != nullptr ?
+    channel_->SourceInformation() : nullptr;
   return temp != nullptr ? gcnew MdfSourceInformation(temp) : nullptr;
 }
 
 MdfChannelConversion^ MdfChannel::ChannelConversion::get() {
-  const auto* conversion =
+  auto* conversion =
       channel_ != nullptr ? channel_->ChannelConversion() : nullptr;
-  return conversion != nullptr
-             ? gcnew MdfChannelConversion(
-                   const_cast<mdf::IChannelConversion*>(conversion))
-             : nullptr;
+  return conversion != nullptr ?
+    gcnew MdfChannelConversion(conversion) : nullptr;
+}
+
+array<MdfChannel^>^ MdfChannel::ChannelCompositions::get() {
+  if (channel_ == nullptr) {
+    return gcnew array<MdfChannel^>(0);
+  }
+  const auto temp = channel_->ChannelCompositions();
+  auto list = gcnew array<MdfChannel^>(static_cast<int>(temp.size()));
+  for (size_t index = 0; index < temp.size(); ++index) {
+    list[static_cast<int>(index)] = gcnew MdfChannel(temp[index]);
+  }
+  return list;
+}
+
+MdfMetaData^ MdfChannel::MetaData::get() {
+  auto* temp = channel_ != nullptr ? channel_->MetaData() : nullptr;
+  return temp != nullptr ? gcnew MdfMetaData(temp) : nullptr;
 }
 
 MdfSourceInformation^ MdfChannel::CreateSourceInformation() {
-  auto* temp=channel_ != nullptr ? channel_->CreateSourceInformation() : nullptr;
-  return temp != nullptr ? gcnew MdfSourceInformation(temp) : nullptr;
+  auto* temp=channel_ != nullptr ?
+    channel_->CreateSourceInformation() : nullptr;
+  return  gcnew MdfSourceInformation(temp);
 }
 
-MdfChannelConversion^ MdfChannel::CreateMdfChannelConversion() {
+MdfChannelConversion^ MdfChannel::CreateChannelConversion() {
   auto* temp =
       channel_ != nullptr ? channel_->CreateChannelConversion() : nullptr;
   return gcnew MdfChannelConversion(temp);
+}
+
+MdfChannel^ MdfChannel::CreateChannelComposition() {
+  auto* temp =
+      channel_ != nullptr ? channel_->CreateChannelComposition() : nullptr;
+  return gcnew MdfChannel(temp);  
+}
+
+MdfMetaData^ MdfChannel::CreateMetaData() {
+  auto* temp = channel_ != nullptr ? channel_->MetaData() : nullptr;
+  return gcnew MdfMetaData(temp);   
 }
 
 void MdfChannel::SetChannelValue(const int64_t value, bool valid) {

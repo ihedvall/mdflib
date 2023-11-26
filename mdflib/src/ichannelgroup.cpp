@@ -33,11 +33,11 @@ void IChannelGroup::PathSeparator(char16_t path_separator) {}
 
 ISourceInformation *IChannelGroup::CreateSourceInformation() { return nullptr; }
 
-const ISourceInformation *IChannelGroup::SourceInformation() const {
+ISourceInformation *IChannelGroup::SourceInformation() const {
   return nullptr;
 }
 IMetaData *IChannelGroup::CreateMetaData() { return nullptr; }
-const IMetaData *IChannelGroup::MetaData() const { return nullptr; }
+IMetaData *IChannelGroup::MetaData() const { return nullptr; }
 
 IChannel *IChannelGroup::CreateChannel(const std::string_view &name) {
   auto cn_list = Channels();

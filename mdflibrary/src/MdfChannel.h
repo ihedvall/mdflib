@@ -90,7 +90,7 @@ public:
   }
   property CnFlag Flags { CnFlag get(); void set(CnFlag flags); }
 
-  property size_t DataBytes { size_t get(); void set(size_t bytes); };  
+  property uint64_t DataBytes { uint64_t get(); void set(uint64_t bytes); };  
 
   property bool PrecisionUsed { bool get(); }
   property Byte Precision { Byte get(); };
@@ -114,17 +114,31 @@ public:
   };
 
   property double SamplingRate { double get(); void set(double rate); }
+  property uint64_t VlsdRecordId { uint64_t get(); void set(uint64_t recordId);}
 
+  property uint32_t BitCount { uint32_t get(); void set(uint32_t bits);}
+  property uint16_t BitOffset { uint16_t get(); void set(uint16_t bits);}
   property MdfSourceInformation^ SourceInformation {
     MdfSourceInformation^ get();
   }
+  
   property MdfChannelConversion^ ChannelConversion {
       MdfChannelConversion^ get();
   }
-
+  
+  property array<MdfChannel^>^ ChannelCompositions {
+      array<MdfChannel^>^ get();
+  }
+  
+  property MdfMetaData^ MetaData {
+      MdfMetaData^ get();
+  }
+  
   MdfSourceInformation^ CreateSourceInformation(); 
-  MdfChannelConversion^ CreateMdfChannelConversion();
-
+  MdfChannelConversion^ CreateChannelConversion();
+  MdfChannel^ CreateChannelComposition();
+  MdfMetaData^ CreateMetaData();
+  
   void SetChannelValue(const int64_t value) { SetChannelValue(value, true); };
   void SetChannelValue(const uint64_t value) { SetChannelValue(value, true); };
   void SetChannelValue(const double value) { SetChannelValue(value, true); };

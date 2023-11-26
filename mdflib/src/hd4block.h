@@ -73,7 +73,7 @@ class Hd4Block : public MdfBlock, public IHeader {
   [[nodiscard]] uint64_t StartTime() const override;
 
   [[nodiscard]] IMetaData *CreateMetaData() override;
-  [[nodiscard]] const IMetaData *MetaData() const override;
+  [[nodiscard]] IMetaData *MetaData() const override;
 
   [[nodiscard]] IAttachment *CreateAttachment() override;
   [[nodiscard]] std::vector<IAttachment *> Attachments() const override;

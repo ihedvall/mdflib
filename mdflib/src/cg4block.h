@@ -70,7 +70,7 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   size_t Write(std::FILE* file) override;
 
   ISourceInformation* CreateSourceInformation() override;
-  const ISourceInformation* SourceInformation() const override;
+  ISourceInformation* SourceInformation() const override;
 
   size_t UpdateCycleCounter(std::FILE *file);
   size_t UpdateVlsdSize(std::FILE *file);
@@ -79,7 +79,7 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   [[nodiscard]] IMetaData* CreateMetaData() override {
     return MdfBlock::CreateMetaData();
   }
-  [[nodiscard]] const IMetaData* MetaData() const override {
+  [[nodiscard]] IMetaData* MetaData() const override {
     return MdfBlock::MetaData();
   }
   void PrepareForWriting();
@@ -90,6 +90,18 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   uint32_t NofInvalidBytes() const {
     return nof_invalid_bytes_;
   }
+  void  WriteSample(FILE* file, uint8_t record_id_size,
+                   const std::vector<uint8_t>& buffer);
+  void  WriteCompressedSample(std::vector<uint8_t>& dest,
+                              uint8_t record_id_size,
+                              const std::vector<uint8_t>& buffer);
+  [[nodiscard]] uint64_t WriteVlsdSample(FILE* file, uint8_t record_id_size,
+                                 const std::vector<uint8_t>& buffer);
+  [[nodiscard]] uint64_t WriteCompressedVlsdSample(std::vector<uint8_t>& dest,
+                                                   uint8_t record_id_size,
+                                         const std::vector<uint8_t>& buffer);
+  Cn4Block* FindSdChannel() const;
+  Cn4Block* FindVlsdChannel(uint64_t record_id) const;
  private:
   uint64_t record_id_ = 0;
   uint64_t nof_samples_ = 0;
@@ -107,6 +119,7 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   int64_t nof_samples_position_ = 0; ///< Nof samples file position
   int64_t nof_data_position_ = 0; ///< File position for lower VLSD 32-bit
   int64_t nof_invalid_position_ = 0;///< File position for higher VLSD 32-bit
+  uint64_t vlsd_index_ = 0; ///< Index Counter that holds the next free VLSD index
 };
 
 }  // namespace mdf::detail

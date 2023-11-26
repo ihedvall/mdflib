@@ -45,7 +45,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   void Flags(uint32_t flags) override;
   uint32_t Flags() const override;
 
-  [[nodiscard]] const IChannelConversion* ChannelConversion() const override;
+  [[nodiscard]] IChannelConversion* ChannelConversion() const override;
   [[nodiscard]] IChannelConversion* CreateChannelConversion() override;
 
   void Type(ChannelType type) override;
@@ -54,8 +54,8 @@ class Cn4Block : public DataListBlock, public IChannel {
   void DataType(ChannelDataType type) override;
   [[nodiscard]] ChannelDataType DataType() const override;
 
-  void DataBytes(size_t nof_bytes) override;
-  [[nodiscard]] size_t DataBytes() const override;
+  void DataBytes(uint64_t nof_bytes) override;
+  [[nodiscard]] uint64_t DataBytes() const override;
 
   void SamplingRate(double sampling_rate) override;
   double SamplingRate() const override;
@@ -100,11 +100,11 @@ class Cn4Block : public DataListBlock, public IChannel {
   IMetaData *CreateMetaData() override {
     return MdfBlock::CreateMetaData();
   }
-  [[nodiscard]] const IMetaData *MetaData() const override {
+  [[nodiscard]] IMetaData *MetaData() const override {
     return MdfBlock::MetaData();
   }
 
-  [[nodiscard]] const ISourceInformation *SourceInformation() const override;
+  [[nodiscard]] ISourceInformation *SourceInformation() const override;
   [[nodiscard]] ISourceInformation* CreateSourceInformation() override;
 
   void PrepareForWriting(size_t offset);
@@ -115,14 +115,20 @@ class Cn4Block : public DataListBlock, public IChannel {
   bool GetValid(const std::vector<uint8_t> &record_buffer) const override;
   void ClearData() override;
 
-  void BitCount(size_t bits) override;
-  [[nodiscard]] size_t BitCount() const override;
-  void BitOffset(size_t bits) override;
-  [[nodiscard]] size_t BitOffset() const override;
-  void ByteOffset(size_t bytes) override;
-  [[nodiscard]] size_t ByteOffset() const override;
+  void BitCount(uint32_t bits) override;
+  [[nodiscard]] uint32_t BitCount() const override;
+  void BitOffset(uint16_t bits) override;
+  [[nodiscard]] uint16_t BitOffset() const override;
+  void ByteOffset(uint32_t bytes) override;
+  [[nodiscard]] uint32_t ByteOffset() const override;
   IChannel* CreateChannelComposition() override;
   std::vector<IChannel*> ChannelCompositions() override;
+
+  void MlsdChannel(const Cn4Block* channel) const {
+    mlsd_channel_ = channel;
+  }
+
+  uint64_t WriteSdSample(const std::vector<uint8_t>& buffer);
 
  protected:
 
@@ -168,10 +174,11 @@ class Cn4Block : public DataListBlock, public IChannel {
 
   // The data_list_ is a temporary buffer that holds
   // uncompressed signal data
-  mutable std::vector<uint8_t> data_list_;
-  mutable std::map<VlsdData, uint64_t> data_map_; // Data->index map
+  mutable std::vector<uint8_t> data_list_; ///< Typical SD block data
+  mutable std::map<VlsdData, uint64_t> data_map_; ///< Data->index map
 
-  const Cg4Block* cg_block_ = nullptr;
+  const Cg4Block* cg_block_ = nullptr; ///< Pointer to its CG block
+  mutable const Cn4Block* mlsd_channel_ = nullptr; ///< Pointer to length channel
 };
 
 }  // namespace mdf::detail

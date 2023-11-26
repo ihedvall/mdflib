@@ -46,27 +46,17 @@ mdf::IChannel* CreateTimeChannel(mdf::IChannelGroup& group,
     time->Name(name.data());
     time->Type(mdf::ChannelType::Master);
     time->Sync(mdf::ChannelSyncType::Time);
-    time->DataType(mdf::ChannelDataType::SignedIntegerLe);
+    time->DataType(mdf::ChannelDataType::FloatLe);
     time->DataBytes(8);
-    // Channel unit is actually nanoseconds.
-    if (time->ChannelConversion() == nullptr) {
-      auto* cc_time = time->CreateChannelConversion();
-      if (cc_time != nullptr) {
-        cc_time->Unit("s");
-        cc_time->Type(mdf::ConversionType::Linear);
-        cc_time->Decimals(6);
-        cc_time->Parameter(0, 0.0);
-        cc_time->Parameter(1, 1E-9);
-      }
-    }
+    time->Unit("s");
   }
   return time;
 }
 
 mdf::IChannel* CreateBitChannel(mdf::IChannel& parent,
                                 const std::string_view& name,
-                                size_t byte_offset,
-                                size_t bit_offset) {
+                                uint32_t byte_offset,
+                                uint16_t bit_offset) {
   auto* frame_bit = parent.CreateChannelComposition(name);
   if (frame_bit != nullptr) {
     frame_bit->Type(mdf::ChannelType::FixedLength);
@@ -79,6 +69,8 @@ mdf::IChannel* CreateBitChannel(mdf::IChannel& parent,
   }
   return frame_bit;
 }
+
+
 
 }  // namespace
 
@@ -205,6 +197,39 @@ void MdfWriter::SaveSample(IChannelGroup& group, uint64_t time) {
   sample_queue_.emplace_back(sample);
 }
 
+void MdfWriter::SaveCanMessage(IChannelGroup& group, uint64_t time,
+                    const CanMessage& msg) {
+  SampleRecord sample = group.GetSampleRecord();
+  sample.timestamp = time;
+  const auto itr_master = master_channels_.find(group.RecordId());
+  const auto* master =  itr_master == master_channels_.cend() ?
+                                    nullptr : itr_master->second;
+  if (master != nullptr) {
+    auto rel_ns = static_cast<int64_t>(sample.timestamp);
+    rel_ns -= static_cast<int64_t>(start_time_);
+    const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
+    master->SetTimestamp(rel_s, sample.record_buffer);
+  }
+  // Convert the CAN message to a sample record. Note that depending on the
+  // storage type, either the whole message buffer is stored (Max Length) or
+  // an index to a SD or a VLSD CG record is stored. The index cannot be
+  // calculated at this point as it have to be calculated before saving the
+  // recording to disc. Instead is the buffer temporary hold by the
+  // SampleRecord struct and fixed just before saving to disc.
+  const bool save_index = StorageType() != MdfStorageType::MlsdStorage;
+  if (group.Name() == "CAN_DataFrame") {
+    msg.ToRaw(MessageType::CAN_DataFrame, sample, MaxLength(), save_index);
+  } else if (group.Name() == "CAN_RemoteFrame") {
+    msg.ToRaw(MessageType::CAN_RemoteFrame, sample, MaxLength(), save_index);
+  } else if (group.Name() == "CAN_ErrorFrame") {
+    msg.ToRaw(MessageType::CAN_ErrorFrame, sample, MaxLength(), save_index);
+  } else if (group.Name() == "CAN_OverloadFrame") {
+    msg.ToRaw(MessageType::CAN_OverloadFrame, sample, MaxLength(), save_index);
+  }
+  std::lock_guard lock(locker_);
+  sample_queue_.emplace_back(sample);
+}
+
 void MdfWriter::RecalculateTimeMaster() {
   master_channels_.clear();
   const auto* header = Header();
@@ -261,8 +286,12 @@ void MdfWriter::RecalculateTimeMaster() {
 void MdfWriter::StartMeasurement(uint64_t start_time) {
   write_state_ = WriteState::StartMeas;
   start_time_ = start_time;
-  RecalculateTimeMaster();
   stop_time_ = 0;  // Zero indicate not stopped
+
+  // The sample queue actual have absolute time. We have to recalculate the
+  // times to relative times by using the start_time_.
+  RecalculateTimeMaster();
+
   sample_event_.notify_one();
 
   // Set the time in the header if this is the first DG block in the file.
@@ -466,7 +495,7 @@ bool MdfWriter::WriteSignalData(std::FILE* file) {
 std::string MdfWriter::Name() const {
   try {
     path filename = u8path(filename_);
-    return filename.stem().string();
+    return filename.stem().u8string();
   } catch (...) {
   }
   return {};
@@ -518,11 +547,25 @@ std::string_view MdfWriter::BusTypeAsString() const {
 
 void MdfWriter::CreateCanConfig(IDataGroup& dg_block) {
   auto* cg_data_frame = dg_block.CreateChannelGroup("CAN_DataFrame");
+
+  IChannel* cn_data_byte = nullptr; // Need to update the VLSD Record ID
+
   if (cg_data_frame != nullptr) {
     cg_data_frame->PathSeparator('.');
     cg_data_frame->Flags(CgFlag::PlainBusEvent | CgFlag::BusEvent);
     CreateTimeChannel(*cg_data_frame,"t");
     CreateCanDataFrameChannel(*cg_data_frame);
+    cn_data_byte = cg_data_frame->GetChannel("CAN_DataFrame.DataBytes");
+  }
+
+  if (StorageType() == MdfStorageType::VlsdStorage && cn_data_byte != nullptr) {
+    // Need to add a special CG group for the data samples
+
+    auto* cg_samples_frame = dg_block.CreateChannelGroup("Samples");
+    if (cg_samples_frame != nullptr) {
+      cg_samples_frame->Flags(CgFlag::VlsdChannel);
+      cn_data_byte->VlsdRecordId(cg_samples_frame->RecordId());
+    }
   }
 
   auto* cg_remote_frame = dg_block.CreateChannelGroup("CAN_RemoteFrame");
@@ -533,13 +576,25 @@ void MdfWriter::CreateCanConfig(IDataGroup& dg_block) {
     CreateCanRemoteFrameChannel(*cg_remote_frame);
   }
 
+  IChannel* cn_error_byte = nullptr; // Need to update the VLSD Record ID
   auto* cg_error_frame = dg_block.CreateChannelGroup("CAN_ErrorFrame");
   if (cg_error_frame != nullptr) {
     cg_error_frame->PathSeparator('.');
     cg_error_frame->Flags(CgFlag::PlainBusEvent | CgFlag::BusEvent);
     CreateTimeChannel(*cg_error_frame,"t");
     CreateCanErrorFrameChannel(*cg_error_frame);
+    cn_error_byte = cg_error_frame->GetChannel("CAN_ErrorFrame.DataBytes");
   }
+
+  if (StorageType() == MdfStorageType::VlsdStorage && cn_error_byte != nullptr) {
+    // Need to add a special CG group for the error samples
+    auto* cg_errors_frame = dg_block.CreateChannelGroup("Errors");
+    if (cg_errors_frame != nullptr) {
+      cg_errors_frame->Flags(CgFlag::VlsdChannel);
+      cn_error_byte->VlsdRecordId(cg_errors_frame->RecordId());
+    }
+  }
+
   auto* cg_overload_frame = dg_block.CreateChannelGroup("CAN_OverloadFrame");
   if (cg_overload_frame != nullptr) {
     cg_overload_frame->PathSeparator('.');
@@ -548,13 +603,7 @@ void MdfWriter::CreateCanConfig(IDataGroup& dg_block) {
     CreateCanOverloadFrameChannel(*cg_overload_frame);
   }
 
-  if (StorageType() == MdfStorageType::VlsdStorage) {
-    // Need to add a special CG group for the samples
-    auto* cg_samples_frame = dg_block.CreateChannelGroup("Samples");
-    if (cg_samples_frame != nullptr) {
-      cg_samples_frame->Flags(CgFlag::VlsdChannel);
-    }
-  }
+
 }
 
 void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
@@ -563,14 +612,20 @@ void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
     MDF_ERROR() << "Failed to create the CAN_DataFrame channel.";
     return;
   }
+
   cn_data_frame->Type(ChannelType::FixedLength);
   cn_data_frame->Sync(ChannelSyncType::None);
-  if (StorageType() == MdfStorageType::MlsdStorage) {
-    cn_data_frame->DataBytes(6 + MaxLength());
-  } else {
-    cn_data_frame->DataBytes(6 + 8); // Index into SD or VLSD
+  switch (StorageType()) {
+    case MdfStorageType::MlsdStorage:
+      cn_data_frame->DataBytes(6 + MaxLength());
+      break;
+
+    case MdfStorageType::FixedLengthStorage:
+    case MdfStorageType::VlsdStorage:
+    default:
+      cn_data_frame->DataBytes(6 + 8); // Index into SD or VLSD
+      break;
   }
-  cn_data_frame->DataBytes(14);
   cn_data_frame->Flags(CnFlag::BusEvent);
   cn_data_frame->DataType(ChannelDataType::ByteArray);
 
@@ -624,9 +679,9 @@ void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
       auto* cc_length = frame_length->CreateChannelConversion();
       if (cc_length != nullptr) {
         cc_length->Type(ConversionType::ValueToValue);
-        size_t index = 0;
-        for (size_t key = 0; key < 16; ++key) {
-          cc_length->Parameter(index++,key);
+        uint32_t index = 0;
+        for (uint8_t key = 0; key < 16; ++key) {
+          cc_length->Parameter(index++,static_cast<double>(key));
           cc_length->Parameter(index++,CanMessage::DlcToLength(key));
         }
         cc_length->Parameter(index, 0ULL);
@@ -645,13 +700,9 @@ void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
         break;
 
       case MdfStorageType::VlsdStorage:
-        frame_bytes->Type(ChannelType::VariableLength);
-        frame_bytes->BitCount(8 * 8); // Index to CG-VLSD record
-        break;
-
       default:
-        frame_bytes->Type(ChannelType::FixedLength);
-        frame_bytes->BitCount(8 * 8); // Index to SD block
+        frame_bytes->Type(ChannelType::VariableLength);
+        frame_bytes->BitCount(8 * 8); // Index to SD or VLSD CG block
         break;
     }
     frame_bytes->Sync(ChannelSyncType::None);
@@ -671,7 +722,7 @@ void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
   CreateBitChannel(*cn_data_frame,"CAN_DataFrame.SingleWire", 8 + 5, 6);
 }
 
-void MdfWriter::CreateCanRemoteFrameChannel(IChannelGroup& group) {
+void MdfWriter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
   auto* cn_remote_frame = group.CreateChannel("CAN_RemoteFrame");
   if (cn_remote_frame == nullptr) {
     MDF_ERROR() << "Failed to create the CAN_DataFrame channel.";
@@ -734,9 +785,9 @@ void MdfWriter::CreateCanRemoteFrameChannel(IChannelGroup& group) {
       auto* cc_length = frame_length->CreateChannelConversion();
       if (cc_length != nullptr) {
         cc_length->Type(ConversionType::ValueToValue);
-        size_t index = 0;
-        for (size_t key = 0; key < 16; ++key) {
-          cc_length->Parameter(index++,key);
+        uint32_t index = 0;
+        for (uint8_t key = 0; key < 16; ++key) {
+          cc_length->Parameter(index++,static_cast<double>(key));
           cc_length->Parameter(index++,CanMessage::DlcToLength(key));
         }
         cc_length->Parameter(index, 0ULL);
@@ -767,7 +818,8 @@ void MdfWriter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
     cn_error_frame->DataBytes(8 + 8); // Index into SD or VLSD
   }
 
-  auto* frame_bus = cn_error_frame->CreateChannelComposition("CAN_ErrorFrame.BusChannel");
+  auto* frame_bus = cn_error_frame->CreateChannelComposition(
+      "CAN_ErrorFrame.BusChannel");
   if (frame_bus != nullptr) {
     frame_bus->Type(ChannelType::FixedLength);
     frame_bus->Sync(ChannelSyncType::None);
@@ -778,7 +830,8 @@ void MdfWriter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
     frame_bus->Flags(CnFlag::BusEvent);
   }
 
-  auto* frame_id = cn_error_frame->CreateChannelComposition("CAN_ErrorFrame.ID");
+  auto* frame_id = cn_error_frame->CreateChannelComposition(
+      "CAN_ErrorFrame.ID");
   if (frame_id != nullptr) {
     frame_id->Type(ChannelType::FixedLength);
     frame_id->Sync(ChannelSyncType::None);
@@ -816,9 +869,9 @@ void MdfWriter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
       auto* cc_length = frame_length->CreateChannelConversion();
       if (cc_length != nullptr) {
         cc_length->Type(ConversionType::ValueToValue);
-        size_t index = 0;
-        for (size_t key = 0; key < 16; ++key) {
-          cc_length->Parameter(index++,key);
+        uint32_t index = 0;
+        for (uint8_t key = 0; key < 16; ++key) {
+          cc_length->Parameter(index++,static_cast<double>(key));
           cc_length->Parameter(index++,CanMessage::DlcToLength(key));
         }
         cc_length->Parameter(index, 0ULL);
@@ -843,12 +896,8 @@ void MdfWriter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
         break;
 
       case MdfStorageType::VlsdStorage:
-        frame_bytes->Type(ChannelType::VariableLength);
-        frame_bytes->BitCount(8 * 8); // Index to CG-VLSD record
-        break;
-
       default:
-        frame_bytes->Type(ChannelType::FixedLength);
+        frame_bytes->Type(ChannelType::VariableLength);
         frame_bytes->BitCount(8 * 8); // Index to SD block
         break;
     }

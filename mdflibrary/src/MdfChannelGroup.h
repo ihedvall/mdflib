@@ -27,13 +27,18 @@ public:
   property uint16_t Flags { uint16_t get(); void set(uint16_t flags); }
   property wchar_t PathSeparator { wchar_t get(); void set(wchar_t sep); }
   property array<MdfChannel^>^ Channels { array<MdfChannel^>^ get(); }
-  property MdfSourceInformation^ SourceInformation { MdfSourceInformation^ get(); }
+  property MdfMetaData^ MetaData {
+    MdfMetaData^ get();
+  }
+  property MdfSourceInformation^ SourceInformation {
+    MdfSourceInformation^ get();
+  }
   MdfChannel^ GetXChannel(const MdfChannel^ ref_channel );
-
-    
-  MdfMetaData ^ CreateMetaData();
-  MdfChannel ^ CreateChannel();
-  MdfSourceInformation^ CreateSourceInformation(); 
+   
+  MdfMetaData^ CreateMetaData();
+  MdfChannel^ CreateChannel();
+  MdfSourceInformation^ CreateSourceInformation();
+  
  private:
   MdfChannelGroup() {}
 internal:

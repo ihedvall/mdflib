@@ -118,6 +118,20 @@ size_t Dg4Block::Write(std::FILE* file) {
     bytes += WriteNumber(file, rec_id_size_);
     bytes += WriteBytes(file, 7);
     UpdateBlockSize(file, bytes);
+    // Need to update the signal data link for any chaannels referencing
+    // VLSD CG bloks.
+    for (auto& cg4 : cg_list_) {
+      if (cg4 && (cg4->Flags() & CgFlag::VlsdChannel) ) {
+        // The previous CG block have a channel which need to updates its
+        // signal data link.
+        auto* other_cg4 = FindCgRecordId(cg4->RecordId() -1);
+        auto* cn4 = other_cg4 != nullptr ?
+                 other_cg4->FindVlsdChannel(cg4->RecordId()) : nullptr;
+        if (cn4 != nullptr) {
+          cn4->UpdateDataLink(file, cg4->FilePosition());
+        }
+      }
+    }
   }
   // Need to write any data block so it is positioned last in the file
   // as any DT block should be appended with data bytes. The DT block must be
@@ -141,8 +155,8 @@ void Dg4Block::ReadData(std::FILE* file) const {
     return;
   }
 
-  // First scan through all CN blocks and read in any SD VLSD data related data
-  // bytes into memory.
+  // First scan through all CN blocks and set up any VLSD CG or MLSD channel
+  // relations.
 
   for (const auto& cg : cg_list_) {
     if (!cg) {
@@ -157,6 +171,10 @@ void Dg4Block::ReadData(std::FILE* file) const {
       if (cn_block == nullptr) {
         continue;
       }
+      // Fetch the channels referenced data block. Note that some type of
+      // data blocks are own by this channel as SD block but some are only
+      // references to block own by another block. Of interest is VLSD CG block
+      // and MLSD channel.
       const auto data_link = cn_block->DataLink();
       if (data_link == 0) {
         continue; // No data to read into the system
@@ -170,27 +188,47 @@ void Dg4Block::ReadData(std::FILE* file) const {
         continue; // Strange that the block doesn't exist
       }
 
-      // Check if it relate to a VLSD CG block or a SD block
-      if (cn_block->Type() == ChannelType::VariableLength &&
-          block->BlockType() == "CG") {
-        const auto* cg_block = dynamic_cast<const Cg4Block*>(block);
-        if (cg_block != nullptr) {
-          cn_block->CgRecordId(cg_block->RecordId());
-        }
-        // No meaning to read in the data as it is inside this DG/DT block
-        continue;
+      switch (cn_block->Type()) {
+        case ChannelType::VariableLength:
+          if (block->BlockType() == "CG") {
+            const auto* cg_block = dynamic_cast<const Cg4Block*>(block);
+            if (cg_block != nullptr &&
+                (cg_block->Flags() & CgFlag::VlsdChannel) != 0 ) {
+              cn_block->VlsdRecordId(cg_block->RecordId());
+            } else {
+              cn_block->VlsdRecordId(0);
+              cn_block->ReadData(file);
+            }
+          } else if (block->BlockType() == "SD") {
+            cn_block->ReadData(file);
+          }
+          break;
+
+        case ChannelType::MaxLength:
+          if (block->BlockType() == "CN") {
+            // Point to the length of byte array channel
+            const auto* mlsd_channel = dynamic_cast<const Cn4Block*>(block);
+            if (mlsd_channel != nullptr) {
+              cn_block->MlsdChannel(mlsd_channel);
+            } else {
+              cn_block->MlsdChannel(nullptr);
+            }
+          }
+          break;
+
+        default:
+          break;
       }
-      cn_block->ReadData(file);
     }
   }
 
   // Convert everything to a samples in a file single DT block can be read
   // directly but remaining block types are streamed to a temporary file. The
-  // main reason is that linked data blocks not is aligned to a record or even
+  // main reason is that linked data blocks,is not aligned to a record or even
   // worse a channel value bytes. Converting everything to a simple DT block
   // solves that problem.
 
-  bool close_data_file = false;
+  bool close_data_file = false; // If DT block do not close the data file.
   std::FILE* data_file = nullptr;
   size_t data_size = 0;
   if (block_list.size() == 1 && block_list[0] &&
@@ -202,13 +240,16 @@ void Dg4Block::ReadData(std::FILE* file) const {
       data_size = dt->DataSize();
     }
   } else {
+    // If not a DT block, extract the linked data block list into temporary
+    // file which is a DT block according to the above DT block.
     close_data_file = true;
     data_file = std::tmpfile();
     data_size = CopyDataToFile(block_list, file, data_file);
     std::rewind(data_file);  // SetFilePosition(data_file,0);
   }
 
-  auto pos = GetFilePosition(data_file);
+  // Now, it is time to scan through and do a call-back for each record
+  // auto pos = GetFilePosition(data_file);
   // Read through all record
   ParseDataRecords(data_file, data_size);
   if (data_file != nullptr && close_data_file) {
@@ -292,7 +333,7 @@ size_t Dg4Block::ReadRecordId(std::FILE* file, uint64_t& record_id) const {
   return count;
 }
 
-const Cg4Block* Dg4Block::FindCgRecordId(uint64_t record_id) const {
+Cg4Block* Dg4Block::FindCgRecordId(uint64_t record_id) const {
   if (cg_list_.size() == 1) {
     return cg_list_[0].get();
   }
@@ -348,7 +389,7 @@ IMetaData* Dg4Block::CreateMetaData() {
   return MdfBlock::CreateMetaData();
 }
 
-const IMetaData* Dg4Block::MetaData() const {
+IMetaData* Dg4Block::MetaData() const {
   return MdfBlock::MetaData();
 }
 

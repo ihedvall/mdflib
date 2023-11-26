@@ -255,6 +255,12 @@
     <ClCompile Include="src\vlsddata.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\canmessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mdfbuslogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\at4block.h">
@@ -505,6 +511,12 @@
     </ClInclude>
     <ClInclude Include="..\include\mdf\zlibutil.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mdf\canmessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mdfbuslogger.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

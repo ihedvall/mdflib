@@ -171,7 +171,7 @@ class MdfBlock {
   [[nodiscard]] std::string MdText() const;
 
   [[nodiscard]] virtual IMetaData *CreateMetaData();
-  [[nodiscard]] virtual const IMetaData *MetaData() const;
+  [[nodiscard]] virtual IMetaData *MetaData() const;
 
 
   void CreateMd4Block();  ///< Helper function that creates an MD4 block to this

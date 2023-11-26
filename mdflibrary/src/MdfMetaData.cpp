@@ -3,12 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <string>
-#include <msclr/marshal_cppstd.h>
 #include "MdfMetaData.h"
 #include "mdflibrary.h"
-
-using namespace msclr::interop;
 
 namespace MdfLibrary {
 

@@ -935,6 +935,70 @@ EXPORTFEATUREFUNC(void, AddCommonProperty, ETag* tag) {
 }
 #undef EXPORTFEATUREFUNC
 #pragma endregion
+
+#pragma region CanMessage
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
+  EXPORT(ReturnType, CanMessage, FuncName, mdf::CanMessage* can, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(uint32_t, GetMessageId) { return can->MessageId(); };
+EXPORTFEATUREFUNC(void, SetMessageId, const uint32_t msgId) {
+  can->MessageId(msgId);
+};
+EXPORTFEATUREFUNC(uint32_t, GetCanId) { return can->CanId(); };
+EXPORTFEATUREFUNC(bool, GetExtendedId) { return can->ExtendedId(); };
+EXPORTFEATUREFUNC(void, SetExtendedId, const bool extendedId) {
+  can->ExtendedId(extendedId);
+};
+EXPORTFEATUREFUNC(uint8_t, GetDlc) { return can->Dlc(); };
+EXPORTFEATUREFUNC(void, SetDlc, const uint8_t dlc) { can->Dlc(dlc); };
+EXPORTFEATUREFUNC(uint32_t, GetDataLength) { return can->DataLength(); };
+EXPORTFEATUREFUNC(void, SetDataLength, const uint32_t dataLength) {
+  can->DataLength(dataLength);
+};
+EXPORTFEATUREFUNC(size_t, GetDataBytes, uint8_t dataList[]) {
+  std::vector<uint8_t> vec = can->DataBytes();
+  if (dataList != nullptr) memcpy(dataList, vec.data(), vec.size());
+  return vec.size();
+};
+EXPORTFEATUREFUNC(void, SetDataBytes, const uint8_t* dataList,
+                  const size_t size) {
+  can->DataBytes(std::vector<uint8_t>(dataList, dataList + size));
+};
+EXPORTFEATUREFUNC(uint64_t, GetDataIndex) { return can->DataIndex(); };
+EXPORTFEATUREFUNC(void, SetDataIndex, const uint64_t index) {
+  can->DataIndex(index);
+};
+EXPORTFEATUREFUNC(bool, GetDir) { return can->Dir(); };
+EXPORTFEATUREFUNC(void, SetDir, const bool transmit) { can->Dir(transmit); };
+EXPORTFEATUREFUNC(bool, GetSrr) { return can->Srr(); };
+EXPORTFEATUREFUNC(void, SetSrr, const bool srr) { can->Srr(srr); };
+EXPORTFEATUREFUNC(bool, GetEdl) { return can->Edl(); };
+EXPORTFEATUREFUNC(void, SetEdl, const bool edl) { can->Edl(edl); };
+EXPORTFEATUREFUNC(bool, GetBrs) { return can->Brs(); };
+EXPORTFEATUREFUNC(void, SetBrs, const bool brs) { can->Brs(brs); };
+EXPORTFEATUREFUNC(bool, GetEsi) { return can->Esi(); };
+EXPORTFEATUREFUNC(void, SetEsi, const bool esi) { can->Esi(esi); };
+EXPORTFEATUREFUNC(bool, GetRtr) { return can->Rtr(); };
+EXPORTFEATUREFUNC(void, SetRtr, const bool rtr) { can->Rtr(rtr); };
+EXPORTFEATUREFUNC(bool, GetWakeUp) { return can->WakeUp(); };
+EXPORTFEATUREFUNC(void, SetWakeUp, const bool wakeUp) { can->WakeUp(wakeUp); };
+EXPORTFEATUREFUNC(bool, GetSingleWire) { return can->SingleWire(); };
+EXPORTFEATUREFUNC(void, SetSingleWire, const bool singleWire) {
+  can->SingleWire(singleWire);
+};
+EXPORTFEATUREFUNC(uint8_t, GetBusChannel) { return can->BusChannel(); };
+EXPORTFEATUREFUNC(void, SetBusChannel, const uint8_t channel) {
+  can->BusChannel(channel);
+};
+EXPORTFEATUREFUNC(uint8_t, GetBitPosition) { return can->BitPosition(); };
+EXPORTFEATUREFUNC(void, SetBitPosition, const uint8_t position) {
+  can->BitPosition(position);
+};
+EXPORTFEATUREFUNC(CanErrorType, GetErrorType) { return can->ErrorType(); };
+EXPORTFEATUREFUNC(void, SetErrorType, const CanErrorType type) {
+  can->ErrorType(type);
+};
+#undef EXPORTFEATUREFUNC
+#pragma endregion
 }  // namespace MdfLibrary::ExportFunctions
 }
 #undef EXPORT

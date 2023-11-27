@@ -22,6 +22,7 @@ class IFileHistory;
 class IEvent;
 class ETag;
 class IMetaData;
+class CanMessage;
 }  // namespace mdf
 
 namespace MdfLibrary {
@@ -299,6 +300,22 @@ enum class ETagDataType : uint8_t {
   DateType = 5,     ///< Date value according to ISO (YYYY-MM-DD).
   TimeType = 6,     ///< Time value ISO
   DateTimeType = 7  ///< Date and Time ISO string (YYYY-MM-DD hh:mm:ss)
+};
+
+enum class CanErrorType : uint8_t {
+  UNKNOWN_ERROR = 0, ///< Unspecified error.
+  BIT_ERROR = 1,     ///< CAN bit error.
+  FORM_ERROR = 2,    ///< CAN format error.
+  BIT_STUFFING_ERROR = 3, ///< Bit stuffing error.
+  CRC_ERROR = 4, ///< Checksum error.
+  ACK_ERROR = 5 ///< Acknowledgement error.
+};
+
+enum class MessageType : int {
+  CAN_DataFrame, ///< Normal CAN message
+  CAN_RemoteFrame, ///< Remote frame message.
+  CAN_ErrorFrame, ///< Error message.
+  CAN_OverloadFrame, ///< Overload frame message.
 };
 }  // namespace MdfLibrary
 
@@ -741,6 +758,48 @@ EXPORTFEATUREFUNC(void, SetCommonProperties, const mdf::ETag* pProperty[],
 EXPORTFEATUREFUNC(size_t, GetXmlSnippet, char* xml);
 EXPORTFEATUREFUNC(void, SetXmlSnippet, const char* xml);
 EXPORTFEATUREFUNC(void, AddCommonProperty, mdf::ETag* tag);
+#undef EXPORTFEATUREFUNC
+#pragma endregion
+
+#pragma region CanMessage
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                  \
+  EXPORT(ReturnType, CanMessage, FuncName, mdf::CanMessage* can, \
+         ##__VA_ARGS__)
+EXPORTFEATUREFUNC(uint32_t, GetMessageId);
+EXPORTFEATUREFUNC(void, SetMessageId, const uint32_t msgId);
+EXPORTFEATUREFUNC(uint32_t, GetCanId);
+EXPORTFEATUREFUNC(bool, GetExtendedId);
+EXPORTFEATUREFUNC(void, SetExtendedId, const bool extendedId);
+EXPORTFEATUREFUNC(uint8_t, GetDlc);
+EXPORTFEATUREFUNC(void, SetDlc, const uint8_t dlc);
+EXPORTFEATUREFUNC(uint32_t, GetDataLength);
+EXPORTFEATUREFUNC(void, SetDataLength, const uint32_t dataLength);
+EXPORTFEATUREFUNC(size_t, GetDataBytes, uint8_t dataList[]);
+EXPORTFEATUREFUNC(void, SetDataBytes, const uint8_t* dataList, const size_t size);
+EXPORTFEATUREFUNC(uint64_t, GetDataIndex);
+EXPORTFEATUREFUNC(void, SetDataIndex, const uint64_t index);
+EXPORTFEATUREFUNC(bool, GetDir);
+EXPORTFEATUREFUNC(void, SetDir, const bool transmit);
+EXPORTFEATUREFUNC(bool, GetSrr);
+EXPORTFEATUREFUNC(void, SetSrr, const bool srr);
+EXPORTFEATUREFUNC(bool, GetEdl);
+EXPORTFEATUREFUNC(void, SetEdl, const bool edl);
+EXPORTFEATUREFUNC(bool, GetBrs);
+EXPORTFEATUREFUNC(void, SetBrs, const bool brs);
+EXPORTFEATUREFUNC(bool, GetEsi);
+EXPORTFEATUREFUNC(void, SetEsi, const bool esi);
+EXPORTFEATUREFUNC(bool, GetRtr);
+EXPORTFEATUREFUNC(void, SetRtr, const bool rtr);
+EXPORTFEATUREFUNC(bool, GetWakeUp);
+EXPORTFEATUREFUNC(void, SetWakeUp, const bool wakeUp);
+EXPORTFEATUREFUNC(bool, GetSingleWire);
+EXPORTFEATUREFUNC(void, SetSingleWire, const bool singleWire);
+EXPORTFEATUREFUNC(uint8_t, GetBusChannel);
+EXPORTFEATUREFUNC(void, SetBusChannel, const uint8_t channel);
+EXPORTFEATUREFUNC(uint8_t, GetBitPosition);
+EXPORTFEATUREFUNC(void, SetBitPosition, const uint8_t position);
+EXPORTFEATUREFUNC(CanErrorType, GetErrorType);
+EXPORTFEATUREFUNC(void, SetErrorType, const CanErrorType type);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 }  // namespace MdfLibrary::ExportFunctions

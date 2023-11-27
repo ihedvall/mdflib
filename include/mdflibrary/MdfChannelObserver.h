@@ -72,7 +72,7 @@ class MdfChannelObserver {
     return MdfChannelObserverGetChannelValueAsString(observer, sample,
                                                      value.data(), size);
   }
-  bool GetChannelValue(uint64_t sample, std::vector<uint8_t> value) const {
+  bool GetChannelValue(uint64_t sample, std::vector<uint8_t>& value) const {
     size_t size;
     MdfChannelObserverGetChannelValueAsArray(observer, sample, nullptr, size);
     value.reserve(size);
@@ -95,7 +95,7 @@ class MdfChannelObserver {
     return MdfChannelObserverGetEngValueAsString(observer, sample, value.data(),
                                                  size);
   }
-  bool GetEngValue(uint64_t sample, std::vector<uint8_t> value) const {
+  bool GetEngValue(uint64_t sample, std::vector<uint8_t>& value) const {
     size_t size;
     MdfChannelObserverGetEngValueAsArray(observer, sample, nullptr, size);
     value.reserve(size);

@@ -320,8 +320,7 @@ class IChannelConversion : public IBlock {
 };
 
 template <typename T, typename V>
-inline bool IChannelConversion::Convert(const T& channel_value,
-  V& eng_value) const {
+inline bool IChannelConversion::Convert(const T& channel_value, V& eng_value) const {
   bool valid = false;
   double value = 0.0;
   switch (Type()) {
@@ -344,8 +343,7 @@ inline bool IChannelConversion::Convert(const T& channel_value,
     }
 
     case ConversionType::ValueToValueInterpolation: {
-      valid = ConvertValueToValueInterpolate(
-          static_cast<double>(channel_value), value);
+      valid = ConvertValueToValueInterpolate(static_cast<double>(channel_value), value);
       eng_value = static_cast<V>(value);
       break;
     }
@@ -357,8 +355,7 @@ inline bool IChannelConversion::Convert(const T& channel_value,
     }
 
     case ConversionType::ValueRangeToValue: {
-      valid =
-          ConvertValueRangeToValue(static_cast<double>(channel_value), value);
+      valid = ConvertValueRangeToValue(static_cast<double>(channel_value), value);
       eng_value = static_cast<V>(value);
       break;
     }
@@ -373,8 +370,7 @@ inline bool IChannelConversion::Convert(const T& channel_value,
 
     case ConversionType::ValueRangeToText: {
       std::string text;
-      valid =
-          ConvertValueRangeToText(static_cast<double>(channel_value), text);
+      valid = ConvertValueRangeToText(static_cast<double>(channel_value), text);
       std::istringstream s(text);
       s >> eng_value;
       break;

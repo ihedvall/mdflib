@@ -243,7 +243,9 @@ std::string MdfReader::ShortName() const {
   return {};
 }
 
-bool MdfReader::Open() { return detail::OpenMdfFile(file_, filename_, "rb"); }
+bool MdfReader::Open() {
+  return detail::OpenMdfFile(file_, filename_, "rb");
+}
 
 void MdfReader::Close() {
   if (file_ != nullptr) {

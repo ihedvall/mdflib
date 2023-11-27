@@ -17,6 +17,10 @@ using namespace mdf;
 // WINDOWS
 #define EXPORT(ReturnType, ClassName, FuncName, ...) \
   __declspec(dllexport) ReturnType ClassName##FuncName(__VA_ARGS__)
+#elif defined(__EMSCRIPTEN__)
+// Web Assembly
+#define EXPORT(ReturnType, ClassName, FuncName, ...) \
+ReturnType ClassName##FuncName(__VA_ARGS__)
 #elif defined(__linux__)
 // LINUX
 #define EXPORT(ReturnType, ClassName, FuncName, ...) \

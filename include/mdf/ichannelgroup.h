@@ -7,6 +7,7 @@
  * \brief Defines an interface against a channel group (CG) block.
  */
 #pragma once
+#include <algorithm>
 #include <string>
 #include <vector>
 

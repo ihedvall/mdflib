@@ -494,8 +494,8 @@ bool MdfWriter::WriteSignalData(std::FILE* file) {
 
 std::string MdfWriter::Name() const {
   try {
-    path filename = u8path(filename_);
-    return filename.stem().u8string();
+    auto filename = u8path(filename_).stem().u8string();
+    return std::string(filename.begin(), filename.end());
   } catch (...) {
   }
   return {};
@@ -682,9 +682,9 @@ void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
         uint32_t index = 0;
         for (uint8_t key = 0; key < 16; ++key) {
           cc_length->Parameter(index++,static_cast<double>(key));
-          cc_length->Parameter(index++,static_cast<uint64_t>(CanMessage::DlcToLength(key)));
+          cc_length->Parameter(index++,static_cast<double>(CanMessage::DlcToLength(key)));
         }
-        cc_length->Parameter(index, 0ULL);
+        cc_length->Parameter(index, static_cast<double>(0));
       }
     }
   }
@@ -788,9 +788,9 @@ void MdfWriter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
         uint32_t index = 0;
         for (uint8_t key = 0; key < 16; ++key) {
           cc_length->Parameter(index++,static_cast<double>(key));
-          cc_length->Parameter(index++,static_cast<uint64_t>(CanMessage::DlcToLength(key)));
+          cc_length->Parameter(index++,static_cast<double>(CanMessage::DlcToLength(key)));
         }
-        cc_length->Parameter(index, 0ULL);
+        cc_length->Parameter(index, static_cast<double>(0));
       }
     }
   }
@@ -872,9 +872,9 @@ void MdfWriter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
         uint32_t index = 0;
         for (uint8_t key = 0; key < 16; ++key) {
           cc_length->Parameter(index++,static_cast<double>(key));
-          cc_length->Parameter(index++,static_cast<uint64_t>(CanMessage::DlcToLength(key)));
+          cc_length->Parameter(index++,static_cast<double>(CanMessage::DlcToLength(key)));
         }
-        cc_length->Parameter(index, 0ULL);
+        cc_length->Parameter(index, static_cast<double>(0));
       }
     }
   }

@@ -16,8 +16,8 @@ namespace mdf {
 
 std::string IXmlFile::FileNameWithoutPath() const {
   try {
-    std::filesystem::path p = std::filesystem::u8path(filename_);
-    return p.filename().u8string();
+    auto filename = std::filesystem::u8path(filename_).stem().u8string();
+    return std::string(filename.begin(), filename.end());
   } catch (const std::exception &error) {
     MDF_ERROR() << "Invalid path. File: " << filename_
                 << ", Error: " << error.what();

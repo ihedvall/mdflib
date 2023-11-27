@@ -55,8 +55,28 @@
     <ClCompile Include="src\MdfWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\CanMessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{c68f2997-efa2-4cf0-b3a1-f02bc58fe116}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{63554722-24e6-451d-a684-a26ea73012d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{378f55bb-ccb4-43b0-b961-82541a8c48de}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\MdfWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CanMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\MdfAttachment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -105,19 +125,5 @@
     <ClInclude Include="src\MdfSourceInformation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\MdfWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{c68f2997-efa2-4cf0-b3a1-f02bc58fe116}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{63554722-24e6-451d-a684-a26ea73012d1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{378f55bb-ccb4-43b0-b961-82541a8c48de}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>

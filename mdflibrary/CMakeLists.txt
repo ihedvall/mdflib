@@ -4,6 +4,7 @@ message(STATUS  "Compiler Version " ${CMAKE_CXX_COMPILER_VERSION})
 message(STATUS  "MSVC " ${MSVC})
 if (MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36)
     message(STATUS  "CLR compile")
+    # Hander files for building c# clr
     add_library(mdflibrary SHARED
             src/MdfExport.cpp
             src/AssemblyInfo.cpp
@@ -37,6 +38,7 @@ target_link_libraries(mdflibrary PRIVATE mdf)
 target_include_directories(
   mdflibrary PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>)
 
+# Hander files for c/cpp, NOT the SAME as the one of c# clr
 set(MDFLIBRARY_PUBLIC_HEADERS
             ../include/mdflibrary/MdfExport.h
             ../include/mdflibrary/MdfAttachment.h

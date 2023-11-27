@@ -88,7 +88,3 @@ MdfMetaData^ MdfAttachment::CreateMetaData() {
 }
 
 }
-
-
-
-

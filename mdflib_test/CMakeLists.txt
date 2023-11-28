@@ -26,7 +26,8 @@ add_executable(test_mdf
         src/util/logmessage.cpp src/util/logmessage.h
         src/util/logstream.cpp src/util/logstream.h
         src/util/stringutil.cpp src/util/stringutil.h
-        src/util/timestamp.cpp src/util/timestamp.h)
+        src/util/timestamp.cpp src/util/timestamp.h
+        src/testhelper.cpp)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 

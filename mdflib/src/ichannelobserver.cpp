@@ -84,15 +84,19 @@ bool IChannelObserver::GetChannelValue(uint64_t sample, std::string& value) cons
 }
 
 template <>
-bool IChannelObserver::GetChannelValue(uint64_t sample, std::vector<uint8_t>& value) const {
+bool IChannelObserver::GetChannelValue(uint64_t sample,
+                                       std::vector<uint8_t>& value) const {
   bool valid = false;
   value.clear();
   switch (channel_.DataType()) {
+    case ChannelDataType::MimeStream:
+    case ChannelDataType::MimeSample:
     case ChannelDataType::ByteArray: {
       valid = GetSampleByteArray(sample, value);
       break;
     }
 
+      // Strange to ask for byte array sample if not stored as a byte array.
     default:
       break;
   }

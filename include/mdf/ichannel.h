@@ -136,7 +136,18 @@ class IChannel : public IBlock  {
   /** \brief Returns the description. */
   [[nodiscard]] virtual std::string Description() const = 0;
 
-  virtual void Unit(const std::string &unit) = 0; ///< Sets the unit.
+  /** \brief Sets unit string or or the MIME text string.
+   *
+   * The function sets the unit string for the channel. If the channel data
+   * type is a MIME sample or a stream, the unit is a mime content type string.
+   */
+  virtual void Unit(const std::string &unit) = 0;
+
+  /** \brief Returns the unit string or the MIME content type string.
+   *
+   *
+   * @return Unit or MIME content string.
+   */
   [[nodiscard]] virtual std::string Unit() const = 0; ///< Returns the unit
 
   /** \brief Sets channel flags. Flags are defined in the CnFlag namespace  */

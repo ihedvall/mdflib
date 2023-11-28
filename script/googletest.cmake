@@ -4,6 +4,7 @@
 if (NOT GTest_FOUND)
     set(GTEST_MSVC_SEARCH MT)
     if (COMP_DIR)
+        # Ignore the error message that GTest_ROOT should be used. It has to be capital letters
         set(GTEST_ROOT ${COMP_DIR}/googletest/master)
     endif()
 

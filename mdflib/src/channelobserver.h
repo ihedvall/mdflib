@@ -151,6 +151,8 @@ bool ChannelObserver<T>::GetSampleUnsigned(uint64_t sample,
   return sample < valid_list_.size() && valid_list_[sample];
 }
 
+// specialization of the above template function just to keep the compiler
+// happy. Fetching an unsigned value as a byte array is not supported.
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleUnsigned(
     uint64_t sample, uint64_t& value) const;
@@ -204,6 +206,8 @@ template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleText(
     uint64_t sample, std::string& value) const;
 
+// Little bit dirty trick but it's the specialized function below that
+// normally used.
 template <class T>
 bool ChannelObserver<T>::GetSampleByteArray(uint64_t sample,
                                             std::vector<uint8_t>& value) const {
@@ -211,6 +215,7 @@ bool ChannelObserver<T>::GetSampleByteArray(uint64_t sample,
   return sample < valid_list_.size() && valid_list_[sample];
 }
 
+// This specialized function is actually doing the work with byte arrays
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleByteArray(
     uint64_t sample, std::vector<uint8_t>& value) const;

@@ -851,17 +851,24 @@ void IChannel::SetChannelValue(const std::string &value, bool valid) {
 
     case ChannelDataType::StringUTF8:
     case ChannelDataType::StringAscii:
+    case ChannelDataType::StringUTF16Le:
+    case ChannelDataType::StringUTF16Be:
       SetTextValue(value, valid);
       break;
 
-    case ChannelDataType::StringUTF16Le:
-    case ChannelDataType::StringUTF16Be:
-    case ChannelDataType::CanOpenDate:
-    case ChannelDataType::CanOpenTime:
     case ChannelDataType::MimeStream:
     case ChannelDataType::MimeSample:
-    case ChannelDataType::ByteArray:
+    case ChannelDataType::ByteArray:      {
+        // The input string needs to be copied to a byte array.
+        auto byte_array = MdfHelper::TextToByteArray(value);
+        SetByteArray(byte_array, valid);
+        break;
+      }
+
+    case ChannelDataType::CanOpenDate:
+    case ChannelDataType::CanOpenTime:
     default:
+        // Cannot find any good text to date/time
       SetValid(false);
       break;
   }
@@ -870,6 +877,12 @@ void IChannel::SetChannelValue(const std::string &value, bool valid) {
 template <>
 void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid) {
   switch (DataType()) {
+    case ChannelDataType::StringUTF8:
+    case ChannelDataType::StringAscii:
+    case ChannelDataType::StringUTF16Le:
+    case ChannelDataType::StringUTF16Be:
+    case ChannelDataType::MimeStream:
+    case ChannelDataType::MimeSample:
     case ChannelDataType::ByteArray:
       SetByteArray(value, valid);
       break;
@@ -889,13 +902,8 @@ void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid) {
     case ChannelDataType::SignedIntegerBe:
     case ChannelDataType::FloatLe:
     case ChannelDataType::FloatBe:
-    case ChannelDataType::StringUTF8:
-    case ChannelDataType::StringAscii:
-    case ChannelDataType::StringUTF16Le:
-    case ChannelDataType::StringUTF16Be:
-    case ChannelDataType::MimeStream:
-    case ChannelDataType::MimeSample:
     default:
+      // Conversion to byte array is suspicious
       SetValid(false);
       break;
   }

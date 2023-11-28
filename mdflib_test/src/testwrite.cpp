@@ -1995,6 +1995,118 @@ TEST_F(TestWrite, Mdf4Master) {
   }
 }
 
+TEST_F(TestWrite, Mdf4Mime) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("mime.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+
+  auto* header = writer->Header();
+  ASSERT_TRUE(header != nullptr);
+
+  auto* history = header->CreateFileHistory();
+  ASSERT_TRUE(history != nullptr);
+  history->Description("Test mime types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("2.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("Mime");
+
+  auto* master1 = group1->CreateChannel();
+  master1->Name("Time");
+  master1->Type(ChannelType::Master);
+  master1->Sync(ChannelSyncType::Time);
+  master1->DataType(ChannelDataType::FloatLe);
+  master1->DataBytes(4);
+
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("Pictures");
+  ch1->Type(ChannelType::VariableLength); // Store in SD block
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::MimeSample);
+  ch1->Unit("image/png");
+  ch1->DataBytes(8); // 64-bit index
+
+  // Not very likely that we using the same time channel for
+  // picture and video streams
+  auto* ch2 = group1->CreateChannel();
+  ch2->Name("Video");
+  ch2->Type(ChannelType::VariableLength);
+  ch2->Sync(ChannelSyncType::None);
+  ch2->DataType(ChannelDataType::MimeStream);
+  ch2->Unit("application/mpeg4-generic");
+  ch2->DataBytes(8);
+
+  writer->PreTrigTime(0.0);
+  writer->InitMeasurement(); // The sample cache is started here
+
+  auto tick_time = TimeStampToNs();
+
+  writer->StartMeasurement(tick_time);
+
+  std::vector<uint8_t> byte_array = {1,2,3,4,5}; // Not a very likely input
+
+  {
+    for (size_t sample = 0; sample < 10; ++sample) {
+      ch1->SetChannelValue(byte_array);
+      ch2->SetChannelValue(byte_array);
+      writer->SaveSample(*group1, tick_time);
+      tick_time += 1'000'000;
+    }
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+
+  const auto* file1 = reader.GetFile();
+  ASSERT_TRUE(file1 != nullptr);
+
+  const auto* header1 = file1->Header();
+  ASSERT_TRUE(header1 != nullptr);
+
+  const auto dg4 = header1->LastDataGroup();
+  ASSERT_TRUE(dg4 != nullptr);
+
+  const auto cg_list = dg4->ChannelGroups();
+  EXPECT_EQ(cg_list.size(), 1);
+  for (auto* cg4 : cg_list) {
+    CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+  }
+  EXPECT_TRUE(reader.ReadData(*dg4));
+  reader.Close();
+
+  EXPECT_EQ(observer_list.size(), 3);
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    EXPECT_EQ(observer->NofSamples(), 10);
+    for (uint64_t sample = 0; sample < observer->NofSamples(); ++sample) {
+      if (observer->IsMaster()) {
+        continue; // Skip the time channel test
+      }
+      std::vector<uint8_t> sample_array;
+      const auto valid = observer->GetChannelValue(sample, sample_array);
+      EXPECT_TRUE(valid) << "Invalid Sample: " << sample;
+      EXPECT_EQ(sample_array, byte_array) << "Invalid Value: "
+                                          << observer->Name()
+                                          << " ,Sample: " << sample;
+     }
+  }
+}
+
 TEST_F(TestWrite, Mdf4CanSdStorage ) {
   if (kSkipTest) {
     GTEST_SKIP();

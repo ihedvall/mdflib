@@ -281,19 +281,26 @@ std::string MdfHelper::Latin1ToUtf8(const std::string &latin1) {
 std::string MdfHelper::Utf16ToUtf8(const std::wstring &utf16) {
   std::u16string u16str(utf16.begin(), utf16.end());
   std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-  const auto utf8 = convert.to_bytes(u16str);
-  return utf8;
+  return  convert.to_bytes(u16str);
 }
 
 std::wstring MdfHelper::Utf8ToUtf16(const std::string &utf8) {
   std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
   const auto utf16 = convert.from_bytes(utf8);
-  return std::wstring(utf16.begin(), utf16.end());
+  return {utf16.begin(), utf16.end()};
 }
 
 bool MdfHelper::ComputerUseLittleEndian() {
   constexpr int num = 1;
   return *(reinterpret_cast<const char *>(&num)) == 1;
+}
+
+std::vector<uint8_t> MdfHelper::TextToByteArray(const std::string &text) {
+  std::vector<uint8_t> byte_array(text.size());
+  for (size_t index = 0; index < text.size(); ++index) {
+    byte_array[index] = static_cast<const uint8_t>(text[index]);
+  }
+  return byte_array;
 }
 
 }  // namespace mdf

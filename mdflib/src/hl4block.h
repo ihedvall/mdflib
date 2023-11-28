@@ -35,7 +35,7 @@ class Hl4Block : public DataListBlock {
   size_t Write(std::FILE* file) override;
  private:
   uint16_t flags_ = 0;
-  uint8_t type_ = 0;
+  uint8_t type_ = 0; // ZIP types
   /* 5 byte reserved */
   // The block_list_ in the DataListBlock is a list of DL blocks, so
   // it can be treated as a normal link list

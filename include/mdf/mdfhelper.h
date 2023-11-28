@@ -155,6 +155,9 @@ class MdfHelper {
   static std::wstring Utf8ToUtf16(const std::string &utf8);
   /** \brief Returns tru if this computer uses Little Endian. */
   static bool ComputerUseLittleEndian();
+
+  /** \brief Converts a text string to a byte array. */
+  static std::vector<uint8_t> TextToByteArray(const std::string& text);
 };
 
 }  // namespace mdf

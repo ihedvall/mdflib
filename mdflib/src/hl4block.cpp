@@ -63,12 +63,13 @@ size_t Hl4Block::Write(std::FILE *file) {
   }
 
   block_type_ = "##HL";
-  block_length_ = 24 + (1*8) + 2;
+  block_length_ = 24 + (1*8) + 2 + 1 + 5;
   link_list_.resize(1, 0);
 
   auto bytes = MdfBlock::Write(file);
   bytes += WriteNumber(file,flags_);
-
+  bytes += WriteNumber(file,type_);
+  bytes += WriteBytes(file, 5);
   UpdateBlockSize(file, bytes);
 
   WriteLink4List(file, block_list_,kIndexNext,

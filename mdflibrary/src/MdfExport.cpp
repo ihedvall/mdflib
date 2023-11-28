@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <mdf/IDataGroup.h>
-#include <mdf/IEvent.h>
-#include <mdf/IFileHistory.h>
 #include <mdf/etag.h>
+#include <mdf/idatagroup.h>
+#include <mdf/ievent.h>
+#include <mdf/ifilehistory.h>
 #include <mdf/mdffactory.h>
 #include <mdf/mdfreader.h>
 #include <mdf/mdfwriter.h>

@@ -22,10 +22,12 @@ class MdfDataGroup {
   mdf::IDataGroup* GetDataGroup() const { return group; }
   int64_t GetIndex() const { return MdfDataGroupGetIndex(group); }
   std::string GetDescription() const {
-    std::string str;
-    str.reserve(MdfDataGroupGetDescription(group, nullptr) + 1);
-    str.resize(MdfDataGroupGetDescription(group, str.data()));;
-    return str;
+    size_t size = MdfDataGroupGetDescription(group, nullptr);
+    char* str = new char[size + 1];
+    MdfDataGroupGetDescription(group, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   uint8_t GetRecordIdSize() const { return MdfDataGroupGetRecordIdSize(group); }
   const MdfMetaData GetMetaData() const {

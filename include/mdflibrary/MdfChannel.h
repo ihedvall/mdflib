@@ -23,36 +23,44 @@ class MdfChannel {
   mdf::IChannel* GetChannel() const { return channel; }
   int64_t GetIndex() const { return MdfChannelGetIndex(channel); }
   std::string GetName() const {
-    std::string str;
-    str.reserve(MdfChannelGetName(channel, nullptr) + 1);
-    str.resize(MdfChannelGetName(channel, str.data()));;
-    return str;
+    size_t size = MdfChannelGetName(channel, nullptr);
+    char* str = new char[size + 1];
+    MdfChannelGetName(channel, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetName(const char* name) { MdfChannelSetName(channel, name); }
   std::string GetDisplayName() const {
-    std::string str;
-    str.reserve(MdfChannelGetDisplayName(channel, nullptr) + 1);
-    str.resize(MdfChannelGetDisplayName(channel, str.data()));;
-    return str;
+    size_t size = MdfChannelGetDisplayName(channel, nullptr);
+    char* str = new char[size + 1];
+    MdfChannelGetDisplayName(channel, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetDisplayName(const char* name) {
     MdfChannelSetDisplayName(channel, name);
   }
   std::string GetDescription() const {
-    std::string str;
-    str.reserve(MdfChannelGetDescription(channel, nullptr) + 1);
-    str.resize(MdfChannelGetDescription(channel, str.data()));;
-    return str;
+    size_t size = MdfChannelGetDescription(channel, nullptr);
+    char* str = new char[size + 1];
+    MdfChannelGetDescription(channel, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetDescription(const char* desc) {
     MdfChannelSetDescription(channel, desc);
   }
   bool IsUnitUsed() { return MdfChannelIsUnitUsed(channel); }
   std::string GetUnit() const {
-    std::string str;
-    str.reserve(MdfChannelGetUnit(channel, nullptr) + 1);
-    str.resize(MdfChannelGetUnit(channel, str.data()));;
-    return str;
+    size_t size = MdfChannelGetUnit(channel, nullptr);
+    char* str = new char[size + 1];
+    MdfChannelGetUnit(channel, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetUnit(const char* unit) { MdfChannelSetUnit(channel, unit); }
   ChannelType GetType() const { return MdfChannelGetType(channel); }

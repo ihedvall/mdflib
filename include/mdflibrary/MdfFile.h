@@ -21,33 +21,41 @@ class MdfFile {
       : MdfFile(const_cast<mdf::MdfFile*>(file)) {}
   ~MdfFile() { file = nullptr; }
   std::string GetName() const {
-    std::string str;
-    str.reserve(MdfFileGetName(file, nullptr) + 1);
-    str.resize(MdfFileGetName(file, str.data()));;
-    return str;
+    size_t size = MdfFileGetName(file, nullptr);
+    char* str = new char[size + 1];
+    MdfFileGetName(file, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetName(const char* name) { MdfFileSetName(file, name); }
   std::string GetFileName() const {
-    std::string str;
-    str.reserve(MdfFileGetFileName(file, nullptr) + 1);
-    str.resize(MdfFileGetFileName(file, str.data()));;
-    return str;
+    size_t size = MdfFileGetFileName(file, nullptr);
+    char* str = new char[size + 1];
+    MdfFileGetFileName(file, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetFileName(const char* filename) { MdfFileSetFileName(file, filename); }
   std::string GetVersion() const {
-    std::string str;
-    str.reserve(MdfFileGetVersion(file, nullptr) + 1);
-    str.resize(MdfFileGetVersion(file, str.data()));;
-    return str;
+    size_t size = MdfFileGetVersion(file, nullptr);
+    char* str = new char[size + 1];
+    MdfFileGetVersion(file, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   int GetMainVersion() const { return MdfFileGetMainVersion(file); }
   int GetMinorVersion() const { return MdfFileGetMinorVersion(file); }
   void SetMinorVersion(int minor) { MdfFileSetMinorVersion(file, minor); }
   std::string GetProgramId() const {
-    std::string str;
-    str.reserve(MdfFileGetProgramId(file, nullptr) + 1);
-    str.resize(MdfFileGetProgramId(file, str.data()));;
-    return str;
+    size_t size = MdfFileGetProgramId(file, nullptr);
+    char* str = new char[size + 1];
+    MdfFileGetProgramId(file, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetProgramId(const char* program_id) {
     MdfFileSetProgramId(file, program_id);

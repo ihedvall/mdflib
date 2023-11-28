@@ -22,24 +22,30 @@ class MdfEvent {
   ~MdfEvent() { event = nullptr; }
   int64_t GetIndex() const { return MdfEventGetIndex(event); }
   std::string GetName() const {
-    std::string str;
-    str.reserve(MdfEventGetName(event, nullptr) + 1);
-    str.resize(MdfEventGetName(event, str.data()));;
-    return str;
+    size_t size = MdfEventGetName(event, nullptr);
+    char* str = new char[size + 1];
+    MdfEventGetName(event, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetName(const char* name) { MdfEventSetName(event, name); }
   std::string GetDescription() const {
-    std::string str;
-    str.reserve(MdfEventGetDescription(event, nullptr) + 1);
-    str.resize(MdfEventGetDescription(event, str.data()));;
-    return str;
+    size_t size = MdfEventGetDescription(event, nullptr);
+    char* str = new char[size + 1];
+    MdfEventGetDescription(event, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetDescription(const char* desc) { MdfEventSetDescription(event, desc); }
   std::string GetGroupName() const {
-    std::string str;
-    str.reserve(MdfEventGetGroupName(event, nullptr) + 1);
-    str.resize(MdfEventGetGroupName(event, str.data()));;
-    return str;
+    size_t size = MdfEventGetGroupName(event, nullptr);
+    char* str = new char[size + 1];
+    MdfEventGetGroupName(event, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetGroupName(const char* group) { MdfEventSetGroupName(event, group); }
   EventType GetType() const { return MdfEventGetType(event); }

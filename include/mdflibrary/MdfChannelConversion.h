@@ -26,28 +26,34 @@ class MdfChannelConversion {
   ~MdfChannelConversion() { conversion = nullptr; }
   int64_t GetIndex() const { return MdfChannelConversionGetIndex(conversion); }
   std::string GetName() const {
-    std::string str;
-    str.reserve(MdfChannelConversionGetName(conversion, nullptr) + 1);
-    str.resize(MdfChannelConversionGetName(conversion, str.data()));;
-    return str;
+    size_t size = MdfChannelConversionGetName(conversion, nullptr);
+    char* str = new char[size + 1];
+    MdfChannelConversionGetName(conversion, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetName(const char* name) {
     MdfChannelConversionSetName(conversion, name);
   }
   std::string GetDescription() const {
-    std::string str;
-    str.reserve(MdfChannelConversionGetDescription(conversion, nullptr) + 1);
-    str.resize(MdfChannelConversionGetDescription(conversion, str.data()));;
-    return str;
+    size_t size = MdfChannelConversionGetDescription(conversion, nullptr);
+    char* str = new char[size + 1];
+    MdfChannelConversionGetDescription(conversion, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetDescription(const char* desc) {
     MdfChannelConversionSetDescription(conversion, desc);
   }
   std::string GetUnit() const {
-    std::string str;
-    str.reserve(MdfChannelConversionGetUnit(conversion, nullptr) + 1);
-    str.resize(MdfChannelConversionGetUnit(conversion, str.data()));;
-    return str;
+    size_t size = MdfChannelConversionGetUnit(conversion, nullptr);
+    char* str = new char[size + 1];
+    MdfChannelConversionGetUnit(conversion, str);
+    std::string s(str, size);
+    delete str;
+    return s;
   }
   void SetUnit(const char* unit) {
     MdfChannelConversionSetUnit(conversion, unit);

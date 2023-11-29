@@ -63,14 +63,20 @@ public:
   property MdfChannelConversion^ Inverse { MdfChannelConversion^ get(); }
   property MdfMetaData^ MetaData { MdfMetaData^ get(); }
   property String^ Formula { String^ get(); void set(String^ formula); }
-  property double Parameter[int] {
-    double get( int index);
-    void set(int index, double parameter);
-  }
-  property uint64_t ParameterUInt[int] {
-     uint64_t get( int index);
-     void set(int index, uint64_t parameter);
-  }  
+
+  property uint16_t NofParameters { uint16_t get();  }
+  double Parameter(uint16_t index);
+  void Parameter(uint16_t index, double parameter);
+
+  uint64_t ParameterUInt( uint16_t index);
+  void ParameterUInt(uint16_t index, uint64_t parameter);
+  
+  
+  property uint16_t NofReferences { uint16_t get();  }
+  String^ Reference( uint16_t index);
+  void Reference(uint16_t index, String^ reference);
+  
+  
   MdfChannelConversion^ CreateInverse();
   MdfMetaData^ CreateMetaData();
 private:

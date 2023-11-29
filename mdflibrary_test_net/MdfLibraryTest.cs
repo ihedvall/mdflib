@@ -424,33 +424,120 @@ public class MdfLibraryTest
 
     [TestMethod]
     public void TestChannelConversion()
-    {
-        var reader = new MdfReader(TestFile2);
-        Assert.IsTrue(reader.ReadEverythingButData());
-        reader.Close();
+    {        
+        const string testFile = "channel_conversion.mf4";
+        if (File.Exists(testFile))
+        {
+            File.Delete(testFile);
+        }
 
-        var file = reader.File;
-        var header = file.Header;
-        var datagroup = header.DataGroups[0];
-        var group = datagroup.ChannelGroups[0];
-        var channel = group.Channels[0];
-        var conv = channel.ChannelConversion;
-        Assert.IsNotNull(conv);
+        var startTime = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
+        {
+            var writer = new MdfWriter(MdfWriterType.Mdf4Basic);
+            Assert.IsNotNull(writer);
+            // The Init() reads in any existing file. Not in this case but
+            // it also create the ID and HD block.
+            Assert.IsTrue(writer.Init(testFile));
 
-        Console.WriteLine("Index: {0:X}", conv.Index);
-        Console.WriteLine("Name: {0}", conv.Name);
-        Console.WriteLine("Desc: {0}", conv.Description);
-        Console.WriteLine("Unit Used: {0}", conv.UnitUsed);
-        Console.WriteLine("Unit: {0}", conv.Unit);
-        Console.WriteLine("Type: {0}", conv.Type);
-        Console.WriteLine("Precision Used: {0}", conv.PrecisionUsed);
-        Console.WriteLine("Precision: {0}", conv.Precision);
-        Console.WriteLine("Range Used: {0}", conv.RangeUsed);
-        Console.WriteLine("Range Min: {0}", conv.Range.Item1);
-        Console.WriteLine("Range Max: {0}", conv.Range.Item2);
-        Console.WriteLine("Flags: {0:X}", conv.Flags);
-        Assert.IsNull(conv.Inverse);
-        Assert.IsNotNull(conv.CreateInverse());
+            
+            var header = writer.Header;
+            header.Author = "Ingemar Hedvall";
+            header.Department = "Home Alone";
+            header.Description = "Testing channel conversion";
+            header.Project = "Mdf4CC";
+            header.StartTime = startTime;
+            header.Subject = "PXY";
+
+            if (header.FileHistories.Length == 0)
+            {
+        
+                // All MD4 files need to have at least one FH block
+                var history = header.CreateFileHistory();
+                history.Time = startTime;
+                history.Description = "Initial stuff";
+                history.ToolName = "Unit Test";
+                history.ToolVendor = "ACME";
+                history.ToolVersion = "2.3";
+                history.UserName = "Ducky";
+            }
+
+            var dataGroup = header.CreateDataGroup();
+            Assert.IsNotNull(dataGroup);
+
+            var channelGroup = dataGroup.CreateChannelGroup();
+            Assert.IsNotNull(channelGroup);
+            channelGroup.Name = "Group1";
+            
+            var channel = channelGroup.CreateChannel();
+            Assert.IsNotNull(channel);
+            channel.Name = "Channel1";
+            channel.DataBytes = 1;
+            channel.Type = ChannelType.FixedLength;
+            channel.DataType = ChannelDataType.UnsignedIntegerBe;
+            
+            
+            var channelConv = channel.CreateChannelConversion();
+            Assert.IsNotNull(channelConv);
+            channelConv.Name = "Channel1Conv";
+            channelConv.Description = "Test";
+            channelConv.Unit = "km/h";
+            channelConv.Type = ConversionType.ValueToText;
+            
+            // No Inverse
+            channelConv.Reference(0, "Zero");
+            channelConv.Reference(1, "One");   
+            channelConv.Reference(2, "Default");
+
+            channelConv.Parameter(0, 0.0);
+            channelConv.Parameter(1, 1.0);
+
+            writer.InitMeasurement();
+            writer.StartMeasurement(startTime);
+            var stopTime = startTime;
+            for (var sample = 0; sample < 3; ++sample)
+            {
+                channel.SetChannelValue(sample);
+                writer.SaveSample(channelGroup,stopTime);
+                stopTime += 100000000;
+            }
+            writer.StopMeasurement(stopTime);
+            writer.FinalizeMeasurement();
+        }
+        {
+            var reader = new MdfReader(testFile);
+            Assert.IsTrue(reader.ReadEverythingButData());
+            reader.Close();
+
+            var file = reader.File;
+            var header = file.Header;
+            var datagroup = header.LastDataGroup;
+            var group = datagroup.ChannelGroups[0];
+            var channel = group.Channels[0];
+            var conv = channel.ChannelConversion;
+            
+            Assert.IsNotNull(conv);
+
+            Console.WriteLine("Index: {0:X}", conv.Index);
+            Console.WriteLine("Name: {0}", conv.Name);
+            Console.WriteLine("Desc: {0}", conv.Description);
+            Console.WriteLine("Unit Used: {0}", conv.UnitUsed);
+            Console.WriteLine("Unit: {0}", conv.Unit);
+            Console.WriteLine("Type: {0}", conv.Type);
+            Console.WriteLine("Precision Used: {0}", conv.PrecisionUsed);
+            Console.WriteLine("Precision: {0}", conv.Precision);
+            Console.WriteLine("Range Used: {0}", conv.RangeUsed);
+            Console.WriteLine("Range Min: {0}", conv.Range.Item1);
+            Console.WriteLine("Range Max: {0}", conv.Range.Item2);
+            Console.WriteLine("Flags: {0:X}", conv.Flags);
+            Assert.IsNull(conv.Inverse);
+            Assert.IsNotNull(conv.CreateInverse());
+            
+            Assert.AreEqual(3, conv.NofReferences);            
+            Assert.AreEqual("Zero", conv.Reference(0));
+            
+            Assert.AreEqual(2,conv.NofParameters);
+            Assert.AreEqual(1.0, conv.Parameter(1));        
+        }
     }
 
     [TestMethod]

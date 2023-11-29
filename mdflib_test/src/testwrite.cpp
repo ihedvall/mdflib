@@ -2004,6 +2004,7 @@ TEST_F(TestWrite, Mdf4Mime) {
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
   ASSERT_TRUE(writer->Init(mdf_file.string()));
+  writer->CompressData(true);
 
   auto* header = writer->Header();
   ASSERT_TRUE(header != nullptr);
@@ -2054,9 +2055,9 @@ TEST_F(TestWrite, Mdf4Mime) {
   writer->StartMeasurement(tick_time);
 
   std::vector<uint8_t> byte_array = {1,2,3,4,5}; // Not a very likely input
-
+  constexpr size_t kSamples = 10'000;
   {
-    for (size_t sample = 0; sample < 10; ++sample) {
+    for (size_t sample = 0; sample < kSamples; ++sample) {
       ch1->SetChannelValue(byte_array);
       ch2->SetChannelValue(byte_array);
       writer->SaveSample(*group1, tick_time);
@@ -2092,7 +2093,7 @@ TEST_F(TestWrite, Mdf4Mime) {
   EXPECT_EQ(observer_list.size(), 3);
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
-    EXPECT_EQ(observer->NofSamples(), 10);
+    EXPECT_EQ(observer->NofSamples(), kSamples);
     for (uint64_t sample = 0; sample < observer->NofSamples(); ++sample) {
       if (observer->IsMaster()) {
         continue; // Skip the time channel test

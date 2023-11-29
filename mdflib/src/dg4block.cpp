@@ -201,6 +201,8 @@ void Dg4Block::ReadData(std::FILE* file) const {
             }
           } else if (block->BlockType() == "SD") {
             cn_block->ReadData(file);
+          } else if (block->BlockType() == "DZ") {
+            cn_block->ReadData(file);
           }
           break;
 

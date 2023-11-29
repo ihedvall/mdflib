@@ -103,7 +103,7 @@ ConversionType Cc4Block::Type() const {
 void Cc4Block::Decimals(uint8_t decimals) { precision_ = decimals; }
 
 uint8_t Cc4Block::Decimals() const {
-  auto max = static_cast<uint8_t>(
+  const auto max = static_cast<uint8_t>(
       channel_data_type_ == 4 ? std::numeric_limits<float>::max_digits10
                               : std::numeric_limits<double>::max_digits10);
   return std::min(precision_, max);
@@ -187,7 +187,7 @@ void Cc4Block::GetBlockProperty(BlockPropertyList& dest) const {
   dest.emplace_back("Nof Values", std::to_string(nof_values_));
   dest.emplace_back("Min Range", ToString(range_min_));
   dest.emplace_back("Max Range", ToString(range_max_));
-  for (uint32_t ii = 0; ii < static_cast<uint32_t>(value_list_.size()); ++ii) {
+  for (uint16_t ii = 0; ii < static_cast<uint16_t>(value_list_.size()); ++ii) {
     std::ostringstream label;
     label << "Value " << ii;
     dest.emplace_back(label.str(), ToString(Parameter(ii)) );
@@ -282,9 +282,9 @@ size_t Cc4Block::Write(std::FILE* file) {  // NOLINT
   WriteMdComment(file, kIndexMd);
   WriteBlock4(file, cc_block_, kIndexInverse);
   for (uint16_t index_m = 0; index_m < nof_references_; ++index_m) {
-    const auto index = 4 + index_m;
-    const auto* block = ref_list_[index_m].get();
-    link_list_[index] = block != nullptr ? block->FilePosition() : 0;
+    const auto index = kIndexRef + index_m;
+    auto& block = ref_list_[index_m];
+    WriteBlock4(file, block, index);
   }
 
   auto bytes = MdfBlock::Write(file);
@@ -383,8 +383,8 @@ bool Cc4Block::ConvertValueRangeToText(double channel_value,
   // First iterate to find the ref
   size_t ref_index = ref_list_.size() - 1;  // Default CC/TX
   for (uint16_t n = 0; n < nof_values_; ++n) {
-    const uint32_t key_min_index = n * 2;
-    const uint32_t key_max_index = key_min_index + 1;
+    const uint16_t key_min_index = n * 2;
+    const uint16_t key_max_index = key_min_index + 1;
     if (key_max_index >= value_list_.size()) {
       break;
     }
@@ -432,7 +432,7 @@ bool Cc4Block::ConvertTextToValue(const std::string& channel_value,
     return false;
   }
   // Initialize to default value index
-  auto value_index = static_cast<uint32_t>(value_list_.size() - 1);  
+  auto value_index = static_cast<uint16_t>(value_list_.size() - 1);  
   for (uint16_t n = 0; n < nof_values_; ++n) {
     if (n >= ref_list_.size()) {
       break;
@@ -519,9 +519,9 @@ void Cc4Block::Formula(const std::string& formula) {
 }
 
 const std::string& Cc4Block::Formula() const {
-  auto* tx4 = ref_list_.empty() ? nullptr :
+  const auto* tx4 = ref_list_.empty() ? nullptr :
                                 dynamic_cast<Tx4Block*>(ref_list_[0].get());
- if (tx4 != nullptr) {
+  if (tx4 != nullptr) {
     formula_ = tx4->Text();
   } else {
     formula_.clear();
@@ -529,8 +529,12 @@ const std::string& Cc4Block::Formula() const {
   return IChannelConversion::Formula();
 }
 
-void Cc4Block::Reference(size_t index, const std::string& text) {
-  while (index < ref_list_.size()) {
+[[nodiscard]] uint16_t Cc4Block::NofReferences() const {
+  return nof_references_;  
+}
+
+void Cc4Block::Reference(uint16_t index, const std::string& text) {
+  while (index >= ref_list_.size()) {
     auto temp = std::make_unique<Tx4Block>();
     ref_list_.push_back(std::move(temp));
   }
@@ -540,5 +544,18 @@ void Cc4Block::Reference(size_t index, const std::string& text) {
   }
 }
 
+std::string Cc4Block::Reference(uint16_t index) const {
+  const auto* block = index < ref_list_.size() ?
+      ref_list_[index].get() : nullptr;
+  if (block == nullptr || block->BlockType() != "TX") {
+    return {"Not TX"};
+  }
+  const auto* tx4 = dynamic_cast<const Tx4Block*> (block);
+  if (tx4 != nullptr) {
+    return tx4->Text();
+  }
+  return {"Invalid"};
+
+}
 
 }  // namespace mdf::detail

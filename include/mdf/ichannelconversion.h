@@ -186,39 +186,44 @@ class IChannelConversion : public IBlock {
   /** \brief Returns formula string. */
   [[nodiscard]] virtual const std::string& Formula() const;
 
+  [[nodiscard]] uint16_t NofParameters() const; 
   /** \brief Sets a floating point parameter value.
    *
    * @param index Parameter index to set.
    * @param parameter Value to set.
    */
-  void Parameter(uint32_t index, double parameter);
+  void Parameter(uint16_t index, double parameter);
 
   /** \brief Returns the parameter (double)
    *
    * @param index
    * @return Parameter floating point value
    */
-  [[nodiscard]] double Parameter(uint32_t index) const;
+  [[nodiscard]] double Parameter(uint16_t index) const;
 
   /** \brief Returns the parameter as a bit field (uint64_t)
    *
    * @param index
    * @return Parameter floating point value
    */
-  [[nodiscard]] uint64_t ParameterUint(uint32_t index) const;
+  [[nodiscard]] uint64_t ParameterUint(uint16_t index) const;
   /** \brief Sets an unsigned integer parameter value.
    *
    * @param index Parameter index to set.
    * @param parameter Value to set.
    */
-  void Parameter(uint32_t index, uint64_t parameter);
+  void Parameter(uint16_t index, uint64_t parameter);
 
+  [[nodiscard]] virtual uint16_t NofReferences() const; 
   /** \brief Sets text reference (TX) block
    *
    * @param index Index of the text block (TX).
    * @param text Text content of the TX block.
    */
-  virtual void Reference(size_t index, const std::string& text);
+  virtual void Reference(uint16_t index, const std::string& text);
+
+  /** \brief Returns the reference string by its index */ 
+  [[nodiscard]] virtual std::string Reference(uint16_t index) const;
 
   /** \brief Sets the CN block data type.
    *

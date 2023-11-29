@@ -1,12 +1,23 @@
 # Copyright 2023 Simplxs
 # SPDX-License-Identifier: MIT
+project(
+  mdflibrary
+  VERSION 2.0
+  DESCRIPTION "Interface against MDF 3/4 files"
+  LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_DEBUG_POSTFIX d)
+
 message(STATUS  "Compiler Version " ${CMAKE_CXX_COMPILER_VERSION})
 message(STATUS  "MSVC " ${MSVC})
-if (MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36)
+if (MDF_BUILD_SHARED_LIB_NET)
     message(STATUS  "CLR compile")
-    # Hander files for building c# clr
     add_library(mdflibrary SHARED
+            # C++ files
             src/MdfExport.cpp
+            
+            # Following files are needed for clr
             src/AssemblyInfo.cpp
             src/MdfAttachment.cpp src/MdfAttachment.h
             src/MdfChannel.cpp src/MdfChannel.h
@@ -27,7 +38,6 @@ if (MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36)
             src/Mdfwriter.cpp src/Mdfwriter.h
             src/CanMessage.cpp src/CanMessage.h
             )
-
   set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
 else()
   add_library(mdflibrary SHARED src/MdfExport.cpp)

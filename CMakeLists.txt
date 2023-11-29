@@ -9,18 +9,19 @@ else()
 endif()
 
 option(MDF_BUILD_SHARED_LIB "Build shared library." ON)
+option(MDF_BUILD_SHARED_LIB_NET "Build shared library with .NET." ON)
 option(MDF_BUILD_SHARED_LIB_EXAMPLE "Build MdfLibrary Example." OFF)
 option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
 if(MDF_BUILD_TOOL AND VCPKG)
-  # Boost & wxWidgets is not available for static linking
-  string(REPLACE "-static" "" VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
+# Boost & wxWidgets need /MT for static linking
+  string(REPLACE VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
   list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
 endif()
 option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
 if(MDF_BUILD_TEST AND VCPKG)
-  # GTest is not available for static linking
-  string(REPLACE "-static" "" VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
+# GTest need /MT for static linking
+  string(REPLACE VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
   list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
 endif()
 
@@ -29,13 +30,13 @@ project(
   VERSION 2.0
   DESCRIPTION "Interface against MDF 3/4 files"
   LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_DEBUG_POSTFIX d)
-
+  
 add_subdirectory(mdflib)
 
 if(MDF_BUILD_SHARED_LIB)
+  if(NOT (MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36))
+    set(MDF_BUILD_SHARED_LIB_NET OFF)
+  endif()
   add_subdirectory(mdflibrary)
 endif()
 

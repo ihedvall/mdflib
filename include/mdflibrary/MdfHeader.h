@@ -23,72 +23,51 @@ class MdfHeader {
   ~MdfHeader() { header = nullptr; }
   int64_t GetIndex() const { return MdfHeaderGetIndex(header); }
   std::string GetDescription() const {
-    size_t size = MdfHeaderGetDescription(header, nullptr);
-    char* str = new char[size + 1];
-    MdfHeaderGetDescription(header, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfHeaderGetDescription(header, nullptr) + 1, '\0');
+    str.resize(MdfHeaderGetDescription(header, str.data()));
+    return str;
   }
   void SetDescription(const char* desc) {
     MdfHeaderSetDescription(header, desc);
   }
   std::string GetAuthor() const {
-    size_t size = MdfHeaderGetAuthor(header, nullptr);
-    char* str = new char[size + 1];
-    MdfHeaderGetAuthor(header, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfHeaderGetAuthor(header, nullptr) + 1, '\0');
+    str.resize(MdfHeaderGetAuthor(header, str.data()));
+    return str;
   }
   void SetAuthor(const char* author) { MdfHeaderSetAuthor(header, author); }
   std::string GetDepartment() const {
-    size_t size = MdfHeaderGetDepartment(header, nullptr);
-    char* str = new char[size + 1];
-    MdfHeaderGetDepartment(header, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfHeaderGetDepartment(header, nullptr) + 1, '\0');
+    str.resize(MdfHeaderGetDepartment(header, str.data()));
+    return str;
   }
   void SetDepartment(const char* department) {
     MdfHeaderSetDepartment(header, department);
   }
   std::string GetProject() const {
-    size_t size = MdfHeaderGetProject(header, nullptr);
-    char* str = new char[size + 1];
-    MdfHeaderGetProject(header, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfHeaderGetProject(header, nullptr) + 1, '\0');
+    str.resize(MdfHeaderGetProject(header, str.data()));
+    return str;
   }
   void SetProject(const char* project) { MdfHeaderSetProject(header, project); }
   std::string GetSubject() const {
-    size_t size = MdfHeaderGetSubject(header, nullptr);
-    char* str = new char[size + 1];
-    MdfHeaderGetSubject(header, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfHeaderGetSubject(header, nullptr) + 1, '\0');
+    str.resize(MdfHeaderGetSubject(header, str.data()));
+    return str;
   }
   void SetSubject(const char* subject) { MdfHeaderSetSubject(header, subject); }
   std::string GetMeasurementId() const {
-    size_t size = MdfHeaderGetMeasurementId(header, nullptr);
-    char* str = new char[size + 1];
-    MdfHeaderGetMeasurementId(header, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfHeaderGetMeasurementId(header, nullptr) + 1, '\0');
+    str.resize(MdfHeaderGetMeasurementId(header, str.data()));
+    return str;
   }
   void SetMeasurementId(const char* uuid) {
     MdfHeaderSetMeasurementId(header, uuid);
   }
   std::string GetRecorderId() const {
-    size_t size = MdfHeaderGetRecorderId(header, nullptr);
-    char* str = new char[size + 1];
-    MdfHeaderGetRecorderId(header, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfHeaderGetRecorderId(header, nullptr) + 1, '\0');
+    str.resize(MdfHeaderGetRecorderId(header, str.data()));
+    return str;
   }
   void SetRecorderId(const char* uuid) { MdfHeaderSetRecorderId(header, uuid); }
   int64_t GetRecorderIndex() const { return MdfHeaderGetRecorderIndex(header); }

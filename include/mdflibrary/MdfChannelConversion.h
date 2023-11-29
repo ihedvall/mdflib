@@ -24,34 +24,25 @@ class MdfChannelConversion {
   ~MdfChannelConversion() { conversion = nullptr; }
   int64_t GetIndex() const { return MdfChannelConversionGetIndex(conversion); }
   std::string GetName() const {
-    size_t size = MdfChannelConversionGetName(conversion, nullptr);
-    char* str = new char[size + 1];
-    MdfChannelConversionGetName(conversion, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfChannelConversionGetName(conversion, nullptr) + 1, '\0');
+    str.resize(MdfChannelConversionGetName(conversion, str.data()));
+    return str;
   }
   void SetName(const char* name) {
     MdfChannelConversionSetName(conversion, name);
   }
   std::string GetDescription() const {
-    size_t size = MdfChannelConversionGetDescription(conversion, nullptr);
-    char* str = new char[size + 1];
-    MdfChannelConversionGetDescription(conversion, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfChannelConversionGetDescription(conversion, nullptr) + 1, '\0');
+    str.resize(MdfChannelConversionGetDescription(conversion, str.data()));
+    return str;
   }
   void SetDescription(const char* desc) {
     MdfChannelConversionSetDescription(conversion, desc);
   }
   std::string GetUnit() const {
-    size_t size = MdfChannelConversionGetUnit(conversion, nullptr);
-    char* str = new char[size + 1];
-    MdfChannelConversionGetUnit(conversion, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfChannelConversionGetUnit(conversion, nullptr) + 1, '\0');
+    str.resize(MdfChannelConversionGetUnit(conversion, str.data()));
+    return str;
   }
   void SetUnit(const char* unit) {
     MdfChannelConversionSetUnit(conversion, unit);
@@ -86,12 +77,9 @@ class MdfChannelConversion {
     return MdfChannelConversionGetMetaData(conversion);
   }
   std::string GetReference(uint16_t index) const {
-    size_t size = MdfChannelConversionGetReference(conversion, index, nullptr);
-    char* str = new char[size + 1];
-    MdfChannelConversionGetReference(conversion, index, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfChannelConversionGetReference(conversion, index, nullptr) + 1, '\0');
+    str.resize(MdfChannelConversionGetReference(conversion, index, str.data()));
+    return str;
   }
   void SetReference(uint16_t index, const char* ref) {
     MdfChannelConversionSetReference(conversion, index, ref);

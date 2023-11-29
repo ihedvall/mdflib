@@ -27,56 +27,41 @@ class MdfFileHistory {
     return MdfFileHistoryGetMetaData(history);
   }
   std::string GetDescription() const {
-    size_t size = MdfFileHistoryGetDescription(history, nullptr);
-    char* str = new char[size + 1];
-    MdfFileHistoryGetDescription(history, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfFileHistoryGetDescription(history, nullptr) + 1, '\0');
+    str.resize(MdfFileHistoryGetDescription(history, str.data()));
+    return str;
   }
   void SetDescription(const char* desc) {
     MdfFileHistorySetDescription(history, desc);
   }
   std::string GetToolName() const {
-    size_t size = MdfFileHistoryGetToolName(history, nullptr);
-    char* str = new char[size + 1];
-    MdfFileHistoryGetToolName(history, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfFileHistoryGetToolName(history, nullptr) + 1, '\0');
+    str.resize(MdfFileHistoryGetToolName(history, str.data()));
+    return str;
   }
   void SetToolName(const char* name) {
     MdfFileHistorySetToolName(history, name);
   }
   std::string GetToolVendor() const {
-    size_t size = MdfFileHistoryGetToolVendor(history, nullptr);
-    char* str = new char[size + 1];
-    MdfFileHistoryGetToolVendor(history, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfFileHistoryGetToolVendor(history, nullptr) + 1, '\0');
+    str.resize(MdfFileHistoryGetToolVendor(history, str.data()));
+    return str;
   }
   void SetToolVendor(const char* vendor) {
     MdfFileHistorySetToolVendor(history, vendor);
   }
   std::string GetToolVersion() const {
-    size_t size = MdfFileHistoryGetToolVersion(history, nullptr);
-    char* str = new char[size + 1];
-    MdfFileHistoryGetToolVersion(history, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfFileHistoryGetToolVersion(history, nullptr) + 1, '\0');
+    str.resize(MdfFileHistoryGetToolVersion(history, str.data()));
+    return str;
   }
   void SetToolVersion(const char* version) {
     MdfFileHistorySetToolVersion(history, version);
   }
   std::string GetUserName() const {
-    size_t size = MdfFileHistoryGetUserName(history, nullptr);
-    char* str = new char[size + 1];
-    MdfFileHistoryGetUserName(history, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfFileHistoryGetUserName(history, nullptr) + 1, '\0');
+    str.resize(MdfFileHistoryGetUserName(history, str.data()));
+    return str;
   }
   void SetUserName(const char* user) {
     MdfFileHistorySetUserName(history, user);

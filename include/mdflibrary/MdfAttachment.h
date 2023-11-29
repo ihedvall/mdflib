@@ -42,23 +42,17 @@ class MdfAttachment {
     return std::string(str);
   }
   std::string GetFileName() const {
-    size_t size = MdfAttachmentGetFileName(attachment, nullptr);
-    char* str = new char[size + 1];
-    MdfAttachmentGetFileName(attachment, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfAttachmentGetFileName(attachment, nullptr) + 1, '\0');
+    str.resize(MdfAttachmentGetFileName(attachment, str.data()));
+    return str;
   }
   void SetFileName(const char* name) {
     MdfAttachmentSetFileName(attachment, name);
   }
   std::string GetFileType() const {
-    size_t size = MdfAttachmentGetFileType(attachment, nullptr);
-    char* str = new char[size + 1];
-    MdfAttachmentGetFileType(attachment, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfAttachmentGetFileType(attachment, nullptr) + 1, '\0');
+    str.resize(MdfAttachmentGetFileType(attachment, str.data()));
+    return str;
   }
   void SetFileType(const char* type) {
     MdfAttachmentSetFileType(attachment, type);

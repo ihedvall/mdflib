@@ -24,21 +24,15 @@ class MdfChannelGroup {
   int64_t GetIndex() const { return MdfChannelGroupGetIndex(group); }
   uint64_t GetRecordId() const { return MdfChannelGroupGetRecordId(group); }
   std::string GetName() const {
-    size_t size = MdfChannelGroupGetName(group, nullptr);
-    char* str = new char[size + 1];
-    MdfChannelGroupGetName(group, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfChannelGroupGetName(group, nullptr) + 1, '\0');
+    str.resize(MdfChannelGroupGetName(group, str.data()));
+    return str;
   }
   void SetName(const char* name) { MdfChannelGroupSetName(group, name); }
   std::string GetDescription() const {
-    size_t size = MdfChannelGroupGetDescription(group, nullptr);
-    char* str = new char[size + 1];
-    MdfChannelGroupGetDescription(group, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfChannelGroupGetDescription(group, nullptr) + 1, '\0');
+    str.resize(MdfChannelGroupGetDescription(group, str.data()));
+    return str;
   }
   void SetDescription(const char* desc) {
     MdfChannelGroupSetDescription(group, desc);

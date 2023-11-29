@@ -22,12 +22,9 @@ class MdfMetaData {
       : MdfMetaData(const_cast<mdf::IMetaData*>(metaData)) {}
   ~MdfMetaData() { metaData = nullptr; }
   std::string GetPropertyAsString(const char* index) {
-    size_t size = MdfMetaDataGetPropertyAsString(metaData, index, nullptr);
-    char* str = new char[size + 1];
-    MdfMetaDataGetPropertyAsString(metaData, index, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfMetaDataGetPropertyAsString(metaData, index, nullptr) + 1, '\0');
+    str.resize(MdfMetaDataGetPropertyAsString(metaData, index, str.data()));
+    return str;
   }
   void SetPropertyAsString(const char* index, const char* prop) {
     MdfMetaDataSetPropertyAsString(metaData, index, prop);
@@ -65,12 +62,9 @@ class MdfMetaData {
     delete[] pTags;
   }
   std::string GetXmlSnippet() const {
-    size_t size = MdfMetaDataGetXmlSnippet(metaData, nullptr);
-    char* str = new char[size + 1];
-    MdfMetaDataGetXmlSnippet(metaData, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfMetaDataGetXmlSnippet(metaData, nullptr) + 1, '\0');
+    str.resize(MdfMetaDataGetXmlSnippet(metaData, str.data()));
+    return str;
   }
   void SetXmlSnippet(const char* xml) {
     MdfMetaDataSetXmlSnippet(metaData, xml);

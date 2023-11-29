@@ -41,20 +41,14 @@ class MdfChannelObserver {
     return MdfChannelObserverGetNofSamples(observer);
   }
   std::string GetName() const {
-    size_t size = MdfChannelObserverGetName(observer, nullptr);
-    char* str = new char[size + 1];
-    MdfChannelObserverGetName(observer, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfChannelObserverGetName(observer, nullptr) + 1, '\0');
+    str.resize(MdfChannelObserverGetName(observer, str.data()));
+    return str;
   }
   std::string GetUnit() const {
-    size_t size = MdfChannelObserverGetUnit(observer, nullptr);
-    char* str = new char[size + 1];
-    MdfChannelObserverGetUnit(observer, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfChannelObserverGetUnit(observer, nullptr) + 1, '\0');
+    str.resize(MdfChannelObserverGetUnit(observer, str.data()));
+    return str;
   }
   const MdfChannel GetChannel() const {
     return MdfChannel(MdfChannelObserverGetChannel(observer));

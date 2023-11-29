@@ -20,41 +20,29 @@ class MdfFile {
       : MdfFile(const_cast<mdf::MdfFile*>(file)) {}
   ~MdfFile() { file = nullptr; }
   std::string GetName() const {
-    size_t size = MdfFileGetName(file, nullptr);
-    char* str = new char[size + 1];
-    MdfFileGetName(file, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfFileGetName(file, nullptr) + 1, '\0');
+    str.resize(MdfFileGetName(file, str.data()));
+    return str;
   }
   void SetName(const char* name) { MdfFileSetName(file, name); }
   std::string GetFileName() const {
-    size_t size = MdfFileGetFileName(file, nullptr);
-    char* str = new char[size + 1];
-    MdfFileGetFileName(file, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfFileGetFileName(file, nullptr) + 1, '\0');
+    str.resize(MdfFileGetFileName(file, str.data()));
+    return str;
   }
   void SetFileName(const char* filename) { MdfFileSetFileName(file, filename); }
   std::string GetVersion() const {
-    size_t size = MdfFileGetVersion(file, nullptr);
-    char* str = new char[size + 1];
-    MdfFileGetVersion(file, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfFileGetVersion(file, nullptr) + 1, '\0');
+    str.resize(MdfFileGetVersion(file, str.data()));
+    return str;
   }
   int GetMainVersion() const { return MdfFileGetMainVersion(file); }
   int GetMinorVersion() const { return MdfFileGetMinorVersion(file); }
   void SetMinorVersion(int minor) { MdfFileSetMinorVersion(file, minor); }
   std::string GetProgramId() const {
-    size_t size = MdfFileGetProgramId(file, nullptr);
-    char* str = new char[size + 1];
-    MdfFileGetProgramId(file, str);
-    std::string s(str, size);
-    delete str;
-    return s;
+    std::string str(MdfFileGetProgramId(file, nullptr) + 1, '\0');
+    str.resize(MdfFileGetProgramId(file, str.data()));
+    return str;
   }
   void SetProgramId(const char* program_id) {
     MdfFileSetProgramId(file, program_id);

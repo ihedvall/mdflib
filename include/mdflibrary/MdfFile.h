@@ -63,37 +63,29 @@ class MdfFile {
   bool GetFinalized(uint16_t& standard_flags, uint16_t& custom_flags) {
     return MdfFileGetFinalized(file, standard_flags, custom_flags);
   }
-  const MdfHeader GetHeader() const {
-    return MdfHeader(MdfFileGetHeader(file));
-  }
+  const MdfHeader GetHeader() const { return MdfFileGetHeader(file); }
   bool GetIsMdf4() { return MdfFileGetIsMdf4(file); }
   std::vector<MdfAttachment> GetAttachments() const {
     size_t count = MdfFileGetAttachments(file, nullptr);
-    if (count <= 0) return std::vector<MdfAttachment>();
+    if (count <= 0) return {};
     auto pAttachments = new const mdf::IAttachment*[count];
     MdfFileGetAttachments(file, pAttachments);
     std::vector<MdfAttachment> attachments;
-    for (size_t i = 0; i < count; i++)
-      attachments.push_back(MdfAttachment(pAttachments[i]));
+    for (size_t i = 0; i < count; i++) attachments.push_back(pAttachments[i]);
     delete[] pAttachments;
     return attachments;
   }
   std::vector<MdfDataGroup> GetDataGroups() const {
     size_t count = MdfFileGetDataGroups(file, nullptr);
-    if (count <= 0) return std::vector<MdfDataGroup>();
+    if (count <= 0) return {};
     auto pDataGroups = new const mdf::IDataGroup*[count];
     MdfFileGetDataGroups(file, pDataGroups);
     std::vector<MdfDataGroup> data_groups;
-    for (size_t i = 0; i < count; i++)
-      data_groups.push_back(MdfDataGroup(pDataGroups[i]));
+    for (size_t i = 0; i < count; i++) data_groups.push_back(pDataGroups[i]);
     delete[] pDataGroups;
     return data_groups;
   }
-  MdfAttachment CreateAttachment() {
-    return MdfAttachment(MdfFileCreateAttachment(file));
-  }
-  MdfDataGroup CreateDataGroup() {
-    return MdfDataGroup(MdfFileCreateDataGroup(file));
-  }
+  MdfAttachment CreateAttachment() { return MdfFileCreateAttachment(file); }
+  MdfDataGroup CreateDataGroup() { return MdfFileCreateDataGroup(file); }
 };
 }  // namespace MdfLibrary

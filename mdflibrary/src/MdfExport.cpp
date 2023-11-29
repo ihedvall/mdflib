@@ -563,8 +563,12 @@ EXPORTFEATUREFUNC(void, SetRange, double min, double max) {
   conv->Range(min, max);
 }
 EXPORTFEATUREFUNC(uint16_t, GetFlags) { return conv->Flags(); }
-EXPORTFEATUREFUNC(void, SetReference, int64_t index, const char* text) {
-  return conv->Reference(index, text);
+EXPORTFEATUREFUNC(size_t, GetReference, uint16_t index, char* reference) {
+  if (reference) strcpy(reference, conv->Formula().c_str());
+  return conv->Reference(index).size();
+}
+EXPORTFEATUREFUNC(void, SetReference, uint16_t index, const char* reference) {
+  return conv->Reference(index, reference);
 }
 EXPORTFEATUREFUNC(const mdf::IChannelConversion*, GetInverse) {
   return conv->Inverse();
@@ -579,14 +583,22 @@ EXPORTFEATUREFUNC(size_t, GetFormula, char* formula) {
 EXPORTFEATUREFUNC(void, SetFormula, const char* formula) {
   conv->Formula(formula);
 }
-EXPORTFEATUREFUNC(double, GetParameter, int index) {
+EXPORTFEATUREFUNC(double, GetNofParameters, uint16_t index) {
+  return conv->NofParameters();
+}
+EXPORTFEATUREFUNC(double, GetParameterAsDouble, uint16_t index) {
   return conv->Parameter(index);
 }
-EXPORTFEATUREFUNC(void, SetParameter, int index, double parameter) {
+EXPORTFEATUREFUNC(void, SetParameterAsDouble, uint16_t index,
+                  double parameter) {
   conv->Parameter(index, parameter);
 }
-EXPORTFEATUREFUNC(uint64_t, GetParameterUInt, int index) {
+EXPORTFEATUREFUNC(uint64_t, GetParameterAsUInt64, uint16_t index) {
   return conv->ParameterUint(index);
+}
+EXPORTFEATUREFUNC(void, SetParameterAsUInt64, uint16_t index,
+                  uint64_t parameter) {
+  conv->Parameter(index, parameter);
 }
 EXPORTFEATUREFUNC(mdf::IChannelConversion*, CreateInverse) {
   return conv->CreateInverse();

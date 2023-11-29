@@ -5,7 +5,7 @@
 #pragma once
 #include <string>
 
-#include "MdfExport.h"
+#include "MdfMetadata.h"
 
 using namespace MdfLibrary::ExportFunctions;
 
@@ -82,10 +82,36 @@ class MdfChannelConversion {
   }
   uint16_t GetFlags() const { return MdfChannelConversionGetFlags(conversion); }
   const MdfChannelConversion GetInverse() const {
-    return MdfChannelConversion(MdfChannelConversionGetInverse(conversion));
+    return MdfChannelConversionGetInverse(conversion);
+  }
+  const MdfMetaData GetMetadata() const {
+    return MdfChannelConversionGetMetaData(conversion);
+  }
+  std::string GetReference(uint16_t index) const {
+    size_t size = MdfChannelConversionGetReference(conversion, index, nullptr);
+    char* str = new char[size + 1];
+    MdfChannelConversionGetReference(conversion, index, str);
+    std::string s(str, size);
+    delete str;
+    return s;
+  }
+  void SetReference(uint16_t index, const char* ref) {
+    MdfChannelConversionSetReference(conversion, index, ref);
+  }
+  double GetParameter(uint16_t index) const {
+    return MdfChannelConversionGetParameterAsDouble(conversion, index);
+  }
+  uint64_t GetParameterUint(uint16_t index) const {
+    return MdfChannelConversionGetParameterAsUInt64(conversion, index);
+  }
+  void SetParameter(uint16_t index, double param) {
+    MdfChannelConversionSetParameterAsDouble(conversion, index, param);
+  }
+  void SetParameter(uint16_t index, uint64_t param) {
+    MdfChannelConversionSetParameterAsUInt64(conversion, index, param);
   }
   MdfChannelConversion CreateInverse() {
-    return MdfChannelConversion(MdfChannelConversionCreateInverse(conversion));
+    return MdfChannelConversionCreateInverse(conversion);
   }
 };
 }  // namespace MdfLibrary

@@ -542,7 +542,6 @@ EXPORTFEATUREFUNC(mdf::ISourceInformation*, CreateSourceInformation);
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)               \
   EXPORT(ReturnType, MdfChannel, FuncName, mdf::IChannel* channel, \
          ##__VA_ARGS__)
-
 EXPORTFEATUREFUNC(int64_t, GetIndex);
 EXPORTFEATUREFUNC(size_t, GetName, char* name);
 EXPORTFEATUREFUNC(void, SetName, const char* name);
@@ -588,10 +587,10 @@ EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaData);
 EXPORTFEATUREFUNC(const mdf::ISourceInformation*, GetSourceInformation);
 EXPORTFEATUREFUNC(const mdf::IChannelConversion*, GetChannelConversion);
 EXPORTFEATUREFUNC(size_t, GetChannelCompositions, mdf::IChannel* pChannels[]);
+EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData);
 EXPORTFEATUREFUNC(mdf::ISourceInformation*, CreateSourceInformation);
 EXPORTFEATUREFUNC(mdf::IChannelConversion*, CreateChannelConversion);
-EXPORTFEATUREFUNC(mdf::IChannel*, CreateChannelCompositions);
-EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData);
+EXPORTFEATUREFUNC(mdf::IChannel*, CreateChannelComposition);
 EXPORTFEATUREFUNC(void, SetChannelValueAsSigned, const int64_t value,
                   bool valid = true);
 EXPORTFEATUREFUNC(void, SetChannelValueAsUnSigned, const uint64_t value,
@@ -625,14 +624,18 @@ EXPORTFEATUREFUNC(double, GetRangeMin);
 EXPORTFEATUREFUNC(double, GetRangeMax);
 EXPORTFEATUREFUNC(void, SetRange, double min, double max);
 EXPORTFEATUREFUNC(uint16_t, GetFlags);
-EXPORTFEATUREFUNC(void, SetReference, int64_t index, const char* text);
+EXPORTFEATUREFUNC(size_t, GetReference, uint16_t index, char* reference);
+EXPORTFEATUREFUNC(void, SetReference, uint16_t index, const char* reference);
 EXPORTFEATUREFUNC(const mdf::IChannelConversion*, GetInverse);
 EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaData);
 EXPORTFEATUREFUNC(size_t, GetFormula, char* formula);
 EXPORTFEATUREFUNC(void, SetFormula, const char* formula);
-EXPORTFEATUREFUNC(double, GetParameter, int index);
-EXPORTFEATUREFUNC(void, SetParameter, int index, double parameter);
-EXPORTFEATUREFUNC(uint64_t, GetParameterUInt, int index);
+EXPORTFEATUREFUNC(double, GetNofParameters, uint16_t index);
+EXPORTFEATUREFUNC(double, GetParameterAsDouble, uint16_t index);
+EXPORTFEATUREFUNC(void, SetParameterAsDouble, uint16_t index, double parameter);
+EXPORTFEATUREFUNC(uint64_t, GetParameterAsUInt64, uint16_t index);
+EXPORTFEATUREFUNC(void, SetParameterAsUInt64, uint16_t index,
+                  uint64_t parameter);
 EXPORTFEATUREFUNC(mdf::IChannelConversion*, CreateInverse);
 EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData);
 #undef EXPORTFEATUREFUNC
@@ -871,6 +874,8 @@ EXPORTFEATUREFUNC(uint8_t, GetBitPosition);
 EXPORTFEATUREFUNC(void, SetBitPosition, const uint8_t position);
 EXPORTFEATUREFUNC(CanErrorType, GetErrorType);
 EXPORTFEATUREFUNC(void, SetErrorType, const CanErrorType type);
+#undef EXPORTFEATUREFUNC
+#pragma endregion
 }  // namespace MdfLibrary::ExportFunctions
 }
 

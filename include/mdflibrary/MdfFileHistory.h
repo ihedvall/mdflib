@@ -24,7 +24,7 @@ class MdfFileHistory {
   uint64_t GetTime() const { return MdfFileHistoryGetTime(history); }
   void SetTime(uint64_t time) { MdfFileHistorySetTime(history, time); }
   const MdfMetaData GetMetaData() const {
-    return MdfMetaData(MdfFileHistoryGetMetaData(history));
+    return MdfFileHistoryGetMetaData(history);
   }
   std::string GetDescription() const {
     size_t size = MdfFileHistoryGetDescription(history, nullptr);

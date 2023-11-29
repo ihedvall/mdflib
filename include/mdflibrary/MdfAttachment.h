@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <string>
 #include <stdexcept>
+#include <string>
 
-#include "MdfExport.h"
+#include "MdfMetaData.h"
 
 using namespace MdfLibrary::ExportFunctions;
 
@@ -65,6 +65,12 @@ class MdfAttachment {
   }
   void SetFileType(const char* type) {
     MdfAttachmentSetFileType(attachment, type);
+  }
+  const MdfMetaData GetMetaData() const {
+    return MdfAttachmentGetMetaData(attachment);
+  }
+  MdfMetaData CreateMetaData() {
+    return MdfAttachmentCreateMetaData(attachment);
   }
 };
 }  // namespace MdfLibrary

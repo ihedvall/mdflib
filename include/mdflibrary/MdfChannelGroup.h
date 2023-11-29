@@ -56,34 +56,28 @@ class MdfChannelGroup {
     MdfChannelGroupSetPathSeparator(group, sep);
   }
   const MdfMetaData GetMetaData() const {
-    return MdfMetaData(MdfChannelGroupGetMetaData(group));
+    return MdfChannelGroupGetMetaData(group);
   }
   std::vector<MdfChannel> GetChannels() const {
     size_t count = MdfChannelGroupGetChannels(group, nullptr);
-    if (count <= 0) return std::vector<MdfChannel>();
+    if (count <= 0) return {};
     auto pChannels = new mdf::IChannel*[count];
     MdfChannelGroupGetChannels(group, pChannels);
     std::vector<MdfChannel> channels;
-    for (size_t i = 0; i < count; i++)
-      channels.push_back(MdfChannel(pChannels[i]));
+    for (size_t i = 0; i < count; i++) channels.push_back(pChannels[i]);
     delete[] pChannels;
     return channels;
   }
   const MdfSourceInformation GetSourceInformation() const {
-    return MdfSourceInformation(MdfChannelGroupGetSourceInformation(group));
+    return MdfChannelGroupGetSourceInformation(group);
   }
   const MdfChannel GetXChannel(MdfChannel ref_channel) {
-    return MdfChannel(
-        MdfChannelGroupGetXChannel(group, ref_channel.GetChannel()));
+    return MdfChannelGroupGetXChannel(group, ref_channel.GetChannel());
   }
-  MdfMetaData CreateMetaData() {
-    return MdfMetaData(MdfChannelGroupCreateMetaData(group));
-  }
-  MdfChannel CreateChannel() {
-    return MdfChannel(MdfChannelGroupCreateChannel(group));
-  }
+  MdfMetaData CreateMetaData() { return MdfChannelGroupCreateMetaData(group); }
+  MdfChannel CreateChannel() { return MdfChannelGroupCreateChannel(group); }
   MdfSourceInformation CreateSourceInformation() {
-    return MdfSourceInformation(MdfChannelGroupCreateSourceInformation(group));
+    return MdfChannelGroupCreateSourceInformation(group);
   }
 };
 }  // namespace MdfLibrary

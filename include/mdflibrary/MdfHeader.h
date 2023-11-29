@@ -106,60 +106,53 @@ class MdfHeader {
     MdfHeaderSetStartDistance(header, distance);
   }
   const MdfMetaData GetMetaDatas() const {
-    return MdfMetaData(MdfHeaderGetMetaDatas(header));
+    return MdfHeaderGetMetaDatas(header);
   }
   std::vector<MdfAttachment> GetAttachments() const {
     size_t count = MdfHeaderGetAttachments(header, nullptr);
-    if (count <= 0) return std::vector<MdfAttachment>();
+    if (count <= 0) return {};
     auto pAttachments = new mdf::IAttachment*[count];
     MdfHeaderGetAttachments(header, pAttachments);
     std::vector<MdfAttachment> attachments;
-    for (size_t i = 0; i < count; i++)
-      attachments.push_back(MdfAttachment(pAttachments[i]));
+    for (size_t i = 0; i < count; i++) attachments.push_back(pAttachments[i]);
     delete[] pAttachments;
     return attachments;
   }
   std::vector<MdfFileHistory> GetFileHistorys() const {
     size_t count = MdfHeaderGetFileHistorys(header, nullptr);
-    if (count <= 0) return std::vector<MdfFileHistory>();
+    if (count <= 0) return {};
     auto pFileHistorys = new mdf::IFileHistory*[count];
     MdfHeaderGetFileHistorys(header, pFileHistorys);
     std::vector<MdfFileHistory> fileHistorys;
-    for (size_t i = 0; i < count; i++)
-      fileHistorys.push_back(MdfFileHistory(pFileHistorys[i]));
+    for (size_t i = 0; i < count; i++) fileHistorys.push_back(pFileHistorys[i]);
     delete[] pFileHistorys;
     return fileHistorys;
   }
   std::vector<MdfEvent> GetEvents() const {
     size_t count = MdfHeaderGetEvents(header, nullptr);
-    if (count <= 0) return std::vector<MdfEvent>();
+    if (count <= 0) return {};
     auto pEvents = new mdf::IEvent*[count];
     MdfHeaderGetEvents(header, pEvents);
     std::vector<MdfEvent> events;
-    for (size_t i = 0; i < count; i++) events.push_back(MdfEvent(pEvents[i]));
+    for (size_t i = 0; i < count; i++) events.push_back(pEvents[i]);
     delete[] pEvents;
     return events;
   }
   std::vector<MdfDataGroup> GetDataGroups() const {
     size_t count = MdfHeaderGetDataGroups(header, nullptr);
-    if (count <= 0) return std::vector<MdfDataGroup>();
+    if (count <= 0) return {};
     auto pDataGroups = new mdf::IDataGroup*[count];
     MdfHeaderGetDataGroups(header, pDataGroups);
     std::vector<MdfDataGroup> dataGroups;
-    for (size_t i = 0; i < count; i++)
-      dataGroups.push_back(MdfDataGroup(pDataGroups[i]));
+    for (size_t i = 0; i < count; i++) dataGroups.push_back(pDataGroups[i]);
     delete[] pDataGroups;
     return dataGroups;
   }
-  MdfAttachment CreateAttachment() {
-    return MdfAttachment(MdfHeaderCreateAttachment(header));
-  }
+  MdfAttachment CreateAttachment() { return MdfHeaderCreateAttachment(header); }
   MdfFileHistory CreateFileHistory() {
-    return MdfFileHistory(MdfHeaderCreateFileHistory(header));
+    return MdfHeaderCreateFileHistory(header);
   }
-  MdfEvent CreateEvent() { return MdfEvent(MdfHeaderCreateEvent(header)); }
-  MdfDataGroup CreateDataGroup() {
-    return MdfDataGroup(MdfHeaderCreateDataGroup(header));
-  }
+  MdfEvent CreateEvent() { return MdfHeaderCreateEvent(header); }
+  MdfDataGroup CreateDataGroup() { return MdfHeaderCreateDataGroup(header); }
 };
 }  // namespace MdfLibrary

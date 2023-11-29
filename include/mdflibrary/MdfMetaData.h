@@ -40,21 +40,21 @@ class MdfMetaData {
   }
   std::vector<MdfETag> GetProperties() const {
     size_t count = MdfMetaDataGetProperties(metaData, nullptr);
-    if (count <= 0) return std::vector<MdfETag>();
+    if (count <= 0) return {};
     auto pTags = new mdf::ETag*[count];
     MdfMetaDataGetProperties(metaData, pTags);
     std::vector<MdfETag> tags;
-    for (size_t i = 0; i < count; i++) tags.push_back(MdfETag(pTags[i]));
+    for (size_t i = 0; i < count; i++) tags.push_back(pTags[i]);
     delete[] pTags;
     return tags;
   }
   std::vector<MdfETag> GetCommonProperties() const {
     size_t count = MdfMetaDataGetCommonProperties(metaData, nullptr);
-    if (count <= 0) return std::vector<MdfETag>();
+    if (count <= 0) return {};
     auto pTags = new mdf::ETag*[count];
     MdfMetaDataGetCommonProperties(metaData, pTags);
     std::vector<MdfETag> tags;
-    for (size_t i = 0; i < count; i++) tags.push_back(MdfETag(pTags[i]));
+    for (size_t i = 0; i < count; i++) tags.push_back(pTags[i]);
     delete[] pTags;
     return tags;
   }

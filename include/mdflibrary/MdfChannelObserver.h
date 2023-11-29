@@ -73,7 +73,8 @@ class MdfChannelObserver {
     size_t size;
     MdfChannelObserverGetChannelValueAsString(observer, sample, nullptr, size);
     char* str = new char[++size];
-    bool valid = MdfChannelObserverGetChannelValueAsString(observer, sample, str, size);
+    bool valid =
+        MdfChannelObserverGetChannelValueAsString(observer, sample, str, size);
     value.assign(str, size);
     delete str;
     return valid;
@@ -98,7 +99,8 @@ class MdfChannelObserver {
     size_t size;
     MdfChannelObserverGetEngValueAsString(observer, sample, nullptr, size);
     char* str = new char[++size];
-    bool valid = MdfChannelObserverGetEngValueAsString(observer, sample, str, size);
+    bool valid =
+        MdfChannelObserverGetEngValueAsString(observer, sample, str, size);
     value.assign(str, size);
     delete str;
     return valid;
@@ -116,13 +118,12 @@ std::vector<MdfChannelObserver> MdfCreateChannelObserverForChannelGroup(
     MdfDataGroup data_group, MdfChannelGroup channel_group) {
   size_t count =
       MdfChannelGroupGetChannels(channel_group.GetChannelGroup(), nullptr);
-  if (count <= 0) return std::vector<MdfChannelObserver>();
+  if (count <= 0) return {};
   auto pObservers = new mdf::IChannelObserver*[count];
   MdfChannelObserverCreateForChannelGroup(
       data_group.GetDataGroup(), channel_group.GetChannelGroup(), pObservers);
   std::vector<MdfChannelObserver> observers;
-  for (size_t i = 0; i < count; i++)
-    observers.push_back(MdfChannelObserver(pObservers[i]));
+  for (size_t i = 0; i < count; i++) observers.push_back(pObservers[i]);
   delete[] pObservers;
   return observers;
 }

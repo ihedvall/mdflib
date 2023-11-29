@@ -30,14 +30,13 @@ class CanMessage {
   bool GetExtendedId() const { return CanMessageGetExtendedId(can); };
   uint8_t GetDlc() const { return CanMessageGetDlc(can); };
   void SetDlc(uint8_t dlc) { CanMessageSetDlc(can, dlc); };
-
   uint32_t GetDataLength() const { return CanMessageGetDataLength(can); };
   void SetDataLength(uint32_t dataLength) {
     CanMessageSetDataLength(can, dataLength);
   };
   std::vector<uint8_t> GetDataBytes() const {
     size_t count = CanMessageGetDataBytes(can, nullptr);
-    if (count <= 0) return std::vector<uint8_t>();
+    if (count <= 0) return {};
     auto dataList = std::vector<uint8_t>(count);
     CanMessageGetDataBytes(can, dataList.data());
     return dataList;

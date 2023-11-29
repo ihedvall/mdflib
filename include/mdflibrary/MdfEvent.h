@@ -62,25 +62,22 @@ class MdfEvent {
   void SetSyncValue(int64_t value) { MdfEventSetSyncValue(event, value); }
   void SetSyncFactor(double factor) { MdfEventSetSyncFactor(event, factor); }
   const MdfEvent GetParentEvent() const {
-    return MdfEvent(MdfEventGetParentEvent(event));
+    return MdfEventGetParentEvent(event);
   }
   void SetParentEvent(MdfEvent parent) {
     MdfEventSetParentEvent(event, parent.event);
   }
-  const MdfEvent GetRangeEvent() const {
-    return MdfEvent(MdfEventGetRangeEvent(event));
-  }
+  const MdfEvent GetRangeEvent() const { return MdfEventGetRangeEvent(event); }
   void SetRangeEvent(MdfEvent range) {
     MdfEventSetRangeEvent(event, range.event);
   }
   std::vector<MdfAttachment> GetAttachments() const {
     size_t count = MdfEventGetAttachments(event, nullptr);
-    if (count <= 0) return std::vector<MdfAttachment>();
+    if (count <= 0) return {};
     auto pAttachments = new const mdf::IAttachment*[count];
     MdfEventGetAttachments(event, pAttachments);
     std::vector<MdfAttachment> attachments;
-    for (size_t i = 0; i < count; i++)
-      attachments.push_back(MdfAttachment(pAttachments[i]));
+    for (size_t i = 0; i < count; i++) attachments.push_back(pAttachments[i]);
     delete[] pAttachments;
     return attachments;
   }
@@ -88,9 +85,7 @@ class MdfEvent {
   void SetPreTrig(double time) { MdfEventSetPreTrig(event, time); }
   double GetPostTrig() const { return MdfEventGetPostTrig(event); }
   void SetPostTrig(double time) { MdfEventSetPostTrig(event, time); }
-  const MdfMetaData GetMetaData() const {
-    return MdfMetaData(MdfEventGetMetaData(event));
-  }
+  const MdfMetaData GetMetaData() const { return MdfEventGetMetaData(event); }
   void AddAttachment(MdfAttachment attachment) {
     MdfEventAddAttachment(event, attachment.GetAttachment());
   }

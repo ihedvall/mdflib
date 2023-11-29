@@ -39,7 +39,7 @@
                 "VCPKG_TARGET_TRIPLET": "x86-windows-static",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
             }
-                }
+        }
     ],
     "buildPresets": [
         {
@@ -98,6 +98,6 @@
                 "ALL_BUILD",
                 "install"
             ]
-                }
+        }
     ]
 }

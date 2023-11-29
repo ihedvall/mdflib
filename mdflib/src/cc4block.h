@@ -62,7 +62,10 @@ class Cc4Block : public MdfBlock, public IChannelConversion {
 
   [[nodiscard]] const Cc4Block* Cc() const { return cc_block_.get(); }
 
-  void Reference(size_t index, const std::string& text) override;
+  [[nodiscard]] uint16_t NofReferences() const override;
+  void Reference(uint16_t index, const std::string& text) override;
+  [[nodiscard]] std::string Reference(uint16_t index) const override;
+  
   [[nodiscard]] const RefList& References() const { return ref_list_; }
 
   [[nodiscard]] const MdfBlock* Find(int64_t index) const override;

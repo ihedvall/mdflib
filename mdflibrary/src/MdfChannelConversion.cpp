@@ -145,25 +145,48 @@ void MdfChannelConversion::Formula::set(String^ formula) {
   }
 }
 
-double MdfChannelConversion::Parameter::get(int index) {
-  return conversion_ != nullptr ?
-    conversion_->Parameter(static_cast<uint32_t>(index)) : 0.0;  
+uint16_t MdfChannelConversion::NofParameters::get() {
+  return conversion_ != nullptr ? conversion_->NofParameters() : 0;
 }
 
-void MdfChannelConversion::Parameter::set(int index, double parameter) {
+double MdfChannelConversion::Parameter(uint16_t index) {
+  return conversion_ != nullptr ?
+    conversion_->Parameter(index) : 0.0;  
+}
+
+void MdfChannelConversion::Parameter(uint16_t index, double parameter) {
   if (conversion_ != nullptr) {
-    conversion_->Parameter(static_cast<uint32_t>(index), parameter);
+    conversion_->Parameter(index, parameter);
   }  
 }
 
-uint64_t MdfChannelConversion::ParameterUInt::get(int index) {
+uint64_t MdfChannelConversion::ParameterUInt(uint16_t index) {
   return conversion_ != nullptr ?
-    conversion_->ParameterUint(static_cast<uint32_t>(index)) : 0;  
+    conversion_->ParameterUint(index): 0;  
 }
 
-void MdfChannelConversion::ParameterUInt::set(int index, uint64_t parameter) {
+void MdfChannelConversion::ParameterUInt(uint16_t index,
+                                         uint64_t parameter) {
   if (conversion_ != nullptr) {
-    conversion_->Parameter(static_cast<uint32_t>(index), parameter);
+    conversion_->Parameter(index, parameter);
+  }  
+}
+
+uint16_t MdfChannelConversion::NofReferences::get() {
+  return conversion_ != nullptr ? conversion_->NofReferences() : 0;
+}
+
+String^ MdfChannelConversion::Reference(uint16_t index) {
+   return conversion_ != nullptr ?
+     MdfLibrary::Utf8Conversion(
+       conversion_->Reference(index)) :
+      gcnew String("");  
+}
+
+void MdfChannelConversion::Reference(uint16_t index, String^ reference) {
+  if (conversion_ != nullptr) {
+    conversion_->Reference(index,
+      MdfLibrary::Utf8Conversion(reference));
   }  
 }
 

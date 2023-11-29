@@ -301,14 +301,18 @@ bool IChannelConversion::ConvertTextToTranslation(
   return false;
 }
 
-void IChannelConversion::Parameter(uint32_t index, double parameter) {
+uint16_t IChannelConversion::NofParameters() const {
+  return nof_values_;
+} 
+
+void IChannelConversion::Parameter(uint16_t index, double parameter) {
   while (index >= value_list_.size()) {
     value_list_.emplace_back(0.0);
   }
   value_list_[index] = parameter;
 }
 
-double IChannelConversion::Parameter(uint32_t index) const {
+double IChannelConversion::Parameter(uint16_t index) const {
   double value = 0.0;
   if (index < value_list_.size() ) {
     const auto& val = value_list_[index];
@@ -321,7 +325,7 @@ double IChannelConversion::Parameter(uint32_t index) const {
   return value;
 }
 
-uint64_t IChannelConversion::ParameterUint(uint32_t index) const {
+uint64_t IChannelConversion::ParameterUint(uint16_t index) const {
   uint64_t value = 0;
   if (index < value_list_.size() ) {
     const auto& val = value_list_[index];
@@ -334,7 +338,7 @@ uint64_t IChannelConversion::ParameterUint(uint32_t index) const {
   return value;
 }
 
-void IChannelConversion::Parameter(uint32_t index, uint64_t parameter) {
+void IChannelConversion::Parameter(uint16_t index, uint64_t parameter) {
   switch (Type()) {
     case ConversionType::BitfieldToText:
       break;
@@ -369,8 +373,19 @@ const std::string &IChannelConversion::Formula() const {
   return formula_;
 }
 
-void IChannelConversion::Reference(size_t index, const std::string &text) {
-
+uint16_t IChannelConversion::NofReferences() const {
+  // Not supported function for MDF3
+  return 0;
 }
+
+void IChannelConversion::Reference(uint16_t index, const std::string &text) {
+   // Not supported function for MDF3 
+}
+
+std::string IChannelConversion::Reference(uint16_t index) const {
+  // Not supported function for MDF3 
+  return {};
+}
+
 
 }  // end namespace mdf

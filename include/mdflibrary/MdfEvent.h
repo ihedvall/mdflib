@@ -4,7 +4,6 @@
  */
 #pragma once
 #include "MdfAttachment.h"
-#include "MdfMetaData.h"
 
 using namespace MdfLibrary::ExportFunctions;
 

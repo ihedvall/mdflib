@@ -3,9 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <string>
-
-#include "MdfMetadata.h"
+#include "MdfMetaData.h"
 
 using namespace MdfLibrary::ExportFunctions;
 

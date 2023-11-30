@@ -11,8 +11,7 @@
  */
 #pragma once
 
-#include <cstdint>
-#include <vector>
+
 #include "mdf/samplerecord.h"
 
 namespace mdf {

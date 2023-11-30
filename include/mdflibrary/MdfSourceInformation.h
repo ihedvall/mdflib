@@ -26,29 +26,24 @@ class MdfSourceInformation {
     return MdfSourceInformationGetIndex(sourceInformation);
   }
   std::string GetName() const {
-    std::string str;
-    str.reserve(MdfSourceInformationGetName(sourceInformation, nullptr) + 1);
-    str.resize(MdfSourceInformationGetName(sourceInformation, str.data()));;
+    std::string str(MdfSourceInformationGetName(sourceInformation, nullptr) + 1, '\0');
+    str.resize(MdfSourceInformationGetName(sourceInformation, str.data()));
     return str;
   }
   void SetName(const char* name) {
     MdfSourceInformationSetName(sourceInformation, name);
   }
   std::string GetDescription() const {
-    std::string str;
-    size_t size =
-        MdfSourceInformationGetDescription(sourceInformation, nullptr);
-    str.reserve(size + 1);
-    str.resize(MdfSourceInformationGetDescription(sourceInformation, str.data()));;
+    std::string str(MdfSourceInformationGetDescription(sourceInformation, nullptr) + 1, '\0');
+    str.resize(MdfSourceInformationGetDescription(sourceInformation, str.data()));
     return str;
   }
   void SetDescription(const char* desc) {
     MdfSourceInformationSetDescription(sourceInformation, desc);
   }
   std::string GetPath() const {
-    std::string str;
-    str.reserve(MdfSourceInformationGetPath(sourceInformation, nullptr) + 1);
-    str.resize(MdfSourceInformationGetPath(sourceInformation, str.data()));;
+    std::string str(MdfSourceInformationGetPath(sourceInformation, nullptr) + 1, '\0');
+    str.resize(MdfSourceInformationGetPath(sourceInformation, str.data()));
     return str;
   }
   void SetPath(const char* path) {

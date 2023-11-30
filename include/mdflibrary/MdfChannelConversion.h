@@ -3,9 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <string>
-
-#include "MdfExport.h"
+#include "MdfMetaData.h"
 
 using namespace MdfLibrary::ExportFunctions;
 
@@ -26,27 +24,24 @@ class MdfChannelConversion {
   ~MdfChannelConversion() { conversion = nullptr; }
   int64_t GetIndex() const { return MdfChannelConversionGetIndex(conversion); }
   std::string GetName() const {
-    std::string str;
-    str.reserve(MdfChannelConversionGetName(conversion, nullptr) + 1);
-    str.resize(MdfChannelConversionGetName(conversion, str.data()));;
+    std::string str(MdfChannelConversionGetName(conversion, nullptr) + 1, '\0');
+    str.resize(MdfChannelConversionGetName(conversion, str.data()));
     return str;
   }
   void SetName(const char* name) {
     MdfChannelConversionSetName(conversion, name);
   }
   std::string GetDescription() const {
-    std::string str;
-    str.reserve(MdfChannelConversionGetDescription(conversion, nullptr) + 1);
-    str.resize(MdfChannelConversionGetDescription(conversion, str.data()));;
+    std::string str(MdfChannelConversionGetDescription(conversion, nullptr) + 1, '\0');
+    str.resize(MdfChannelConversionGetDescription(conversion, str.data()));
     return str;
   }
   void SetDescription(const char* desc) {
     MdfChannelConversionSetDescription(conversion, desc);
   }
   std::string GetUnit() const {
-    std::string str;
-    str.reserve(MdfChannelConversionGetUnit(conversion, nullptr) + 1);
-    str.resize(MdfChannelConversionGetUnit(conversion, str.data()));;
+    std::string str(MdfChannelConversionGetUnit(conversion, nullptr) + 1, '\0');
+    str.resize(MdfChannelConversionGetUnit(conversion, str.data()));
     return str;
   }
   void SetUnit(const char* unit) {
@@ -76,10 +71,33 @@ class MdfChannelConversion {
   }
   uint16_t GetFlags() const { return MdfChannelConversionGetFlags(conversion); }
   const MdfChannelConversion GetInverse() const {
-    return MdfChannelConversion(MdfChannelConversionGetInverse(conversion));
+    return MdfChannelConversionGetInverse(conversion);
+  }
+  const MdfMetaData GetMetadata() const {
+    return MdfChannelConversionGetMetaData(conversion);
+  }
+  std::string GetReference(uint16_t index) const {
+    std::string str(MdfChannelConversionGetReference(conversion, index, nullptr) + 1, '\0');
+    str.resize(MdfChannelConversionGetReference(conversion, index, str.data()));
+    return str;
+  }
+  void SetReference(uint16_t index, const char* ref) {
+    MdfChannelConversionSetReference(conversion, index, ref);
+  }
+  double GetParameter(uint16_t index) const {
+    return MdfChannelConversionGetParameterAsDouble(conversion, index);
+  }
+  uint64_t GetParameterUint(uint16_t index) const {
+    return MdfChannelConversionGetParameterAsUInt64(conversion, index);
+  }
+  void SetParameter(uint16_t index, double param) {
+    MdfChannelConversionSetParameterAsDouble(conversion, index, param);
+  }
+  void SetParameter(uint16_t index, uint64_t param) {
+    MdfChannelConversionSetParameterAsUInt64(conversion, index, param);
   }
   MdfChannelConversion CreateInverse() {
-    return MdfChannelConversion(MdfChannelConversionCreateInverse(conversion));
+    return MdfChannelConversionCreateInverse(conversion);
   }
 };
 }  // namespace MdfLibrary

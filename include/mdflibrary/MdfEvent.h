@@ -4,7 +4,6 @@
  */
 #pragma once
 #include "MdfAttachment.h"
-#include "MdfMetaData.h"
 
 using namespace MdfLibrary::ExportFunctions;
 
@@ -22,23 +21,20 @@ class MdfEvent {
   ~MdfEvent() { event = nullptr; }
   int64_t GetIndex() const { return MdfEventGetIndex(event); }
   std::string GetName() const {
-    std::string str;
-    str.reserve(MdfEventGetName(event, nullptr) + 1);
-    str.resize(MdfEventGetName(event, str.data()));;
+    std::string str(MdfEventGetName(event, nullptr) + 1, '\0');
+    str.resize(MdfEventGetName(event, str.data()));
     return str;
   }
   void SetName(const char* name) { MdfEventSetName(event, name); }
   std::string GetDescription() const {
-    std::string str;
-    str.reserve(MdfEventGetDescription(event, nullptr) + 1);
-    str.resize(MdfEventGetDescription(event, str.data()));;
+    std::string str(MdfEventGetDescription(event, nullptr) + 1, '\0');
+    str.resize(MdfEventGetDescription(event, str.data()));
     return str;
   }
   void SetDescription(const char* desc) { MdfEventSetDescription(event, desc); }
   std::string GetGroupName() const {
-    std::string str;
-    str.reserve(MdfEventGetGroupName(event, nullptr) + 1);
-    str.resize(MdfEventGetGroupName(event, str.data()));;
+    std::string str(MdfEventGetGroupName(event, nullptr) + 1, '\0');
+    str.resize(MdfEventGetGroupName(event, str.data()));
     return str;
   }
   void SetGroupName(const char* group) { MdfEventSetGroupName(event, group); }
@@ -56,25 +52,22 @@ class MdfEvent {
   void SetSyncValue(int64_t value) { MdfEventSetSyncValue(event, value); }
   void SetSyncFactor(double factor) { MdfEventSetSyncFactor(event, factor); }
   const MdfEvent GetParentEvent() const {
-    return MdfEvent(MdfEventGetParentEvent(event));
+    return MdfEventGetParentEvent(event);
   }
   void SetParentEvent(MdfEvent parent) {
     MdfEventSetParentEvent(event, parent.event);
   }
-  const MdfEvent GetRangeEvent() const {
-    return MdfEvent(MdfEventGetRangeEvent(event));
-  }
+  const MdfEvent GetRangeEvent() const { return MdfEventGetRangeEvent(event); }
   void SetRangeEvent(MdfEvent range) {
     MdfEventSetRangeEvent(event, range.event);
   }
   std::vector<MdfAttachment> GetAttachments() const {
     size_t count = MdfEventGetAttachments(event, nullptr);
-    if (count <= 0) return std::vector<MdfAttachment>();
+    if (count <= 0) return {};
     auto pAttachments = new const mdf::IAttachment*[count];
     MdfEventGetAttachments(event, pAttachments);
     std::vector<MdfAttachment> attachments;
-    for (size_t i = 0; i < count; i++)
-      attachments.push_back(MdfAttachment(pAttachments[i]));
+    for (size_t i = 0; i < count; i++) attachments.push_back(pAttachments[i]);
     delete[] pAttachments;
     return attachments;
   }
@@ -82,9 +75,7 @@ class MdfEvent {
   void SetPreTrig(double time) { MdfEventSetPreTrig(event, time); }
   double GetPostTrig() const { return MdfEventGetPostTrig(event); }
   void SetPostTrig(double time) { MdfEventSetPostTrig(event, time); }
-  const MdfMetaData GetMetaData() const {
-    return MdfMetaData(MdfEventGetMetaData(event));
-  }
+  const MdfMetaData GetMetaData() const { return MdfEventGetMetaData(event); }
   void AddAttachment(MdfAttachment attachment) {
     MdfEventAddAttachment(event, attachment.GetAttachment());
   }

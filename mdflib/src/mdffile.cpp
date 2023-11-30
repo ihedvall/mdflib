@@ -42,15 +42,14 @@ IAttachment* MdfFile::CreateAttachment() { return nullptr; }
 
 void MdfFile::FileName(const std::string& filename) {
   filename_ = filename;
-  try {
-    
-    const auto temp = std::filesystem::u8path(filename);
-    if (name_.empty()) {
-      name_ = temp.stem().u8string();
+  if (name_.empty()) {
+    try {
+      auto name = std::filesystem::u8path(filename).stem().u8string();
+      name_ = std::string(name.begin(), name.end());
+    } catch (const std::exception& err) {
+      MDF_ERROR() << "Invalid file name detected. Error: " << err.what()
+                  << ", File: " << filename;
     }
-  } catch (const std::exception& err) {
-    MDF_ERROR() << "Invalid file name detected. Error: " << err.what()
-                << ", File: " << filename;
   }
 }
 

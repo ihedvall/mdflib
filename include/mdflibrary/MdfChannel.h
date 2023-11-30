@@ -23,25 +23,22 @@ class MdfChannel {
   mdf::IChannel* GetChannel() const { return channel; }
   int64_t GetIndex() const { return MdfChannelGetIndex(channel); }
   std::string GetName() const {
-    std::string str;
-    str.reserve(MdfChannelGetName(channel, nullptr) + 1);
-    str.resize(MdfChannelGetName(channel, str.data()));;
+    std::string str(MdfChannelGetName(channel, nullptr) + 1, '\0');
+    str.resize(MdfChannelGetName(channel, str.data()));
     return str;
   }
   void SetName(const char* name) { MdfChannelSetName(channel, name); }
   std::string GetDisplayName() const {
-    std::string str;
-    str.reserve(MdfChannelGetDisplayName(channel, nullptr) + 1);
-    str.resize(MdfChannelGetDisplayName(channel, str.data()));;
+    std::string str(MdfChannelGetDisplayName(channel, nullptr) + 1, '\0');
+    str.resize(MdfChannelGetDisplayName(channel, str.data()));
     return str;
   }
   void SetDisplayName(const char* name) {
     MdfChannelSetDisplayName(channel, name);
   }
   std::string GetDescription() const {
-    std::string str;
-    str.reserve(MdfChannelGetDescription(channel, nullptr) + 1);
-    str.resize(MdfChannelGetDescription(channel, str.data()));;
+    std::string str(MdfChannelGetDescription(channel, nullptr) + 1, '\0');
+    str.resize(MdfChannelGetDescription(channel, str.data()));
     return str;
   }
   void SetDescription(const char* desc) {
@@ -49,9 +46,8 @@ class MdfChannel {
   }
   bool IsUnitUsed() { return MdfChannelIsUnitUsed(channel); }
   std::string GetUnit() const {
-    std::string str;
-    str.reserve(MdfChannelGetUnit(channel, nullptr) + 1);
-    str.resize(MdfChannelGetUnit(channel, str.data()));;
+    std::string str(MdfChannelGetUnit(channel, nullptr) + 1, '\0');
+    str.resize(MdfChannelGetUnit(channel, str.data()));
     return str;
   }
   void SetUnit(const char* unit) { MdfChannelSetUnit(channel, unit); }
@@ -65,8 +61,8 @@ class MdfChannel {
   }
   uint32_t GetFlags() const { return MdfChannelGetFlags(channel); }
   void SetFlags(uint32_t flags) { MdfChannelSetFlags(channel, flags); }
-  size_t GetDataBytes() const { return MdfChannelGetDataBytes(channel); }
-  void SetDataBytes(size_t bytes) { MdfChannelSetDataBytes(channel, bytes); }
+  uint64_t GetDataBytes() const { return MdfChannelGetDataBytes(channel); }
+  void SetDataBytes(uint64_t bytes) { MdfChannelSetDataBytes(channel, bytes); }
   bool IsPrecisionUsed() { return MdfChannelIsPrecisionUsed(channel); }
   uint8_t GetPrecision() const { return MdfChannelGetPrecision(channel); }
   bool IsRangeUsed() { return MdfChannelIsRangeUsed(channel); }
@@ -88,23 +84,44 @@ class MdfChannel {
     MdfChannelSetExtLimit(channel, min, max);
   }
   double GetSamplingRate() const { return MdfChannelGetSamplingRate(channel); }
+  uint64_t GetVlsdRecordId() const {
+    return MdfChannelGetVlsdRecordId(channel);
+  }
+  void SetVlsdRecordId(uint64_t record_id) {
+    MdfChannelSetVlsdRecordId(channel, record_id);
+  }
+  uint32_t GetBitCount() const { return MdfChannelGetBitCount(channel); }
+  void SetBitCount(uint32_t bits) { MdfChannelSetBitCount(channel, bits); }
+  uint16_t GetBitOffset() const { return MdfChannelGetBitOffset(channel); }
+  void SetBitOffset(uint16_t bits) { MdfChannelSetBitOffset(channel, bits); }
   const MdfMetaData GetMetaData() const {
-    return MdfMetaData(MdfChannelGetMetaData(channel));
+    return MdfChannelGetMetaData(channel);
   }
   const MdfSourceInformation GetSourceInformation() const {
-    return MdfSourceInformation(MdfChannelGetSourceInformation(channel));
+    return MdfChannelGetSourceInformation(channel);
   }
   const MdfChannelConversion GetChannelConversion() const {
-    return MdfChannelConversion(MdfChannelGetChannelConversion(channel));
+    return MdfChannelGetChannelConversion(channel);
   }
-  MdfMetaData CreateMetaData() {
-    return MdfMetaData(MdfChannelCreateMetaData(channel));
+  std::vector<MdfChannel> GetChannelCompositions() {
+    size_t count = MdfChannelGetChannelCompositions(channel, nullptr);
+    if (count <= 0) return {};
+    auto pChannels = new mdf::IChannel*[count];
+    MdfChannelGetChannelCompositions(channel, pChannels);
+    std::vector<MdfChannel> channelss;
+    for (size_t i = 0; i < count; i++) channelss.push_back(pChannels[i]);
+    delete[] pChannels;
+    return channelss;
   }
+  MdfMetaData CreateMetaData() { return MdfChannelCreateMetaData(channel); }
   MdfSourceInformation CreateSourceInformation() {
-    return MdfSourceInformation(MdfChannelCreateSourceInformation(channel));
+    return MdfChannelCreateSourceInformation(channel);
   }
   MdfChannelConversion CreateChannelConversion() {
-    return MdfChannelConversion(MdfChannelCreateChannelConversion(channel));
+    return MdfChannelCreateChannelConversion(channel);
+  }
+  MdfChannel CreateChannelComposition() {
+    return MdfChannelCreateChannelComposition(channel);
   }
   void SetChannelValue(const int64_t value, bool valid = true) {
     MdfChannelSetChannelValueAsSigned(channel, value, valid);

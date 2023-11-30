@@ -4,6 +4,7 @@
  */
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 
 // Pure C example
 #include <mdflibrary/MdfExport.h>
@@ -139,7 +140,7 @@ void c_example() {
       MdfChannelGroupSetName(cg, "Test");
       MdfChannelGroupSetDescription(cg, "Test channel group");
 
-      mdf::IChannel* pChannel[2];
+      mdf::IChannel* pChannel[3];
       {
         pChannel[0] = MdfChannelGroupCreateChannel(cg);
         std::cout << "Channel: " << pChannel[0] << std::endl;
@@ -162,11 +163,21 @@ void c_example() {
         MdfChannelSetDataBytes(pChannel[1], sizeof(int32_t));
       }
 
+      {
+        pChannel[2] = MdfChannelGroupCreateChannel(cg);
+        MdfChannelSetName(pChannel[1], "String");
+        MdfChannelSetDescription(pChannel[1], "string");
+        MdfChannelSetType(pChannel[1], ChannelType::FixedLength);
+        MdfChannelSetDataType(pChannel[1], ChannelDataType::StringAscii);
+        MdfChannelSetDataBytes(pChannel[1], 4);
+      }
+
       MdfWriterInitMeasurement(Writer);
       MdfWriterStartMeasurement(Writer, 100000000);
       std::cout << "Start measure" << std::endl;
       for (size_t i = 0; i < 90; i++) {
         MdfChannelSetChannelValueAsFloat(pChannel[1], i * 2);
+        MdfChannelSetChannelValueAsString(pChannel[2], std::to_string(i * 3).c_str());
         MdfWriterSaveSample(Writer, cg, 100000000 + i * 1000);
       }
       std::cout << "Stop measure" << std::endl;
@@ -260,6 +271,22 @@ void cpp_example() {
       cn.SetDataType(ChannelDataType::FloatBe);
       cn.SetDataBytes(sizeof(double));
     }
+    {
+      auto cn = cg.CreateChannel();
+      cn.SetName("String");
+      cn.SetDescription("string");
+      cn.SetType(ChannelType::FixedLength);
+      cn.SetDataType(ChannelDataType::StringAscii);
+      cn.SetDataBytes(4);
+    }
+    {
+      auto cn = cg.CreateChannel();
+      cn.SetName("ByteArray");
+      cn.SetDescription("bytes");
+      cn.SetType(ChannelType::FixedLength);
+      cn.SetDataType(ChannelDataType::ByteArray);
+      cn.SetDataBytes(4);
+    }
 
     auto channels = cg.GetChannels();
     std::cout << "ChannelGroupGetChannels: " << channels.size() << std::endl;
@@ -272,6 +299,8 @@ void cpp_example() {
       channels[2].SetChannelValue((uint64_t)i * 3);
       channels[3].SetChannelValue((uint64_t)i * 4);
       channels[4].SetChannelValue((uint64_t)i * 5);
+      channels[5].SetChannelValue(std::to_string(i * 6).c_str());
+      channels[6].SetChannelValue((uint8_t*)std::to_string(i * 6).c_str(), 4);
       Writer.SaveSample(cg, 100000000 + i * 1000);
       std::cout << "Save sample " << i << std::endl;
     }

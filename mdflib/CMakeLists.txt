@@ -1,6 +1,9 @@
 # Copyright 2023 Simplxs
 # SPDX-License-Identifier: MIT
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_DEBUG_POSTFIX d)
+
 add_library(mdf STATIC
         src/mdfblock.cpp src/mdfblock.h
         src/mdffile.cpp ../include/mdf/mdffile.h
@@ -84,10 +87,8 @@ add_library(mdf STATIC
         src/platform.cpp src/platform.h
         src/iblock.cpp ../include/mdf/iblock.h
         src/vlsddata.cpp src/vlsddata.h
-        src/mdfbuslogger.cpp
-        src/mdfbuslogger.h
-        src/canmessage.cpp
-        ../include/mdf/canmessage.h)
+        src/mdfbuslogger.cpp src/mdfbuslogger.h
+        src/canmessage.cpp ../include/mdf/canmessage.h)
 
 if(VCPKG)
   find_package(ZLIB REQUIRED)
@@ -108,9 +109,6 @@ endif()
 
 target_include_directories(
   mdf PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
-
-# set_target_properties(mdflib PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS
-# "-m32")
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set_target_properties(mdf PROPERTIES COMPILE_FLAGS "-fPIC")

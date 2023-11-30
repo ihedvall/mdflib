@@ -41,15 +41,13 @@ class MdfChannelObserver {
     return MdfChannelObserverGetNofSamples(observer);
   }
   std::string GetName() const {
-    std::string str;
-    str.reserve(MdfChannelObserverGetName(observer, nullptr) + 1);
-    str.resize(MdfChannelObserverGetName(observer, str.data()));;
+    std::string str(MdfChannelObserverGetName(observer, nullptr) + 1, '\0');
+    str.resize(MdfChannelObserverGetName(observer, str.data()));
     return str;
   }
   std::string GetUnit() const {
-    std::string str;
-    str.reserve(MdfChannelObserverGetUnit(observer, nullptr) + 1);
-    str.resize(MdfChannelObserverGetUnit(observer, str.data()));;
+    std::string str(MdfChannelObserverGetUnit(observer, nullptr) + 1, '\0');
+    str.resize(MdfChannelObserverGetUnit(observer, str.data()));
     return str;
   }
   const MdfChannel GetChannel() const {
@@ -68,14 +66,17 @@ class MdfChannelObserver {
   bool GetChannelValue(uint64_t sample, std::string& value) const {
     size_t size;
     MdfChannelObserverGetChannelValueAsString(observer, sample, nullptr, size);
-    value.reserve(++size);
-    return MdfChannelObserverGetChannelValueAsString(observer, sample,
-                                                     value.data(), size);
+    char* str = new char[++size];
+    bool valid =
+        MdfChannelObserverGetChannelValueAsString(observer, sample, str, size);
+    value.assign(str, size);
+    delete str;
+    return valid;
   }
-  bool GetChannelValue(uint64_t sample, std::vector<uint8_t> value) const {
+  bool GetChannelValue(uint64_t sample, std::vector<uint8_t>& value) const {
     size_t size;
     MdfChannelObserverGetChannelValueAsArray(observer, sample, nullptr, size);
-    value.reserve(size);
+    value.resize(size);
     return MdfChannelObserverGetChannelValueAsArray(observer, sample,
                                                     value.data(), size);
   }
@@ -91,14 +92,17 @@ class MdfChannelObserver {
   bool GetEngValue(uint64_t sample, std::string& value) const {
     size_t size;
     MdfChannelObserverGetEngValueAsString(observer, sample, nullptr, size);
-    value.reserve(++size);
-    return MdfChannelObserverGetEngValueAsString(observer, sample, value.data(),
-                                                 size);
+    char* str = new char[++size];
+    bool valid =
+        MdfChannelObserverGetEngValueAsString(observer, sample, str, size);
+    value.assign(str, size);
+    delete str;
+    return valid;
   }
-  bool GetEngValue(uint64_t sample, std::vector<uint8_t> value) const {
+  bool GetEngValue(uint64_t sample, std::vector<uint8_t>& value) const {
     size_t size;
     MdfChannelObserverGetEngValueAsArray(observer, sample, nullptr, size);
-    value.reserve(size);
+    value.resize(size);
     return MdfChannelObserverGetEngValueAsArray(observer, sample, value.data(),
                                                 size);
   }
@@ -108,13 +112,12 @@ std::vector<MdfChannelObserver> MdfCreateChannelObserverForChannelGroup(
     MdfDataGroup data_group, MdfChannelGroup channel_group) {
   size_t count =
       MdfChannelGroupGetChannels(channel_group.GetChannelGroup(), nullptr);
-  if (count <= 0) return std::vector<MdfChannelObserver>();
+  if (count <= 0) return {};
   auto pObservers = new mdf::IChannelObserver*[count];
   MdfChannelObserverCreateForChannelGroup(
       data_group.GetDataGroup(), channel_group.GetChannelGroup(), pObservers);
   std::vector<MdfChannelObserver> observers;
-  for (size_t i = 0; i < count; i++)
-    observers.push_back(MdfChannelObserver(pObservers[i]));
+  for (size_t i = 0; i < count; i++) observers.push_back(pObservers[i]);
   delete[] pObservers;
   return observers;
 }

@@ -99,25 +99,5 @@
                 "install"
             ]
         }
-    ],
-    "testPresets": [
-        {
-            "name": "ninja-multi-vcpkg-x64",
-            "description": "Build ninja-multi-vcpkg-x64 GTest",
-            "displayName": "Build ninja-multi-vcpkg-x64 GTest",
-            "configurePreset": "ninja-multi-vcpkg-x64"
-        },
-        {
-            "name": "msvc-multi-vcpkg-x64",
-            "description": "Build msvc-multi-vcpkg-x64 GTest",
-            "displayName": "Build msvc-multi-vcpkg-x64 GTest",
-            "configurePreset": "msvc-multi-vcpkg-x64"
-        },
-        {
-            "name": "msvc-multi-vcpkg-x64_x86",
-            "description": "Build msvc-multi-vcpkg-x64_x86 GTest",
-            "displayName": "Build msvc-multi-vcpkg-x64_x86 GTest",
-            "configurePreset": "msvc-multi-vcpkg-x64_x86"
-        }
     ]
 }

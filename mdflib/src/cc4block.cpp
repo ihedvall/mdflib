@@ -7,8 +7,6 @@
 
 #include <sstream>
 #include <string>
-#include <algorithm>
-
 namespace {
 constexpr size_t kIndexName = 0;
 constexpr size_t kIndexUnit = 1;

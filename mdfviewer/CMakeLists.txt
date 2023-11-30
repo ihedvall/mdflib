@@ -1,6 +1,5 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
-cmake_minimum_required(VERSION 3.20)
 project(
   MdfViewer
   VERSION 1.0
@@ -9,7 +8,7 @@ project(
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(mdfview 
+add_executable(mdfview
         src/mdfviewer.cpp src/mdfviewer.h
         src/mainframe.cpp src/mainframe.h
         src/mdfdocument.cpp src/mdfdocument.h
@@ -36,9 +35,7 @@ target_include_directories(mdfview PRIVATE mdf
 if(MSVC)
   target_link_options(mdfview PRIVATE /SUBSYSTEM:WINDOWS)
   target_compile_definitions(mdfview PRIVATE _WIN32_WINNT=0x0A00)
-endif()
-
-if(MINGW)
+elseif(MINGW)
   target_link_options(mdfview PRIVATE -mwindows -static -fstack-protector)
 endif()
 

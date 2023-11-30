@@ -1,11 +1,23 @@
 # Copyright 2023 Simplxs
 # SPDX-License-Identifier: MIT
+project(
+  mdflibrary
+  VERSION 2.0
+  DESCRIPTION "Interface against MDF 3/4 files"
+  LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_DEBUG_POSTFIX d)
+
 message(STATUS  "Compiler Version " ${CMAKE_CXX_COMPILER_VERSION})
 message(STATUS  "MSVC " ${MSVC})
-if (MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36)
+if (MDF_BUILD_SHARED_LIB_NET)
     message(STATUS  "CLR compile")
     add_library(mdflibrary SHARED
-            src/MdfExport.cpp src/MdfExport.h
+            # C++ files
+            src/MdfExport.cpp
+            
+            # Following files are needed for clr
             src/AssemblyInfo.cpp
             src/MdfAttachment.cpp src/MdfAttachment.h
             src/MdfChannel.cpp src/MdfChannel.h
@@ -26,7 +38,6 @@ if (MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36)
             src/Mdfwriter.cpp src/Mdfwriter.h
             src/CanMessage.cpp src/CanMessage.h
             )
-
   set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
 else()
   add_library(mdflibrary SHARED src/MdfExport.cpp)
@@ -37,24 +48,25 @@ target_link_libraries(mdflibrary PRIVATE mdf)
 target_include_directories(
   mdflibrary PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>)
 
+# Hander files for c/cpp, NOT the SAME as the one of c# clr
 set(MDFLIBRARY_PUBLIC_HEADERS
-            src/CanMessage.h
-            src/MdfExport.h
-            src/MdfAttachment.h
-            src/MdfChannel.h
-            src/MdfChannelConversion.h
-            src/MdfChannelGroup.h
-            src/MdfChannelObserver.h
-            src/MdfDataGroup.h
-            src/MdfETag.h
-            src/mdflibrary/MdfEvent.h
-            src/mdflibrary/MdfFile.h
-            src/mdflibrary/MdfFileHistory.h
-            src/MdfHeader.h
-            src/MdfMetaData.h
-            src/MdfReader.h
-            src/MdfSourceInformation.h
-            src/MdfWriter.h)
+            ../include/mdflibrary/MdfExport.h
+            ../include/mdflibrary/MdfAttachment.h
+            ../include/mdflibrary/MdfChannel.h
+            ../include/mdflibrary/MdfChannelConversion.h
+            ../include/mdflibrary/MdfChannelGroup.h
+            ../include/mdflibrary/MdfChannelObserver.h
+            ../include/mdflibrary/MdfDataGroup.h
+            ../include/mdflibrary/MdfETag.h
+            ../include/mdflibrary/MdfEvent.h
+            ../include/mdflibrary/MdfFile.h
+            ../include/mdflibrary/MdfFileHistory.h
+            ../include/mdflibrary/MdfHeader.h
+            ../include/mdflibrary/MdfMetaData.h
+            ../include/mdflibrary/MdfReader.h
+            ../include/mdflibrary/MdfSourceInformation.h
+            ../include/mdflibrary/MdfWriter.h
+            ../include/mdflibrary/CanMessage.h)
 set_target_properties(mdflibrary PROPERTIES PUBLIC_HEADER
                                             "${MDFLIBRARY_PUBLIC_HEADERS}")
 get_target_property(PH1 mdflibrary PUBLIC_HEADER)

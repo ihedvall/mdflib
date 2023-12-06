@@ -196,12 +196,21 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
     // Need to bit mask copy everything.
     const auto first_byte = ByteOffset();
     const auto last_byte = first_byte + nof_bytes - 1;
+    const bool is_big_endian = ChannelDataType() == ChannelDataType::SignedIntegerBe ||
+                               ChannelDataType() == ChannelDataType::UnsignedIntegerBe;
 
     // Combine bytes
     uint64_t value = 0;
-    for (auto i = first_byte; i <= last_byte; ++i) {
-      value <<= 8;
-      value |= record_buffer[i];
+    if (is_big_endian) {
+      for (auto i = first_byte; i <= last_byte; ++i) {
+        value <<= 8;
+        value |= record_buffer[i];
+      }
+    } else {
+      for (auto i = last_byte; i >= first_byte; --i) {
+        value <<= 8;
+        value |= record_buffer[i];
+      }
     }
 
     // Apply offset
@@ -222,9 +231,16 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
     }
 
     // Copy to output buffer
-    for (auto i = 0; i < nof_bytes; ++i) {
-      data_buffer[nof_bytes - i - 1] = static_cast<uint8_t>(value & 0xFF);
-      value >>= 8;
+    if (is_big_endian) {
+      for (auto i = 0; i < nof_bytes; ++i) {
+        data_buffer[nof_bytes - i - 1] = static_cast<uint8_t>(value & 0xFF);
+        value >>= 8;
+      }
+    } else {
+      for (auto i = 0; i < nof_bytes; ++i) {
+        data_buffer[i] = static_cast<uint8_t>(value & 0xFF);
+        value >>= 8;
+      }
     }
   }
 

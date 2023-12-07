@@ -11,25 +11,59 @@
 
 namespace {
 
+size_t RoundSizeToNearestPowerOfTwo(const size_t size) {
+  size_t result = 1;
+  while (result < size) {
+    result <<= 1;
+  }
+  return result;
+}
+
+std::vector<uint8_t> ExtendIntegerBuffer(const std::vector<uint8_t> &data_buffer, const bool is_big_endian, const bool is_signed) {
+  // Calculate the size of the extended buffer.
+  const size_t rounded_size = RoundSizeToNearestPowerOfTwo(data_buffer.size());
+  if (rounded_size == data_buffer.size()) {
+    return data_buffer;
+  }
+
+  // Check if the number is negative.
+  const uint8_t msb = (is_big_endian ? data_buffer.front() : data_buffer.back()) & 0x80;
+  const bool is_negative = is_signed && (msb != 0);
+
+  // Initialize the extended buffer with the sign bit.
+  const uint8_t fill_byte = is_negative ? 0xFF : 0x00;
+  std::vector<uint8_t> extended_buffer(rounded_size, fill_byte);
+
+  // Copy the original data.
+  if (is_big_endian) {
+    memcpy(extended_buffer.data() + (rounded_size - data_buffer.size()), data_buffer.data(), data_buffer.size());
+  } else {
+    memcpy(extended_buffer.data(), data_buffer.data(), data_buffer.size());
+  }
+
+  return extended_buffer;
+}
+
 uint64_t ConvertUnsignedLe(const std::vector<uint8_t> &data_buffer) {
-  switch (data_buffer.size()) {
+  const std::vector<uint8_t> extended_buffer = ExtendIntegerBuffer(data_buffer, false, false);
+  switch (extended_buffer.size()) {
     case 1: {
-      const mdf::LittleBuffer<uint8_t> data(data_buffer, 0);
+      const mdf::LittleBuffer<uint8_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 2: {
-      const mdf::LittleBuffer<uint16_t> data(data_buffer, 0);
+      const mdf::LittleBuffer<uint16_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 4: {
-      const mdf::LittleBuffer<uint32_t> data(data_buffer, 0);
+      const mdf::LittleBuffer<uint32_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 8: {
-      const mdf::LittleBuffer<uint64_t> data(data_buffer, 0);
+      const mdf::LittleBuffer<uint64_t> data(extended_buffer, 0);
       return data.value();
     }
 
@@ -40,24 +74,25 @@ uint64_t ConvertUnsignedLe(const std::vector<uint8_t> &data_buffer) {
 }
 
 uint64_t ConvertUnsignedBe(const std::vector<uint8_t> &data_buffer) {
-  switch (data_buffer.size()) {
+  const std::vector<uint8_t> extended_buffer = ExtendIntegerBuffer(data_buffer, true, false);
+  switch (extended_buffer.size()) {
     case 1: {
-      const mdf::BigBuffer<uint8_t> data(data_buffer, 0);
+      const mdf::BigBuffer<uint8_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 2: {
-      const mdf::BigBuffer<uint16_t> data(data_buffer, 0);
+      const mdf::BigBuffer<uint16_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 4: {
-      const mdf::BigBuffer<uint32_t> data(data_buffer, 0);
+      const mdf::BigBuffer<uint32_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 8: {
-      const mdf::BigBuffer<uint64_t> data(data_buffer, 0);
+      const mdf::BigBuffer<uint64_t> data(extended_buffer, 0);
       return data.value();
     }
 
@@ -68,24 +103,25 @@ uint64_t ConvertUnsignedBe(const std::vector<uint8_t> &data_buffer) {
 }
 
 int64_t ConvertSignedLe(const std::vector<uint8_t> &data_buffer) {
-  switch (data_buffer.size()) {
+  const std::vector<uint8_t> extended_buffer = ExtendIntegerBuffer(data_buffer, false, true);
+  switch (extended_buffer.size()) {
     case 1: {
-      const mdf::LittleBuffer<int8_t> data(data_buffer, 0);
+      const mdf::LittleBuffer<int8_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 2: {
-      const mdf::LittleBuffer<int16_t> data(data_buffer, 0);
+      const mdf::LittleBuffer<int16_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 4: {
-      const mdf::LittleBuffer<int32_t> data(data_buffer, 0);
+      const mdf::LittleBuffer<int32_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 8: {
-      const mdf::LittleBuffer<int64_t> data(data_buffer, 0);
+      const mdf::LittleBuffer<int64_t> data(extended_buffer, 0);
       return data.value();
     }
 
@@ -96,24 +132,25 @@ int64_t ConvertSignedLe(const std::vector<uint8_t> &data_buffer) {
 }
 
 int64_t ConvertSignedBe(const std::vector<uint8_t> &data_buffer) {
-  switch (data_buffer.size()) {
+  const std::vector<uint8_t> extended_buffer = ExtendIntegerBuffer(data_buffer, true, true);
+  switch (extended_buffer.size()) {
     case 1: {
-      const mdf::BigBuffer<int8_t> data(data_buffer, 0);
+      const mdf::BigBuffer<int8_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 2: {
-      const mdf::BigBuffer<int16_t> data(data_buffer, 0);
+      const mdf::BigBuffer<int16_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 4: {
-      const mdf::BigBuffer<int32_t> data(data_buffer, 0);
+      const mdf::BigBuffer<int32_t> data(extended_buffer, 0);
       return data.value();
     }
 
     case 8: {
-      const mdf::BigBuffer<int64_t> data(data_buffer, 0);
+      const mdf::BigBuffer<int64_t> data(extended_buffer, 0);
       return data.value();
     }
 
@@ -125,12 +162,15 @@ int64_t ConvertSignedBe(const std::vector<uint8_t> &data_buffer) {
 
 double ConvertFloatBe(const std::vector<uint8_t> &data_buffer) {
   switch (data_buffer.size()) {
+    case 2: {
+      throw std::logic_error("Half-precision float is not implemented yet.");
       /*
-          case 2: {
+
             const mdf::BigBuffer<half_float::half> data(data_buffer, 0);
             return data.value();
           }
       */
+    }
     case 4: {
       const mdf::BigBuffer<float> data(data_buffer, 0);
       return data.value();
@@ -143,19 +183,20 @@ double ConvertFloatBe(const std::vector<uint8_t> &data_buffer) {
     default:
       break;
   }
-  return 0.0;
+  throw std::invalid_argument("Invalid float size. Float must be 2, 4 or 8 bytes.");
 }
 
 double ConvertFloatLe(const std::vector<uint8_t> &data_buffer) {
   switch (data_buffer.size()) {
+    case 2: {
+      throw std::logic_error("Half-precision float is not implemented yet.");
       /*
-          case 2: {
             boost::endian::endian_buffer<boost::endian::order::little,
          half_float::half, 16, boost::endian::align::no> data {};
             memcpy(data.data(), data_buffer.data(), 2);
             return data.value();
-          }
       */
+    }
     case 4: {
       const mdf::LittleBuffer<float> data(data_buffer, 0);
       return data.value();
@@ -169,7 +210,7 @@ double ConvertFloatLe(const std::vector<uint8_t> &data_buffer) {
     default:
       break;
   }
-  return 0.0;
+  throw std::invalid_argument("Invalid float size. Float must be 2, 4 or 8 bytes.");
 }
 
 }  // namespace
@@ -196,12 +237,21 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
     // Need to bit mask copy everything.
     const auto first_byte = ByteOffset();
     const auto last_byte = first_byte + nof_bytes - 1;
+    const bool is_big_endian = ChannelDataType() == ChannelDataType::SignedIntegerBe ||
+                               ChannelDataType() == ChannelDataType::UnsignedIntegerBe;
 
     // Combine bytes
     uint64_t value = 0;
-    for (auto i = first_byte; i <= last_byte; ++i) {
-      value <<= 8;
-      value |= record_buffer[i];
+    if (is_big_endian) {
+      for (auto i = first_byte; i <= last_byte; ++i) {
+        value <<= 8;
+        value |= record_buffer[i];
+      }
+    } else {
+      for (auto i = last_byte; i >= first_byte; --i) {
+        value <<= 8;
+        value |= record_buffer[i];
+      }
     }
 
     // Apply offset
@@ -222,9 +272,16 @@ void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
     }
 
     // Copy to output buffer
-    for (auto i = 0; i < nof_bytes; ++i) {
-      data_buffer[nof_bytes - i - 1] = static_cast<uint8_t>(value & 0xFF);
-      value >>= 8;
+    if (is_big_endian) {
+      for (auto i = 0; i < nof_bytes; ++i) {
+        data_buffer[nof_bytes - i - 1] = static_cast<uint8_t>(value & 0xFF);
+        value >>= 8;
+      }
+    } else {
+      for (auto i = 0; i < nof_bytes; ++i) {
+        data_buffer[i] = static_cast<uint8_t>(value & 0xFF);
+        value >>= 8;
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 ---
-name: CMake Build Windows
+name: CMake Build Linux
 
 on:
   push:
@@ -11,11 +11,11 @@ on:
 
 env:
   BUILD_TYPE: Release
-  VCPKG_FILE: c:/vcpkg/scripts/buildsystems/vcpkg.cmake
+  VCPKG_FILE: /usr/local/share/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 jobs:
-  windows:
-    runs-on: windows-latest
+  ubuntu:
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4

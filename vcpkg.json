@@ -19,9 +19,7 @@
         "mdflibtest": {
             "description": "Build mdf tests",
             "dependencies": [
-                "boost-filesystem",
-                "boost-process",
-                "boost-locale",
+                "boost-endian",
                 "gtest"
             ]
         }

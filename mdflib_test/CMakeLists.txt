@@ -34,9 +34,9 @@ target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 
 if(VCPKG)
   find_package(Boost)
-  target_link_libraries(test_mdf PRIVATE Boost::boost Boost::filesystem Boost::locale)
+  target_link_libraries(test_mdf PRIVATE Boost::boost)
 
-  find_package(GTest CONFIG REQUIRED)
+  find_package(GTest)
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
                                         GTest::gmock GTest::gmock_main)
 else()

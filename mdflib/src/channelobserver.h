@@ -6,10 +6,10 @@
 #include <algorithm>
 #include <vector>
 
-#include "mdf/ichannel.h"
 #include "mdf/ichannelgroup.h"
-#include "mdf/ichannelobserver.h"
 #include "mdf/idatagroup.h"
+#include "mdf/ichannelobserver.h"
+
 
 namespace mdf::detail {
 
@@ -19,12 +19,15 @@ class ChannelObserver : public IChannelObserver {
   uint64_t record_id_ = 0;
   std::vector<T> value_list_;
   std::vector<bool> valid_list_;
+  bool attached_ = false;
 
-  const IDataGroup&
-      data_group_;  ///< Reference to the publisher (subject/observer)
+  const IDataGroup& data_group_;  ///< Reference to the data group (DG) block.
+  const IChannelGroup& group_;       ///< Reference to the channel group (CG) block.
 
   template <typename V>
   bool GetVirtualSample(uint64_t sample, V& value) const {
+    // No need for array index here. Array is weird usage for virtual channels
+    // as the channel value = sample.
     value = static_cast<V>(sample);
     return true;
   }
@@ -36,13 +39,13 @@ class ChannelObserver : public IChannelObserver {
   }
 
  protected:
-  bool GetSampleUnsigned(uint64_t sample, uint64_t& value) const override;
+  bool GetSampleUnsigned(uint64_t sample, uint64_t& value , uint64_t array_index) const override;
 
-  bool GetSampleSigned(uint64_t sample, int64_t& value) const override;
+  bool GetSampleSigned(uint64_t sample, int64_t& value, uint64_t array_index) const override;
 
-  bool GetSampleFloat(uint64_t sample, double& value) const override;
+  bool GetSampleFloat(uint64_t sample, double& value, uint64_t array_index) const override;
 
-  bool GetSampleText(uint64_t sample, std::string& value) const override;
+  bool GetSampleText(uint64_t sample, std::string& value, uint64_t array_index) const override;
 
   bool GetSampleByteArray(uint64_t sample,
                           std::vector<uint8_t>& value) const override;
@@ -52,15 +55,24 @@ class ChannelObserver : public IChannelObserver {
                   const IChannel& channel)
       : IChannelObserver(channel),
         data_group_(data_group),
-        record_id_(group.RecordId()),
-        value_list_(group.NofSamples(), T{}),
-        valid_list_(group.NofSamples(), false) {
+        group_(group),
+        record_id_(group.RecordId())
+ {
+    const auto* channel_array = channel_.ChannelArray();
+    const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+
+    valid_list_.resize(group_.NofSamples() * array_size, false);
+    value_list_.resize(group.NofSamples() * array_size, T{});
+
     if (channel_.Type() == ChannelType::VariableLength) {
-      index_list_.resize(group.NofSamples());
+      index_list_.resize(group.NofSamples() * array_size,0);
     }
-    data_group_.AttachSampleObserver(this);
+    ChannelObserver::AttachObserver();
   }
-  ~ChannelObserver() override { data_group_.DetachSampleObserver(this); }
+
+  ~ChannelObserver() override {
+    ChannelObserver::DetachObserver();
+  }
 
   ChannelObserver() = delete;
   ChannelObserver(const ChannelObserver&) = delete;
@@ -69,59 +81,85 @@ class ChannelObserver : public IChannelObserver {
   ChannelObserver& operator=(ChannelObserver&&) = delete;
 
   [[nodiscard]] uint64_t NofSamples() const override {
-    return std::min(valid_list_.size(), value_list_.size());
+    // Note that value_list may be an array.
+    return group_.NofSamples();
+  }
+
+  void AttachObserver() override {
+    if (!attached_) {
+      attached_ = true;
+      data_group_.AttachSampleObserver(this);
+    }
+  }
+  void DetachObserver() override {
+    if (attached_) {
+      data_group_.DetachSampleObserver(this);
+      attached_ = false;
+    }
   }
 
   void OnSample(uint64_t sample, uint64_t record_id,
                 const std::vector<uint8_t>& record) override {
+    const auto* channel_array = channel_.ChannelArray();
+    auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
 
+    T value{};
+    bool valid;
     switch (channel_.Type()) {
 
       case ChannelType::VirtualMaster:
       case ChannelType::VirtualData:
         if (record_id_ == record_id) {
-          T value{};
-          const bool valid = GetVirtualSample(sample, value);
-          if (sample < value_list_.size()) {
-            value_list_[sample] = value;
-          }
-          if (sample < valid_list_.size()) {
-            valid_list_[sample] = valid;
+          for ( uint64_t array_index = 0; array_index < array_size; ++array_index) {
+            const auto sample_index = (sample * array_size) + array_index;
+            valid = GetVirtualSample(sample, value);
+            if (sample_index < value_list_.size()) {
+              value_list_[sample_index] = value;
+            }
+            if (sample_index < valid_list_.size()) {
+              valid_list_[sample_index] = valid;
+            }
           }
         }
         break;
 
-        // This channel may reference a CG blocks another record id
-      case ChannelType::VariableLength: {
+        // This channel may reference a SD/CG blocks
+      case ChannelType::VariableLength:
         if (record_id_ == record_id && channel_.VlsdRecordId() == 0) {
-          uint64_t index = 0;
-          bool valid = channel_.GetUnsignedValue(record, index);
-          if (sample < index_list_.size()) {
-            index_list_[sample] = index;
-          }
-          T value;
-          valid = channel_.GetChannelValue(record, value);
-          if (sample < valid_list_.size()) {
-            valid_list_[sample] = valid;
-          }
-          if (sample < value_list_.size()) {
-            value_list_[sample] = value;
+          // If variable length, the value is an index into an SD block.
+          for (uint64_t array_index = 0; array_index < array_size; ++array_index) {
+            uint64_t offset = 0; // Offset into SD/CG block
+            valid = channel_.GetUnsignedValue(record, offset, array_index);
+
+            const auto sample_index = (sample * array_size) + array_index;
+            if (sample_index < index_list_.size()) {
+              index_list_[sample_index] = offset;
+            }
+            // Value should be in the channels data list (SD). The channels
+            // GetChannelValue handle this situation
+            valid = channel_.GetChannelValue(record, value, array_index);
+            if (sample_index < valid_list_.size()) {
+              valid_list_[sample_index] = valid;
+            }
+            if (sample_index < value_list_.size()) {
+              value_list_[sample_index] = value;
+            }
           }
         } else if (channel_.VlsdRecordId() > 0 &&
                    record_id == channel_.VlsdRecordId()) {
-          // Add the VLSD sample data to this channel
-          T value{};
-          const bool valid = channel_.GetChannelValue(record, value);
-          if (sample < value_list_.size()) {
-            value_list_[sample] = value;
-          }
-          if (sample < valid_list_.size()) {
-            valid_list_[sample] = valid;
+          // Add the VLSD offset data to this channel
+          for (uint64_t array_index = 0; array_index < array_size; ++array_index) {
+            const auto sample_index = (sample * array_size) + array_index;
+            valid = channel_.GetChannelValue(record, value, array_index);
+            if (sample_index < value_list_.size()) {
+              value_list_[sample_index] = value;
+            }
+            if (sample_index < valid_list_.size()) {
+              valid_list_[sample_index] = valid;
+            }
           }
         }
-      }
         break;
-
 
       case ChannelType::MaxLength:
       case ChannelType::Sync:
@@ -129,13 +167,15 @@ class ChannelObserver : public IChannelObserver {
       case ChannelType::FixedLength:
       default:
         if (record_id_ == record_id) {
-          T value{};
-          const bool valid = channel_.GetChannelValue(record, value);
-          if (sample < value_list_.size()) {
-            value_list_[sample] = value;
-          }
-          if (sample < valid_list_.size()) {
-            valid_list_[sample] = valid;
+          for (uint64_t array_index = 0; array_index < array_size; ++array_index) {
+            const auto sample_index = (sample * array_size) + array_index;
+            valid = channel_.GetChannelValue(record, value, array_index);
+            if (sample_index < value_list_.size()) {
+              value_list_[sample_index] = value;
+            }
+            if (sample_index < valid_list_.size()) {
+              valid_list_[sample_index] = valid;
+            }
           }
         }
         break;
@@ -143,68 +183,92 @@ class ChannelObserver : public IChannelObserver {
   }
 };
 
+
 template <class T>
 bool ChannelObserver<T>::GetSampleUnsigned(uint64_t sample,
-                                           uint64_t& value) const {
-  value = sample < value_list_.size() ? 
-      static_cast<uint64_t>(value_list_[sample]) : static_cast<uint64_t>(T{});
-  return sample < valid_list_.size() && valid_list_[sample];
+                                           uint64_t& value,
+                                           uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
+  value = sample_index < value_list_.size() ?
+      static_cast<uint64_t>(value_list_[sample_index]) : static_cast<uint64_t>(T{});
+  return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
-// specialization of the above template function just to keep the compiler
+// Specialization of the above template function just to keep the compiler
 // happy. Fetching an unsigned value as a byte array is not supported.
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleUnsigned(
-    uint64_t sample, uint64_t& value) const;
+    uint64_t sample, uint64_t& value, uint64_t array_index) const;
 
 template <>
 bool ChannelObserver<std::string>::GetSampleUnsigned(uint64_t sample,
-                                                     uint64_t& value) const;
+                                                     uint64_t& value,
+                                                     uint64_t array_index) const;
 
 template <class T>
 bool ChannelObserver<T>::GetSampleSigned(uint64_t sample,
-                                         int64_t& value) const {
-  value = sample < value_list_.size() ? static_cast<int64_t>(value_list_[sample]) : 0;
-  return sample < valid_list_.size() && valid_list_[sample];
+                                         int64_t& value,
+                                         uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
+  value = sample_index < value_list_.size() ? static_cast<int64_t>(value_list_[sample_index]) : 0;
+  return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleSigned(
-    uint64_t sample, int64_t& value) const;
+    uint64_t sample, int64_t& value, uint64_t array_index) const;
 
 template <>
 bool ChannelObserver<std::string>::GetSampleSigned(uint64_t sample,
-                                                   int64_t& value) const;
+                                                   int64_t& value,
+                                                   uint64_t array_index) const;
 
 template <class T>
-bool ChannelObserver<T>::GetSampleFloat(uint64_t sample, double& value) const {
-  value = sample < value_list_.size() ? static_cast<double>(value_list_[sample]) : 0;
-  return sample < valid_list_.size() && valid_list_[sample];
+bool ChannelObserver<T>::GetSampleFloat(uint64_t sample, double& value,
+                                        uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
+  value = sample_index < value_list_.size() ? static_cast<double>(value_list_[sample_index]) : 0;
+  return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleFloat(uint64_t sample,
-                                                           double& value) const;
+                                                           double& value,
+                                                           uint64_t array_index) const;
 
 template <>
 bool ChannelObserver<std::string>::GetSampleFloat(uint64_t sample,
-                                                  double& value) const;
+                                                  double& value,
+                                                  uint64_t array_index) const;
 
 template <class T>
 bool ChannelObserver<T>::GetSampleText(uint64_t sample,
-                                       std::string& value) const {
-  std::ostringstream temp;
-  if (sample < value_list_.size()) {
-    temp << value_list_[sample];
-  }
+                                       std::string& value,
+                                       uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
+  try {
+    std::ostringstream temp;
+    if (sample_index < value_list_.size()) {
+      temp << value_list_[sample_index];
+    }
 
-  value =  temp.str();
-  return sample < valid_list_.size() && valid_list_[sample];
+    value = temp.str();
+    return sample_index < valid_list_.size() && valid_list_[sample];
+  } catch (const std::exception& ) {}
+  return false;
 }
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleText(
-    uint64_t sample, std::string& value) const;
+    uint64_t sample, std::string& value, uint64_t  array_index) const;
 
 // Little bit dirty trick but it's the specialized function below that
 // normally used.

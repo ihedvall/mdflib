@@ -1,5 +1,4 @@
 
-
 #include "mdf/ichannel.h"
 
 #include <ctime>
@@ -8,307 +7,43 @@
 #include "bigbuffer.h"
 #include "half.hpp"
 #include "littlebuffer.h"
+#include "dbchelper.h"
 
-namespace {
-
-size_t RoundSizeToNearestPowerOfTwo(const size_t size) {
-  size_t result = 1;
-  while (result < size) {
-    result <<= 1;
-  }
-  return result;
-}
-
-std::vector<uint8_t> ExtendIntegerBuffer(const std::vector<uint8_t> &data_buffer, const bool is_big_endian, const bool is_signed) {
-  // Calculate the size of the extended buffer.
-  const size_t rounded_size = RoundSizeToNearestPowerOfTwo(data_buffer.size());
-  if (rounded_size == data_buffer.size()) {
-    return data_buffer;
-  }
-
-  // Check if the number is negative.
-  const uint8_t msb = (is_big_endian ? data_buffer.front() : data_buffer.back()) & 0x80;
-  const bool is_negative = is_signed && (msb != 0);
-
-  // Initialize the extended buffer with the sign bit.
-  const uint8_t fill_byte = is_negative ? 0xFF : 0x00;
-  std::vector<uint8_t> extended_buffer(rounded_size, fill_byte);
-
-  // Copy the original data.
-  if (is_big_endian) {
-    memcpy(extended_buffer.data() + (rounded_size - data_buffer.size()), data_buffer.data(), data_buffer.size());
-  } else {
-    memcpy(extended_buffer.data(), data_buffer.data(), data_buffer.size());
-  }
-
-  return extended_buffer;
-}
-
-uint64_t ConvertUnsignedLe(const std::vector<uint8_t> &data_buffer) {
-  const std::vector<uint8_t> extended_buffer = ExtendIntegerBuffer(data_buffer, false, false);
-  switch (extended_buffer.size()) {
-    case 1: {
-      const mdf::LittleBuffer<uint8_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 2: {
-      const mdf::LittleBuffer<uint16_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 4: {
-      const mdf::LittleBuffer<uint32_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 8: {
-      const mdf::LittleBuffer<uint64_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    default:
-      break;
-  }
-  return 0;
-}
-
-uint64_t ConvertUnsignedBe(const std::vector<uint8_t> &data_buffer) {
-  const std::vector<uint8_t> extended_buffer = ExtendIntegerBuffer(data_buffer, true, false);
-  switch (extended_buffer.size()) {
-    case 1: {
-      const mdf::BigBuffer<uint8_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 2: {
-      const mdf::BigBuffer<uint16_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 4: {
-      const mdf::BigBuffer<uint32_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 8: {
-      const mdf::BigBuffer<uint64_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    default:
-      break;
-  }
-  return 0;
-}
-
-int64_t ConvertSignedLe(const std::vector<uint8_t> &data_buffer) {
-  const std::vector<uint8_t> extended_buffer = ExtendIntegerBuffer(data_buffer, false, true);
-  switch (extended_buffer.size()) {
-    case 1: {
-      const mdf::LittleBuffer<int8_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 2: {
-      const mdf::LittleBuffer<int16_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 4: {
-      const mdf::LittleBuffer<int32_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 8: {
-      const mdf::LittleBuffer<int64_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    default:
-      break;
-  }
-  return 0;
-}
-
-int64_t ConvertSignedBe(const std::vector<uint8_t> &data_buffer) {
-  const std::vector<uint8_t> extended_buffer = ExtendIntegerBuffer(data_buffer, true, true);
-  switch (extended_buffer.size()) {
-    case 1: {
-      const mdf::BigBuffer<int8_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 2: {
-      const mdf::BigBuffer<int16_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 4: {
-      const mdf::BigBuffer<int32_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    case 8: {
-      const mdf::BigBuffer<int64_t> data(extended_buffer, 0);
-      return data.value();
-    }
-
-    default:
-      break;
-  }
-  return 0;
-}
-
-double ConvertFloatBe(const std::vector<uint8_t> &data_buffer) {
-  switch (data_buffer.size()) {
-    case 2: {
-      throw std::logic_error("Half-precision float is not implemented yet.");
-      /*
-
-            const mdf::BigBuffer<half_float::half> data(data_buffer, 0);
-            return data.value();
-          }
-      */
-    }
-    case 4: {
-      const mdf::BigBuffer<float> data(data_buffer, 0);
-      return data.value();
-    }
-
-    case 8: {
-      const mdf::BigBuffer<double> data(data_buffer, 0);
-      return data.value();
-    }
-    default:
-      break;
-  }
-  throw std::invalid_argument("Invalid float size. Float must be 2, 4 or 8 bytes.");
-}
-
-double ConvertFloatLe(const std::vector<uint8_t> &data_buffer) {
-  switch (data_buffer.size()) {
-    case 2: {
-      throw std::logic_error("Half-precision float is not implemented yet.");
-      /*
-            boost::endian::endian_buffer<boost::endian::order::little,
-         half_float::half, 16, boost::endian::align::no> data {};
-            memcpy(data.data(), data_buffer.data(), 2);
-            return data.value();
-      */
-    }
-    case 4: {
-      const mdf::LittleBuffer<float> data(data_buffer, 0);
-      return data.value();
-    }
-
-    case 8: {
-      const mdf::LittleBuffer<double> data(data_buffer, 0);
-      return data.value();
-    }
-
-    default:
-      break;
-  }
-  throw std::invalid_argument("Invalid float size. Float must be 2, 4 or 8 bytes.");
-}
-
-}  // namespace
 namespace mdf {
 
-void IChannel::CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
-                                std::vector<uint8_t> &data_buffer) const {
-  size_t nof_bytes = (BitCount() / 8) + (BitCount() % 8 > 0 ? 1 : 0);
-  if (data_buffer.size() != nof_bytes) {
-    data_buffer.resize(nof_bytes);
-  }
-  memset(data_buffer.data(), 0, data_buffer.size());
-
-  if (BitOffset() == 0 && (BitCount() % 8) == 0) {
-    // This is the preferred way of doing business
-    memcpy(data_buffer.data(), record_buffer.data() + ByteOffset(),
-           data_buffer.size());
-  } else if (BitCount() == 1) {
-    // This is OK for boolean and bits
-    uint8_t in_mask = 0x01 << BitOffset();
-    data_buffer[0] = (record_buffer[ByteOffset()] & in_mask) != 0
-                         ? 0x01 : 0x00;
-  } else {
-    // Need to bit mask copy everything.
-    const auto first_byte = ByteOffset();
-    const auto last_byte = first_byte + nof_bytes - 1;
-    const bool is_big_endian = ChannelDataType() == ChannelDataType::SignedIntegerBe ||
-                               ChannelDataType() == ChannelDataType::UnsignedIntegerBe;
-
-    // Combine bytes
-    uint64_t value = 0;
-    if (is_big_endian) {
-      for (auto i = first_byte; i <= last_byte; ++i) {
-        value <<= 8;
-        value |= record_buffer[i];
-      }
-    } else {
-      for (auto i = last_byte; i >= first_byte; --i) {
-        value <<= 8;
-        value |= record_buffer[i];
-      }
-    }
-
-    // Apply offset
-    value >>= BitOffset();
-
-    // Apply mask
-    const uint64_t bit_limit_mask = (1ULL << BitCount()) - 1;
-    value &= bit_limit_mask;
-
-    // Apply sign extension
-    if (DataType() == ChannelDataType::SignedIntegerLe ||
-                            DataType() == ChannelDataType::SignedIntegerBe) {
-      const bool is_negative = (value & (0x01ULL << (BitCount() - 1))) != 0;
-      if (is_negative) {
-        const uint64_t sign_extension_mask = ~((1ULL << BitCount()) - 1);
-        value |= sign_extension_mask;
-      }
-    }
-
-    // Copy to output buffer
-    if (is_big_endian) {
-      for (auto i = 0; i < nof_bytes; ++i) {
-        data_buffer[nof_bytes - i - 1] = static_cast<uint8_t>(value & 0xFF);
-        value >>= 8;
-      }
-    } else {
-      for (auto i = 0; i < nof_bytes; ++i) {
-        data_buffer[i] = static_cast<uint8_t>(value & 0xFF);
-        value >>= 8;
-      }
-    }
-  }
-
-}
-
 bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
-                                uint64_t &dest) const {
-  // Copy to a temp data buffer, so we can get rid of this bit offset nonsense
+                                uint64_t &dest,
+                                uint64_t array_index) const {
 
-  std::vector<uint8_t> data_buffer;
-  CopyToDataBuffer(record_buffer, data_buffer);
+  const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
+    + (array_index * BitCount());
   if (Type() == ChannelType::VariableLength) {
-    dest = ConvertUnsignedLe(data_buffer);
+     dest = detail::DbcHelper::RawToUnsigned(true,
+                                            bit_offset,
+                                            BitCount(),
+                                            record_buffer.data());
     return true;
   }
 
   switch (DataType()) {
+    // Note that the string actual returns the first 4 bytes
+    //
     case ChannelDataType::StringUTF16Le:
     case ChannelDataType::StringUTF16Be:
     case ChannelDataType::StringUTF8:
     case ChannelDataType::StringAscii:
     case ChannelDataType::UnsignedIntegerLe:
-      dest = ConvertUnsignedLe(data_buffer);
+      dest = detail::DbcHelper::RawToUnsigned(true,
+                                              bit_offset,
+                                              BitCount(),
+                                              record_buffer.data());
       break;
 
     case ChannelDataType::UnsignedIntegerBe:
-      dest = ConvertUnsignedBe(data_buffer);
+      dest = detail::DbcHelper::RawToUnsigned(false,
+                                              bit_offset,
+                                              BitCount(),
+                                              record_buffer.data());
       break;
 
     default:
@@ -318,52 +53,61 @@ bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
 }
 
 bool IChannel::GetSignedValue(const std::vector<uint8_t> &record_buffer,
-                              int64_t &dest) const {
+                              int64_t &dest,
+                              uint64_t array_index) const {
   // Copy to a temp data buffer, so we can get rid of the bit offset nonsense
-  std::vector<uint8_t> data_buffer;
-  CopyToDataBuffer(record_buffer, data_buffer);
-  switch (DataType()) {
-    case ChannelDataType::SignedIntegerLe:
-      dest = ConvertSignedLe(data_buffer);
-      break;
-
-    case ChannelDataType::SignedIntegerBe:
-      dest = ConvertSignedBe(data_buffer);
-      break;
-
-    default:
-      return false;  // Not valid conversion
-  }
+  // std::vector<uint8_t> data_buffer;
+  // CopyToDataBuffer(record_buffer, data_buffer, array_index);
+  const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
+      + (array_index * BitCount());
+  const bool little_endian = DataType() == ChannelDataType::SignedIntegerLe;
+  dest = detail::DbcHelper::RawToSigned(little_endian,
+                                                   bit_offset,
+                                                  BitCount(),
+                                                    record_buffer.data());
   return true;
 }
 
 bool IChannel::GetFloatValue(const std::vector<uint8_t> &record_buffer,
-                             double &dest) const {
-  // Copy to a temp data buffer, so we can get rid of the bit offset nonsense
-  std::vector<uint8_t> data_buffer;
-  CopyToDataBuffer(record_buffer, data_buffer);
-  switch (DataType()) {
-    case ChannelDataType::FloatLe:
-      dest = ConvertFloatLe(data_buffer);
+                             double &dest,
+                             uint64_t array_index ) const {
+  const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
+        + (array_index * BitCount());
+  const bool little_endian = DataType() == ChannelDataType::FloatLe;
+  bool valid = true;
+  switch (BitCount()) {
+    case 16:
+      dest = detail::DbcHelper::RawToHalf(little_endian,
+                                          bit_offset,
+                                         BitCount(),
+                                           record_buffer.data());
       break;
 
-    case ChannelDataType::FloatBe:
-      dest = ConvertFloatBe(data_buffer);
+    case 32:
+      dest = detail::DbcHelper::RawToFloat(little_endian,
+                                          bit_offset,
+                                          BitCount(),
+                                          record_buffer.data());
+      break;
+
+    case 64:
+      dest = detail::DbcHelper::RawToDouble(little_endian,
+                                          bit_offset,
+                                          BitCount(),
+                                          record_buffer.data());
       break;
 
     default:
-      return false;  // Not valid conversion
+      valid = false;
+      break;
   }
-  return true;
+  return valid;
 }
 
 bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer,
                             std::string &dest) const {
-  auto offset = ByteOffset();
-  size_t nof_bytes = BitCount() / 8 + ((BitCount() % 8) != 0 ? 1 : 0);
-
-
-
+  const auto offset = ByteOffset();
+  const size_t nof_bytes = BitCount() / 8 + ((BitCount() % 8) != 0 ? 1 : 0);
   bool valid = true;
   dest.clear();
 
@@ -444,7 +188,7 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer,
 
 bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
                                  std::vector<uint8_t> &dest) const {
-
+  dest.resize(DataBytes(), 0);
   if (Type() == ChannelType::VariableLength && VlsdRecordId() > 0) {
     dest = record_buffer;
   } else {
@@ -714,13 +458,14 @@ void IChannel::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
 
 template <>
 bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
-                               std::vector<uint8_t> &dest) const {
+                               std::vector<uint8_t> &dest,
+                               uint64_t array_index) const {
   bool valid = false;
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
     case ChannelDataType::UnsignedIntegerBe: {
       uint64_t value = 0;
-      valid = GetUnsignedValue(record_buffer, value);
+      valid = GetUnsignedValue(record_buffer, value, array_index);
       dest.resize(1);
       dest[0] = static_cast<uint8_t>(value);
       break;
@@ -729,7 +474,7 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::SignedIntegerLe:
     case ChannelDataType::SignedIntegerBe: {
       int64_t value = 0;
-      valid = GetSignedValue(record_buffer, value);
+      valid = GetSignedValue(record_buffer, value, array_index);
       dest.resize(1);
       dest[0] = static_cast<uint8_t>(value);
       break;
@@ -738,7 +483,7 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::FloatLe:
     case ChannelDataType::FloatBe: {
       double value = 0;
-      valid = GetFloatValue(record_buffer, value);
+      valid = GetFloatValue(record_buffer, value, array_index);
       dest.resize(1);
       dest[0] = static_cast<uint8_t>(value);
       break;
@@ -789,13 +534,14 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
 
 template <>
 bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
-                               std::string &dest) const {
+                               std::string &dest,
+                               uint64_t array_index) const {
   bool valid = false;
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
     case ChannelDataType::UnsignedIntegerBe: {
       uint64_t value = 0;
-      valid = GetUnsignedValue(record_buffer, value);
+      valid = GetUnsignedValue(record_buffer, value, array_index);
       std::ostringstream s;
       s << value;
       dest = s.str();
@@ -805,14 +551,14 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::SignedIntegerLe:
     case ChannelDataType::SignedIntegerBe: {
       int64_t value = 0;
-      valid = GetSignedValue(record_buffer, value);
+      valid = GetSignedValue(record_buffer, value, array_index);
       dest = std::to_string(value);
       break;
     }
     case ChannelDataType::FloatLe:
     case ChannelDataType::FloatBe: {
       double value = 0;
-      valid = GetFloatValue(record_buffer, value);
+      valid = GetFloatValue(record_buffer, value, array_index);
       dest = IsDecimalUsed() ? MdfHelper::FormatDouble(value, Decimals())
                              : std::to_string(value);
       break;
@@ -990,7 +736,18 @@ ISourceInformation *IChannel::SourceInformation() const {
   // Only supported by MDF4
   return nullptr;
 }
+
 ISourceInformation *IChannel::CreateSourceInformation() {
+  // Only supported by MDF4
+  return nullptr;
+}
+
+IChannelArray *IChannel::ChannelArray() const {
+  // Only supported for MDF 4 files
+  return nullptr;
+}
+
+IChannelArray *IChannel::CreateChannelArray() {
   // Only supported by MDF4
   return nullptr;
 }
@@ -1052,6 +809,10 @@ IChannel *IChannel::CreateChannelComposition(const std::string_view &name) {
     new_channel->Name(name.data());
   }
   return new_channel;
+}
+
+void IChannel::Decimals(uint8_t precision) {
+  // Only used by MDF 4
 }
 
 }  // end namespace mdf

@@ -24,6 +24,7 @@
 #include "windowid.h"
 #include "mdf/mdflogstream.h"
 
+
 using namespace util::log;
 
 wxIMPLEMENT_APP(mdf::viewer::MdfViewer);
@@ -126,6 +127,7 @@ bool MdfViewer::OnInit() {
 
 int MdfViewer::OnExit() {
   LOG_INFO() << "Closing application";
+
   auto* app_config = wxConfig::Get();
   auto* doc_manager = wxDocManager::GetDocumentManager();
   doc_manager->FileHistorySave(*app_config);

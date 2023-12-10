@@ -199,7 +199,7 @@ const mdf::detail::MdfBlock*MdfDocument::GetBlock(int64_t id) const {
   return block;
 }
 
-void MdfDocument::OnSaveAttachment(wxCommandEvent &event) {
+void MdfDocument::OnSaveAttachment(wxCommandEvent &) {
   const auto id = GetSelectedBlockId();
   const auto *block = GetBlock(id);
   if (block == nullptr) {
@@ -253,7 +253,7 @@ void MdfDocument::OnUpdateSaveAttachment(wxUpdateUIEvent &event) {
   event.Enable(block->BlockType() == "AT");
 }
 
-void MdfDocument::OnShowGroupData(wxCommandEvent &event) {
+void MdfDocument::OnShowGroupData(wxCommandEvent &) {
   const auto selected_id = GetSelectedBlockId();
   const auto *selected_block = GetBlock(selected_id);
   if (selected_block == nullptr) {
@@ -344,7 +344,7 @@ void MdfDocument::OnUpdateShowGroupData(wxUpdateUIEvent &event) {
   }
 }
 
-void MdfDocument::OnShowChannelData(wxCommandEvent &event) {
+void MdfDocument::OnShowChannelData(wxCommandEvent &) {
   if (!reader_) {
     return;
   }
@@ -449,7 +449,7 @@ void MdfDocument::OnUpdateShowChannelData(wxUpdateUIEvent &event) {
   }
 }
 
-void MdfDocument::OnPlotChannelData(wxCommandEvent &event) {
+void MdfDocument::OnPlotChannelData(wxCommandEvent &) {
   const IDataGroup* dg = nullptr;
   const IChannelGroup* cg = nullptr;
   const IChannel* cn = nullptr;
@@ -555,10 +555,33 @@ void MdfDocument::OnUpdatePlotChannelData(wxUpdateUIEvent &event) {
   // Note that plotting of strings and absolute times are tricky.
   // The timestamp (CAN Open Date/Time) is possible but labeling the tics is
   // almost impossible.
-  if (!cn->IsNumber()) {
+  // If channel data is an array, the more complex plots are required.
+  if (!cn->IsNumber() || cn->ChannelArray() != nullptr)  {
     return;
   }
   event.Enable(true);
+}
+
+MdfDocument::~MdfDocument() {
+  // Close all ObserverFrame
+  wxWindowList::compatibility_iterator node = wxTopLevelWindows.GetFirst();
+  std::vector<ChannelObserverFrame*>  obs_win_list;
+  while (node)
+  {
+    wxWindow* win = node->GetData();
+    // do something with "win"
+    auto* obs_win = dynamic_cast<ChannelObserverFrame*>(win);
+    if (obs_win != nullptr) {
+      obs_win_list.push_back(obs_win);
+    }
+    node = node->GetNext();
+  }
+  for (auto* obs : obs_win_list) {
+    if (obs != nullptr) {
+      auto close = obs->Close(true);
+    }
+  }
+
 }
 
 } // namespace mdf::viewer

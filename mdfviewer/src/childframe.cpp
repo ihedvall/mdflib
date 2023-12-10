@@ -14,6 +14,8 @@
 #include "windowid.h"
 #include "ca4block.h"
 
+using namespace mdf::detail;
+
 namespace {
 #include "img/sub.xpm"
 #include "img/tree_list.xpm"
@@ -149,9 +151,10 @@ ChildFrame::ChildFrame(wxDocument *doc,
 
   measurement_view_ = new wxListView(splitter_, kIdMeasurementList, wxDefaultPosition, wxDefaultSize,
                                  wxLC_REPORT | wxLC_SINGLE_SEL);
-  measurement_view_->AppendColumn("Order", wxLIST_FORMAT_LEFT, 50);
-  measurement_view_->AppendColumn("Description", wxLIST_FORMAT_LEFT, 250);
-  measurement_view_->AppendColumn("Sub-Measurements", wxLIST_FORMAT_LEFT, 100);
+  measurement_view_->AppendColumn("Measurement", wxLIST_FORMAT_LEFT, 100);
+  measurement_view_->AppendColumn("Samples", wxLIST_FORMAT_LEFT, 100);
+  measurement_view_->AppendColumn("Description", wxLIST_FORMAT_LEFT, 400);
+  measurement_view_->AppendColumn("Channel Groups", wxLIST_FORMAT_LEFT, 400);
   measurement_view_->Hide();
 
   event_view_ = new wxListView(splitter_, kIdEventList, wxDefaultPosition, wxDefaultSize,
@@ -503,11 +506,12 @@ void ChildFrame::RedrawCnList(const detail::Cg4Block &cg, const wxTreeItemId &ro
     RedrawCnBlock(*cn, root);
   }
 }
+
 void ChildFrame::RedrawCnBlock(const detail::Cn4Block &cn,
                                const wxTreeItemId &root) {
     std::ostringstream sub_string;
-    std::string cn_name = cn.Name();
-    std::string cn_unit = cn.Unit();
+    const std::string cn_name = cn.Name();
+    const std::string cn_unit = cn.Unit();
 
     sub_string << cn_name;
     if (!cn_unit.empty()) {
@@ -516,6 +520,11 @@ void ChildFrame::RedrawCnBlock(const detail::Cn4Block &cn,
 
     std::ostringstream cn_string;
     cn_string << cn.BlockType() << " (" << sub_string.str() << ")";
+    const auto* channel_array = cn.ChannelArray();
+    if (channel_array != nullptr) {
+      cn_string << " " << channel_array->DimensionAsString();
+    }
+
 
     auto cn_root = left_->AppendItem(root, wxString::FromUTF8(cn_string.str()),
                       TREE_CN, TREE_CN, new BlockAddress(cn.FilePosition()));
@@ -527,8 +536,27 @@ void ChildFrame::RedrawCnBlock(const detail::Cn4Block &cn,
     if (cc != nullptr) {
       RedrawCcBlock(*cc,cn_root);
     }
-    RedrawCxList(cn, cn_root);
+    RedrawCxList(cn.Cx4(), cn_root);
     RedrawDataList(cn, cn_root);
+}
+
+void ChildFrame::RedrawCaBlock(const Ca4Block &ca4, const wxTreeItemId &root) {
+  const std::string type = ca4.TypeAsString();
+  const std::string storage = ca4.StorageAsString();
+
+  std::ostringstream sub_string;
+  sub_string << type << "/" << storage;
+
+
+  std::ostringstream label;
+  label << ca4.BlockType()
+    << " (" << sub_string.str() << ") "
+    << ca4.DimensionAsString();
+
+  auto ca_root = left_->AppendItem(root, wxString::FromUTF8(label.str()), TREE_CA, TREE_CA,
+                                   new BlockAddress(ca4.FilePosition()));
+
+  RedrawCxList(ca4.Cx4(), ca_root);
 }
 
 void ChildFrame::RedrawCnList(const detail::Cg3Block &cg3, const wxTreeItemId &root) {
@@ -598,9 +626,9 @@ void ChildFrame::RedrawSrList(const detail::Cg3Block &cg3, const wxTreeItemId &r
 }
 void ChildFrame::RedrawSiBlock(const detail::Si4Block &si, const wxTreeItemId &root) {
   std::ostringstream sub_string;
-  std::string si_name = si.Name();
-  std::string si_path = si.Path();
-  std::string si_desc = si.Comment();
+  const auto& si_name = si.Name();
+  const auto& si_path = si.Path();
+  const auto si_desc = si.Comment();
 
   if (!si_name.empty()) {
     sub_string << si_name;
@@ -627,11 +655,29 @@ void ChildFrame::RedrawSiBlock(const detail::Si4Block &si, const wxTreeItemId &r
                                    TREE_SI, TREE_SI, new BlockAddress(si.FilePosition()));
 }
 
-void ChildFrame::RedrawDgBlock(const detail::Dg4Block &dg, const wxTreeItemId &root) {
-  auto root_dg = left_->AppendItem(root, CreateBlockText(dg),
-                                   TREE_DG, TREE_DG, new BlockAddress(dg.FilePosition()));
-  RedrawDataList(dg,root_dg);
-  RedrawCgList(dg, root_dg);
+void ChildFrame::RedrawDgBlock(const detail::Dg4Block &dg4, const wxTreeItemId &root) {
+  std::ostringstream label;
+  label << dg4.BlockType();
+  const std::string desc = dg4.Description();
+
+  if (!desc.empty()) {
+    label << " (" << desc << ")";
+  } else if (dg4.Cg4().size() == 1) {
+    std::ostringstream sub;
+    const auto* cg4 = dg4.Cg4().front().get();
+    if (cg4 != nullptr) {
+      sub << cg4->Name();
+      sub << " Samples: " << cg4->NofSamples();
+      label << " (" << sub.str() << ")";
+    }
+
+    // If the DG only have one CG, use the CG Name instead
+
+  }
+  auto root_dg = left_->AppendItem(root, label.str(), TREE_DG, TREE_DG,
+                                   new BlockAddress(dg4.FilePosition()));
+  RedrawDataList(dg4,root_dg);
+  RedrawCgList(dg4, root_dg);
 
 }
 
@@ -648,11 +694,11 @@ void ChildFrame::RedrawDgBlock(const detail::Dg3Block &dg3, const wxTreeItemId &
 }
 
 
-void ChildFrame::RedrawCcBlock(const detail::Cc4Block &cc, const wxTreeItemId &root) {
+void ChildFrame::RedrawCcBlock(const detail::Cc4Block &cc4, const wxTreeItemId &root) {
   std::ostringstream sub_string;
-  std::string cc_name = cc.Name();
-  std::string cc_unit = cc.Unit();
-  std::string cc_desc = cc.Comment();
+  const std::string cc_name = cc4.Name();
+  const std::string cc_unit = cc4.Unit();
+  const std::string cc_desc = cc4.Comment();
 
   if (!cc_name.empty()) {
     sub_string << cc_name;
@@ -673,36 +719,36 @@ void ChildFrame::RedrawCcBlock(const detail::Cc4Block &cc, const wxTreeItemId &r
   }
 
   std::ostringstream cc_string;
-  cc_string << cc.BlockType();
+  cc_string << cc4.BlockType();
   if (!sub_string.str().empty() ) {
     cc_string << " (" << sub_string.str() << ")";
   }
 
   auto cc_root = left_->AppendItem(root, wxString::FromUTF8(cc_string.str()),
-                    TREE_CC, TREE_CC, new BlockAddress(cc.FilePosition()));
+                    TREE_CC, TREE_CC, new BlockAddress(cc4.FilePosition()));
 
-  if ( const auto* reverse = cc.Cc(); reverse != nullptr) {
+  if ( const auto* reverse = cc4.Cc(); reverse != nullptr) {
     RedrawCcBlock(*reverse, cc_root);
   }
-  const auto& ref_list = cc.References();
+  const auto& ref_list = cc4.References();
   for (const auto& ref : ref_list) {
     if (!ref || ref->BlockType() != "CC") {
       continue;
     }
-    const auto* cc4 = dynamic_cast<const mdf::detail::Cc4Block*>(ref.get());
-    if (cc4 != nullptr) {
-      RedrawCcBlock(*cc4, cc_root);
+    const auto* ref4 = dynamic_cast<const mdf::detail::Cc4Block*>(ref.get());
+    if (ref4 != nullptr) {
+      RedrawCcBlock(*ref4, cc_root);
     }
   }
 }
 
-void ChildFrame::RedrawCxList(const detail::Cn4Block &cn,
+void ChildFrame::RedrawCxList(const std::vector<std::unique_ptr<mdf::detail::MdfBlock>>& cx_list,
                                const wxTreeItemId &root) {
-  if (cn.Cx4().empty()) {
+  if (cx_list.empty()) {
     return;
   }
 
-  for (const auto& cx4 : cn.Cx4()) {
+  for (const auto& cx4 : cx_list) {
     if (!cx4) {
       continue;
     }
@@ -711,10 +757,7 @@ void ChildFrame::RedrawCxList(const detail::Cn4Block &cn,
       if (ca_block == nullptr) {
         continue;
       }
-      std::ostringstream label;
-      label << ca_block->BlockType();
-      left_->AppendItem(root, label.str(),
-                    TREE_CA, TREE_CA, new BlockAddress(ca_block->FilePosition()));
+      RedrawCaBlock(*ca_block, root);
     } else if (cx4->BlockType() == "CN") {
       const auto* cn_block = dynamic_cast<const detail::Cn4Block*>(cx4.get());
       if (cn_block == nullptr) {
@@ -761,7 +804,7 @@ void ChildFrame::RedrawCcBlock(const detail::Cc3Block &cc3, const wxTreeItemId &
 
 void ChildFrame::RedrawChBlock(const detail::Ch4Block &ch, const wxTreeItemId &root) {
   std::ostringstream sub_string;
-  std::string ch_name = ch.Name();
+  const auto& ch_name = ch.Name();
   std::string ch_desc = ch.Comment();
 
   if (!ch_name.empty()) {
@@ -1119,15 +1162,39 @@ void ChildFrame::RedrawMeasurementView() {
 
   const auto measurement_list = header->DataGroups();
 
-
   long line = 0;
   for (const auto* meas : measurement_list) {
     if (meas == nullptr) {
       continue;
     }
+    const auto group_list = meas->ChannelGroups();
+    const auto* group = group_list.size() == 1 ? group_list.front() : nullptr;
+      // Insert fictive measurement number
     const auto index = measurement_view_->InsertItem(line, std::to_string(line + 1));
-    measurement_view_->SetItem(index, 1, wxString::FromUTF8(meas->Description()));
-    measurement_view_->SetItem(index, 2, std::to_string(meas->ChannelGroups().size()));
+    uint64_t samples = 0;
+    std::ostringstream groups;
+    for ( const auto* group1 : group_list) {
+      if (!groups.str().empty()) {
+        groups <<",";
+      }
+      groups << group1->Name();
+      samples += group1->NofSamples();
+    }
+      // Measurement description
+    std::ostringstream desc;
+    if (!meas->Description().empty()) {
+      desc << meas->Description();
+      if (group != nullptr) {
+        desc << ", Samples: " << group->NofSamples();
+      }
+    } else if (group != nullptr) {
+      desc << group->Name();
+    } else {
+      desc << "Measurement " << line + 1;
+    }
+    measurement_view_->SetItem(index, 1, std::to_string(samples));
+    measurement_view_->SetItem(index, 2, wxString::FromUTF8(desc.str()));
+    measurement_view_->SetItem(index, 3, wxString::FromUTF8(groups.str()));
     ++line;
   }
 }

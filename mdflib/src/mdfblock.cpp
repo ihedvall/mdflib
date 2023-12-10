@@ -4,7 +4,7 @@
  */
 #include "mdfblock.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <chrono>
 #include <ios>
@@ -55,7 +55,7 @@ void SetFilePosition(std::FILE *file, int64_t position) {
 void SetFirstFilePosition(std::FILE *file) { SetFilePosition(file, 0); }
 
 size_t StepFilePosition(std::FILE *file, size_t steps) {
-  Platform::fseek64(file, steps, SEEK_CUR);
+  Platform::fseek64(file,static_cast<int64_t>(steps), SEEK_CUR);
   return steps;
 }
 
@@ -245,6 +245,14 @@ size_t MdfBlock::ReadHeader4(std::FILE *file) {
 void MdfBlock::Init(const MdfBlock &id_block) {
   byte_order_ = id_block.byte_order_;
   version_ = id_block.version_;
+  parent_ = &id_block;
+}
+
+const MdfBlock* MdfBlock::HeaderBlock() const {
+  if (BlockType() == "HD") {
+    return this;
+  }
+  return parent_ != nullptr ? parent_->HeaderBlock() : nullptr;
 }
 
 std::size_t MdfBlock::ReadBool(std::FILE *file, bool &dest) const {
@@ -349,6 +357,11 @@ std::string MdfBlock::MdText() const {
   if (!md_comment_) {
     return {};
   }
+  if (const auto *md4 = dynamic_cast<const Md4Block *>(md_comment_.get());
+      md4 != nullptr ) {
+    return md4->TxComment();
+  }
+
   const auto *tx = dynamic_cast<const Tx4Block *>(md_comment_.get());
   return tx == nullptr ? std::string() : tx->Text();
 }
@@ -387,7 +400,6 @@ size_t MdfBlock::Update(std::FILE *file) {
   if (file == nullptr) {
     throw std::runtime_error("File pointer is null");
   }
-  size_t bytes = 0;
   SetFilePosition(file, FilePosition());
 
   return IsMdf4() ?
@@ -480,7 +492,7 @@ void MdfBlock::CreateMd4Block() {
   root_name << BlockType() << "comment";
 
   auto xml = CreateXmlFile();
-  auto &root = xml->RootName(root_name.str());
+  xml->RootName(root_name.str());
 
   if (md_comment_) {
     const auto *tx4 = dynamic_cast<const Tx4Block *>(md_comment_.get());

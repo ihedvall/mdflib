@@ -60,6 +60,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   void SamplingRate(double sampling_rate) override;
   double SamplingRate() const override;
 
+  void Decimals(uint8_t precision) override;
   [[nodiscard]] uint8_t Decimals() const override;
 
   [[nodiscard]] bool IsDecimalUsed() const override;
@@ -77,7 +78,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] const Si4Block* Si() const { return si_block_.get(); }
   void AddCc4(std::unique_ptr<Cc4Block>& cc4);
   [[nodiscard]] const Cc4Block* Cc() const { return cc_block_.get(); }
-  void ReadData(std::FILE* file) const;  ///< Reads in (VLSD) channel data
+  void ReadData(std::FILE* file) const;  ///< Reads in (VLSD) channel data (SD)
 
   void ClearData() const { data_list_.clear(); }
   const std::vector<uint8_t>& DataList() const { return data_list_; }
@@ -128,7 +129,9 @@ class Cn4Block : public DataListBlock, public IChannel {
     mlsd_channel_ = channel;
   }
 
-  uint64_t WriteSdSample(const std::vector<uint8_t>& buffer);
+  uint64_t WriteSdSample(const std::vector<uint8_t>& buffer) const;
+  [[nodiscard]] IChannelArray *ChannelArray() const override;
+  [[nodiscard]] IChannelArray *CreateChannelArray() override;
 
  protected:
 

@@ -8,61 +8,85 @@ namespace mdf::detail {
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleUnsigned(
-    uint64_t sample, uint64_t &value) const {
+    uint64_t sample, uint64_t &value, uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
   value = 0; // value_list is an byte array
-  return sample < valid_list_.size() && valid_list_[sample];
+  return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
 template <>
 bool ChannelObserver<std::string>::GetSampleUnsigned(uint64_t sample,
-                                                     uint64_t &value) const {
+                                                     uint64_t &value,
+                                                     uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
   // Convert the string to an unsigned value
-  value = sample < value_list_.size() ? std::stoull(value_list_[sample]) : 0;
-  return sample < valid_list_.size() && valid_list_[sample];
+  value = sample_index < value_list_.size() ? std::stoull(value_list_[sample_index]) : 0;
+  return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleSigned(
-    uint64_t sample, int64_t &value) const {
+    uint64_t sample, int64_t &value, uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
   value = 0; // value_list is an byte array
-  return sample < valid_list_.size() && valid_list_[sample];
+  return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
 template <>
 bool ChannelObserver<std::string>::GetSampleSigned(uint64_t sample,
-                                                   int64_t &value) const {
-  value = sample < value_list_.size() ? std::stoll(value_list_[sample]) : 0;
-  return sample < valid_list_.size() && valid_list_[sample];
+                                                   int64_t &value,
+                                                   uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
+  value = sample_index < value_list_.size() ? std::stoll(value_list_[sample_index]) : 0;
+  return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleFloat(
-    uint64_t sample, double &value) const {
+    uint64_t sample, double &value, uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
   value = 0.0; // value_list is an byte array
-  return sample < valid_list_.size() && valid_list_[sample];
+  return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
 template <>
 bool ChannelObserver<std::string>::GetSampleFloat(uint64_t sample,
-                                                  double &value) const {
-  value = sample < value_list_.size() ? std::stod(value_list_[sample]) : 0;
+                                                  double &value,
+                                                  uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
+  value = sample_index < value_list_.size() ? std::stod(value_list_[sample_index]) : 0;
   return sample < valid_list_.size() && valid_list_[sample];
 }
 
 template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleText(
-    uint64_t sample, std::string &value) const {
+    uint64_t sample, std::string &value, uint64_t array_index) const {
+  const auto* channel_array = channel_.ChannelArray();
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto sample_index = (sample * array_size) + array_index;
   // The value_list consist of byte arrays. Convert o
   std::ostringstream s;
-  if (sample < value_list_.size()) {
-    const auto &list = value_list_[sample];
+  if (sample_index < value_list_.size()) {
+    const auto &list = value_list_[sample_index];
     for (const auto byte : list) {
       s << std::setfill('0') << std::setw(2) << std::uppercase << std::hex
         << static_cast<uint16_t>(byte);
     }
   }
   value = s.str();
-  return sample < valid_list_.size() && valid_list_[sample];
+  return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
 template <>

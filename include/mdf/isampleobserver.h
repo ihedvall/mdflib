@@ -17,6 +17,23 @@ class ISampleObserver {
  public:
   ISampleObserver() = default; ///< Default constructor
   virtual ~ISampleObserver() = default; ///< Default destructor
+
+  /** \brief Attach the observer to an observer list (publisher).
+   *
+   * This function is normally called in the constructor of an observer,
+   * so there is normally no need to call it.
+   */
+  virtual void AttachObserver();
+
+  /** \brief Detach the observer from an observer list
+   *
+   * This function detach the observer from the observer list. This function
+   * shall be called when OnSample() function is not needed anymore. This
+   * function is needed to handle dangling pointers. For example it is
+   * called after the ReadData() function in a reader.
+   */
+  virtual void DetachObserver();
+
   /** \brief Observer function that receives the sample record and parse out
    * a channel value.
    * @param sample Sample number.
@@ -25,6 +42,13 @@ class ISampleObserver {
    */
   virtual void OnSample(uint64_t sample, uint64_t record_id,
                         const std::vector<uint8_t>& record) = 0;
+
 };
+
+inline void ISampleObserver::AttachObserver() {
+}
+
+inline void ISampleObserver::DetachObserver() {
+}
 
 }  // namespace mdf

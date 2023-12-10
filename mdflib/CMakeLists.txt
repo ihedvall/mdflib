@@ -88,7 +88,9 @@ add_library(mdf STATIC
         src/iblock.cpp ../include/mdf/iblock.h
         src/vlsddata.cpp src/vlsddata.h
         src/mdfbuslogger.cpp src/mdfbuslogger.h
-        src/canmessage.cpp ../include/mdf/canmessage.h)
+        src/canmessage.cpp ../include/mdf/canmessage.h
+        src/dbchelper.cpp
+        src/dbchelper.h)
 
 if(VCPKG)
   find_package(ZLIB REQUIRED)

@@ -147,7 +147,7 @@ class MdfWriter {
    * of the file used.
    * @return Pointer to the MDF file interface.
    */
-  MdfFile* GetFile() { return mdf_file_.get(); }
+  MdfFile* GetFile() const { return mdf_file_.get(); }
 
   [[nodiscard]] IHeader* Header() const; ///< Returns the header block (HD).
 
@@ -185,7 +185,7 @@ class MdfWriter {
    * to a relative time before it is stored onto the disc. The will be relative
    * to the start time, see StartMeasurement() function.
    */
-  void SaveSample(IChannelGroup& group, uint64_t time);
+  void SaveSample(const IChannelGroup& group, uint64_t time);
 
   /** \brief Saves a CAN message into a bus logger channel group.
    *
@@ -199,7 +199,7 @@ class MdfWriter {
    * @param time   Absolute time nano-seconds since 1970.
    * @param msg    The CAN message to store.
    */
-  void SaveCanMessage(IChannelGroup& group, uint64_t time,
+  void SaveCanMessage(const IChannelGroup& group, uint64_t time,
                       const CanMessage& msg);
 
   /** \brief Starts the measurement. */
@@ -326,7 +326,7 @@ class MdfWriter {
   uint32_t max_length_ = 8; ///< Max data byte storage
   std::map<uint64_t, const IChannel*> master_channels_; ///< List of master channels
   void RecalculateTimeMaster();
-  void CreateCanConfig(IDataGroup& dg_block);
+  void CreateCanConfig(IDataGroup& dg_block) const;
 
   /** \brief Create the composition channels for a data frame
   *
@@ -344,7 +344,7 @@ class MdfWriter {
   * ..
   * N:
   * \endverbatim
-  * @param parent The The CAN Data Frame channel object.
+  * @param group The The CAN Data Frame channel group object.
   */
   void CreateCanDataFrameChannel(IChannelGroup& group) const;
 
@@ -360,7 +360,7 @@ class MdfWriter {
   * 4:   BusChannel (High 4 bit), DLC (Low 4 bits)
   * 5:   Flags (8 bits)
   * \endverbatim
-  * @param parent The The CAN Data Frame channel object.
+  * @param group The The CAN Remote Frame channel group object.
    */
   void CreateCanRemoteFrameChannel(IChannelGroup& group) const;
 
@@ -382,7 +382,7 @@ class MdfWriter {
   * ..
   * N:
   * \endverbatim
-  * @param parent The The CAN Data Frame channel object.
+  * @param group The The CAN Error Frame channel group object.
    */
   void CreateCanErrorFrameChannel(IChannelGroup& group) const;
 
@@ -393,7 +393,7 @@ class MdfWriter {
   * Byte Remarks
   * 0:   BusChannel (High 4 bit), Flags (Low 4 bits)
   * \endverbatim
-  * @param parent The The CAN Data Frame channel object.
+  * @param group The The CAN Overload Frame channel group object.
    */
   static void CreateCanOverloadFrameChannel(IChannelGroup& group);
 };

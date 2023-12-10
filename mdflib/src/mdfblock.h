@@ -128,6 +128,8 @@ class MdfBlock {
   std::size_t WriteNumber(std::FILE *file, const T &source) const;
 
   void UpdateBlockSize(std::FILE *file, size_t bytes);
+
+  [[nodiscard]] const MdfBlock* HeaderBlock() const;
  protected:
   int64_t file_position_ = 0;  ///< 64-bit file position.
   std::string block_type_;   ///< MDF header. MDF3 has 2 characters. MDF4 has 4
@@ -209,6 +211,11 @@ class MdfBlock {
   template <typename T>
   void WriteBlock4(std::FILE *file, std::unique_ptr<T> &block,
                    size_t link_index);
+
+
+
+ private:
+  const MdfBlock* parent_ = nullptr; ///< Set by the Init() function
 };
 
 template <typename T>

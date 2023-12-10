@@ -13,6 +13,7 @@
 #include "mdf3file.h"
 #include "mdf4file.h"
 #include "mdfdocument.h"
+#include "ca4block.h"
 
 namespace mdf::viewer {
 class ChildFrame : public wxDocMDIChildFrame {
@@ -64,7 +65,8 @@ class ChildFrame : public wxDocMDIChildFrame {
   void RedrawCnList(const mdf::detail::Cg4Block& cg, const wxTreeItemId& root);
   void RedrawCnList(const mdf::detail::Cg3Block& cg3, const wxTreeItemId& root);
 
-  void RedrawCnBlock(const mdf::detail::Cn4Block &cn, const wxTreeItemId& root);
+  void RedrawCnBlock(const mdf::detail::Cn4Block &cn4, const wxTreeItemId& root);
+  void RedrawCaBlock(const mdf::detail::Ca4Block &ca4, const wxTreeItemId& root);
 
   void RedrawSrList(const mdf::detail::Cg4Block& cg, const wxTreeItemId& root);
   void RedrawSrList(const mdf::detail::Cg3Block& cg, const wxTreeItemId& root);
@@ -74,10 +76,11 @@ class ChildFrame : public wxDocMDIChildFrame {
 
   void RedrawSiBlock(const mdf::detail::Si4Block& si, const wxTreeItemId& root);
 
-  void RedrawCcBlock(const mdf::detail::Cc4Block& cc, const wxTreeItemId& root);
+  void RedrawCcBlock(const mdf::detail::Cc4Block& cc4, const wxTreeItemId& root);
   void RedrawCcBlock(const mdf::detail::Cc3Block& cc3, const wxTreeItemId& root);
 
-  void RedrawCxList(const mdf::detail::Cn4Block& cn, const wxTreeItemId& root);
+  void RedrawCxList(const std::vector<std::unique_ptr<mdf::detail::MdfBlock>>& cx_list,
+                    const wxTreeItemId& root);
 
   void RedrawChBlock(const mdf::detail::Ch4Block& ch, const wxTreeItemId& root);
 

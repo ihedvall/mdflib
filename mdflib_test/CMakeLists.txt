@@ -27,15 +27,23 @@ add_executable(test_mdf
         src/util/logstream.cpp src/util/logstream.h
         src/util/stringutil.cpp src/util/stringutil.h
         src/util/timestamp.cpp src/util/timestamp.h
-        src/testhelper.cpp)
+        src/testhelper.cpp
+        src/testchannel.cpp)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 
 if(VCPKG)
+  find_package(Boost)
+  target_link_libraries(test_mdf PRIVATE Boost::boost Boost::filesystem Boost::locale)
+
   find_package(GTest CONFIG REQUIRED)
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
                                         GTest::gmock GTest::gmock_main)
 else()
+  include("../script/boost.cmake")
+  target_include_directories(test_mdf PRIVATE ${Boost_INCLUDE_DIRS})
+  target_link_libraries(test_mdf PRIVATE ${Boost_LIBRARIES})
+
   include("../script/googletest.cmake")
   target_include_directories(test_mdf PRIVATE ${GTEST_INCLUDE_DIRS})
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main)

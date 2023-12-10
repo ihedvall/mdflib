@@ -125,6 +125,40 @@ TEST_F(TestRead, IdBlock)  // NOLINT
   EXPECT_EQ(id.Version(), 410);
 }
 
+TEST_F(TestRead, HeaderBlock)  // NOLINT
+{
+  if (mdf_list.empty()) {
+    GTEST_SKIP();
+  }
+  int count = 0;
+  for (const auto &itr : mdf_list) {
+    MdfReader oRead(itr.second);
+    EXPECT_TRUE(oRead.ReadEverythingButData()) << itr.second;
+
+    const auto *mdf_file = oRead.GetFile();
+    if (!mdf_file->IsMdf4()) {
+      continue;
+    }
+    const auto *mdf4_file = dynamic_cast<const Mdf4File *>(mdf_file);
+    const auto &hd4 = mdf4_file->Hd();
+    EXPECT_EQ(&hd4, hd4.HeaderBlock());
+
+    for (const auto& dg4 : hd4.Dg4()) {
+      EXPECT_EQ(&hd4, dg4->HeaderBlock());
+      for (const auto& cg4 : dg4->Cg4()) {
+        EXPECT_EQ(&hd4, cg4->HeaderBlock());
+        for (const auto& cn4 : cg4->Cn4()) {
+          EXPECT_EQ(&hd4, cn4->HeaderBlock());
+        }
+      }
+    }
+    ++count;
+    // Only need to check 5 files
+    if (count > 5) {
+      break;
+    }
+  }
+}
 TEST_F(TestRead, Benchmark) {
   GTEST_SKIP();
   {

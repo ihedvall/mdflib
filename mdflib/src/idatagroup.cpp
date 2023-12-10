@@ -13,6 +13,7 @@ void IDataGroup::AttachSampleObserver(ISampleObserver *observer) const {
 }
 
 void IDataGroup::DetachSampleObserver(const ISampleObserver *observer) const {
+  if (observer_list.empty()) return;
   for (auto itr = observer_list.begin(); itr != observer_list.end();
        /* No ++itr here */) {
     if (*itr == observer) {

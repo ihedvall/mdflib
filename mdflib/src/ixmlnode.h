@@ -170,6 +170,9 @@ class IXmlNode {
 
   virtual void AddNode(std::unique_ptr<IXmlNode> p);  ///< Adds a node
 
+  void DeleteNode(const std::string& name); ///< Deletes all nodes with name
+  void DeleteNode(const IXmlNode* node); ///< Deletes a specific node
+
   virtual void Write(std::ostream &dest,
                      size_t level);  ///< Write the node to the stream
   [[nodiscard]] bool HasChildren() const {

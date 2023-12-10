@@ -103,7 +103,7 @@ void CsvWriter::SaveText(const std::string &text) {
 
   // If temp includes a '"' it needs to be replaced by a '""'=
   std::string temp = [&text] {
-    std::stringstream temp(text.length());
+    std::ostringstream temp;
     for (auto i : text) {
       if (i == '"') {
         temp << "\"\"";

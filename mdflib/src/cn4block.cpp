@@ -225,14 +225,18 @@ std::string Cn4Block::DisplayName() const {
 
 void Cn4Block::Description(const std::string &description) {
   if (!md_comment_) {
-    md_comment_ = std::make_unique<Md4Block>(description);
+    if (auto* md4 = CreateMetaData(); md4 != nullptr) {
+      md4->StringProperty("TX", description);
+    }
   } else if (auto* md4_block = dynamic_cast<Md4Block*>(md_comment_.get());
         md4_block != nullptr) {
     md4_block->TxComment(description);
   }
 }
 
-std::string Cn4Block::Description() const { return MdText(); }
+std::string Cn4Block::Description() const {
+  return MdText();
+}
 
 IChannelConversion *Cn4Block::ChannelConversion() const {
   return cc_block_.get();
@@ -245,18 +249,38 @@ ChannelDataType Cn4Block::DataType() const {
 ChannelType Cn4Block::Type() const { return static_cast<ChannelType>(type_); }
 
 uint64_t Cn4Block::DataBytes() const {
-  return (static_cast<size_t>(bit_count_) / 8) + (bit_count_ % 8 > 0 ? 1 : 0);
+  auto value_size = static_cast<uint64_t>((bit_count_) / 8) + (bit_count_ % 8 > 0 ? 1 : 0);
+/*
+  auto* channel_array = ChannelArray();
+  if (channel_array != nullptr) {
+    // Increase the size with number of values. Validate the array by
+    // checking its size that must be larger than 1.
+    const auto nof_values = channel_array->NofArrayValues();
+    if (nof_values > 1) {
+      value_size *= channel_array->NofArrayValues();
+    }
+  }
+  */
+  return value_size;
+}
+void Cn4Block::Decimals(uint8_t precision) {
+  precision_ = precision;
+  flags_ |= CnFlag::PrecisionValid;
 }
 
 uint8_t Cn4Block::Decimals() const {
-  auto max = static_cast<uint8_t>(
+  const auto max = static_cast<uint8_t>(
       DataBytes() == 4 ? std::numeric_limits<float>::max_digits10
                        : std::numeric_limits<double>::max_digits10);
   return std::min(precision_, max);
 }
-bool Cn4Block::IsDecimalUsed() const { return flags_ & 0x04; }
 
-bool Cn4Block::IsUnitValid() const { return Link(kIndexUnit) != 0; }
+bool Cn4Block::IsDecimalUsed() const { return flags_ & CnFlag::PrecisionValid; }
+
+bool Cn4Block::IsUnitValid() const {
+  const bool invalid = Link(kIndexUnit) == 0 && !unit_;
+  return !invalid;
+}
 
 std::string Cn4Block::Unit() const {
   if (!unit_) {
@@ -272,10 +296,19 @@ void Cn4Block::GetBlockProperty(BlockPropertyList &dest) const {
   MdfBlock::GetBlockProperty(dest);
 
   dest.emplace_back("Links", "", "", BlockItemType::HeaderItem);
+
   dest.emplace_back("Next CN", ToHexString(Link(kIndexNext)),
                     "Link to next channel", BlockItemType::LinkItem);
-  dest.emplace_back("Composition CA/CN", ToHexString(Link(kIndexCx)),
-                    "Link to composition", BlockItemType::LinkItem);
+  std::ostringstream desc_cx;
+  const auto index_cx = Link(kIndexCx);
+  const auto* block_cx = Find(index_cx);
+  if (block_cx != nullptr) {
+    desc_cx << "Link to " << block_cx->BlockType() << " block";
+  } else {
+    desc_cx << "Link to composition block";
+  }
+  dest.emplace_back("Composition CA/CN", ToHexString(index_cx),
+                    desc_cx.str(), BlockItemType::LinkItem);
   dest.emplace_back("Name TX", ToHexString(Link(kIndexName)), name_,
                     BlockItemType::LinkItem);
   dest.emplace_back("Source SI", ToHexString(Link(kIndexSi)),
@@ -307,6 +340,7 @@ void Cn4Block::GetBlockProperty(BlockPropertyList &dest) const {
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Name", name_);
+  dest.emplace_back("Description", Description());
   dest.emplace_back("Unit", Unit());
   dest.emplace_back("Channel Type", MakeTypeString(type_));
   dest.emplace_back("Synchronization Type", MakeSyncString(sync_type_));
@@ -374,7 +408,7 @@ size_t Cn4Block::Read(std::FILE *file) {
           link = cn_block->Link(0);
           cx_list_.emplace_back(std::move(cn_block));
         }
-      };
+      }
     }
   }
 
@@ -459,7 +493,7 @@ size_t Cn4Block::Write(std::FILE *file) {
   bytes += WriteNumber(file, flags_);
   bytes += WriteNumber(file, invalid_bit_pos_);
   bytes += WriteNumber(file, precision_);
-  ;
+
   bytes += WriteBytes(file, 1);
   bytes += WriteNumber(file, nof_attachments_);
   bytes += WriteNumber(file, range_min_);
@@ -570,7 +604,7 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
     } else {
       valid = false;
     }
-    offset = 0;
+
   } else {
     temp.resize(nof_bytes);
     memcpy(temp.data(), record_buffer.data() + offset, nof_bytes);
@@ -613,8 +647,6 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::StringUTF16Le: {
       std::wostringstream s;
       for (size_t ii = 0; (ii + 2) <= temp.size(); ii += 2) {
-        auto *d = temp.data() + ii;
-
         const LittleBuffer<uint16_t> data(temp, ii);
 
         if (data.value() == 0) {
@@ -685,7 +717,7 @@ bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
     } else {
       valid = false;
     }
-    offset = 0;
+
   } else {
     dest.resize(nof_bytes);
     memcpy(dest.data(), record_buffer.data() + offset, nof_bytes);
@@ -700,7 +732,7 @@ void Cn4Block::SetTextValue(const std::string &value, bool valid) {
     // String stored in signal data. Index should be stored in the record
     // and the string in a temporary data block (data_list_). This block is
     // later stored into an SD/DZ block.
-    uint64_t index = 0;
+    uint64_t index;
     VlsdData temp(value);
     auto itr = data_map_.find(temp);
     if (itr != data_map_.cend()) {
@@ -729,7 +761,7 @@ void Cn4Block::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
     // String stored in signal data. Index should be stored in the record
     // and the string in a temporary data block (data_list_). This block is
     // later stored into an SD/DZ block.
-    uint64_t index = 0;
+    uint64_t index;
     VlsdData temp(value);
     auto itr = data_map_.find(temp);
     if (itr != data_map_.cend()) {
@@ -889,8 +921,9 @@ IChannel *Cn4Block::CreateChannelComposition() {
 
 std::vector<IChannel *> Cn4Block::ChannelCompositions() {
   std::vector<IChannel*> list;
-  for ( auto& itr : cx_list_) {
+  for ( const auto& itr : cx_list_) {
     try {
+      // The cx_list may have CA or CN channels, so we need to test for this.
       auto* channel = dynamic_cast<IChannel*>(itr.get());
       if (channel != nullptr) {
         list.emplace_back(channel);
@@ -910,20 +943,27 @@ void Cn4Block::PrepareForWriting(size_t offset) {
   byte_offset_ = static_cast<uint32_t>(offset);
   data_list_.clear(); // Temporary storage of signal data (SD)
   data_map_.clear();
+
   // The bit count may be set by the user.
-  bool use_index = false;
   switch (Type()) {
     case ChannelType::Master:
+      // Master channel cannot have invalid values.
       flags_ &= ~CnFlag::InvalidValid;
       break;
 
+      // Fixed length of the byte array but another channel holds the array size.
+      // This a so-called MLSD channel.
     case ChannelType::MaxLength:
-      // Fixed length of the byte array but another channel holds actual length
     case ChannelType::Sync:
     case ChannelType::FixedLength:
       // Length fixed below or by user
       break;
 
+      // Variable length channels, store its value in an external
+      // signal data (SD) block of in the next channel group (VLSD CG).
+      // The VLSD CG block should be the next CG block and cannot have
+      // any channels. This channel stores a byte offset (index) into
+      // the SD or VLSD block.
     case ChannelType::VariableLength:
       // Store unsigned 32/64-bit index to variable block
       if (bit_count_ == 0) {
@@ -939,6 +979,8 @@ void Cn4Block::PrepareForWriting(size_t offset) {
       return;
   }
 
+    // Note that in case the channel is an array, the channel
+    // size describe one channel value.
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
     case ChannelDataType::UnsignedIntegerBe:
@@ -1062,7 +1104,7 @@ size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
       (Type() == ChannelType::VariableLength && VlsdRecordId() > 0) ) {
     // Signal data is updated elsewhere
     return 0;
-  };
+  }
 
   if (data_list_.empty()) {
     UpdateLink(file, kIndexData, 0); // No data link
@@ -1077,7 +1119,7 @@ size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
     auto dz4 = std::make_unique<Dz4Block>();
     dz4->OrigBlockType("SD");
     dz4->Type(Dz4ZipType::Deflate);
-    dz4->Data(data_list_); // Compress and setup the sizes
+    dz4->Data(data_list_); // Compress and set up the sizes
     bytes = dz4->Write(file);
     UpdateLink(file, kIndexData,dz4->FilePosition());
   } else {
@@ -1094,7 +1136,7 @@ size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
         auto dz4 = std::make_unique<Dz4Block>();
         dz4->OrigBlockType("SD");
         dz4->Type(Dz4ZipType::Deflate);
-        dz4->Data(buffer); // Compress and setup the sizes
+        dz4->Data(buffer); // Compress and set up the sizes
 
         auto& block_list = dl4->DataBlockList();
         block_list.push_back(std::move(dz4));
@@ -1107,7 +1149,7 @@ size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
       auto dz4 = std::make_unique<Dz4Block>();
       dz4->OrigBlockType("SD");
       dz4->Type(Dz4ZipType::Deflate);
-      dz4->Data(buffer); // Compress and setup the sizes
+      dz4->Data(buffer); // Compress and set up the sizes
 
       auto& block_list = dl4->DataBlockList();
       block_list.push_back(std::move(dz4));
@@ -1124,7 +1166,7 @@ void Cn4Block::ClearData() {
   DataListBlock::ClearData();
 }
 
-uint64_t Cn4Block::WriteSdSample(const std::vector<uint8_t> &buffer) {
+uint64_t Cn4Block::WriteSdSample(const std::vector<uint8_t> &buffer) const  {
   // Save old index as this is the index which new data bytes are inserted
   auto index = static_cast<uint64_t>(data_list_.size());
 
@@ -1135,5 +1177,30 @@ uint64_t Cn4Block::WriteSdSample(const std::vector<uint8_t> &buffer) {
   data_list_.insert(data_list_.end(),buffer.cbegin(), buffer.cend());
   return index;
 }
+
+IChannelArray *Cn4Block::ChannelArray() const {
+  // In reality, the cx_list should only have a CA block.
+  for ( const auto& itr : cx_list_) {
+    try {
+      // The cx_list may have CA or CN channels, so we need to test for this.
+      auto* channel_array = dynamic_cast<IChannelArray*>(itr.get());
+      if (channel_array != nullptr) {
+        return channel_array;
+      }
+    } catch (const std::exception&) {
+    }
+  }
+  return nullptr;
+}
+
+IChannelArray *Cn4Block::CreateChannelArray() {
+  auto* channel_array = ChannelArray();
+  if (channel_array == nullptr) {
+    auto temp = std::make_unique<Ca4Block>();
+    cx_list_.emplace_back(std::move(temp));
+  }
+  return ChannelArray();
+}
+
 
 }  // namespace mdf::detail

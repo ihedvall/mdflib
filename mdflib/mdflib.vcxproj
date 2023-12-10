@@ -198,6 +198,7 @@
     <ClCompile Include="src\cryptoutil.cpp" />
     <ClCompile Include="src\datablock.cpp" />
     <ClCompile Include="src\datalistblock.cpp" />
+    <ClCompile Include="src\dbchelper.cpp" />
     <ClCompile Include="src\dg3block.cpp" />
     <ClCompile Include="src\dg4block.cpp" />
     <ClCompile Include="src\di4block.cpp" />
@@ -306,6 +307,7 @@
     <ClInclude Include="src\cn4block.h" />
     <ClInclude Include="src\datablock.h" />
     <ClInclude Include="src\datalistblock.h" />
+    <ClInclude Include="src\dbchelper.h" />
     <ClInclude Include="src\dg3block.h" />
     <ClInclude Include="src\dg4block.h" />
     <ClInclude Include="src\di4block.h" />

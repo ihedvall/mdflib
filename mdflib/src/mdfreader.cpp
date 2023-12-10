@@ -61,35 +61,48 @@ ChannelObserverPtr CreateChannelObserver(const IDataGroup &data_group,
                                          const IChannelGroup &group,
                                          const IChannel &channel) {
   std::unique_ptr<IChannelObserver> observer;
-  const auto bytes = channel.DataBytes();
+  const auto* channel_array = channel.ChannelArray();
+  // Note, that num,ber of bytes returns number of bytes for
+  // all value in the array
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto value_size = channel.DataBytes() / array_size;
 
   switch (channel.DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
     case ChannelDataType::UnsignedIntegerBe:
-      if (bytes <= 1) {
-        observer = std::make_unique<detail::ChannelObserver<uint8_t>>(
-            data_group, group, channel);
-      } else if (bytes <= 2) {
-        observer = std::make_unique<detail::ChannelObserver<uint16_t>>(
-            data_group, group, channel);
-      } else if (bytes <= 4) {
-        observer = std::make_unique<detail::ChannelObserver<uint32_t>>(
-            data_group, group, channel);
-      } else {
-        observer = std::make_unique<detail::ChannelObserver<uint64_t>>(
-            data_group, group, channel);
+      switch (value_size) {
+        case 1:
+          observer = std::make_unique<detail::ChannelObserver<uint8_t>>(
+              data_group, group, channel);
+          break;
+
+          case 2:
+          observer = std::make_unique<detail::ChannelObserver<uint16_t>>(
+              data_group, group, channel);
+          break;
+
+          case 4:
+          observer = std::make_unique<detail::ChannelObserver<uint32_t>>(
+              data_group, group, channel);
+          break;
+
+          case 8:
+          default:
+          observer = std::make_unique<detail::ChannelObserver<uint64_t>>(
+              data_group, group, channel);
+          break;
       }
       break;
 
     case ChannelDataType::SignedIntegerLe:
     case ChannelDataType::SignedIntegerBe:
-      if (bytes <= 1) {
+      if (value_size <= 1) {
         observer = std::make_unique<detail::ChannelObserver<int8_t>>(
             data_group, group, channel);
-      } else if (bytes <= 2) {
+      } else if (value_size <= 2) {
         observer = std::make_unique<detail::ChannelObserver<int16_t>>(
             data_group, group, channel);
-      } else if (bytes <= 4) {
+      } else if (value_size <= 4) {
         observer = std::make_unique<detail::ChannelObserver<int32_t>>(
             data_group, group, channel);
       } else {
@@ -100,7 +113,7 @@ ChannelObserverPtr CreateChannelObserver(const IDataGroup &data_group,
 
     case ChannelDataType::FloatLe:
     case ChannelDataType::FloatBe:
-      if (bytes <= 4) {
+      if (value_size <= 4) {
         observer = std::make_unique<detail::ChannelObserver<float>>(
             data_group, group, channel);
       } else {

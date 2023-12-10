@@ -16,10 +16,8 @@ Tx4Block::Tx4Block(const std::string &text) : text_(text) {}
 std::string FixCommentToLine(const std::string &comment, size_t max) {
   std::ostringstream temp;
   size_t count = 0;
-  for (const char in : comment) {
-    if (!std::isprint(in)) {
-      break;
-    }
+  for (auto input : comment) {
+    const auto in = static_cast<unsigned char>(input);
     temp << in;
     ++count;
     if (count >= max) {

@@ -19,7 +19,7 @@ namespace mdf::viewer {
 class MdfDocument : public wxDocument {
  public:
   MdfDocument() = default;
-  ~MdfDocument() override = default;
+  ~MdfDocument() override;
 
   bool OnOpenDocument(const wxString &filename) override;
 

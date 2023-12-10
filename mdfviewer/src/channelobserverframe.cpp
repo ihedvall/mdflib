@@ -26,11 +26,15 @@ ChannelObserverFrame::ChannelObserverFrame(std::unique_ptr<ChannelObserverList>&
     std::ostringstream label;
     if (!channel) {
       label << "Alien";
-    } else{
+    } else {
       label << channel->Name();
       std::string unit = channel->Unit();
       if (!unit.empty()) {
         label << " [" << unit << "]";
+      }
+      const auto* channel_array = channel->Channel().ChannelArray();
+      if (channel_array != nullptr) {
+        label << " " << channel_array->DimensionAsString();
       }
       if (samples < channel->NofSamples()) {
         samples = channel->NofSamples();
@@ -45,6 +49,8 @@ ChannelObserverFrame::ChannelObserverFrame(std::unique_ptr<ChannelObserverList>&
     list_view_->SetColumnWidth(col, wxLIST_AUTOSIZE_USEHEADER);
   }
 
+}
+ChannelObserverFrame::~ChannelObserverFrame() {
 }
 
 }

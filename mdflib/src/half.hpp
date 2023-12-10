@@ -2564,7 +2564,8 @@ class half {
     return out;
   }
   /// \}
-
+  /// Internal binary representation
+  detail::uint16 data_;
  private:
   /// Rounding mode to use
   static const std::float_round_style round_style =
@@ -2575,8 +2576,7 @@ class half {
   HALF_CONSTEXPR half(detail::binary_t, unsigned int bits) HALF_NOEXCEPT
       : data_(static_cast<detail::uint16>(bits)) {}
 
-  /// Internal binary representation
-  detail::uint16 data_;
+
 
 #ifndef HALF_DOXYGEN_ONLY
   friend HALF_CONSTEXPR_NOERR bool operator==(half, half);

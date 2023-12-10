@@ -23,42 +23,49 @@ wxString ChannelObserverListView::OnGetItemText(long item, long column) const {
   if (item < 0 || !observer_list_) {
     return "?";
   }
-  auto sample = static_cast<size_t>(item);
-  std::ostringstream s;
-  if (column > 0) {
-    auto index = static_cast<size_t>(column - 1);
-    if (index < observer_list_->size()) {
-      const auto& observer = observer_list_->at(index);
-
-      if (observer) {
-        std::string value;
-        bool valid = observer->GetEngValue(sample, value);
-        s << (valid ? value : "*");
-        const auto& channel = observer->Channel();
-        const auto* cc = channel.ChannelConversion();
-
-        if (cc != nullptr) {
-           switch(cc->Type()) {
-            case ConversionType::NoConversion:
-            case ConversionType::DateConversion:
-            case ConversionType::TimeConversion:
-              break;
-
-            default:          // Show channel value
-              valid = observer->GetChannelValue(sample, value);
-              s << " (" << (valid ? value : "*") << ")";
-              break;
-          }
-        }
-      } else {
-        s << "?";
-      }
-    }
-  } else if (column == 0) {
-    s << sample;
+  const auto sample = static_cast<size_t>(item);
+  std::ostringstream text;
+  if (column == 0) {
+    text << sample;
+    return text.str();
   }
 
-  return wxString::FromUTF8(s.str());
+  const auto observer_index = static_cast<size_t>(column - 1);
+  if (observer_index >= observer_list_->size()) {
+    return "?";
+  }
+
+  const auto& observer = observer_list_->at(observer_index);
+  if (!observer) {
+    return "";
+  }
+
+  if (observer->IsArray()) {
+    return wxString::FromUTF8(observer->EngValueToString(sample));
+  }
+  std::string value;
+  bool valid = observer->GetEngValue(sample, value);
+  text << (valid ? value : "*");
+
+  const auto& channel = observer->Channel();
+  /*
+  const auto* conversion = channel.ChannelConversion();
+
+  if (conversion != nullptr) {
+     switch(conversion->Type()) {
+      case ConversionType::NoConversion:
+      case ConversionType::DateConversion:
+      case ConversionType::TimeConversion:
+        break;
+
+      default:    // Show channel value
+        valid = observer->GetChannelValue(sample, value);
+        text << " (" << (valid ? value : "*") << ")";
+        break;
+    }
+  }
+  */
+  return wxString::FromUTF8(text.str());
 }
 
 } // namespace mdf::viewer

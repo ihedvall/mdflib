@@ -65,7 +65,9 @@ IXmlNode &IXmlNode::AddUniqueNode(const std::string &name) {
   auto itr = std::find_if(node_list_.begin(), node_list_.end(),
                           [&](const auto &ptr)
                           { return ptr && ptr->IsTagName(name); });
-  return itr != node_list_.end() ? *(itr->get()) : AddNode(name);
+  return itr != node_list_.end() ?
+    *(itr->get()) :
+    AddNode(name);
 }
 
 IXmlNode &IXmlNode::AddUniqueNode(const std::string &name,
@@ -162,6 +164,27 @@ void IXmlNode::Write(std::ostream &dest, size_t level) {  // NOLINT
       dest << "  ";
     }
     dest << "</" << TagName() << ">" << std::endl;
+  }
+}
+
+void IXmlNode::DeleteNode(const std::string &name) {
+  for (auto itr = node_list_.begin(); itr != node_list_.end(); /* No ++itr */) {
+    const auto* node = itr->get();
+    if (node == nullptr || !node->IsTagName(name) ) {
+      ++itr;
+      continue;
+    }
+    itr = node_list_.erase(itr);
+  }
+}
+
+void IXmlNode::DeleteNode(const IXmlNode *node) {
+  const auto itr = std::find_if(node_list_.cbegin(), node_list_.cend(),
+                          [&] (auto& item) {
+    return item.get() == node;
+  });
+  if (itr != node_list_.end()) {
+    node_list_.erase(itr);
   }
 }
 

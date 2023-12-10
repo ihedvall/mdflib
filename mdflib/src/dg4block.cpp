@@ -203,7 +203,8 @@ void Dg4Block::ReadData(std::FILE* file) const {
             cn_block->ReadData(file);
           } else if (block->BlockType() == "DZ") {
             cn_block->ReadData(file);
-          }
+          } else if (block->BlockType() == "DL") {
+            cn_block->ReadData(file);          }
           break;
 
         case ChannelType::MaxLength:

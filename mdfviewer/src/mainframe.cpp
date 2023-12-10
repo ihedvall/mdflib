@@ -13,6 +13,7 @@
 #include "mainframe.h"
 #include "windowid.h"
 
+
 namespace {
 #include "img/app.xpm"
 }

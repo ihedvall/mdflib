@@ -19,6 +19,13 @@ class ChannelObserverListView : public wxListView {
   void ObserverList(std::unique_ptr<ChannelObserverList>& list) {
     observer_list_ = std::move(list);
   }
+
+  void ResetList() {
+    while (!observer_list_->empty()) {
+      observer_list_->front()->DetachObserver();
+    }
+    observer_list_.reset();
+  }
  protected:
   wxString OnGetItemText(long item, long column) const override;
 

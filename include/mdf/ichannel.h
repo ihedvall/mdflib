@@ -17,6 +17,7 @@
 #include "mdf/ichannelconversion.h"
 #include "mdf/imetadata.h"
 #include "mdf/isourceinformation.h"
+#include "mdf/ichannelarray.h"
 #include "mdf/mdfhelper.h"
 
 namespace mdf {
@@ -170,8 +171,12 @@ class IChannel : public IBlock  {
   virtual void DataBytes(uint64_t nof_bytes) = 0; ///< Sets the data size (bytes)
   [[nodiscard]] virtual uint64_t DataBytes() const = 0; ///< Data size (bytes);
 
+  /** \brief Sets number of decimals (floating points only)  */
+  virtual void Decimals(uint8_t precision);
   /** \brief Number of decimals (floating points)  */
   [[nodiscard]] virtual uint8_t Decimals() const = 0;
+
+
 
   /** \brief Returns true if decimals is used  */
   [[nodiscard]] virtual bool IsDecimalUsed() const = 0;
@@ -206,6 +211,29 @@ class IChannel : public IBlock  {
 
   /** \brief Creates a source information block. */
   [[nodiscard]] virtual ISourceInformation* CreateSourceInformation();
+
+  /** \brief Returns the channel array object if any exist in this channel.
+   *
+   * This function is used to get the channel array if any exist on this channel.
+   * Channel arrays require quite different handling and treatment of the
+   * channel. Normally the channel only handle one value but if the channel have
+   * a composite channel array (CA), the channel is now storing an array of values.
+   * The array may be multidimensional.
+   *
+   * The function is alo used to indicate if the channel is of array type.
+   * Channel arrays only exist in MDF 4 files.
+   * @return Pointer to the CA block or nullptr.
+   */
+  [[nodiscard]] virtual IChannelArray *ChannelArray() const;
+
+  /** \brief Create or returns an existing channel array (CA) block.
+   *
+   * Creates or returns the existing channel array (CA) block. The CA blocks
+   * are mixed with the composition (CN) blocks, see CreateChannelComposition
+   *
+   * @return A new or existing channel array (CA) block.
+   */
+  [[nodiscard]] virtual IChannelArray* CreateChannelArray();
 
   /** \brief Returns the conversion block, if any. */
   [[nodiscard]] virtual IChannelConversion *ChannelConversion() const = 0;
@@ -290,7 +318,7 @@ class IChannel : public IBlock  {
    */
   template <typename T>
   bool GetChannelValue(const std::vector<uint8_t> &record_buffer,
-                       T &dest) const;
+                       T &dest, uint64_t array_index = 0) const;
 
   /** \brief Fills a record buffer with a channel value.
    *
@@ -309,8 +337,8 @@ class IChannel : public IBlock  {
    * @param dest Destination value.
    * @return True if the value is valid.
    */
-  virtual bool GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
-                                uint64_t &dest) const;
+  bool GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
+                                uint64_t &dest, uint64_t array_index = 0) const;
   /** \brief Internally used function mainly for fetching VLSD text values.
     *
     * @param record_buffer The sample record buffer.
@@ -371,26 +399,29 @@ class IChannel : public IBlock  {
  protected:
 
   /** \brief Support function that copies a record to a data block. */
-  virtual void CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
-                                std::vector<uint8_t> &data_buffer) const;
+  void CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
+                                std::vector<uint8_t> &data_buffer,
+                                uint64_t array_index) const;
 
   /** \brief Support function that get signed integer from a record. */
-  virtual bool GetSignedValue(const std::vector<uint8_t> &record_buffer,
-                              int64_t &dest) const;
+  bool GetSignedValue(const std::vector<uint8_t> &record_buffer,
+                              int64_t &dest,
+                              uint64_t array_index) const;
   /** \brief Support function that get float values from a record. */
-  virtual bool GetFloatValue(const std::vector<uint8_t> &record_buffer,
-                             double &dest) const;
+  bool GetFloatValue(const std::vector<uint8_t> &record_buffer,
+                             double &dest,
+                             uint64_t array_index) const;
 
   /** \brief Support function that get array values from a record. */
   virtual bool GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
                                  std::vector<uint8_t> &dest) const;
 
   /** \brief Support function that get CANOpen date values from a record. */
-  virtual bool GetCanOpenDate(const std::vector<uint8_t> &record_buffer,
+  bool GetCanOpenDate(const std::vector<uint8_t> &record_buffer,
                               uint64_t &dest) const;
 
   /** \brief Support function that get CANOpen time values from a record. */
-  virtual bool GetCanOpenTime(const std::vector<uint8_t> &record_buffer,
+  bool GetCanOpenTime(const std::vector<uint8_t> &record_buffer,
                               uint64_t &dest) const;
 
   /** \brief Support function that gets the channel group sample buffer */
@@ -426,14 +457,14 @@ class IChannel : public IBlock  {
 
 template <typename T>
 bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
-                               T &dest) const {
+                               T &dest, uint64_t array_index) const {
   bool valid = false;
 
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
     case ChannelDataType::UnsignedIntegerBe: {
       uint64_t value = 0;
-      valid = GetUnsignedValue(record_buffer, value);
+      valid = GetUnsignedValue(record_buffer, value, array_index);
       dest = static_cast<T>(value);
       break;
     }
@@ -441,14 +472,14 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::SignedIntegerLe:
     case ChannelDataType::SignedIntegerBe: {
       int64_t value = 0;
-      valid = GetSignedValue(record_buffer, value);
+      valid = GetSignedValue(record_buffer, value, array_index);
       dest = static_cast<T>(value);
       break;
     }
     case ChannelDataType::FloatLe:
     case ChannelDataType::FloatBe: {
       double value = 0;
-      valid = GetFloatValue(record_buffer, value);
+      valid = GetFloatValue(record_buffer, value, array_index);
       dest = static_cast<T>(value);
       break;
     }
@@ -498,12 +529,12 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
 /** \brief Support function that gets an array value from a record buffer. */
 template <>
 bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
-                               std::vector<uint8_t> &dest) const;
+                               std::vector<uint8_t> &dest, uint64_t array_index) const;
 
 /** \brief Support function that gets a string value from a record buffer. */
 template <>
 bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
-                               std::string &dest) const;
+                               std::string &dest, uint64_t array_index) const;
 
 template <typename T>
 void IChannel::SetChannelValue(const T &value, bool valid) {

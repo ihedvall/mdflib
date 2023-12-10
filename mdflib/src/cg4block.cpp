@@ -432,16 +432,17 @@ void Cg4Block::PrepareForWriting() {
   nof_data_bytes_ = 0;
   vlsd_index_ = 0;
   if (Flags() & CgFlag::VlsdChannel) {
-    // This is a specialized CG group with variable length
+    // This is a specialized CG (VLSD) group with variable length
     // channel. Some channels in other groups may reference this group.
-    // This group may not contain any channels.
+    // This group does not contain any channels.
     nof_invalid_bytes_ = 0;
     sample_buffer_.clear();
     return;
   }
 
-  // Calculates number of data bytes
-
+  // Calculates number of data bytes. Note that some channels may
+  // be a so-called array channel. Little bit complicated but the
+  // referenced channel have a channel array (CA) block.
   size_t byte_offset = 0;
   size_t invalid_bit_offset = 0;
   for (const auto &channel : cn_list_) {

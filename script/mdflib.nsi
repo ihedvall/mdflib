@@ -4,10 +4,10 @@
 !include MUI2.nsh
 !include x64.nsh
 !include FileFunc.nsh
-!define APP_BUILD_DIR "..\cmake-build-release" ; Path to executable and release library
-!define APP_BUILD_DIR_DEBUG "..\cmake-build-debug" ; Path to the util debug library
+!define APP_BUILD_DIR "..\cmake-build-release-visual-studio" ; Path to executable and release library
+!define APP_BUILD_DIR_DEBUG "..\cmake-build-debug-visual-studio" ; Path to the util debug library
 !define NET_BUILD_DIR "..\x64" ; Path to .NET library
-Name "MDF Applications and Library 2.0"
+Name "MDF Applications and Library 2.1"
 OutFile "${APP_BUILD_DIR}\mdflib.exe"
 Unicode True
 
@@ -81,13 +81,13 @@ Section "Applications" APP
   WriteRegNone HKLM "${ARP}" "" 
   WriteRegStr HKLM "${ARP}" "InstallLocation" $INSTDIR
   WriteRegStr HKLM "${ARP}" "DisplayIcon" "$INSTDIR\img\mdflib.ico"
-  WriteRegStr HKLM "${ARP}" "DisplayName" "MDF Apps & Libs 2.0"
+  WriteRegStr HKLM "${ARP}" "DisplayName" "MDF Apps & Libs 2.1"
   WriteRegStr HKLM "${ARP}" "DisplayVersion" "2.0.0"
   WriteRegStr HKLM "${ARP}" "Publisher" "Ingemar Hedvall" 
   WriteRegDWORD HKLM "${ARP}" "NoModify" 1 
   WriteRegDWORD HKLM "${ARP}" "NoRepair" 1 
-  WriteRegDWORD HKLM "${ARP}" "VersionMajor" 1 
-  WriteRegDWORD HKLM "${ARP}" "VersionMinor" 0 	  
+  WriteRegDWORD HKLM "${ARP}" "VersionMajor" 2
+  WriteRegDWORD HKLM "${ARP}" "VersionMinor" 1
   WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$0"			 
   WriteRegStr HKLM "${ARP}"  "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
 				 
@@ -103,8 +103,8 @@ Section /o "MDF C++ Library" LIB
   SetRegView 64
   
   SetOutPath "$INSTDIR\lib"
-  File "${APP_BUILD_DIR}\mdf.lib"
-  File "${APP_BUILD_DIR_DEBUG}\mdfd.lib"
+  File "${APP_BUILD_DIR}\mdflib\mdf.lib"
+  File "${APP_BUILD_DIR_DEBUG}\mdflib\mdfd.lib"
   
   SetOutPath "$INSTDIR\include\mdf"
   File "..\include\mdf\*.*"
@@ -124,9 +124,11 @@ SectionEnd
 Section /o "MDF .NET Library" NET
   SetRegView 64
 
-  SetOutPath "$INSTDIR\net"
+  SetOutPath "$INSTDIR\net\Release"
   File "${NET_BUILD_DIR}\Release\mdflibrary.*"
-
+  SetOutPath "$INSTDIR\net\Debug"
+  File "${NET_BUILD_DIR}\Debug\mdflibrary.*"
+  
   ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
   IntFmt $0 "0x%08X" $0
   WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$0"

@@ -107,11 +107,69 @@ Public Member Functions</h2></td></tr>
 virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~ISampleObserver</b> ()=default</td></tr>
 <tr class="memdesc:ad0e95e65cb97b7374d0934fffd2cecd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default destructor. <br /></td></tr>
 <tr class="separator:ad0e95e65cb97b7374d0934fffd2cecd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a395d557de596688114e039dc781d7955" id="r_a395d557de596688114e039dc781d7955"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_sample_observer.html#a395d557de596688114e039dc781d7955">AttachObserver</a> ()</td></tr>
+<tr class="memdesc:a395d557de596688114e039dc781d7955"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attach the observer to an observer list (publisher).  <br /></td></tr>
+<tr class="separator:a395d557de596688114e039dc781d7955"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3acdc67a04010bb7cde83e898364f91" id="r_af3acdc67a04010bb7cde83e898364f91"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_sample_observer.html#af3acdc67a04010bb7cde83e898364f91">DetachObserver</a> ()</td></tr>
+<tr class="memdesc:af3acdc67a04010bb7cde83e898364f91"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detach the observer from an observer list.  <br /></td></tr>
+<tr class="separator:af3acdc67a04010bb7cde83e898364f91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a31f2a3878d75fe67ae20c82e84593710" id="r_a31f2a3878d75fe67ae20c82e84593710"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_sample_observer.html#a31f2a3878d75fe67ae20c82e84593710">OnSample</a> (uint64_t sample, uint64_t record_id, const std::vector&lt; uint8_t &gt; &amp;record)=0</td></tr>
 <tr class="memdesc:a31f2a3878d75fe67ae20c82e84593710"><td class="mdescLeft">&#160;</td><td class="mdescRight">Observer function that receives the sample record and parse out a channel value.  <br /></td></tr>
 <tr class="separator:a31f2a3878d75fe67ae20c82e84593710"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a395d557de596688114e039dc781d7955" name="a395d557de596688114e039dc781d7955"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a395d557de596688114e039dc781d7955">&#9670;&#160;</a></span>AttachObserver()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mdf::ISampleObserver::AttachObserver </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This function is normally called in the constructor of an observer, so there is normally no need to call it. </p>
+
+</div>
+</div>
+<a id="af3acdc67a04010bb7cde83e898364f91" name="af3acdc67a04010bb7cde83e898364f91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3acdc67a04010bb7cde83e898364f91">&#9670;&#160;</a></span>DetachObserver()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mdf::ISampleObserver::DetachObserver </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This function detach the observer from the observer list. This function shall be called when <a class="el" href="classmdf_1_1_i_sample_observer.html#a31f2a3878d75fe67ae20c82e84593710" title="Observer function that receives the sample record and parse out a channel value.">OnSample()</a> function is not needed anymore. This function is needed to handle dangling pointers. For example it is called after the ReadData() function in a reader. </p>
+
+</div>
+</div>
 <a id="a31f2a3878d75fe67ae20c82e84593710" name="a31f2a3878d75fe67ae20c82e84593710"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a31f2a3878d75fe67ae20c82e84593710">&#9670;&#160;</a></span>OnSample()</h2>
 

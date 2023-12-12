@@ -6,11 +6,12 @@ var searchData=
   ['nanosectolocal_3',['NanoSecToLocal',['../classmdf_1_1_mdf_helper.html#a188742f53fbe31e14425fc06da1b55a6',1,'mdf::MdfHelper']]],
   ['noconversion_4',['NoConversion',['../namespacemdf.html#aa69a00bf9910fb428ebe4a3d63e6ed89a27a2f55c82cd42b2957dd162121d2bb1',1,'mdf']]],
   ['nof_5fvalues_5f_5',['nof_values_',['../classmdf_1_1_i_channel_conversion.html#a40d94e7de622b9b2c34ea4ca3660a983',1,'mdf::IChannelConversion']]],
-  ['nofsamples_6',['nofsamples',['../classmdf_1_1_i_channel_group.html#a1835d417687f62955e92ee5e17e16570',1,'mdf::IChannelGroup::NofSamples() const =0'],['../classmdf_1_1_i_channel_group.html#aaf8b0db5853c89e7508e5ff4c97bfb3d',1,'mdf::IChannelGroup::NofSamples(uint64_t nof_samples)=0'],['../classmdf_1_1_i_channel_observer.html#ad6611bae034a767205da137b93bbf3aa',1,'mdf::IChannelObserver::NofSamples()']]],
-  ['none_7',['none',['../namespacemdf.html#a97db9dc7397318bc42aa8ba07f1880dfa6adf97f83acf6453d4a6a4b1070f3754',1,'mdf::None'],['../namespacemdf.html#a7d8062669e05a387de168820f98d4ff6a6adf97f83acf6453d4a6a4b1070f3754',1,'mdf::None']]],
-  ['notifysampleobservers_8',['NotifySampleObservers',['../classmdf_1_1_i_data_group.html#a562ba39cc007b3309c083749817d06ff',1,'mdf::IDataGroup']]],
-  ['nowns_9',['NowNs',['../classmdf_1_1_mdf_helper.html#a0fa2c1d1a7fc70bee2f993f01c1aa175',1,'mdf::MdfHelper']]],
-  ['nstocanopendatearray_10',['NsToCanOpenDateArray',['../classmdf_1_1_mdf_helper.html#af8d093bccbbd087a2e126bb47e9ceba0',1,'mdf::MdfHelper']]],
-  ['nstocanopentimearray_11',['NsToCanOpenTimeArray',['../classmdf_1_1_mdf_helper.html#aea95c071fce3ed0fc9c43e51b8cf8de8',1,'mdf::MdfHelper']]],
-  ['nstolocalisotime_12',['NsToLocalIsoTime',['../classmdf_1_1_mdf_helper.html#a7af4f6bd644efeb45b8e8497520d1be7',1,'mdf::MdfHelper']]]
+  ['nofarrayvalues_6',['NofArrayValues',['../classmdf_1_1_i_channel_array.html#a2d4e11812bd69d0190e13de82a46e5ba',1,'mdf::IChannelArray']]],
+  ['nofsamples_7',['nofsamples',['../classmdf_1_1_i_channel_group.html#a1835d417687f62955e92ee5e17e16570',1,'mdf::IChannelGroup::NofSamples() const =0'],['../classmdf_1_1_i_channel_group.html#aaf8b0db5853c89e7508e5ff4c97bfb3d',1,'mdf::IChannelGroup::NofSamples(uint64_t nof_samples)=0'],['../classmdf_1_1_i_channel_observer.html#ad6611bae034a767205da137b93bbf3aa',1,'mdf::IChannelObserver::NofSamples()']]],
+  ['none_8',['none',['../namespacemdf.html#a97db9dc7397318bc42aa8ba07f1880dfa6adf97f83acf6453d4a6a4b1070f3754',1,'mdf::None'],['../namespacemdf.html#a7d8062669e05a387de168820f98d4ff6a6adf97f83acf6453d4a6a4b1070f3754',1,'mdf::None']]],
+  ['notifysampleobservers_9',['NotifySampleObservers',['../classmdf_1_1_i_data_group.html#a562ba39cc007b3309c083749817d06ff',1,'mdf::IDataGroup']]],
+  ['nowns_10',['NowNs',['../classmdf_1_1_mdf_helper.html#a0fa2c1d1a7fc70bee2f993f01c1aa175',1,'mdf::MdfHelper']]],
+  ['nstocanopendatearray_11',['NsToCanOpenDateArray',['../classmdf_1_1_mdf_helper.html#af8d093bccbbd087a2e126bb47e9ceba0',1,'mdf::MdfHelper']]],
+  ['nstocanopentimearray_12',['NsToCanOpenTimeArray',['../classmdf_1_1_mdf_helper.html#aea95c071fce3ed0fc9c43e51b8cf8de8',1,'mdf::MdfHelper']]],
+  ['nstolocalisotime_13',['NsToLocalIsoTime',['../classmdf_1_1_mdf_helper.html#a7af4f6bd644efeb45b8e8497520d1be7',1,'mdf::MdfHelper']]]
 ];

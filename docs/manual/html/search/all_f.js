@@ -22,9 +22,9 @@ var searchData=
   ['recordidsize_19',['recordidsize',['../classmdf_1_1_i_data_group.html#a19e0d40b686bdbd44d33f9d580e956e1',1,'mdf::IDataGroup::RecordIdSize(uint8_t id_size)'],['../classmdf_1_1_i_data_group.html#a44b8c0c4bcdafd873ca905065bf8e8df',1,'mdf::IDataGroup::RecordIdSize() const']]],
   ['recordinginterrupt_20',['RecordingInterrupt',['../namespacemdf.html#adce2cd261c2306ee601dfaeb929b6fdba89e4c1a99ca3a5472ff23d086fdf5766',1,'mdf']]],
   ['recordingperiod_21',['RecordingPeriod',['../namespacemdf.html#adce2cd261c2306ee601dfaeb929b6fdba79b26bb22dedc2a81b4211fc9b034231',1,'mdf']]],
-  ['reference_22',['Reference',['../classmdf_1_1_i_channel_conversion.html#acf61a487d4ae7dd196df5ab09fd81089',1,'mdf::IChannelConversion']]],
+  ['reference_22',['reference',['../classmdf_1_1_i_channel_conversion.html#a4df53b32f76d2222e41fecee750db337',1,'mdf::IChannelConversion::Reference(uint16_t index, const std::string &amp;text)'],['../classmdf_1_1_i_channel_conversion.html#aa6ac2bfb6ae4a88a8ceb00a9f7ceb759',1,'mdf::IChannelConversion::Reference(uint16_t index) const']]],
   ['remotemaster_23',['RemoteMaster',['../namespacemdf_1_1_cg_flag.html#a9b1e4eaac22f46832b82da872fea62d8',1,'mdf::CgFlag']]],
   ['reset_24',['Reset',['../classmdf_1_1_can_message.html#ae980cb21e5e1da69fb45588c33a3a29c',1,'mdf::CanMessage']]],
-  ['resetsample_25',['resetsample',['../classmdf_1_1_i_data_group.html#a0bd804ae49517e3f082e88d38403ddaa',1,'mdf::IDataGroup::ResetSample()'],['../classmdf_1_1_i_channel_group.html#a5699619c1bc59c4684cc2f171020f83f',1,'mdf::IChannelGroup::ResetSample()']]],
+  ['resetsample_25',['resetsample',['../classmdf_1_1_i_channel_group.html#a5699619c1bc59c4684cc2f171020f83f',1,'mdf::IChannelGroup::ResetSample()'],['../classmdf_1_1_i_data_group.html#a0bd804ae49517e3f082e88d38403ddaa',1,'mdf::IDataGroup::ResetSample()']]],
   ['rtr_26',['rtr',['../classmdf_1_1_can_message.html#aa0d4e7abc5258f456b4a1576520d4cd6',1,'mdf::CanMessage::Rtr(bool rtr)'],['../classmdf_1_1_can_message.html#a1d5f97082bc8da0075882219a793e3f5',1,'mdf::CanMessage::Rtr() const']]]
 ];

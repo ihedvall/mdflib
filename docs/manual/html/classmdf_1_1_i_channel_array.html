@@ -77,6 +77,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="classmdf_1_1_i_channel_array-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">mdf::IChannelArray Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div></div>
 </div><!--header-->
@@ -115,15 +116,15 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Type</b> (<a 
 <tr class="separator:a86314aaf43d36ac777ea103416b4c14e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afafe22ac5b1e62f7d0cfee6af55fc1b9" id="r_afafe22ac5b1e62f7d0cfee6af55fc1b9"><td class="memItemLeft" align="right" valign="top"><a id="afafe22ac5b1e62f7d0cfee6af55fc1b9" name="afafe22ac5b1e62f7d0cfee6af55fc1b9"></a>
 virtual <a class="el" href="namespacemdf.html#a2dd611c31211248ea4ad0b7363590d14">ArrayType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>Type</b> () const =0</td></tr>
-<tr class="memdesc:afafe22ac5b1e62f7d0cfee6af55fc1b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type. <br /></td></tr>
+<tr class="memdesc:afafe22ac5b1e62f7d0cfee6af55fc1b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of array. <br /></td></tr>
 <tr class="separator:afafe22ac5b1e62f7d0cfee6af55fc1b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aabd36008a443151b6a5e064905fafe7e" id="r_aabd36008a443151b6a5e064905fafe7e"><td class="memItemLeft" align="right" valign="top"><a id="aabd36008a443151b6a5e064905fafe7e" name="aabd36008a443151b6a5e064905fafe7e"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Storage</b> (<a class="el" href="namespacemdf.html#a87715c0617a1132b24b6f0cbed80cbcf">ArrayStorage</a> storage)=0</td></tr>
-<tr class="memdesc:aabd36008a443151b6a5e064905fafe7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Storage. <br /></td></tr>
+<tr class="memdesc:aabd36008a443151b6a5e064905fafe7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Storage type. <br /></td></tr>
 <tr class="separator:aabd36008a443151b6a5e064905fafe7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa91530e367bff1c691bec44dcf0ae403" id="r_aa91530e367bff1c691bec44dcf0ae403"><td class="memItemLeft" align="right" valign="top"><a id="aa91530e367bff1c691bec44dcf0ae403" name="aa91530e367bff1c691bec44dcf0ae403"></a>
 virtual <a class="el" href="namespacemdf.html#a87715c0617a1132b24b6f0cbed80cbcf">ArrayStorage</a>&#160;</td><td class="memItemRight" valign="bottom"><b>Storage</b> () const =0</td></tr>
-<tr class="memdesc:aa91530e367bff1c691bec44dcf0ae403"><td class="mdescLeft">&#160;</td><td class="mdescRight">Storage. <br /></td></tr>
+<tr class="memdesc:aa91530e367bff1c691bec44dcf0ae403"><td class="mdescLeft">&#160;</td><td class="mdescRight">Storage type. <br /></td></tr>
 <tr class="separator:aa91530e367bff1c691bec44dcf0ae403"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a062076343fac9dd49813cfaf0ba4b03a" id="r_a062076343fac9dd49813cfaf0ba4b03a"><td class="memItemLeft" align="right" valign="top"><a id="a062076343fac9dd49813cfaf0ba4b03a" name="a062076343fac9dd49813cfaf0ba4b03a"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Flags</b> (uint32_t flags)=0</td></tr>
@@ -133,6 +134,79 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Flags</b> (ui
 virtual uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>Flags</b> () const =0</td></tr>
 <tr class="memdesc:adecd13bc33929b44e85e6989e08ca507"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flags. <br /></td></tr>
 <tr class="separator:adecd13bc33929b44e85e6989e08ca507"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6663012e747ed564a699a491050369b" id="r_ab6663012e747ed564a699a491050369b"><td class="memItemLeft" align="right" valign="top"><a id="ab6663012e747ed564a699a491050369b" name="ab6663012e747ed564a699a491050369b"></a>
+virtual uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>Dimensions</b> () const =0</td></tr>
+<tr class="memdesc:ab6663012e747ed564a699a491050369b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of dimensions. <br /></td></tr>
+<tr class="separator:ab6663012e747ed564a699a491050369b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91d3817687c61d3e08f55f6aff48caca" id="r_a91d3817687c61d3e08f55f6aff48caca"><td class="memItemLeft" align="right" valign="top"><a id="a91d3817687c61d3e08f55f6aff48caca" name="a91d3817687c61d3e08f55f6aff48caca"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>DimensionSize</b> (uint16_t dimension, uint64_t dimension_size)=0</td></tr>
+<tr class="memdesc:a91d3817687c61d3e08f55f6aff48caca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size for a dimension. <br /></td></tr>
+<tr class="separator:a91d3817687c61d3e08f55f6aff48caca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf1c1a51c37452e7a5440eba7433bdee" id="r_acf1c1a51c37452e7a5440eba7433bdee"><td class="memItemLeft" align="right" valign="top"><a id="acf1c1a51c37452e7a5440eba7433bdee" name="acf1c1a51c37452e7a5440eba7433bdee"></a>
+virtual uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>DimensionSize</b> (uint16_t dimension) const =0</td></tr>
+<tr class="memdesc:acf1c1a51c37452e7a5440eba7433bdee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size for a dimension. <br /></td></tr>
+<tr class="separator:acf1c1a51c37452e7a5440eba7433bdee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e4ec6c913a4080732cb638e6097aa55" id="r_a6e4ec6c913a4080732cb638e6097aa55"><td class="memItemLeft" align="right" valign="top"><a id="a6e4ec6c913a4080732cb638e6097aa55" name="a6e4ec6c913a4080732cb638e6097aa55"></a>
+virtual uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>AxisValues</b> () const =0</td></tr>
+<tr class="memdesc:a6e4ec6c913a4080732cb638e6097aa55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of axis values. <br /></td></tr>
+<tr class="separator:a6e4ec6c913a4080732cb638e6097aa55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab7739e712667f8b413af1aa8e424cd3f" id="r_ab7739e712667f8b413af1aa8e424cd3f"><td class="memItemLeft" align="right" valign="top"><a id="ab7739e712667f8b413af1aa8e424cd3f" name="ab7739e712667f8b413af1aa8e424cd3f"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>AxisValue</b> (uint64_t index, double value)=0</td></tr>
+<tr class="memdesc:ab7739e712667f8b413af1aa8e424cd3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Setting an axis value. <br /></td></tr>
+<tr class="separator:ab7739e712667f8b413af1aa8e424cd3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88c9f9e201eabc7e7f5e46aa8d94a09d" id="r_a88c9f9e201eabc7e7f5e46aa8d94a09d"><td class="memItemLeft" align="right" valign="top"><a id="a88c9f9e201eabc7e7f5e46aa8d94a09d" name="a88c9f9e201eabc7e7f5e46aa8d94a09d"></a>
+virtual double&#160;</td><td class="memItemRight" valign="bottom"><b>AxisValue</b> (uint64_t index) const =0</td></tr>
+<tr class="memdesc:a88c9f9e201eabc7e7f5e46aa8d94a09d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Getting an axis value. <br /></td></tr>
+<tr class="separator:a88c9f9e201eabc7e7f5e46aa8d94a09d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a957cdf57181496463e6590f3299ba158" id="r_a957cdf57181496463e6590f3299ba158"><td class="memItemLeft" align="right" valign="top"><a id="a957cdf57181496463e6590f3299ba158" name="a957cdf57181496463e6590f3299ba158"></a>
+virtual uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>CycleCounts</b> () const =0</td></tr>
+<tr class="memdesc:a957cdf57181496463e6590f3299ba158"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of cycle counts. <br /></td></tr>
+<tr class="separator:a957cdf57181496463e6590f3299ba158"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb5a957c3f2ae7ceaac5edf4a6fb11c5" id="r_afb5a957c3f2ae7ceaac5edf4a6fb11c5"><td class="memItemLeft" align="right" valign="top"><a id="afb5a957c3f2ae7ceaac5edf4a6fb11c5" name="afb5a957c3f2ae7ceaac5edf4a6fb11c5"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>CycleCountOffset</b> (uint64_t cycle_count, uint64_t offset)=0</td></tr>
+<tr class="memdesc:afb5a957c3f2ae7ceaac5edf4a6fb11c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Setting an offset value. <br /></td></tr>
+<tr class="separator:afb5a957c3f2ae7ceaac5edf4a6fb11c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dc084480568eaf3df3cc1bf9249d9d8" id="r_a2dc084480568eaf3df3cc1bf9249d9d8"><td class="memItemLeft" align="right" valign="top"><a id="a2dc084480568eaf3df3cc1bf9249d9d8" name="a2dc084480568eaf3df3cc1bf9249d9d8"></a>
+virtual uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>CycleCountOffset</b> (uint64_t cycle_count) const =0</td></tr>
+<tr class="memdesc:a2dc084480568eaf3df3cc1bf9249d9d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Getting an axis value. <br /></td></tr>
+<tr class="separator:a2dc084480568eaf3df3cc1bf9249d9d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d4e11812bd69d0190e13de82a46e5ba" id="r_a2d4e11812bd69d0190e13de82a46e5ba"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel_array.html#a2d4e11812bd69d0190e13de82a46e5ba">NofArrayValues</a> () const</td></tr>
+<tr class="memdesc:a2d4e11812bd69d0190e13de82a46e5ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of values in the array.  <br /></td></tr>
+<tr class="separator:a2d4e11812bd69d0190e13de82a46e5ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0cf43a61d1c1f121f4a8d7cc0b3672cb" id="r_a0cf43a61d1c1f121f4a8d7cc0b3672cb"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel_array.html#a0cf43a61d1c1f121f4a8d7cc0b3672cb">DimensionAsString</a> () const</td></tr>
+<tr class="memdesc:a0cf43a61d1c1f121f4a8d7cc0b3672cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the array dimensions as string ("N[2][3]")  <br /></td></tr>
+<tr class="separator:a0cf43a61d1c1f121f4a8d7cc0b3672cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8944a7d8b938efda2bfbad895d24ad2a" id="r_a8944a7d8b938efda2bfbad895d24ad2a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel_array.html#a8944a7d8b938efda2bfbad895d24ad2a">CreateLinkLists</a> ()=0</td></tr>
+<tr class="memdesc:a8944a7d8b938efda2bfbad895d24ad2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the array link indexes into pointers.  <br /></td></tr>
+<tr class="separator:a8944a7d8b938efda2bfbad895d24ad2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4551cab1e07e4a366381e0aacc5217c" id="r_af4551cab1e07e4a366381e0aacc5217c"><td class="memItemLeft" align="right" valign="top"><a id="af4551cab1e07e4a366381e0aacc5217c" name="af4551cab1e07e4a366381e0aacc5217c"></a>
+const std::vector&lt; int64_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>DataLinks</b> () const</td></tr>
+<tr class="memdesc:af4551cab1e07e4a366381e0aacc5217c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a list of data kink indexes. <br /></td></tr>
+<tr class="separator:af4551cab1e07e4a366381e0aacc5217c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3f9265d67564033fc88a8ce79bc9f1f" id="r_ad3f9265d67564033fc88a8ce79bc9f1f"><td class="memItemLeft" align="right" valign="top"><a id="ad3f9265d67564033fc88a8ce79bc9f1f" name="ad3f9265d67564033fc88a8ce79bc9f1f"></a>
+const std::vector&lt; <a class="el" href="structmdf_1_1_ca_triple_reference.html">CaTripleReference</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>DynamicSizeList</b> () const</td></tr>
+<tr class="memdesc:ad3f9265d67564033fc88a8ce79bc9f1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the dynamic size list. <br /></td></tr>
+<tr class="separator:ad3f9265d67564033fc88a8ce79bc9f1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd3faac69c3c0f22bbfe1166969e4486" id="r_abd3faac69c3c0f22bbfe1166969e4486"><td class="memItemLeft" align="right" valign="top"><a id="abd3faac69c3c0f22bbfe1166969e4486" name="abd3faac69c3c0f22bbfe1166969e4486"></a>
+const std::vector&lt; <a class="el" href="structmdf_1_1_ca_triple_reference.html">CaTripleReference</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>InputQuantityList</b> () const</td></tr>
+<tr class="memdesc:abd3faac69c3c0f22bbfe1166969e4486"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the input quantity list. <br /></td></tr>
+<tr class="separator:abd3faac69c3c0f22bbfe1166969e4486"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebf5181ec5b62c6223c8e195e993b402" id="r_aebf5181ec5b62c6223c8e195e993b402"><td class="memItemLeft" align="right" valign="top"><a id="aebf5181ec5b62c6223c8e195e993b402" name="aebf5181ec5b62c6223c8e195e993b402"></a>
+const std::vector&lt; <a class="el" href="structmdf_1_1_ca_triple_reference.html">CaTripleReference</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>OutputQuantityList</b> () const</td></tr>
+<tr class="memdesc:aebf5181ec5b62c6223c8e195e993b402"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the output quantity list. <br /></td></tr>
+<tr class="separator:aebf5181ec5b62c6223c8e195e993b402"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17a8c2b3ad76f3860140bbd827236c1f" id="r_a17a8c2b3ad76f3860140bbd827236c1f"><td class="memItemLeft" align="right" valign="top"><a id="a17a8c2b3ad76f3860140bbd827236c1f" name="a17a8c2b3ad76f3860140bbd827236c1f"></a>
+const std::vector&lt; <a class="el" href="structmdf_1_1_ca_triple_reference.html">CaTripleReference</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>ComparisonQuantityList</b> () const</td></tr>
+<tr class="memdesc:a17a8c2b3ad76f3860140bbd827236c1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the comparison quantity list. <br /></td></tr>
+<tr class="separator:a17a8c2b3ad76f3860140bbd827236c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8820097d01912970d29ab09adcbd3c47" id="r_a8820097d01912970d29ab09adcbd3c47"><td class="memItemLeft" align="right" valign="top"><a id="a8820097d01912970d29ab09adcbd3c47" name="a8820097d01912970d29ab09adcbd3c47"></a>
+const std::vector&lt; const <a class="el" href="classmdf_1_1_i_channel_conversion.html">IChannelConversion</a> * &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>AxisConversionList</b> () const</td></tr>
+<tr class="memdesc:a8820097d01912970d29ab09adcbd3c47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the axis conversion list. <br /></td></tr>
+<tr class="separator:a8820097d01912970d29ab09adcbd3c47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac93a745e21bef7da392cc2ffaf3ebdc" id="r_aac93a745e21bef7da392cc2ffaf3ebdc"><td class="memItemLeft" align="right" valign="top"><a id="aac93a745e21bef7da392cc2ffaf3ebdc" name="aac93a745e21bef7da392cc2ffaf3ebdc"></a>
+const std::vector&lt; <a class="el" href="structmdf_1_1_ca_triple_reference.html">CaTripleReference</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>AxisList</b> () const</td></tr>
+<tr class="memdesc:aac93a745e21bef7da392cc2ffaf3ebdc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the axis list. <br /></td></tr>
+<tr class="separator:aac93a745e21bef7da392cc2ffaf3ebdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classmdf_1_1_i_block"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classmdf_1_1_i_block')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classmdf_1_1_i_block.html">mdf::IBlock</a></td></tr>
 <tr class="memitem:ae457ca0b12e381f3a8239a6b34750a71 inherit pub_methods_classmdf_1_1_i_block" id="r_ae457ca0b12e381f3a8239a6b34750a71"><td class="memItemLeft" align="right" valign="top">
 virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~IBlock</b> ()=default</td></tr>
@@ -144,7 +218,101 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~IBlock</b> ()=def
 <tr class="memitem:afdbad6ffc878074aecd665cfcadd795e inherit pub_methods_classmdf_1_1_i_block" id="r_afdbad6ffc878074aecd665cfcadd795e"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_block.html#afdbad6ffc878074aecd665cfcadd795e">BlockType</a> () const =0</td></tr>
 <tr class="memdesc:afdbad6ffc878074aecd665cfcadd795e inherit pub_methods_classmdf_1_1_i_block"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the block type.  <br /></td></tr>
 <tr class="separator:afdbad6ffc878074aecd665cfcadd795e inherit pub_methods_classmdf_1_1_i_block"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
+<tr class="memitem:a713c29bc83d38fbf6ab75a225b07112d" id="r_a713c29bc83d38fbf6ab75a225b07112d"><td class="memItemLeft" align="right" valign="top"><a id="a713c29bc83d38fbf6ab75a225b07112d" name="a713c29bc83d38fbf6ab75a225b07112d"></a>
+std::vector&lt; int64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>data_links_</b></td></tr>
+<tr class="memdesc:a713c29bc83d38fbf6ab75a225b07112d"><td class="mdescLeft">&#160;</td><td class="mdescRight">List of index to data blocks. <br /></td></tr>
+<tr class="separator:a713c29bc83d38fbf6ab75a225b07112d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43fb924cefd893132f2d355ff2042d44" id="r_a43fb924cefd893132f2d355ff2042d44"><td class="memItemLeft" align="right" valign="top"><a id="a43fb924cefd893132f2d355ff2042d44" name="a43fb924cefd893132f2d355ff2042d44"></a>
+std::vector&lt; <a class="el" href="structmdf_1_1_ca_triple_reference.html">CaTripleReference</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>dynamic_size_list_</b></td></tr>
+<tr class="memdesc:a43fb924cefd893132f2d355ff2042d44"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dynamic size list. <br /></td></tr>
+<tr class="separator:a43fb924cefd893132f2d355ff2042d44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad726a5ffaae4be9490a3ab7605487410" id="r_ad726a5ffaae4be9490a3ab7605487410"><td class="memItemLeft" align="right" valign="top"><a id="ad726a5ffaae4be9490a3ab7605487410" name="ad726a5ffaae4be9490a3ab7605487410"></a>
+std::vector&lt; <a class="el" href="structmdf_1_1_ca_triple_reference.html">CaTripleReference</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>input_quantity_list_</b></td></tr>
+<tr class="memdesc:ad726a5ffaae4be9490a3ab7605487410"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input quantity list. <br /></td></tr>
+<tr class="separator:ad726a5ffaae4be9490a3ab7605487410"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af016c01b1b7b65756884865250102121" id="r_af016c01b1b7b65756884865250102121"><td class="memItemLeft" align="right" valign="top"><a id="af016c01b1b7b65756884865250102121" name="af016c01b1b7b65756884865250102121"></a>
+std::vector&lt; <a class="el" href="structmdf_1_1_ca_triple_reference.html">CaTripleReference</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>output_quantity_list_</b></td></tr>
+<tr class="memdesc:af016c01b1b7b65756884865250102121"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output quantity list. <br /></td></tr>
+<tr class="separator:af016c01b1b7b65756884865250102121"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeeadba01d6370f4deb63e4572665daa2" id="r_aeeadba01d6370f4deb63e4572665daa2"><td class="memItemLeft" align="right" valign="top"><a id="aeeadba01d6370f4deb63e4572665daa2" name="aeeadba01d6370f4deb63e4572665daa2"></a>
+std::vector&lt; <a class="el" href="structmdf_1_1_ca_triple_reference.html">CaTripleReference</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>comparison_quantity_list_</b></td></tr>
+<tr class="memdesc:aeeadba01d6370f4deb63e4572665daa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Comparison quantity list. <br /></td></tr>
+<tr class="separator:aeeadba01d6370f4deb63e4572665daa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb095c25e76d9b49a86993bd0dab203d" id="r_afb095c25e76d9b49a86993bd0dab203d"><td class="memItemLeft" align="right" valign="top"><a id="afb095c25e76d9b49a86993bd0dab203d" name="afb095c25e76d9b49a86993bd0dab203d"></a>
+std::vector&lt; const <a class="el" href="classmdf_1_1_i_channel_conversion.html">IChannelConversion</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>axis_conversion_list_</b></td></tr>
+<tr class="memdesc:afb095c25e76d9b49a86993bd0dab203d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Axis_conversion list. <br /></td></tr>
+<tr class="separator:afb095c25e76d9b49a86993bd0dab203d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58301e38357bb2054b5ca4d311619123" id="r_a58301e38357bb2054b5ca4d311619123"><td class="memItemLeft" align="right" valign="top"><a id="a58301e38357bb2054b5ca4d311619123" name="a58301e38357bb2054b5ca4d311619123"></a>
+std::vector&lt; <a class="el" href="structmdf_1_1_ca_triple_reference.html">CaTripleReference</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>axis_list_</b></td></tr>
+<tr class="memdesc:a58301e38357bb2054b5ca4d311619123"><td class="mdescLeft">&#160;</td><td class="mdescRight">Axis list. <br /></td></tr>
+<tr class="separator:a58301e38357bb2054b5ca4d311619123"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a8944a7d8b938efda2bfbad895d24ad2a" name="a8944a7d8b938efda2bfbad895d24ad2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8944a7d8b938efda2bfbad895d24ad2a">&#9670;&#160;</a></span>CreateLinkLists()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mdf::IChannelArray::CreateLinkLists </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This function must be called before getting any of the link lists on the array object. It must be called later after the entire file been read as the link reference blocks that are read after this block. </p>
+
+</div>
+</div>
+<a id="a0cf43a61d1c1f121f4a8d7cc0b3672cb" name="a0cf43a61d1c1f121f4a8d7cc0b3672cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cf43a61d1c1f121f4a8d7cc0b3672cb">&#9670;&#160;</a></span>DimensionAsString()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string mdf::IChannelArray::DimensionAsString </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Array dimension as a string. </dd></dl>
+
+</div>
+</div>
+<a id="a2d4e11812bd69d0190e13de82a46e5ba" name="a2d4e11812bd69d0190e13de82a46e5ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d4e11812bd69d0190e13de82a46e5ba">&#9670;&#160;</a></span>NofArrayValues()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t mdf::IChannelArray::NofArrayValues </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Number of values in the array </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>include/mdf/<a class="el" href="ichannelarray_8h_source.html">ichannelarray.h</a></li>
 </ul>

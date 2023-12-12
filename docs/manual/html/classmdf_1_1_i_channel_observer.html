@@ -147,32 +147,41 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>Name</b> () co
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>Unit</b> () const</td></tr>
 <tr class="memdesc:a944b4093b9e83896b2687a87618b787e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Channel unit. <br /></td></tr>
 <tr class="separator:a944b4093b9e83896b2687a87618b787e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a164c91c7d6774c49a41d334c64668290" id="r_a164c91c7d6774c49a41d334c64668290"><td class="memItemLeft" align="right" valign="top"><a id="a164c91c7d6774c49a41d334c64668290" name="a164c91c7d6774c49a41d334c64668290"></a>
-const <a class="el" href="classmdf_1_1_i_channel.html">IChannel</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>Channel</b> () const</td></tr>
-<tr class="memdesc:a164c91c7d6774c49a41d334c64668290"><td class="mdescLeft">&#160;</td><td class="mdescRight">Channel. <br /></td></tr>
+<tr class="memitem:a164c91c7d6774c49a41d334c64668290" id="r_a164c91c7d6774c49a41d334c64668290"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classmdf_1_1_i_channel.html">IChannel</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel_observer.html#a164c91c7d6774c49a41d334c64668290">Channel</a> () const</td></tr>
+<tr class="memdesc:a164c91c7d6774c49a41d334c64668290"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the channel object.  <br /></td></tr>
 <tr class="separator:a164c91c7d6774c49a41d334c64668290"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d5a1e2d4a99e8068231848f9ffaa8fe" id="r_a6d5a1e2d4a99e8068231848f9ffaa8fe"><td class="memItemLeft" align="right" valign="top"><a id="a6d5a1e2d4a99e8068231848f9ffaa8fe" name="a6d5a1e2d4a99e8068231848f9ffaa8fe"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsMaster</b> () const</td></tr>
 <tr class="memdesc:a6d5a1e2d4a99e8068231848f9ffaa8fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">True if this is the master channel. <br /></td></tr>
 <tr class="separator:a6d5a1e2d4a99e8068231848f9ffaa8fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3fd099e07efde2443032697cf9deea58" id="r_a3fd099e07efde2443032697cf9deea58"><td class="memTemplParams" colspan="2">template&lt;typename V &gt; </td></tr>
-<tr class="memitem:a3fd099e07efde2443032697cf9deea58"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel_observer.html#a3fd099e07efde2443032697cf9deea58">GetChannelValue</a> (uint64_t sample, V &amp;value) const</td></tr>
-<tr class="memdesc:a3fd099e07efde2443032697cf9deea58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the channel value for a sample.  <br /></td></tr>
-<tr class="separator:a3fd099e07efde2443032697cf9deea58"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae7e375611291962f0ac4aad67ed6955e" id="r_ae7e375611291962f0ac4aad67ed6955e"><td class="memTemplParams" colspan="2">template&lt;typename V &gt; </td></tr>
-<tr class="memitem:ae7e375611291962f0ac4aad67ed6955e"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel_observer.html#ae7e375611291962f0ac4aad67ed6955e">GetEngValue</a> (uint64_t sample, V &amp;value) const</td></tr>
-<tr class="memdesc:ae7e375611291962f0ac4aad67ed6955e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the engineering value for a specific value.  <br /></td></tr>
-<tr class="separator:ae7e375611291962f0ac4aad67ed6955e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b60f8a478cb6b753e0455e5da15ff6b" id="r_a3b60f8a478cb6b753e0455e5da15ff6b"><td class="memItemLeft" align="right" valign="top"><a id="a3b60f8a478cb6b753e0455e5da15ff6b" name="a3b60f8a478cb6b753e0455e5da15ff6b"></a>
+<tr class="memitem:a05bd6a3819c779ca9b326f1eefbfd685" id="r_a05bd6a3819c779ca9b326f1eefbfd685"><td class="memItemLeft" align="right" valign="top"><a id="a05bd6a3819c779ca9b326f1eefbfd685" name="a05bd6a3819c779ca9b326f1eefbfd685"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsArray</b> () const</td></tr>
+<tr class="memdesc:a05bd6a3819c779ca9b326f1eefbfd685"><td class="mdescLeft">&#160;</td><td class="mdescRight">True if this channel is an array channel. <br /></td></tr>
+<tr class="separator:a05bd6a3819c779ca9b326f1eefbfd685"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5b6e85bdf1a75b68d1c84a49c56da60" id="r_ae5b6e85bdf1a75b68d1c84a49c56da60"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel_observer.html#ae5b6e85bdf1a75b68d1c84a49c56da60">ArraySize</a> () const</td></tr>
+<tr class="memdesc:ae5b6e85bdf1a75b68d1c84a49c56da60"><td class="mdescLeft">&#160;</td><td class="mdescRight">If this is an array channel, this function returns the array size.  <br /></td></tr>
+<tr class="separator:ae5b6e85bdf1a75b68d1c84a49c56da60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e6ca9903ce2e7236b1bea4d978256d2" id="r_a4e6ca9903ce2e7236b1bea4d978256d2"><td class="memTemplParams" colspan="2">template&lt;typename V &gt; </td></tr>
+<tr class="memitem:a4e6ca9903ce2e7236b1bea4d978256d2"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel_observer.html#a4e6ca9903ce2e7236b1bea4d978256d2">GetChannelValue</a> (uint64_t sample, V &amp;value, uint64_t array_index=0) const</td></tr>
+<tr class="memdesc:a4e6ca9903ce2e7236b1bea4d978256d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the channel value for a sample.  <br /></td></tr>
+<tr class="separator:a4e6ca9903ce2e7236b1bea4d978256d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18809112e05690a07e7e57ddb0d94807" id="r_a18809112e05690a07e7e57ddb0d94807"><td class="memTemplParams" colspan="2">template&lt;typename V &gt; </td></tr>
+<tr class="memitem:a18809112e05690a07e7e57ddb0d94807"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel_observer.html#a18809112e05690a07e7e57ddb0d94807">GetEngValue</a> (uint64_t sample, V &amp;value, uint64_t array_index=0) const</td></tr>
+<tr class="memdesc:a18809112e05690a07e7e57ddb0d94807"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the engineering value for a specific value.  <br /></td></tr>
+<tr class="separator:a18809112e05690a07e7e57ddb0d94807"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a819be1e44a252c08af1ae72b0815adba" id="r_a819be1e44a252c08af1ae72b0815adba"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel_observer.html#a819be1e44a252c08af1ae72b0815adba">EngValueToString</a> (uint64_t sample) const</td></tr>
+<tr class="memdesc:a819be1e44a252c08af1ae72b0815adba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that convert a sample value to a user friendly string.  <br /></td></tr>
+<tr class="separator:a819be1e44a252c08af1ae72b0815adba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92e7491961299d81291a23abcc07db5c" id="r_a92e7491961299d81291a23abcc07db5c"><td class="memItemLeft" align="right" valign="top"><a id="a92e7491961299d81291a23abcc07db5c" name="a92e7491961299d81291a23abcc07db5c"></a>
 template&lt;&gt; </td></tr>
-<tr class="memitem:a3b60f8a478cb6b753e0455e5da15ff6b"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>GetChannelValue</b> (uint64_t sample, std::string &amp;value) const</td></tr>
-<tr class="memdesc:a3b60f8a478cb6b753e0455e5da15ff6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the sample as a string. <br /></td></tr>
-<tr class="separator:a3b60f8a478cb6b753e0455e5da15ff6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c365acb6bc02100844d135a80b77507" id="r_a0c365acb6bc02100844d135a80b77507"><td class="memItemLeft" align="right" valign="top"><a id="a0c365acb6bc02100844d135a80b77507" name="a0c365acb6bc02100844d135a80b77507"></a>
+<tr class="memitem:a92e7491961299d81291a23abcc07db5c"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>GetChannelValue</b> (uint64_t sample, std::string &amp;value, uint64_t array_index) const</td></tr>
+<tr class="memdesc:a92e7491961299d81291a23abcc07db5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the sample channel value as a string. <br /></td></tr>
+<tr class="separator:a92e7491961299d81291a23abcc07db5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60fdaf8543e95bb761e8a2a9a8c5cac2" id="r_a60fdaf8543e95bb761e8a2a9a8c5cac2"><td class="memItemLeft" align="right" valign="top"><a id="a60fdaf8543e95bb761e8a2a9a8c5cac2" name="a60fdaf8543e95bb761e8a2a9a8c5cac2"></a>
 template&lt;&gt; </td></tr>
-<tr class="memitem:a0c365acb6bc02100844d135a80b77507"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>GetChannelValue</b> (uint64_t sample, std::vector&lt; uint8_t &gt; &amp;value) const</td></tr>
-<tr class="memdesc:a0c365acb6bc02100844d135a80b77507"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the sample as a byte. <br /></td></tr>
-<tr class="separator:a0c365acb6bc02100844d135a80b77507"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60fdaf8543e95bb761e8a2a9a8c5cac2"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>GetChannelValue</b> (uint64_t sample, std::vector&lt; uint8_t &gt; &amp;value, uint64_t array_index) const</td></tr>
+<tr class="memdesc:a60fdaf8543e95bb761e8a2a9a8c5cac2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the sample channel value as a byte array. <br /></td></tr>
+<tr class="separator:a60fdaf8543e95bb761e8a2a9a8c5cac2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classmdf_1_1_i_sample_observer"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classmdf_1_1_i_sample_observer')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classmdf_1_1_i_sample_observer.html">mdf::ISampleObserver</a></td></tr>
 <tr class="memitem:a217984e2da0d4f94df25473bb7045ebb inherit pub_methods_classmdf_1_1_i_sample_observer" id="r_a217984e2da0d4f94df25473bb7045ebb"><td class="memItemLeft" align="right" valign="top">
 &#160;</td><td class="memItemRight" valign="bottom"><b>ISampleObserver</b> ()=default</td></tr>
@@ -182,28 +191,34 @@ template&lt;&gt; </td></tr>
 virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~ISampleObserver</b> ()=default</td></tr>
 <tr class="memdesc:ad0e95e65cb97b7374d0934fffd2cecd9 inherit pub_methods_classmdf_1_1_i_sample_observer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default destructor. <br /></td></tr>
 <tr class="separator:ad0e95e65cb97b7374d0934fffd2cecd9 inherit pub_methods_classmdf_1_1_i_sample_observer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a395d557de596688114e039dc781d7955 inherit pub_methods_classmdf_1_1_i_sample_observer" id="r_a395d557de596688114e039dc781d7955"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_sample_observer.html#a395d557de596688114e039dc781d7955">AttachObserver</a> ()</td></tr>
+<tr class="memdesc:a395d557de596688114e039dc781d7955 inherit pub_methods_classmdf_1_1_i_sample_observer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attach the observer to an observer list (publisher).  <br /></td></tr>
+<tr class="separator:a395d557de596688114e039dc781d7955 inherit pub_methods_classmdf_1_1_i_sample_observer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3acdc67a04010bb7cde83e898364f91 inherit pub_methods_classmdf_1_1_i_sample_observer" id="r_af3acdc67a04010bb7cde83e898364f91"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_sample_observer.html#af3acdc67a04010bb7cde83e898364f91">DetachObserver</a> ()</td></tr>
+<tr class="memdesc:af3acdc67a04010bb7cde83e898364f91 inherit pub_methods_classmdf_1_1_i_sample_observer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detach the observer from an observer list.  <br /></td></tr>
+<tr class="separator:af3acdc67a04010bb7cde83e898364f91 inherit pub_methods_classmdf_1_1_i_sample_observer"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a31f2a3878d75fe67ae20c82e84593710 inherit pub_methods_classmdf_1_1_i_sample_observer" id="r_a31f2a3878d75fe67ae20c82e84593710"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_sample_observer.html#a31f2a3878d75fe67ae20c82e84593710">OnSample</a> (uint64_t sample, uint64_t record_id, const std::vector&lt; uint8_t &gt; &amp;record)=0</td></tr>
 <tr class="memdesc:a31f2a3878d75fe67ae20c82e84593710 inherit pub_methods_classmdf_1_1_i_sample_observer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Observer function that receives the sample record and parse out a channel value.  <br /></td></tr>
 <tr class="separator:a31f2a3878d75fe67ae20c82e84593710 inherit pub_methods_classmdf_1_1_i_sample_observer"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a5450077ec2c52183a0dc342cb8c2efd9" id="r_a5450077ec2c52183a0dc342cb8c2efd9"><td class="memItemLeft" align="right" valign="top"><a id="a5450077ec2c52183a0dc342cb8c2efd9" name="a5450077ec2c52183a0dc342cb8c2efd9"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSampleUnsigned</b> (uint64_t sample, uint64_t &amp;value) const =0</td></tr>
-<tr class="memdesc:a5450077ec2c52183a0dc342cb8c2efd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a unsigned sample value. <br /></td></tr>
-<tr class="separator:a5450077ec2c52183a0dc342cb8c2efd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae33450b524fa1761fe2b7435b4606484" id="r_ae33450b524fa1761fe2b7435b4606484"><td class="memItemLeft" align="right" valign="top"><a id="ae33450b524fa1761fe2b7435b4606484" name="ae33450b524fa1761fe2b7435b4606484"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSampleSigned</b> (uint64_t sample, int64_t &amp;value) const =0</td></tr>
-<tr class="memdesc:ae33450b524fa1761fe2b7435b4606484"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a signed sample value. <br /></td></tr>
-<tr class="separator:ae33450b524fa1761fe2b7435b4606484"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a467a3519dff2320494a539ba35d5a400" id="r_a467a3519dff2320494a539ba35d5a400"><td class="memItemLeft" align="right" valign="top"><a id="a467a3519dff2320494a539ba35d5a400" name="a467a3519dff2320494a539ba35d5a400"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSampleFloat</b> (uint64_t sample, double &amp;value) const =0</td></tr>
-<tr class="memdesc:a467a3519dff2320494a539ba35d5a400"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a float sample value. <br /></td></tr>
-<tr class="separator:a467a3519dff2320494a539ba35d5a400"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f94da183581a6a16db00ac13fececc2" id="r_a8f94da183581a6a16db00ac13fececc2"><td class="memItemLeft" align="right" valign="top"><a id="a8f94da183581a6a16db00ac13fececc2" name="a8f94da183581a6a16db00ac13fececc2"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSampleText</b> (uint64_t sample, std::string &amp;value) const =0</td></tr>
-<tr class="memdesc:a8f94da183581a6a16db00ac13fececc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a string sample value. <br /></td></tr>
-<tr class="separator:a8f94da183581a6a16db00ac13fececc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a119853914104987a7f78a9d4995980e7" id="r_a119853914104987a7f78a9d4995980e7"><td class="memItemLeft" align="right" valign="top"><a id="a119853914104987a7f78a9d4995980e7" name="a119853914104987a7f78a9d4995980e7"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSampleUnsigned</b> (uint64_t sample, uint64_t &amp;value, uint64_t array_index) const =0</td></tr>
+<tr class="memdesc:a119853914104987a7f78a9d4995980e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a unsigned sample value. <br /></td></tr>
+<tr class="separator:a119853914104987a7f78a9d4995980e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77c482deccfe18ed5b240207103e0d71" id="r_a77c482deccfe18ed5b240207103e0d71"><td class="memItemLeft" align="right" valign="top"><a id="a77c482deccfe18ed5b240207103e0d71" name="a77c482deccfe18ed5b240207103e0d71"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSampleSigned</b> (uint64_t sample, int64_t &amp;value, uint64_t array_index) const =0</td></tr>
+<tr class="memdesc:a77c482deccfe18ed5b240207103e0d71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a signed sample value. <br /></td></tr>
+<tr class="separator:a77c482deccfe18ed5b240207103e0d71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a10c4508e5d2498979fe9060380d9ed44" id="r_a10c4508e5d2498979fe9060380d9ed44"><td class="memItemLeft" align="right" valign="top"><a id="a10c4508e5d2498979fe9060380d9ed44" name="a10c4508e5d2498979fe9060380d9ed44"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSampleFloat</b> (uint64_t sample, double &amp;value, uint64_t array_index) const =0</td></tr>
+<tr class="memdesc:a10c4508e5d2498979fe9060380d9ed44"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a float sample value. <br /></td></tr>
+<tr class="separator:a10c4508e5d2498979fe9060380d9ed44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a478c29c561e0966b087ac1353f88e23e" id="r_a478c29c561e0966b087ac1353f88e23e"><td class="memItemLeft" align="right" valign="top"><a id="a478c29c561e0966b087ac1353f88e23e" name="a478c29c561e0966b087ac1353f88e23e"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSampleText</b> (uint64_t sample, std::string &amp;value, uint64_t array_index) const =0</td></tr>
+<tr class="memdesc:a478c29c561e0966b087ac1353f88e23e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a string sample value. <br /></td></tr>
+<tr class="separator:a478c29c561e0966b087ac1353f88e23e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a70c8fa4fc52f464bf33487dde3c8e493" id="r_a70c8fa4fc52f464bf33487dde3c8e493"><td class="memItemLeft" align="right" valign="top"><a id="a70c8fa4fc52f464bf33487dde3c8e493" name="a70c8fa4fc52f464bf33487dde3c8e493"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSampleByteArray</b> (uint64_t sample, std::vector&lt; uint8_t &gt; &amp;value) const =0</td></tr>
 <tr class="memdesc:a70c8fa4fc52f464bf33487dde3c8e493"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a byte array sample value. <br /></td></tr>
@@ -223,8 +238,69 @@ std::vector&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The main purpose for a channel observer is to store all channel samples for a channel. This object is used when reading data from a MDF file. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a3fd099e07efde2443032697cf9deea58" name="a3fd099e07efde2443032697cf9deea58"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3fd099e07efde2443032697cf9deea58">&#9670;&#160;</a></span>GetChannelValue()</h2>
+<a id="ae5b6e85bdf1a75b68d1c84a49c56da60" name="ae5b6e85bdf1a75b68d1c84a49c56da60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5b6e85bdf1a75b68d1c84a49c56da60">&#9670;&#160;</a></span>ArraySize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t mdf::IChannelObserver::ArraySize </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the array size if the channel is an array channel. The function returns 1 if not is an array channel. </p><dl class="section return"><dt>Returns</dt><dd></dd></dl>
+
+</div>
+</div>
+<a id="a164c91c7d6774c49a41d334c64668290" name="a164c91c7d6774c49a41d334c64668290"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a164c91c7d6774c49a41d334c64668290">&#9670;&#160;</a></span>Channel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="classmdf_1_1_i_channel.html">IChannel</a> &amp; mdf::IChannelObserver::Channel </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the channel object associated with this observer. The channel is mostly needed to check if the channel is an array channel. Array channels are seldom used and are complex to handle. </p><dl class="section return"><dt>Returns</dt><dd>Returns the channel object. </dd></dl>
+
+</div>
+</div>
+<a id="a819be1e44a252c08af1ae72b0815adba" name="a819be1e44a252c08af1ae72b0815adba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a819be1e44a252c08af1ae72b0815adba">&#9670;&#160;</a></span>EngValueToString()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string mdf::IChannelObserver::EngValueToString </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>sample</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Function that convert a sample to a user friendly string. For non-array samples, the function is the same as GetChannelValue but for array sample a JSON array string is returned. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sample</td><td>Sample index </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>JSON formatted string </dd></dl>
+
+</div>
+</div>
+<a id="a4e6ca9903ce2e7236b1bea4d978256d2" name="a4e6ca9903ce2e7236b1bea4d978256d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e6ca9903ce2e7236b1bea4d978256d2">&#9670;&#160;</a></span>GetChannelValue()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -241,7 +317,13 @@ template&lt;typename V &gt; </div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">V &amp;&#160;</td>
-          <td class="paramname"><em>value</em>&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>array_index</em> = <code>0</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -250,7 +332,7 @@ template&lt;typename V &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Returns the (unscaled) channel value for a specific sample. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+<p>Returns the (unscaled) so-called channel value for a specific sample. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">V</td><td>Type of value </td></tr>
   </table>
@@ -267,8 +349,8 @@ template&lt;typename V &gt; </div>
 
 </div>
 </div>
-<a id="ae7e375611291962f0ac4aad67ed6955e" name="ae7e375611291962f0ac4aad67ed6955e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae7e375611291962f0ac4aad67ed6955e">&#9670;&#160;</a></span>GetEngValue()</h2>
+<a id="a18809112e05690a07e7e57ddb0d94807" name="a18809112e05690a07e7e57ddb0d94807"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18809112e05690a07e7e57ddb0d94807">&#9670;&#160;</a></span>GetEngValue()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -285,7 +367,13 @@ template&lt;typename V &gt; </div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">V &amp;&#160;</td>
-          <td class="paramname"><em>value</em>&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>array_index</em> = <code>0</code>&#160;</td>
         </tr>
         <tr>
           <td></td>

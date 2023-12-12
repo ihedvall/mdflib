@@ -233,6 +233,7 @@ void Ca4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
+
 size_t Ca4Block::Read(std::FILE *file) {
   size_t bytes = ReadHeader4(file); // This function also read in all links
   bytes += ReadNumber(file, type_);
@@ -278,7 +279,7 @@ size_t Ca4Block::Read(std::FILE *file) {
   // Need to read all composition blocks if nay exist
   if (Link(kIndexComposition) > 0) {
     SetFilePosition(file, Link(kIndexComposition));
-    auto block_type = ReadBlockType(file);
+    const auto block_type = ReadBlockType(file);
 
     if (composition_list_.empty() && (Link(kIndexComposition) > 0)) {
       for (auto link = Link(kIndexComposition); link > 0; /* No ++ here*/) {
@@ -416,7 +417,7 @@ void Ca4Block::CreateLinkLists() {
   data_links_.clear();
   dynamic_size_list_.clear();
 
-  size_t max_index;
+
   size_t triple_count = 0;
   CaTripleReference triple;
   const auto* hd_block = HeaderBlock(); // Need header block so the function Find() search from there.
@@ -425,7 +426,7 @@ void Ca4Block::CreateLinkLists() {
     const auto* block = index > 0 ? hd_block->Find(index) : nullptr;
 
     // DATA LINKS
-    max_index = kIndexArray + nof_data_blocks;
+    size_t max_index = kIndexArray + nof_data_blocks;
     if (link_index < max_index) {
       data_links_.push_back(index);
       triple_count = 0;

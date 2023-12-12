@@ -134,13 +134,11 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Description</
 virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><b>Description</b> () const =0</td></tr>
 <tr class="memdesc:a1657ee3a93c646a0ca1faea8d62488a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the description. <br /></td></tr>
 <tr class="separator:a1657ee3a93c646a0ca1faea8d62488a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36a3b88bc8d1a5844d04289e89e826c4" id="r_a36a3b88bc8d1a5844d04289e89e826c4"><td class="memItemLeft" align="right" valign="top"><a id="a36a3b88bc8d1a5844d04289e89e826c4" name="a36a3b88bc8d1a5844d04289e89e826c4"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Unit</b> (const std::string &amp;unit)=0</td></tr>
-<tr class="memdesc:a36a3b88bc8d1a5844d04289e89e826c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the unit. <br /></td></tr>
+<tr class="memitem:a36a3b88bc8d1a5844d04289e89e826c4" id="r_a36a3b88bc8d1a5844d04289e89e826c4"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#a36a3b88bc8d1a5844d04289e89e826c4">Unit</a> (const std::string &amp;unit)=0</td></tr>
+<tr class="memdesc:a36a3b88bc8d1a5844d04289e89e826c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets unit string or or the MIME text string.  <br /></td></tr>
 <tr class="separator:a36a3b88bc8d1a5844d04289e89e826c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac0d4d05b309f1fdf0428eb1d381887df" id="r_ac0d4d05b309f1fdf0428eb1d381887df"><td class="memItemLeft" align="right" valign="top"><a id="ac0d4d05b309f1fdf0428eb1d381887df" name="ac0d4d05b309f1fdf0428eb1d381887df"></a>
-virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><b>Unit</b> () const =0</td></tr>
-<tr class="memdesc:ac0d4d05b309f1fdf0428eb1d381887df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the unit. <br /></td></tr>
+<tr class="memitem:ac0d4d05b309f1fdf0428eb1d381887df" id="r_ac0d4d05b309f1fdf0428eb1d381887df"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#ac0d4d05b309f1fdf0428eb1d381887df">Unit</a> () const =0</td></tr>
+<tr class="memdesc:ac0d4d05b309f1fdf0428eb1d381887df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the unit string or the MIME content type string.  <br /></td></tr>
 <tr class="separator:ac0d4d05b309f1fdf0428eb1d381887df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a62aae84ad11d364a7f6a513e46705551" id="r_a62aae84ad11d364a7f6a513e46705551"><td class="memItemLeft" align="right" valign="top"><a id="a62aae84ad11d364a7f6a513e46705551" name="a62aae84ad11d364a7f6a513e46705551"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Flags</b> (uint32_t flags)</td></tr>
@@ -188,6 +186,11 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>DataBytes</b>
 virtual uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>DataBytes</b> () const =0</td></tr>
 <tr class="memdesc:a59d764d8bf7f80a12bdf26057f414c2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Data size (bytes);. <br /></td></tr>
 <tr class="separator:a59d764d8bf7f80a12bdf26057f414c2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3f2799e0dcb124e1968302cf9123102" id="r_ae3f2799e0dcb124e1968302cf9123102"><td class="memItemLeft" align="right" valign="top"><a id="ae3f2799e0dcb124e1968302cf9123102" name="ae3f2799e0dcb124e1968302cf9123102"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Decimals</b> (uint8_t precision)</td></tr>
+<tr class="memdesc:ae3f2799e0dcb124e1968302cf9123102"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets number of decimals (floating points only) <br  />
+ <br /></td></tr>
+<tr class="separator:ae3f2799e0dcb124e1968302cf9123102"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8eeee4343e58cc7d9beb21c236ed95e8" id="r_a8eeee4343e58cc7d9beb21c236ed95e8"><td class="memItemLeft" align="right" valign="top"><a id="a8eeee4343e58cc7d9beb21c236ed95e8" name="a8eeee4343e58cc7d9beb21c236ed95e8"></a>
 virtual uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>Decimals</b> () const =0</td></tr>
 <tr class="memdesc:a8eeee4343e58cc7d9beb21c236ed95e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of decimals (floating points) <br  />
@@ -246,6 +249,12 @@ virtual <a class="el" href="classmdf_1_1_i_source_information.html">ISourceInfor
 virtual <a class="el" href="classmdf_1_1_i_source_information.html">ISourceInformation</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>CreateSourceInformation</b> ()</td></tr>
 <tr class="memdesc:a29cb869f6486173eacf7a45fec6dffd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a source information block. <br /></td></tr>
 <tr class="separator:a29cb869f6486173eacf7a45fec6dffd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a115a9a7199ae62203607ee304435b905" id="r_a115a9a7199ae62203607ee304435b905"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmdf_1_1_i_channel_array.html">IChannelArray</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#a115a9a7199ae62203607ee304435b905">ChannelArray</a> () const</td></tr>
+<tr class="memdesc:a115a9a7199ae62203607ee304435b905"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the channel array object if any exist in this channel.  <br /></td></tr>
+<tr class="separator:a115a9a7199ae62203607ee304435b905"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b86497bd0b22bfc1e892e98fbd8a3b2" id="r_a8b86497bd0b22bfc1e892e98fbd8a3b2"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmdf_1_1_i_channel_array.html">IChannelArray</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#a8b86497bd0b22bfc1e892e98fbd8a3b2">CreateChannelArray</a> ()</td></tr>
+<tr class="memdesc:a8b86497bd0b22bfc1e892e98fbd8a3b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create or returns an existing channel array (CA) block.  <br /></td></tr>
+<tr class="separator:a8b86497bd0b22bfc1e892e98fbd8a3b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acaf293bd067e1481130dc8adc465edd9" id="r_acaf293bd067e1481130dc8adc465edd9"><td class="memItemLeft" align="right" valign="top"><a id="acaf293bd067e1481130dc8adc465edd9" name="acaf293bd067e1481130dc8adc465edd9"></a>
 virtual <a class="el" href="classmdf_1_1_i_channel_conversion.html">IChannelConversion</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>ChannelConversion</b> () const =0</td></tr>
 <tr class="memdesc:acaf293bd067e1481130dc8adc465edd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the conversion block, if any. <br /></td></tr>
@@ -281,17 +290,17 @@ virtual <a class="el" href="classmdf_1_1_i_meta_data.html">IMetaData</a> *&#160;
 <tr class="memitem:a34f93d53a8257129fbf322861c4b002c" id="r_a34f93d53a8257129fbf322861c4b002c"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#a34f93d53a8257129fbf322861c4b002c">VlsdRecordId</a> () const</td></tr>
 <tr class="memdesc:a34f93d53a8257129fbf322861c4b002c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the VLSD record id.  <br /></td></tr>
 <tr class="separator:a34f93d53a8257129fbf322861c4b002c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae75c080f8897b40a0ad168b582a46767" id="r_ae75c080f8897b40a0ad168b582a46767"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ae75c080f8897b40a0ad168b582a46767"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#ae75c080f8897b40a0ad168b582a46767">GetChannelValue</a> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, T &amp;dest) const</td></tr>
-<tr class="memdesc:ae75c080f8897b40a0ad168b582a46767"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parse out the channel value from a data record.  <br /></td></tr>
-<tr class="separator:ae75c080f8897b40a0ad168b582a46767"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af516e447a9e2bb6a7b1e7b46e7257525" id="r_af516e447a9e2bb6a7b1e7b46e7257525"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:af516e447a9e2bb6a7b1e7b46e7257525"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#af516e447a9e2bb6a7b1e7b46e7257525">GetChannelValue</a> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, T &amp;dest, uint64_t array_index=0) const</td></tr>
+<tr class="memdesc:af516e447a9e2bb6a7b1e7b46e7257525"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parse out the channel value from a data record.  <br /></td></tr>
+<tr class="separator:af516e447a9e2bb6a7b1e7b46e7257525"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa4bd3618b32945f9baba72f9699794d" id="r_aaa4bd3618b32945f9baba72f9699794d"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:aaa4bd3618b32945f9baba72f9699794d"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#aaa4bd3618b32945f9baba72f9699794d">SetChannelValue</a> (const T &amp;value, bool valid=true)</td></tr>
 <tr class="memdesc:aaa4bd3618b32945f9baba72f9699794d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fills a record buffer with a channel value.  <br /></td></tr>
 <tr class="separator:aaa4bd3618b32945f9baba72f9699794d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7fe9168c263a7a20214ce01a92f923a5" id="r_a7fe9168c263a7a20214ce01a92f923a5"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#a7fe9168c263a7a20214ce01a92f923a5">GetUnsignedValue</a> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, uint64_t &amp;dest) const</td></tr>
-<tr class="memdesc:a7fe9168c263a7a20214ce01a92f923a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Internally used function mainly for fetching VLSD index values.  <br /></td></tr>
-<tr class="separator:a7fe9168c263a7a20214ce01a92f923a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e7a28ee965b4121891d76ebbeecee14" id="r_a3e7a28ee965b4121891d76ebbeecee14"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#a3e7a28ee965b4121891d76ebbeecee14">GetUnsignedValue</a> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, uint64_t &amp;dest, uint64_t array_index=0) const</td></tr>
+<tr class="memdesc:a3e7a28ee965b4121891d76ebbeecee14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Internally used function mainly for fetching VLSD index values.  <br /></td></tr>
+<tr class="separator:a3e7a28ee965b4121891d76ebbeecee14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3136a15e15cd5023c26d6b6fa2b79790" id="r_a3136a15e15cd5023c26d6b6fa2b79790"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmdf_1_1_i_channel.html#a3136a15e15cd5023c26d6b6fa2b79790">GetTextValue</a> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, std::string &amp;dest) const</td></tr>
 <tr class="memdesc:a3136a15e15cd5023c26d6b6fa2b79790"><td class="mdescLeft">&#160;</td><td class="mdescRight">Internally used function mainly for fetching VLSD text values.  <br /></td></tr>
 <tr class="separator:a3136a15e15cd5023c26d6b6fa2b79790"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -319,16 +328,16 @@ virtual uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>BitOffset
 virtual uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>ByteOffset</b> () const =0</td></tr>
 <tr class="memdesc:a3ebf5ebecaef52c6a745e095256f8fe4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the byte offset to data in the record. <br /></td></tr>
 <tr class="separator:a3ebf5ebecaef52c6a745e095256f8fe4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3000fc4dcfecbb31e21017e7ff53048a" id="r_a3000fc4dcfecbb31e21017e7ff53048a"><td class="memItemLeft" align="right" valign="top"><a id="a3000fc4dcfecbb31e21017e7ff53048a" name="a3000fc4dcfecbb31e21017e7ff53048a"></a>
+<tr class="memitem:a3a9d5f8b336e6fa4933a456a28c0f2ac" id="r_a3a9d5f8b336e6fa4933a456a28c0f2ac"><td class="memItemLeft" align="right" valign="top"><a id="a3a9d5f8b336e6fa4933a456a28c0f2ac" name="a3a9d5f8b336e6fa4933a456a28c0f2ac"></a>
 template&lt;&gt; </td></tr>
-<tr class="memitem:a3000fc4dcfecbb31e21017e7ff53048a"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>GetChannelValue</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, std::vector&lt; uint8_t &gt; &amp;dest) const</td></tr>
-<tr class="memdesc:a3000fc4dcfecbb31e21017e7ff53048a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that gets an array value from a record buffer. <br /></td></tr>
-<tr class="separator:a3000fc4dcfecbb31e21017e7ff53048a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a20b9d8ef934c19dc35a171ca5f77e7ed" id="r_a20b9d8ef934c19dc35a171ca5f77e7ed"><td class="memItemLeft" align="right" valign="top"><a id="a20b9d8ef934c19dc35a171ca5f77e7ed" name="a20b9d8ef934c19dc35a171ca5f77e7ed"></a>
+<tr class="memitem:a3a9d5f8b336e6fa4933a456a28c0f2ac"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>GetChannelValue</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, std::vector&lt; uint8_t &gt; &amp;dest, uint64_t array_index) const</td></tr>
+<tr class="memdesc:a3a9d5f8b336e6fa4933a456a28c0f2ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that gets an array value from a record buffer. <br /></td></tr>
+<tr class="separator:a3a9d5f8b336e6fa4933a456a28c0f2ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac01475f1def078bbcd842d983764b99f" id="r_ac01475f1def078bbcd842d983764b99f"><td class="memItemLeft" align="right" valign="top"><a id="ac01475f1def078bbcd842d983764b99f" name="ac01475f1def078bbcd842d983764b99f"></a>
 template&lt;&gt; </td></tr>
-<tr class="memitem:a20b9d8ef934c19dc35a171ca5f77e7ed"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>GetChannelValue</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, std::string &amp;dest) const</td></tr>
-<tr class="memdesc:a20b9d8ef934c19dc35a171ca5f77e7ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that gets a string value from a record buffer. <br /></td></tr>
-<tr class="separator:a20b9d8ef934c19dc35a171ca5f77e7ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac01475f1def078bbcd842d983764b99f"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>GetChannelValue</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, std::string &amp;dest, uint64_t array_index) const</td></tr>
+<tr class="memdesc:ac01475f1def078bbcd842d983764b99f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that gets a string value from a record buffer. <br /></td></tr>
+<tr class="separator:ac01475f1def078bbcd842d983764b99f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a756ef28c1fd0caf9e63045df74615266" id="r_a756ef28c1fd0caf9e63045df74615266"><td class="memItemLeft" align="right" valign="top"><a id="a756ef28c1fd0caf9e63045df74615266" name="a756ef28c1fd0caf9e63045df74615266"></a>
 template&lt;&gt; </td></tr>
 <tr class="memitem:a756ef28c1fd0caf9e63045df74615266"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>SetChannelValue</b> (const std::string &amp;value, bool valid)</td></tr>
@@ -353,30 +362,30 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~IBlock</b> ()=def
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:ae6c336bfa641714562d004dfe1f680d8" id="r_ae6c336bfa641714562d004dfe1f680d8"><td class="memItemLeft" align="right" valign="top"><a id="ae6c336bfa641714562d004dfe1f680d8" name="ae6c336bfa641714562d004dfe1f680d8"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>CopyToDataBuffer</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, std::vector&lt; uint8_t &gt; &amp;data_buffer) const</td></tr>
-<tr class="memdesc:ae6c336bfa641714562d004dfe1f680d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that copies a record to a data block. <br /></td></tr>
-<tr class="separator:ae6c336bfa641714562d004dfe1f680d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5b6a552f5297cad81bd931012a388d0" id="r_ab5b6a552f5297cad81bd931012a388d0"><td class="memItemLeft" align="right" valign="top"><a id="ab5b6a552f5297cad81bd931012a388d0" name="ab5b6a552f5297cad81bd931012a388d0"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSignedValue</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, int64_t &amp;dest) const</td></tr>
-<tr class="memdesc:ab5b6a552f5297cad81bd931012a388d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that get signed integer from a record. <br /></td></tr>
-<tr class="separator:ab5b6a552f5297cad81bd931012a388d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a956533cee409a085937a92ff22de1b57" id="r_a956533cee409a085937a92ff22de1b57"><td class="memItemLeft" align="right" valign="top"><a id="a956533cee409a085937a92ff22de1b57" name="a956533cee409a085937a92ff22de1b57"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFloatValue</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, double &amp;dest) const</td></tr>
-<tr class="memdesc:a956533cee409a085937a92ff22de1b57"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that get float values from a record. <br /></td></tr>
-<tr class="separator:a956533cee409a085937a92ff22de1b57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab49fec00c92f83e1c47133d664a09c11" id="r_ab49fec00c92f83e1c47133d664a09c11"><td class="memItemLeft" align="right" valign="top"><a id="ab49fec00c92f83e1c47133d664a09c11" name="ab49fec00c92f83e1c47133d664a09c11"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>CopyToDataBuffer</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, std::vector&lt; uint8_t &gt; &amp;data_buffer, uint64_t array_index) const</td></tr>
+<tr class="memdesc:ab49fec00c92f83e1c47133d664a09c11"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that copies a record to a data block. <br /></td></tr>
+<tr class="separator:ab49fec00c92f83e1c47133d664a09c11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa1e1142f67b241c5400f00f08d97dce5" id="r_aa1e1142f67b241c5400f00f08d97dce5"><td class="memItemLeft" align="right" valign="top"><a id="aa1e1142f67b241c5400f00f08d97dce5" name="aa1e1142f67b241c5400f00f08d97dce5"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetSignedValue</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, int64_t &amp;dest, uint64_t array_index) const</td></tr>
+<tr class="memdesc:aa1e1142f67b241c5400f00f08d97dce5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that get signed integer from a record. <br /></td></tr>
+<tr class="separator:aa1e1142f67b241c5400f00f08d97dce5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a969c683a1064ebd9b523f60534ec75b9" id="r_a969c683a1064ebd9b523f60534ec75b9"><td class="memItemLeft" align="right" valign="top"><a id="a969c683a1064ebd9b523f60534ec75b9" name="a969c683a1064ebd9b523f60534ec75b9"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFloatValue</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, double &amp;dest, uint64_t array_index) const</td></tr>
+<tr class="memdesc:a969c683a1064ebd9b523f60534ec75b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that get float values from a record. <br /></td></tr>
+<tr class="separator:a969c683a1064ebd9b523f60534ec75b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5fdc32000d9154800e7b76b7f54f6b6" id="r_ac5fdc32000d9154800e7b76b7f54f6b6"><td class="memItemLeft" align="right" valign="top"><a id="ac5fdc32000d9154800e7b76b7f54f6b6" name="ac5fdc32000d9154800e7b76b7f54f6b6"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetByteArrayValue</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, std::vector&lt; uint8_t &gt; &amp;dest) const</td></tr>
 <tr class="memdesc:ac5fdc32000d9154800e7b76b7f54f6b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that get array values from a record. <br /></td></tr>
 <tr class="separator:ac5fdc32000d9154800e7b76b7f54f6b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae2a6d67c0112273119ecde1ef8abee74" id="r_ae2a6d67c0112273119ecde1ef8abee74"><td class="memItemLeft" align="right" valign="top"><a id="ae2a6d67c0112273119ecde1ef8abee74" name="ae2a6d67c0112273119ecde1ef8abee74"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetCanOpenDate</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, uint64_t &amp;dest) const</td></tr>
-<tr class="memdesc:ae2a6d67c0112273119ecde1ef8abee74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that get CANOpen date values from a record. <br /></td></tr>
-<tr class="separator:ae2a6d67c0112273119ecde1ef8abee74"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa40f9505887c0f2d612ff880d2ac7a54" id="r_aa40f9505887c0f2d612ff880d2ac7a54"><td class="memItemLeft" align="right" valign="top"><a id="aa40f9505887c0f2d612ff880d2ac7a54" name="aa40f9505887c0f2d612ff880d2ac7a54"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetCanOpenTime</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, uint64_t &amp;dest) const</td></tr>
-<tr class="memdesc:aa40f9505887c0f2d612ff880d2ac7a54"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that get CANOpen time values from a record. <br /></td></tr>
-<tr class="separator:aa40f9505887c0f2d612ff880d2ac7a54"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77f58411ed496fec1f4b7dd4f63be873" id="r_a77f58411ed496fec1f4b7dd4f63be873"><td class="memItemLeft" align="right" valign="top"><a id="a77f58411ed496fec1f4b7dd4f63be873" name="a77f58411ed496fec1f4b7dd4f63be873"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetCanOpenDate</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, uint64_t &amp;dest) const</td></tr>
+<tr class="memdesc:a77f58411ed496fec1f4b7dd4f63be873"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that get CANOpen date values from a record. <br /></td></tr>
+<tr class="separator:a77f58411ed496fec1f4b7dd4f63be873"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9bb6258ce9e62afd72f4f4e8e9137dc7" id="r_a9bb6258ce9e62afd72f4f4e8e9137dc7"><td class="memItemLeft" align="right" valign="top"><a id="a9bb6258ce9e62afd72f4f4e8e9137dc7" name="a9bb6258ce9e62afd72f4f4e8e9137dc7"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetCanOpenTime</b> (const std::vector&lt; uint8_t &gt; &amp;record_buffer, uint64_t &amp;dest) const</td></tr>
+<tr class="memdesc:a9bb6258ce9e62afd72f4f4e8e9137dc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that get CANOpen time values from a record. <br /></td></tr>
+<tr class="separator:a9bb6258ce9e62afd72f4f4e8e9137dc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6c7298472cadb74a0144da13cc7258d8" id="r_a6c7298472cadb74a0144da13cc7258d8"><td class="memItemLeft" align="right" valign="top"><a id="a6c7298472cadb74a0144da13cc7258d8" name="a6c7298472cadb74a0144da13cc7258d8"></a>
 virtual std::vector&lt; uint8_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>SampleBuffer</b> () const =0</td></tr>
 <tr class="memdesc:a6c7298472cadb74a0144da13cc7258d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Support function that gets the channel group sample buffer. <br /></td></tr>
@@ -519,6 +528,33 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>SetByteArray<
 
 </div>
 </div>
+<a id="a115a9a7199ae62203607ee304435b905" name="a115a9a7199ae62203607ee304435b905"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a115a9a7199ae62203607ee304435b905">&#9670;&#160;</a></span>ChannelArray()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classmdf_1_1_i_channel_array.html">IChannelArray</a> * mdf::IChannel::ChannelArray </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>This function is used to get the channel array if any exist on this channel. Channel arrays require quite different handling and treatment of the channel. Normally the channel only handle one value but if the channel have a composite channel array (CA), the channel is now storing an array of values. The array may be multidimensional.</p>
+<p>The function is alo used to indicate if the channel is of array type. Channel arrays only exist in MDF 4 files. </p><dl class="section return"><dt>Returns</dt><dd>Pointer to the CA block or nullptr. </dd></dl>
+
+</div>
+</div>
 <a id="a76dd687896052c0425910967f077286b" name="a76dd687896052c0425910967f077286b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a76dd687896052c0425910967f077286b">&#9670;&#160;</a></span>ChannelCompositions()</h2>
 
@@ -542,6 +578,33 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>SetByteArray<
 </table>
 </div><div class="memdoc">
 <p>Creates a composition channel block. Composition channels reference their bit length and bit offset to its parent channel. In reality, the parent channel must be a byte array. </p>
+
+</div>
+</div>
+<a id="a8b86497bd0b22bfc1e892e98fbd8a3b2" name="a8b86497bd0b22bfc1e892e98fbd8a3b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b86497bd0b22bfc1e892e98fbd8a3b2">&#9670;&#160;</a></span>CreateChannelArray()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classmdf_1_1_i_channel_array.html">IChannelArray</a> * mdf::IChannel::CreateChannelArray </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Creates or returns the existing channel array (CA) block. The CA blocks are mixed with the composition (CN) blocks, see CreateChannelComposition</p>
+<dl class="section return"><dt>Returns</dt><dd>A new or existing channel array (CA) block. </dd></dl>
 
 </div>
 </div>
@@ -598,8 +661,8 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>SetByteArray<
 
 </div>
 </div>
-<a id="ae75c080f8897b40a0ad168b582a46767" name="ae75c080f8897b40a0ad168b582a46767"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae75c080f8897b40a0ad168b582a46767">&#9670;&#160;</a></span>GetChannelValue()</h2>
+<a id="af516e447a9e2bb6a7b1e7b46e7257525" name="af516e447a9e2bb6a7b1e7b46e7257525"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af516e447a9e2bb6a7b1e7b46e7257525">&#9670;&#160;</a></span>GetChannelValue()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -616,7 +679,13 @@ template&lt;typename T &gt; </div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">T &amp;&#160;</td>
-          <td class="paramname"><em>dest</em>&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>array_index</em> = <code>0</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -687,17 +756,14 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a7fe9168c263a7a20214ce01a92f923a5" name="a7fe9168c263a7a20214ce01a92f923a5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7fe9168c263a7a20214ce01a92f923a5">&#9670;&#160;</a></span>GetUnsignedValue()</h2>
+<a id="a3e7a28ee965b4121891d76ebbeecee14" name="a3e7a28ee965b4121891d76ebbeecee14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e7a28ee965b4121891d76ebbeecee14">&#9670;&#160;</a></span>GetUnsignedValue()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual bool mdf::IChannel::GetUnsignedValue </td>
+          <td class="memname">bool mdf::IChannel::GetUnsignedValue </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;&#160;</td>
           <td class="paramname"><em>record_buffer</em>, </td>
@@ -706,7 +772,13 @@ template&lt;typename T &gt; </div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">uint64_t &amp;&#160;</td>
-          <td class="paramname"><em>dest</em>&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>array_index</em> = <code>0</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -714,11 +786,6 @@ template&lt;typename T &gt; </div>
           <td></td><td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -806,6 +873,59 @@ template&lt;typename T &gt; </div>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="ac0d4d05b309f1fdf0428eb1d381887df" name="ac0d4d05b309f1fdf0428eb1d381887df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0d4d05b309f1fdf0428eb1d381887df">&#9670;&#160;</a></span>Unit() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual std::string mdf::IChannel::Unit </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Unit or MIME content string. Returns the unit </dd></dl>
+
+</div>
+</div>
+<a id="a36a3b88bc8d1a5844d04289e89e826c4" name="a36a3b88bc8d1a5844d04289e89e826c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a36a3b88bc8d1a5844d04289e89e826c4">&#9670;&#160;</a></span>Unit() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void mdf::IChannel::Unit </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>unit</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>The function sets the unit string for the channel. If the channel data type is a MIME sample or a stream, the unit is a mime content type string. </p>
 
 </div>
 </div>

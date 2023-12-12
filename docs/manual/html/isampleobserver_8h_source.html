@@ -98,17 +98,35 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> <span class="keyword">public</span>:</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="classmdf_1_1_i_sample_observer.html#a217984e2da0d4f94df25473bb7045ebb">   18</a></span>  <a class="code hl_function" href="classmdf_1_1_i_sample_observer.html#a217984e2da0d4f94df25473bb7045ebb">ISampleObserver</a>() = <span class="keywordflow">default</span>; </div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="classmdf_1_1_i_sample_observer.html#ad0e95e65cb97b7374d0934fffd2cecd9">   19</a></span>  <span class="keyword">virtual</span> <a class="code hl_function" href="classmdf_1_1_i_sample_observer.html#ad0e95e65cb97b7374d0934fffd2cecd9">~ISampleObserver</a>() = <span class="keywordflow">default</span>; </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="classmdf_1_1_i_sample_observer.html#a31f2a3878d75fe67ae20c82e84593710">   26</a></span>  <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classmdf_1_1_i_sample_observer.html#a31f2a3878d75fe67ae20c82e84593710">OnSample</a>(uint64_t sample, uint64_t record_id,</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>                        <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; record) = 0;</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>};</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classmdf_1_1_i_sample_observer.html#a395d557de596688114e039dc781d7955">AttachObserver</a>();</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classmdf_1_1_i_sample_observer.html#af3acdc67a04010bb7cde83e898364f91">DetachObserver</a>();</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="classmdf_1_1_i_sample_observer.html#a31f2a3878d75fe67ae20c82e84593710">   43</a></span>  <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classmdf_1_1_i_sample_observer.html#a31f2a3878d75fe67ae20c82e84593710">OnSample</a>(uint64_t sample, uint64_t record_id,</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>                        <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; record) = 0;</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>};</div>
 </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>}  <span class="comment">// namespace mdf</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="foldopen" id="foldopen00048" data-start="{" data-end="}">
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="classmdf_1_1_i_sample_observer.html#a395d557de596688114e039dc781d7955">   48</a></span><span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classmdf_1_1_i_sample_observer.html#a395d557de596688114e039dc781d7955">ISampleObserver::AttachObserver</a>() {</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>}</div>
+</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="foldopen" id="foldopen00051" data-start="{" data-end="}">
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="classmdf_1_1_i_sample_observer.html#af3acdc67a04010bb7cde83e898364f91">   51</a></span><span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classmdf_1_1_i_sample_observer.html#af3acdc67a04010bb7cde83e898364f91">ISampleObserver::DetachObserver</a>() {</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>}</div>
+</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>}  <span class="comment">// namespace mdf</span></div>
 <div class="ttc" id="aclassmdf_1_1_i_sample_observer_html"><div class="ttname"><a href="classmdf_1_1_i_sample_observer.html">mdf::ISampleObserver</a></div><div class="ttdoc">Interface to a sample observer that handle incoming samples events.</div><div class="ttdef"><b>Definition</b> isampleobserver.h:16</div></div>
 <div class="ttc" id="aclassmdf_1_1_i_sample_observer_html_a217984e2da0d4f94df25473bb7045ebb"><div class="ttname"><a href="classmdf_1_1_i_sample_observer.html#a217984e2da0d4f94df25473bb7045ebb">mdf::ISampleObserver::ISampleObserver</a></div><div class="ttdeci">ISampleObserver()=default</div><div class="ttdoc">Default constructor.</div></div>
 <div class="ttc" id="aclassmdf_1_1_i_sample_observer_html_a31f2a3878d75fe67ae20c82e84593710"><div class="ttname"><a href="classmdf_1_1_i_sample_observer.html#a31f2a3878d75fe67ae20c82e84593710">mdf::ISampleObserver::OnSample</a></div><div class="ttdeci">virtual void OnSample(uint64_t sample, uint64_t record_id, const std::vector&lt; uint8_t &gt; &amp;record)=0</div><div class="ttdoc">Observer function that receives the sample record and parse out a channel value.</div></div>
+<div class="ttc" id="aclassmdf_1_1_i_sample_observer_html_a395d557de596688114e039dc781d7955"><div class="ttname"><a href="classmdf_1_1_i_sample_observer.html#a395d557de596688114e039dc781d7955">mdf::ISampleObserver::AttachObserver</a></div><div class="ttdeci">virtual void AttachObserver()</div><div class="ttdoc">Attach the observer to an observer list (publisher).</div><div class="ttdef"><b>Definition</b> isampleobserver.h:48</div></div>
 <div class="ttc" id="aclassmdf_1_1_i_sample_observer_html_ad0e95e65cb97b7374d0934fffd2cecd9"><div class="ttname"><a href="classmdf_1_1_i_sample_observer.html#ad0e95e65cb97b7374d0934fffd2cecd9">mdf::ISampleObserver::~ISampleObserver</a></div><div class="ttdeci">virtual ~ISampleObserver()=default</div><div class="ttdoc">Default destructor.</div></div>
-<div class="ttc" id="anamespacemdf_html"><div class="ttname"><a href="namespacemdf.html">mdf</a></div><div class="ttdoc">Main namespace for the MDF library.</div><div class="ttdef"><b>Definition</b> canmessage.h:18</div></div>
+<div class="ttc" id="aclassmdf_1_1_i_sample_observer_html_af3acdc67a04010bb7cde83e898364f91"><div class="ttname"><a href="classmdf_1_1_i_sample_observer.html#af3acdc67a04010bb7cde83e898364f91">mdf::ISampleObserver::DetachObserver</a></div><div class="ttdeci">virtual void DetachObserver()</div><div class="ttdoc">Detach the observer from an observer list.</div><div class="ttdef"><b>Definition</b> isampleobserver.h:51</div></div>
+<div class="ttc" id="anamespacemdf_html"><div class="ttname"><a href="namespacemdf.html">mdf</a></div><div class="ttdoc">Main namespace for the MDF library.</div><div class="ttdef"><b>Definition</b> canmessage.h:17</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

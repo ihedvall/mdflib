@@ -4,10 +4,11 @@ var searchData=
   ['nanosectoddmmyyyy_1',['NanoSecToDDMMYYYY',['../classmdf_1_1_mdf_helper.html#a7129f04876a4e66615b392720101c774',1,'mdf::MdfHelper']]],
   ['nanosectohhmmss_2',['NanoSecToHHMMSS',['../classmdf_1_1_mdf_helper.html#a7eb6a410caa1e10c4f6f23d2ad46a838',1,'mdf::MdfHelper']]],
   ['nanosectolocal_3',['NanoSecToLocal',['../classmdf_1_1_mdf_helper.html#a188742f53fbe31e14425fc06da1b55a6',1,'mdf::MdfHelper']]],
-  ['nofsamples_4',['nofsamples',['../classmdf_1_1_i_channel_group.html#a1835d417687f62955e92ee5e17e16570',1,'mdf::IChannelGroup::NofSamples() const =0'],['../classmdf_1_1_i_channel_group.html#aaf8b0db5853c89e7508e5ff4c97bfb3d',1,'mdf::IChannelGroup::NofSamples(uint64_t nof_samples)=0'],['../classmdf_1_1_i_channel_observer.html#ad6611bae034a767205da137b93bbf3aa',1,'mdf::IChannelObserver::NofSamples()']]],
-  ['notifysampleobservers_5',['NotifySampleObservers',['../classmdf_1_1_i_data_group.html#a562ba39cc007b3309c083749817d06ff',1,'mdf::IDataGroup']]],
-  ['nowns_6',['NowNs',['../classmdf_1_1_mdf_helper.html#a0fa2c1d1a7fc70bee2f993f01c1aa175',1,'mdf::MdfHelper']]],
-  ['nstocanopendatearray_7',['NsToCanOpenDateArray',['../classmdf_1_1_mdf_helper.html#af8d093bccbbd087a2e126bb47e9ceba0',1,'mdf::MdfHelper']]],
-  ['nstocanopentimearray_8',['NsToCanOpenTimeArray',['../classmdf_1_1_mdf_helper.html#aea95c071fce3ed0fc9c43e51b8cf8de8',1,'mdf::MdfHelper']]],
-  ['nstolocalisotime_9',['NsToLocalIsoTime',['../classmdf_1_1_mdf_helper.html#a7af4f6bd644efeb45b8e8497520d1be7',1,'mdf::MdfHelper']]]
+  ['nofarrayvalues_4',['NofArrayValues',['../classmdf_1_1_i_channel_array.html#a2d4e11812bd69d0190e13de82a46e5ba',1,'mdf::IChannelArray']]],
+  ['nofsamples_5',['nofsamples',['../classmdf_1_1_i_channel_group.html#a1835d417687f62955e92ee5e17e16570',1,'mdf::IChannelGroup::NofSamples() const =0'],['../classmdf_1_1_i_channel_group.html#aaf8b0db5853c89e7508e5ff4c97bfb3d',1,'mdf::IChannelGroup::NofSamples(uint64_t nof_samples)=0'],['../classmdf_1_1_i_channel_observer.html#ad6611bae034a767205da137b93bbf3aa',1,'mdf::IChannelObserver::NofSamples()']]],
+  ['notifysampleobservers_6',['NotifySampleObservers',['../classmdf_1_1_i_data_group.html#a562ba39cc007b3309c083749817d06ff',1,'mdf::IDataGroup']]],
+  ['nowns_7',['NowNs',['../classmdf_1_1_mdf_helper.html#a0fa2c1d1a7fc70bee2f993f01c1aa175',1,'mdf::MdfHelper']]],
+  ['nstocanopendatearray_8',['NsToCanOpenDateArray',['../classmdf_1_1_mdf_helper.html#af8d093bccbbd087a2e126bb47e9ceba0',1,'mdf::MdfHelper']]],
+  ['nstocanopentimearray_9',['NsToCanOpenTimeArray',['../classmdf_1_1_mdf_helper.html#aea95c071fce3ed0fc9c43e51b8cf8de8',1,'mdf::MdfHelper']]],
+  ['nstolocalisotime_10',['NsToLocalIsoTime',['../classmdf_1_1_mdf_helper.html#a7af4f6bd644efeb45b8e8497520d1be7',1,'mdf::MdfHelper']]]
 ];

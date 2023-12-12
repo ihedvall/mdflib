@@ -1,10 +1,12 @@
 <map id="include/mdf/ichannelarray.h" name="include/mdf/ichannelarray.h">
 <area shape="rect" id="Node000001" title="Defines a channel array (CA) block. Its functionality is described in the MDF 4 documentation." alt="" coords="5,5,185,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="25,152,86,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,32,65,139,60,138,89,30"/>
-<area shape="rect" id="Node000003" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="92,79,184,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="105,30,126,66,122,68,100,32"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="126,106,81,145,78,141,123,102"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="111,152,165,177"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="141,104,141,138,135,138,135,104"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="41,152,102,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,33,71,53,58,79,56,110,63,138,58,140,51,110,53,78,66,51,82,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="67,79,123,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="98,31,98,65,93,65,93,31"/>
+<area shape="rect" id="Node000004" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="148,79,240,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="113,29,168,68,165,73,110,33"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="176,106,104,147,102,143,173,102"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="167,152,221,177"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="197,104,197,138,191,138,191,104"/>
 </map>

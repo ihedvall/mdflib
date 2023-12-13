@@ -2,7 +2,7 @@
     "version": 2,
     "configurePresets": [
         {
-            "name": "ninja-multi-vcpkg-x64",
+            "name": "ninja-vcpkg-x64",
             "displayName": "Ninja Multi-Config Configure Settings",
             "description": "Configure with vcpkg toolchain",
             "generator": "Ninja",
@@ -13,7 +13,33 @@
             }
         },
         {
-            "name": "msvc-multi-vcpkg-x64",
+            "name": "msvc-vcpkg-x64",
+            "displayName": "MSVC Multi-Config Configure Settings(x64)",
+            "description": "Configure with vcpkg toolchain",
+            "generator": "Visual Studio 17 2022",
+            "toolset": "host=x64",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
+            }
+        },
+        {
+            "name": "msvc-vcpkg-x64_x86",
+            "displayName": "MSVC Multi-Config Configure Settings(x64_x86)",
+            "description": "Configure with vcpkg toolchain",
+            "generator": "Visual Studio 17 2022",
+            "toolset": "host=x64",
+            "architecture": "Win32",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install/${presetName}"
+            }
+        },
+        {
+            "name": "msvc-vcpkg-static-x64",
             "displayName": "MSVC Multi-Config Configure Settings(x64)",
             "description": "Configure with vcpkg toolchain",
             "generator": "Visual Studio 17 2022",
@@ -27,7 +53,7 @@
             }
         },
         {
-            "name": "msvc-multi-vcpkg-x64_x86",
+            "name": "msvc-vcpkg-static-x64_x86",
             "displayName": "MSVC Multi-Config Configure Settings(x64_x86)",
             "description": "Configure with vcpkg toolchain",
             "generator": "Visual Studio 17 2022",
@@ -43,18 +69,18 @@
     ],
     "buildPresets": [
         {
-            "name": "ninja-multi-vcpkg-x64-debug",
-            "description": "Build ninja-multi-vcpkg-x64 Debug",
-            "displayName": "Build ninja-multi-vcpkg-x64 Debug",
-            "configurePreset": "ninja-multi-vcpkg-x64",
+            "name": "ninja-vcpkg-x64-debug",
+            "description": "Build ninja-vcpkg-x64 Debug",
+            "displayName": "Build ninja-vcpkg-x64 Debug",
+            "configurePreset": "ninja-vcpkg-x64",
             "configuration": "Debug",
             "targets": "all"
         },
         {
-            "name": "ninja-multi-vcpkg-x64-release",
-            "description": "Build ninja-multi-vcpkg-x64 Release",
-            "displayName": "Build ninja-multi-vcpkg-x64 Release",
-            "configurePreset": "ninja-multi-vcpkg-x64",
+            "name": "ninja-vcpkg-x64-release",
+            "description": "Build ninja-vcpkg-x64 Release",
+            "displayName": "Build ninja-vcpkg-x64 Release",
+            "configurePreset": "ninja-vcpkg-x64",
             "configuration": "Release",
             "targets": [
                 "all",
@@ -62,18 +88,26 @@
             ]
         },
         {
-            "name": "msvc-multi-vcpkg-x64-debug",
-            "description": "Build msvc-multi-vcpkg-x64 Debug",
-            "displayName": "Build msvc-multi-vcpkg-x64 Debug",
-            "configurePreset": "msvc-multi-vcpkg-x64",
+            "name": "msvc-vcpkg-x64-debug",
+            "description": "Build msvc-vcpkg-x64 Debug",
+            "displayName": "Build msvc-vcpkg-x64 Debug",
+            "configurePreset": "msvc-vcpkg-x64",
             "configuration": "Debug",
             "targets": "ALL_BUILD"
         },
         {
-            "name": "msvc-multi-vcpkg-x64-release",
-            "description": "Build msvc-multi-vcpkg-x64 Release",
-            "displayName": "Build msvc-multi-vcpkg-x64 Release",
-            "configurePreset": "msvc-multi-vcpkg-x64",
+            "name": "msvc-vcpkg-x64_x86-debug",
+            "description": "Build msvc-vcpkg-x64_x86 Debug",
+            "displayName": "Build msvc-vcpkg-x64_x86 Debug",
+            "configurePreset": "msvc-vcpkg-x64_x86",
+            "configuration": "Debug",
+            "targets": "ALL_BUILD"
+        },
+        {
+            "name": "msvc-vcpkg-static-x64-release",
+            "description": "Build msvc-vcpkg-static-x64 Release",
+            "displayName": "Build msvc-vcpkg-static-x64 Release",
+            "configurePreset": "msvc-vcpkg-static-x64",
             "configuration": "Release",
             "targets": [
                 "ALL_BUILD",
@@ -81,23 +115,35 @@
             ]
         },
         {
-            "name": "msvc-multi-vcpkg-x64_x86-debug",
-            "description": "Build msvc-multi-vcpkg-x64_x86 Debug",
-            "displayName": "Build msvc-multi-vcpkg-x64_x86 Debug",
-            "configurePreset": "msvc-multi-vcpkg-x64_x86",
-            "configuration": "Debug",
-            "targets": "ALL_BUILD"
-        },
-        {
-            "name": "msvc-multi-vcpkg-x64_x86-release",
-            "description": "Build msvc-multi-vcpkg-x64_x86 Release",
-            "displayName": "Build msvc-multi-vcpkg-x64_x86 Release",
-            "configurePreset": "msvc-multi-vcpkg-x64_x86",
+            "name": "msvc-vcpkg-static-x64_x86-release",
+            "description": "Build msvc-vcpkg-static-x64_x86 Release",
+            "displayName": "Build msvc-vcpkg-static-x64_x86 Release",
+            "configurePreset": "msvc-vcpkg-static-x64_x86",
             "configuration": "Release",
             "targets": [
                 "ALL_BUILD",
                 "install"
             ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "ninja-vcpkg-x64",
+            "description": "Build ninja-vcpkg-x64 GTest",
+            "displayName": "Build ninja-vcpkg-x64 GTest",
+            "configurePreset": "ninja-vcpkg-x64"
+        },
+        {
+            "name": "msvc-vcpkg-x64",
+            "description": "Build msvc-vcpkg-x64 GTest",
+            "displayName": "Build msvc-vcpkg-x64 GTest",
+            "configurePreset": "msvc-vcpkg-x64"
+        },
+        {
+            "name": "msvc-vcpkg-x64_x86",
+            "description": "Build msvc-vcpkg-x64_x86 GTest",
+            "displayName": "Build msvc-vcpkg-x64_x86 GTest",
+            "configurePreset": "msvc-vcpkg-x64_x86"
         }
     ]
 }

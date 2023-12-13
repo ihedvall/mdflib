@@ -6,7 +6,6 @@ on:
     branches:
       - master
   pull_request:
-  page_build:
   workflow_dispatch:
 
 env:

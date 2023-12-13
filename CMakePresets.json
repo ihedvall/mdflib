@@ -40,7 +40,7 @@
         },
         {
             "name": "msvc-vcpkg-static-x64",
-            "displayName": "MSVC Multi-Config Configure Settings(x64)",
+            "displayName": "MSVC Multi-Config Configure Settings(static x64)",
             "description": "Configure with vcpkg toolchain",
             "generator": "Visual Studio 17 2022",
             "toolset": "host=x64",
@@ -54,7 +54,7 @@
         },
         {
             "name": "msvc-vcpkg-static-x64_x86",
-            "displayName": "MSVC Multi-Config Configure Settings(x64_x86)",
+            "displayName": "MSVC Multi-Config Configure Settings(static x64_x86)",
             "description": "Configure with vcpkg toolchain",
             "generator": "Visual Studio 17 2022",
             "toolset": "host=x64",
@@ -96,7 +96,7 @@
             "targets": "ALL_BUILD"
         },
         {
-            "name": "msvc-vcpkg-x64_x86-debug",
+            "name": "msvc-vcpkg-x64_x86-release",
             "description": "Build msvc-vcpkg-x64_x86 Debug",
             "displayName": "Build msvc-vcpkg-x64_x86 Debug",
             "configurePreset": "msvc-vcpkg-x64_x86",

@@ -13,10 +13,8 @@
 
 #if __has_include(<source_location>)
 #include <source_location>
-#elif __has_include(<experimental/source_location>)
+#else __has_include(<experimental/source_location>)
 #include <experimental/source_location>
-#else
-#include <boost/assert/source_location.hpp>
 #endif
 
 namespace util::log {
@@ -43,7 +41,13 @@ using Loc = std::source_location;
 #elif __has_include(<experimental/source_location>)
 using Loc = std::experimental::source_location;
 #else
-using Loc = boost::source_location;
+struct Loc {
+  uint_least32_t line() const noexcept { return 0; }
+  uint_least32_t column() const noexcept { return 0; }
+  const char *file_name() const noexcept { return "UNKNOWN"; }
+  const char *function_name() const noexcept { return "UNKNOWN"; }
+  static constexpr Loc current() noexcept { return Loc{}; }
+};
 #endif
 
 void LogDebug(const Loc &loc, const char *fmt,

@@ -96,7 +96,7 @@
         - name: Upload build
           uses: actions/upload-artifact@v3
           with:
-            name: mdflibs-${{ matrix.os }}-${{ matrix.arch }}
+            name: mdflibs-${{ matrix.os }}-static-${{ matrix.arch }}
             path: install/msvc-vcpkg-static-${{ matrix.arch }}/
     mac-and-ubuntu:
       name: run on ${{ matrix.os }}(${{ matrix.arch }})

@@ -16,7 +16,7 @@
 #elif __has_include(<experimental/source_location>)
 #include <experimental/source_location>
 #else
-#include <boost/source_location>
+#include <boost/assert/source_location.hpp>
 #endif
 
 namespace util::log {

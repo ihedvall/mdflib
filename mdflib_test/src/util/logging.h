@@ -13,8 +13,10 @@
 
 #if __has_include(<source_location>)
 #include <source_location>
-#else
+#elif __has_include(<experimental/source_location>)
 #include <experimental/source_location>
+#else
+#include <boost/source_location>
 #endif
 
 namespace util::log {
@@ -38,8 +40,10 @@ enum class LogSeverity : uint8_t {
 
 #if __has_include(<source_location>)
 using Loc = std::source_location;
-#else
+#elif __has_include(<experimental/source_location>)
 using Loc = std::experimental::source_location;
+#else
+using Loc = boost::source_location;
 #endif
 
 void LogDebug(const Loc &loc, const char *fmt,

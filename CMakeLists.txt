@@ -18,7 +18,7 @@ if(MDF_BUILD_TOOL AND VCPKG)
   # string(REPLACE "-static" "" VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
   list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
 endif()
-option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
+option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." ON)
 if(MDF_BUILD_TEST AND VCPKG)
 # GTest need /MT for static linking
   # string(REPLACE "-static" "" VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")

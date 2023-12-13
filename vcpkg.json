@@ -19,6 +19,7 @@
         "mdflibtest": {
             "description": "Build mdf tests",
             "dependencies": [
+                "boost-sourcelocation",
                 "boost-endian",
                 "gtest"
             ]

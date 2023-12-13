@@ -96,7 +96,7 @@
             "targets": "ALL_BUILD"
         },
         {
-            "name": "msvc-vcpkg-x64_x86-release",
+            "name": "msvc-vcpkg-x64_x86-debug",
             "description": "Build msvc-vcpkg-x64_x86 Debug",
             "displayName": "Build msvc-vcpkg-x64_x86 Debug",
             "configurePreset": "msvc-vcpkg-x64_x86",

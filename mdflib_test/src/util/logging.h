@@ -13,7 +13,7 @@
 
 #if __has_include(<source_location>)
 #include <source_location>
-#else __has_include(<experimental/source_location>)
+#elif __has_include(<experimental/source_location>)
 #include <experimental/source_location>
 #endif
 

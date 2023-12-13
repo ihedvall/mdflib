@@ -1336,7 +1336,7 @@ TEST_F(TestWrite, Mdf4TimeAndDate) {
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
     ASSERT_EQ(observer->NofSamples(), 100);
-    for (size_t sample = 0; sample < 100; ++sample) {
+    for (uint64_t sample = 0; sample < 100; ++sample) {
       auto temp1_time = tick_time + (sample * 1'000'000'000);
       temp1_time /= 1'000'000; // Only ms resolution in storage
       temp1_time *= 1'000'000;

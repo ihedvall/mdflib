@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <m#include <mdf/idatagroup.h>df/etag.h>
+#include <mdf/etag.h>
 #include "mdf/ichannel.h"
 #include <mdf/ichannelgroup.h>
 #include <mdf/idatagroup.h>

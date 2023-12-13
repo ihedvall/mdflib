@@ -212,7 +212,7 @@ class IChannelConversion : public IBlock {
    * @param index Parameter index to set.
    * @param parameter Value to set.
    */
-  void Parameter(uint16_t index, uint64_t parameter);
+  void ParameterUint(uint16_t index, uint64_t parameter);
 
   [[nodiscard]] virtual uint16_t NofReferences() const; 
   /** \brief Sets text reference (TX) block

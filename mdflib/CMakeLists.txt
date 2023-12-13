@@ -90,7 +90,8 @@ add_library(mdf STATIC
         src/mdfbuslogger.cpp src/mdfbuslogger.h
         src/canmessage.cpp ../include/mdf/canmessage.h
         src/dbchelper.cpp
-        src/dbchelper.h)
+        src/dbchelper.h
+        src/isampleobserver.cpp)
 
 if(VCPKG)
   find_package(ZLIB REQUIRED)

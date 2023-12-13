@@ -19,9 +19,9 @@ class ChannelObserver : public IChannelObserver {
   uint64_t record_id_ = 0;
   std::vector<T> value_list_;
   std::vector<bool> valid_list_;
-  bool attached_ = false;
 
-  const IDataGroup& data_group_;  ///< Reference to the data group (DG) block.
+
+
   const IChannelGroup& group_;       ///< Reference to the channel group (CG) block.
 
   template <typename V>
@@ -53,8 +53,7 @@ class ChannelObserver : public IChannelObserver {
  public:
   ChannelObserver(const IDataGroup& data_group, const IChannelGroup& group,
                   const IChannel& channel)
-      : IChannelObserver(channel),
-        data_group_(data_group),
+      : IChannelObserver(data_group,channel),
         group_(group),
         record_id_(group.RecordId())
  {
@@ -83,19 +82,6 @@ class ChannelObserver : public IChannelObserver {
   [[nodiscard]] uint64_t NofSamples() const override {
     // Note that value_list may be an array.
     return group_.NofSamples();
-  }
-
-  void AttachObserver() override {
-    if (!attached_) {
-      attached_ = true;
-      data_group_.AttachSampleObserver(this);
-    }
-  }
-  void DetachObserver() override {
-    if (attached_) {
-      data_group_.DetachSampleObserver(this);
-      attached_ = false;
-    }
   }
 
   void OnSample(uint64_t sample, uint64_t record_id,

@@ -228,6 +228,7 @@
     <ClCompile Include="src\ifilehistory.cpp" />
     <ClCompile Include="src\iheader.cpp" />
     <ClCompile Include="src\imetadata.cpp" />
+    <ClCompile Include="src\isampleobserver.cpp" />
     <ClCompile Include="src\isourceinformation.cpp" />
     <ClCompile Include="src\ixmlfile.cpp" />
     <ClCompile Include="src\ixmlnode.cpp" />

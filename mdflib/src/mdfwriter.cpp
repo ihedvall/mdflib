@@ -684,7 +684,8 @@ void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
         uint16_t index = 0;
         for (uint8_t key = 0; key < 16; ++key) {
           cc_length->Parameter(index++,static_cast<double>(key));
-          cc_length->Parameter(index++,CanMessage::DlcToLength(key));
+          cc_length->Parameter(index++,
+            static_cast<double>(CanMessage::DlcToLength(key)));
         }
         cc_length->Parameter(index, 0.0);
       }
@@ -790,7 +791,8 @@ void MdfWriter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
         uint16_t index = 0;
         for (uint8_t key = 0; key < 16; ++key) {
           cc_length->Parameter(index++,static_cast<double>(key));
-          cc_length->Parameter(index++,CanMessage::DlcToLength(key));
+          cc_length->Parameter(index++,
+            static_cast<double>(CanMessage::DlcToLength(key)));
         }
         cc_length->Parameter(index, 0.0);
       }
@@ -874,7 +876,8 @@ void MdfWriter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
         uint16_t index = 0;
         for (uint8_t key = 0; key < 16; ++key) {
           cc_length->Parameter(index++,static_cast<double>(key));
-          cc_length->Parameter(index++,CanMessage::DlcToLength(key));
+          cc_length->Parameter(index++,
+            static_cast<double>(CanMessage::DlcToLength(key)));
         }
         cc_length->Parameter(index, 0.0);
       }

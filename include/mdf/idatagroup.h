@@ -11,14 +11,15 @@
 #include <string>
 #include <vector>
 
-#include "ichannelgroup.h"
-#include "isampleobserver.h"
 #include "mdf/iblock.h"
+
 
 namespace mdf {
 
 class IMetaData;
-
+class ISampleObserver;
+class IChannelGroup;
+class IChannel;
 /** \brief Interface to a data group (DG) block.
  *
  * The data group block is the entry point for a measurement. The header (HD)

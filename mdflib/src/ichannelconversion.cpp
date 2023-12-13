@@ -200,7 +200,7 @@ bool IChannelConversion::ConvertValueToValueInterpolate(
       if (key_range == 0.0) {
         return false;
       }
-      double x = (channel_value - prev_key) / key_range;
+      const double x = (channel_value - prev_key) / key_range;
       eng_value = prev_value + (x * value_range);
       return true;
     }
@@ -240,7 +240,7 @@ bool IChannelConversion::ConvertValueToValue(double channel_value,
       if (key_range == 0.0) {
         return false;
       }
-      double x = (channel_value - prev_key) / key_range;
+      const double x = (channel_value - prev_key) / key_range;
       eng_value = x <= 0.5 ? prev_value : value;
       return true;
     }
@@ -338,7 +338,7 @@ uint64_t IChannelConversion::ParameterUint(uint16_t index) const {
   return value;
 }
 
-void IChannelConversion::Parameter(uint16_t index, uint64_t parameter) {
+void IChannelConversion::ParameterUint(uint16_t index, uint64_t parameter) {
   switch (Type()) {
     case ConversionType::BitfieldToText:
       break;

@@ -22,8 +22,9 @@ std::string FormatArray(const mdf::IChannelArray& array, uint16_t dimension) {
 
 namespace mdf {
 
-IChannelObserver::IChannelObserver(const IChannel &channel)
-    : channel_(channel) {}
+IChannelObserver::IChannelObserver(const IDataGroup& data_group, const IChannel &channel)
+    : ISampleObserver(data_group),
+    channel_(channel) {}
 
 std::string IChannelObserver::Name() const { return channel_.Name(); }
 

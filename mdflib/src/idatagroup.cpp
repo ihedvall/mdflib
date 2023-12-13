@@ -6,6 +6,11 @@
 
 #include <algorithm>
 
+#include "mdf/ichannel.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/isampleobserver.h"
+
+
 namespace mdf {
 
 void IDataGroup::AttachSampleObserver(ISampleObserver *observer) const {

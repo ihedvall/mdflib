@@ -40,7 +40,7 @@ class IChannelObserver : public ISampleObserver {
       const = 0; ///< Returns a byte array sample value.
 
  public:
-  explicit IChannelObserver(const IChannel& channel); ///< Constructor.
+  explicit IChannelObserver(const IDataGroup& dataGroup, const IChannel& channel); ///< Constructor.
 
   ~IChannelObserver() override = default; ///< Default destructor.
 

@@ -168,7 +168,7 @@ uint64_t MdfChannelConversion::ParameterUInt(uint16_t index) {
 void MdfChannelConversion::ParameterUInt(uint16_t index,
                                          uint64_t parameter) {
   if (conversion_ != nullptr) {
-    conversion_->Parameter(index, parameter);
+    conversion_->ParameterUint(index, parameter);
   }  
 }
 

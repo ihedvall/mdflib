@@ -141,7 +141,7 @@
             # using the vcpkg.cmake toolchain. The default is `false`.
             # runVcpkgInstall: true
   
-        - name: Build
+        - name: Build And Test
           uses: lukka/run-cmake@v10
           with:
             # This is the default path to the CMakeLists.txt along side the

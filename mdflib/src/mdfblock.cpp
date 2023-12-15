@@ -255,6 +255,13 @@ const MdfBlock* MdfBlock::HeaderBlock() const {
   return parent_ != nullptr ? parent_->HeaderBlock() : nullptr;
 }
 
+const MdfBlock* MdfBlock::CgBlock() const {
+  if (BlockType() == "CG") {
+    return this;
+  }
+  return parent_ != nullptr ? parent_->CgBlock() : nullptr;
+}
+
 std::size_t MdfBlock::ReadBool(std::FILE *file, bool &dest) const {
   uint16_t temp = 0;
   auto bytes = ReadNumber(file, temp);

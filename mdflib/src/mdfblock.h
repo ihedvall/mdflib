@@ -130,6 +130,7 @@ class MdfBlock {
   void UpdateBlockSize(std::FILE *file, size_t bytes);
 
   [[nodiscard]] const MdfBlock* HeaderBlock() const;
+  [[nodiscard]] const MdfBlock* CgBlock() const;
  protected:
   int64_t file_position_ = 0;  ///< 64-bit file position.
   std::string block_type_;   ///< MDF header. MDF3 has 2 characters. MDF4 has 4

@@ -104,7 +104,7 @@ class IChannelObserver : public ISampleObserver {
    * @param sample Sample index
    * @return JSON formatted string
    */
-  std::string EngValueToString(uint64_t sample) const;
+  [[nodiscard]] std::string EngValueToString(uint64_t sample) const;
 };
 
 template <typename V>
@@ -195,30 +195,39 @@ bool IChannelObserver::GetEngValue(uint64_t sample, V& value, uint64_t array_ind
     case ChannelDataType::UnsignedIntegerLe:
     case ChannelDataType::UnsignedIntegerBe: {
       uint64_t v = 0;
-      valid = GetSampleUnsigned(sample, v, array_index) && conversion->Convert(v, value);
+      valid = GetSampleUnsigned(sample, v, array_index)
+        && conversion->Convert(v, value);
       break;
     }
 
     case ChannelDataType::SignedIntegerLe:
     case ChannelDataType::SignedIntegerBe: {
       int64_t v = 0;
-      valid = GetSampleSigned(sample, v, array_index) && conversion->Convert(v, value);
+      valid = GetSampleSigned(sample, v, array_index)
+        && conversion->Convert(v, value);
       break;
     }
 
     case ChannelDataType::FloatLe:
     case ChannelDataType::FloatBe: {
       double v = 0.0;
-      valid = GetSampleFloat(sample, v, array_index) && conversion->Convert(v, value);
+      valid = GetSampleFloat(sample, v, array_index)
+        && conversion->Convert(v, value);
       break;
     }
 
-    case ChannelDataType::CanOpenDate:
-    case ChannelDataType::CanOpenTime:
-      valid = GetChannelValue(sample, value);  // No conversion is allowed;
+    case ChannelDataType::StringAscii:
+    case ChannelDataType::StringUTF16Be:
+    case ChannelDataType::StringUTF16Le:
+    case ChannelDataType::StringUTF8: {
+      std::string v;
+      valid = GetChannelValue(sample,  v, array_index)
+        && conversion->Convert(v, value);
       break;
+    }
 
     default:
+      valid = GetChannelValue(sample, value);  // No conversion is allowed;
       break;
   }
   return valid;

@@ -509,7 +509,11 @@ IChannelConversion *Cn3Block::CreateChannelConversion() {
 
 IChannel *Cn3Block::CreateChannelComposition() { return nullptr; }
 std::vector<IChannel *> Cn3Block::ChannelCompositions() {
-  return std::vector<IChannel *>();
+  return {};
+}
+
+const IChannelGroup* Cn3Block::ChannelGroup() const {
+  return dynamic_cast<const IChannelGroup*> (CgBlock());
 }
 
 }  // namespace mdf::detail

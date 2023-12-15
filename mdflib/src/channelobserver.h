@@ -19,24 +19,8 @@ class ChannelObserver : public IChannelObserver {
   uint64_t record_id_ = 0;
   std::vector<T> value_list_;
   std::vector<bool> valid_list_;
-
-
-
   const IChannelGroup& group_;       ///< Reference to the channel group (CG) block.
 
-  template <typename V>
-  bool GetVirtualSample(uint64_t sample, V& value) const {
-    // No need for array index here. Array is weird usage for virtual channels
-    // as the channel value = sample.
-    value = static_cast<V>(sample);
-    return true;
-  }
-
-  template <typename V = std::string>
-  bool GetVirtualSample(uint64_t sample, std::string& value) const {
-    value = std::to_string(sample);
-    return true;
-  }
 
  protected:
   bool GetSampleUnsigned(uint64_t sample, uint64_t& value , uint64_t array_index) const override;
@@ -98,7 +82,7 @@ class ChannelObserver : public IChannelObserver {
         if (record_id_ == record_id) {
           for ( uint64_t array_index = 0; array_index < array_size; ++array_index) {
             const auto sample_index = (sample * array_size) + array_index;
-            valid = GetVirtualSample(sample, value);
+            valid = channel_.GetVirtualSample(sample, value);
             if (sample_index < value_list_.size()) {
               value_list_[sample_index] = value;
             }

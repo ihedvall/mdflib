@@ -9,6 +9,9 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include <functional>
+
+#include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
 namespace mdf {
 
@@ -17,7 +20,8 @@ namespace mdf {
 class ISampleObserver {
  public:
   ISampleObserver() = delete;
-  virtual ~ISampleObserver() = default; ///< Default destructor
+  explicit ISampleObserver(const IDataGroup& data_group);
+  virtual ~ISampleObserver(); ///< Destructor
 
   /** \brief Attach the observer to an observer list (publisher).
    *
@@ -37,6 +41,10 @@ class ISampleObserver {
 
   /** \brief Observer function that receives the sample record and parse out
    * a channel value.
+   *
+   * The function may be override by an inheritance for more complex
+   * implementations but in simpler use cases the DoOnSample function
+   * should be used instead,
    * @param sample Sample number.
    * @param record_id Record ID (channel group identity).
    * @param record Sample record (excluding the record ID.
@@ -44,12 +52,127 @@ class ISampleObserver {
   virtual void OnSample(uint64_t sample, uint64_t record_id,
                         const std::vector<uint8_t>& record);
 
+  /** \brief Function object that is called if assigned.
+   *
+   * The function object is typically assigned to a lambda function.
+   * See also OnSample() function.
+   */
+  std::function<void(uint64_t sample, uint64_t record_id,
+      const std::vector<uint8_t>& record)> DoOnSample;
+
+  /** \brief The function returns a channel value.
+   *
+   * Use this function to get a channel value from a sample record
+   * buffer. Note that the array index should only be used if
+   * the channel is a so-called channel array (CA block).
+   * @tparam V Type of value.
+   * @param channel Reference to a channel.
+   * @param sample Sample number (0..N).
+   * @param record Record buffer.
+   * @param value Reference to the returning value.
+   * @param array_index Array index in case of an array channel object.
+   * @return True if the value is valid.
+   */
+  template <typename V>
+  bool GetChannelValue(const IChannel& channel,
+      uint64_t sample,
+      const std::vector<uint8_t>& record,
+      V& value,
+      uint64_t array_index = 0) const {
+    bool valid = false;
+    value = {};
+
+    switch (channel.Type()) {
+      case ChannelType::VirtualMaster:
+      case ChannelType::VirtualData:
+        valid = channel.GetVirtualSample(sample, value);
+        break;
+
+        // This channel may reference a SD/CG blocks
+      case ChannelType::VariableLength:
+        if (channel.VlsdRecordId() == 0) {
+          // If variable length, the value is an index into an SD block.
+          // Value should be in the channels data list (SD). The channels
+          // GetChannelValue handle this situation
+          valid = channel.GetChannelValue(record, value, array_index);
+        }
+        // VLSD CG records cannot be handled without some sort of cache.
+        break;
+
+      case ChannelType::MaxLength:
+      case ChannelType::Sync:
+      case ChannelType::Master:
+      case ChannelType::FixedLength:
+      default:
+        valid = channel.GetChannelValue(record, value, array_index);
+        break;
+    }
+    return valid;
+  }
+
+  template <typename V>
+  bool GetEngValue(const IChannel& channel,
+      uint64_t sample,
+      const std::vector<uint8_t>& record,
+      V& value,
+      uint64_t array_index = 0) const {
+
+    const auto* conversion = channel.ChannelConversion();
+    if (conversion == nullptr) {
+      return GetChannelValue(channel,sample, record,
+          value, array_index);
+    }
+
+    bool valid;
+    value = {};
+    switch (channel.DataType()) {
+      case ChannelDataType::UnsignedIntegerLe:
+      case ChannelDataType::UnsignedIntegerBe: {
+        uint64_t v = 0;
+        valid = GetChannelValue(channel,sample,  record, v,
+          array_index) && conversion->Convert(v, value);
+        break;
+      }
+
+      case ChannelDataType::SignedIntegerLe:
+      case ChannelDataType::SignedIntegerBe: {
+        int64_t v = 0;
+        valid = GetChannelValue(channel,sample,  record, v,
+          array_index) && conversion->Convert(v, value);
+        break;
+      }
+
+      case ChannelDataType::FloatLe:
+      case ChannelDataType::FloatBe: {
+        double v = 0.0;
+        valid = GetChannelValue(channel,sample,  record, v,
+          array_index) && conversion->Convert(v, value);
+        break;
+      }
+
+      case ChannelDataType::StringAscii:
+      case ChannelDataType::StringUTF16Be:
+      case ChannelDataType::StringUTF16Le:
+      case ChannelDataType::StringUTF8: {
+        std::string v;
+        valid = GetChannelValue(channel,sample,  record, v,
+          array_index) && conversion->Convert(v, value);
+        break;
+      }
+
+      default:
+        valid = GetChannelValue(channel,sample,  record, value,
+          array_index);
+        break;
+    }
+    return valid;
+  }
+
  protected:
-  explicit ISampleObserver(const IDataGroup& data_group);
 
   const IDataGroup& data_group_;  ///< Reference to the data group (DG) block.
  private:
-  bool attached_ = false;
+  bool attached_ = false; ///< True if the observer is active
 };
 
 

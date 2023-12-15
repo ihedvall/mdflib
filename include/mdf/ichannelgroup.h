@@ -101,7 +101,7 @@ class IChannelGroup : public IBlock {
    * Example if the search name is '.DataLength', the signal with the name
    * 'CAN_DataFrame.DataLength' will be returned
    * the name instead of the full name */
-  [[nodiscard]] virtual IChannel* GetChannel(const std::string_view& name);
+  [[nodiscard]] virtual IChannel* GetChannel(const std::string_view& name) const;
 
 
   /** \brief Returns an external reference channel. */

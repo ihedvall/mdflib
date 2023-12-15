@@ -9,6 +9,11 @@ namespace mdf {
 
 ISampleObserver::ISampleObserver(const IDataGroup &data_group)
 : data_group_(data_group) {
+  ISampleObserver::AttachObserver();
+}
+
+ISampleObserver::~ISampleObserver() {
+  ISampleObserver::DetachObserver();
 }
 
 void ISampleObserver::AttachObserver() {
@@ -27,7 +32,9 @@ void ISampleObserver::DetachObserver() {
 
 void ISampleObserver::OnSample(uint64_t sample, uint64_t record_id,
                                const std::vector<uint8_t> &record) {
-
+  if (DoOnSample) {
+    DoOnSample(sample, record_id, record);
+  }
 }
 
 

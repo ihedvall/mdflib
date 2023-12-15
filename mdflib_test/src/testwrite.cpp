@@ -46,7 +46,7 @@ bool kSkipTest = false;
  */
 void LogFunc(const MdfLocation& location, mdf::MdfLogSeverity severity,
              const std::string& text) {
-  auto &log_config = LogConfig::Instance();
+  const auto &log_config = LogConfig::Instance();
   LogMessage message;
   message.message = text;
   message.severity = static_cast<LogSeverity>(severity);
@@ -2654,6 +2654,105 @@ TEST_F(TestWrite, Mdf4CompressedMlsdCanConfig) {
     ASSERT_TRUE(observer);
     EXPECT_EQ(observer->NofSamples(), 100'000);
   }
+
+}
+
+TEST_F(TestWrite, Mdf4SampleObserver ) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("sampleobserver.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  writer->BusType(MdfBusType::CAN); // Defines the CG/CN names
+  writer->StorageType(MdfStorageType::FixedLengthStorage); // Variable length to SD
+  writer->MaxLength(8); // No meaning in this type of storage
+  EXPECT_TRUE(writer->CreateBusLogConfiguration()); // Creates all DG/CG/CN
+  writer->PreTrigTime(0.0);
+  writer->CompressData(true);
+
+  auto* last_dg = header->LastDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
+
+  auto* can_data_frame = last_dg->GetChannelGroup("CAN_DataFrame");
+  auto* can_remote_frame = last_dg->GetChannelGroup("CAN_RemoteFrame");
+  auto* can_error_frame = last_dg->GetChannelGroup("CAN_ErrorFrame");
+  auto* can_overload_frame = last_dg->GetChannelGroup("CAN_OverloadFrame");
+
+  ASSERT_TRUE(can_data_frame != nullptr);
+  ASSERT_TRUE(can_remote_frame != nullptr);
+  ASSERT_TRUE(can_error_frame != nullptr);
+  ASSERT_TRUE(can_overload_frame != nullptr);
+
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  size_t sample;
+  for (sample = 0; sample < 10; ++sample) {
+    // Assigna some dummy data
+    auto value = static_cast<double>(sample) + 0.23;
+    std::vector<uint8_t> data;
+    data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
+
+    CanMessage msg;
+    msg.MessageId(123);
+    msg.ExtendedId(true);
+    msg.BusChannel(11);
+    EXPECT_EQ(msg.BusChannel(), 11);
+    msg.DataBytes(data);
+
+    // Add dummy message to all for message types. Not realistic
+    // but makes the test simpler.
+    writer->SaveCanMessage(*can_data_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_remote_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_error_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_overload_frame, tick_time, msg);
+    tick_time += 1'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* header1 = reader.GetHeader();
+  const auto* last_dg1 = header1->LastDataGroup();
+  ASSERT_TRUE(last_dg1 != nullptr);
+
+  const auto* channel_group1 = last_dg1->GetChannelGroup("CAN_DataFrame");
+  ASSERT_TRUE(channel_group1 != nullptr);
+
+  const auto* channel1 = channel_group1->GetChannel("CAN_DataFrame.DataBytes");
+  ASSERT_TRUE(channel1 != nullptr);
+
+  ISampleObserver sample_observer(*last_dg1);
+  sample_observer.DoOnSample = [&] (uint64_t sample1, uint64_t record_id,
+      const std::vector<uint8_t>& record) {
+    bool valid = true;
+    std::string values;
+    if (channel1->RecordId() == record_id) {
+      valid = sample_observer.GetEngValue(*channel1,sample1,
+                                              record, values );
+      std::cout << "Sample: " << sample1
+                << ", Record: " << record_id
+                << ", Values: " << values << std::endl;
+    }
+    EXPECT_TRUE(valid);
+
+  };
+  reader.ReadData(*last_dg1);
+  sample_observer.DetachObserver();
+  reader.Close();
 
 }
 

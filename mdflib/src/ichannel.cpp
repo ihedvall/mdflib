@@ -8,6 +8,7 @@
 #include "half.hpp"
 #include "littlebuffer.h"
 #include "dbchelper.h"
+#include "mdf/ichannelgroup.h"
 
 namespace mdf {
 
@@ -813,6 +814,10 @@ IChannel *IChannel::CreateChannelComposition(const std::string_view &name) {
 
 void IChannel::Decimals(uint8_t precision) {
   // Only used by MDF 4
+}
+uint64_t IChannel::RecordId() const {
+  const auto* channel_group = ChannelGroup();
+  return channel_group != nullptr ? channel_group->RecordId() : 0;
 }
 
 }  // end namespace mdf

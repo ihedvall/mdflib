@@ -396,12 +396,33 @@ class IChannel : public IBlock  {
 
   /** \brief Returns the byte offset to data in the record. */
   [[nodiscard]] virtual uint32_t ByteOffset() const = 0;
+
+  /**
+   * \brief Support function that returns its channel group.
+   *
+   * Support function that returns the channel group that this
+   * channel belongs to. Note that the function may return nullptr
+   * if the channel have not been assigned a group.
+   * \return Pointer to the channel group.
+   */
+  virtual const IChannelGroup* ChannelGroup() const = 0;
+  uint64_t RecordId() const;
+
+  template <typename V>
+  static bool GetVirtualSample(uint64_t sample, V& value) {
+    // No need for array index here. Array is weird usage for virtual channels
+    // as the channel value = sample.
+    value = static_cast<V>(sample);
+    return true;
+  }
+
+  template <typename V = std::string>
+  static bool GetVirtualSample(uint64_t sample, std::string& value) {
+    value = std::to_string(sample);
+    return true;
+  }
  protected:
 
-  /** \brief Support function that copies a record to a data block. */
-  void CopyToDataBuffer(const std::vector<uint8_t> &record_buffer,
-                                std::vector<uint8_t> &data_buffer,
-                                uint64_t array_index) const;
 
   /** \brief Support function that get signed integer from a record. */
   bool GetSignedValue(const std::vector<uint8_t> &record_buffer,

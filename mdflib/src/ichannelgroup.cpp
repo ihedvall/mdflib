@@ -54,7 +54,7 @@ IChannel *IChannelGroup::CreateChannel(const std::string_view &name) {
   return new_channel;
 }
 
-IChannel *IChannelGroup::GetChannel(const std::string_view &name) {
+IChannel *IChannelGroup::GetChannel(const std::string_view &name) const {
   auto cn_list = Channels(); // The list contains the composition channels as
                              // well as the ordinary channels.
   auto itr = std::find_if(cn_list.begin(), cn_list.end(),

@@ -1194,13 +1194,15 @@ IChannelArray *Cn4Block::ChannelArray() const {
 }
 
 IChannelArray *Cn4Block::CreateChannelArray() {
-  auto* channel_array = ChannelArray();
-  if (channel_array == nullptr) {
+  if (const auto* channel_array = ChannelArray(); channel_array == nullptr) {
     auto temp = std::make_unique<Ca4Block>();
     cx_list_.emplace_back(std::move(temp));
   }
   return ChannelArray();
 }
 
+const IChannelGroup* Cn4Block::ChannelGroup() const {
+  return dynamic_cast<const IChannelGroup*> (CgBlock());
+}
 
 }  // namespace mdf::detail

@@ -80,6 +80,7 @@ class Cn3Block : public DataListBlock, public IChannel {
   IChannel* CreateChannelComposition() override;
   std::vector<IChannel*> ChannelCompositions() override;
 
+  const IChannelGroup* ChannelGroup() const override;
  protected:
 
   [[nodiscard]] std::vector<uint8_t>& SampleBuffer() const override;

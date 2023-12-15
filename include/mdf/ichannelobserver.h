@@ -221,8 +221,11 @@ bool IChannelObserver::GetEngValue(uint64_t sample, V& value, uint64_t array_ind
     case ChannelDataType::StringUTF16Le:
     case ChannelDataType::StringUTF8: {
       std::string v;
-      valid = GetChannelValue(sample,  v, array_index)
-        && conversion->Convert(v, value);
+      valid = GetSampleText(sample,  v, array_index);
+      std::string temp;
+      conversion->Convert(v, temp);
+      std::istringstream temp1(temp);
+      temp1 >> value;
       break;
     }
 

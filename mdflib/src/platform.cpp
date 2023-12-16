@@ -50,24 +50,16 @@ void strerror(int __errnum, char *__buf, size_t __buflen) {
 int64_t ftell64(std::FILE *__stream) {
 #if (_MSC_VER)
   return _ftelli64(__stream);
-#elif (__APPLE__)
-  return ftell64(__stream);
-#elif (__CYGWIN__)
-  return ftello(__stream);
 #else
-  return ftello64(__stream);
+  return ftello(__stream);
 #endif
 }
 
 int fseek64(std::FILE *__stream, int64_t __off, int __whence) {
 #if (_MSC_VER)
   return _fseeki64(__stream, __off, __whence);
-#elif (__APPLE__)
-  return fseek64(__stream, __off, __whence);
-#elif (__CYGWIN__)
-  return fseeko(__stream, __off, __whence);
 #else
-  return fseeko64(__stream, __off, __whence);
+  return fseeko(__stream, __off, __whence);
 #endif
 }
 

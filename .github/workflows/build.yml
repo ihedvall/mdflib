@@ -10,7 +10,7 @@
     workflow_dispatch:
   
   env:
-    vcpkgCommitId: cd5e746ec203c8c3c61647e0886a8df8c1e78e41
+    vcpkgCommitId: c8696863d371ab7f46e213d8f5ca923c4aef2a00
   
   
   jobs:
@@ -57,7 +57,7 @@
             # using the vcpkg.cmake toolchain. The default is `false`.
             # runVcpkgInstall: true
   
-        - name: Build
+        - name: Build Static
           uses: lukka/run-cmake@v10
           with:
             # This is the default path to the CMakeLists.txt along side the
@@ -68,16 +68,36 @@
             # This is the name of the CMakePresets.json's configuration to use to generate
             # the project files. This configuration leverages the vcpkg.cmake toolchain file to
             # run vcpkg and install all dependencies specified in vcpkg.json.
-            configurePreset: 'msvc-multi-vcpkg-${{ matrix.arch }}'
+            configurePreset: 'msvc-vcpkg-static-${{ matrix.arch }}'
   
             # This is the name of the CMakePresets.json's configuration to build the project.
-            buildPreset: 'msvc-multi-vcpkg-${{ matrix.arch }}-release'
+            buildPreset: 'msvc-vcpkg-static-${{ matrix.arch }}-release'
   
+        - name: Build Test
+          uses: lukka/run-cmake@v10
+          with:
+            # This is the default path to the CMakeLists.txt along side the
+            # CMakePresets.json. Change if you need have CMakeLists.txt and CMakePresets.json
+            # located elsewhere.
+            cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
+    
+            # This is the name of the CMakePresets.json's configuration to use to generate
+            # the project files. This configuration leverages the vcpkg.cmake toolchain file to
+            # run vcpkg and install all dependencies specified in vcpkg.json.
+            configurePreset: 'msvc-vcpkg-${{ matrix.arch }}'
+            configurePresetAdditionalArgs: "['-DMDF_BUILD_TEST=ON']"
+  
+            # This is the name of the CMakePresets.json's configuration to build the project.
+            buildPreset: 'msvc-vcpkg-${{ matrix.arch }}-debug'
+
+            # This is the name of the CMakePresets.json's configuration to test the project with.
+            testPreset: 'msvc-vcpkg-${{ matrix.arch }}'
+
         - name: Upload build
           uses: actions/upload-artifact@v3
           with:
-            name: mdflibs-${{ matrix.os }}-${{ matrix.arch }}
-            path: install/msvc-multi-vcpkg-${{ matrix.arch }}/
+            name: mdflibs-${{ matrix.os }}-static-${{ matrix.arch }}
+            path: install/msvc-vcpkg-static-${{ matrix.arch }}/
     mac-and-ubuntu:
       name: run on ${{ matrix.os }}(${{ matrix.arch }})
       runs-on: ${{ matrix.os }}
@@ -121,7 +141,7 @@
             # using the vcpkg.cmake toolchain. The default is `false`.
             # runVcpkgInstall: true
   
-        - name: Build
+        - name: Build And Test
           uses: lukka/run-cmake@v10
           with:
             # This is the default path to the CMakeLists.txt along side the
@@ -132,13 +152,17 @@
             # This is the name of the CMakePresets.json's configuration to use to generate
             # the project files. This configuration leverages the vcpkg.cmake toolchain file to
             # run vcpkg and install all dependencies specified in vcpkg.json.
-            configurePreset: 'ninja-multi-vcpkg-${{ matrix.arch }}'
-  
+            configurePreset: 'ninja-vcpkg-${{ matrix.arch }}'
+            configurePresetAdditionalArgs: "['-DMDF_BUILD_TEST=ON']"
+            
             # This is the name of the CMakePresets.json's configuration to build the project.
-            buildPreset: 'ninja-multi-vcpkg-${{ matrix.arch }}-release'
-  
+            buildPreset: 'ninja-vcpkg-${{ matrix.arch }}-release'
+
+            # This is the name of the CMakePresets.json's configuration to test the project with.
+            testPreset: 'ninja-vcpkg-${{ matrix.arch }}'
+
         - name: Upload build
           uses: actions/upload-artifact@v3
           with:
             name: mdflibs-${{ matrix.os }}-${{ matrix.arch }}
-            path: install/ninja-multi-vcpkg-${{ matrix.arch }}/
+            path: install/ninja-vcpkg-${{ matrix.arch }}/

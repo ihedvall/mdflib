@@ -225,8 +225,9 @@ TEST_F(TestWrite, Mdf3WriteTest1) {
   for (size_t sample = 0; sample < 100; ++sample) {
     auto cn_list = cg3->Channels();
     double value = 0.01 * static_cast<double>(sample);
-    std::ranges::for_each(
-        cn_list, [&](auto* channel) { channel->SetChannelValue(value, true); });
+    for(auto* channel : cn_list) {
+      channel->SetChannelValue(value);
+    }
     writer->SaveSample(*cg3, TimeStampToNs());
     sleep_for(10ms);
   }
@@ -1335,7 +1336,7 @@ TEST_F(TestWrite, Mdf4TimeAndDate) {
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
     ASSERT_EQ(observer->NofSamples(), 100);
-    for (size_t sample = 0; sample < 100; ++sample) {
+    for (uint64_t sample = 0; sample < 100; ++sample) {
       auto temp1_time = tick_time + (sample * 1'000'000'000);
       temp1_time /= 1'000'000; // Only ms resolution in storage
       temp1_time *= 1'000'000;

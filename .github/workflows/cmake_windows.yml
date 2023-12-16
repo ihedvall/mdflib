@@ -4,9 +4,8 @@ name: CMake Build Windows
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
-  page_build:
   workflow_dispatch:
 
 env:

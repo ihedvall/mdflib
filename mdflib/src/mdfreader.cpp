@@ -18,6 +18,8 @@
 #include "mdf3file.h"
 #include "mdf4file.h"
 #include "platform.h"
+#include "cn4block.h"
+#include "sr4block.h"
 
 using namespace std::chrono_literals;
 
@@ -215,7 +217,7 @@ MdfReader::MdfReader(const std::string &filename) : filename_(filename) {
     return;
   }
   bool open = Open();
-  if (!open || file_ == nullptr) {
+  if (!open ) {
     MDF_ERROR()
         << "The file couldn't be opened for reading (locked?). Filename: "
         << filename;
@@ -276,10 +278,7 @@ bool MdfReader::ReadHeader() {
     MDF_ERROR() << "File is not open. File: " << filename_;
     return false;
   }
-  if (file_ == nullptr) {
-    MDF_ERROR() << "File is not open. File: " << filename_;
-    return false;
-  }
+
   bool no_error = true;
   try {
     instance_->ReadHeader(file_);

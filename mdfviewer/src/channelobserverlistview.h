@@ -27,7 +27,7 @@ class ChannelObserverListView : public wxListView {
     observer_list_.reset();
   }
  protected:
-  wxString OnGetItemText(long item, long column) const override;
+  [[nodiscard]] wxString OnGetItemText(long item, long column) const override;
 
  private:
   std::unique_ptr<ChannelObserverList> observer_list_;

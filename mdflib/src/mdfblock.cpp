@@ -255,6 +255,13 @@ const MdfBlock* MdfBlock::HeaderBlock() const {
   return parent_ != nullptr ? parent_->HeaderBlock() : nullptr;
 }
 
+const MdfBlock* MdfBlock::DgBlock() const {
+  if (BlockType() == "DG") {
+    return this;
+  }
+  return parent_ != nullptr ? parent_->DgBlock() : nullptr;
+}
+
 const MdfBlock* MdfBlock::CgBlock() const {
   if (BlockType() == "CG") {
     return this;
@@ -340,9 +347,9 @@ std::string MdfBlock::Comment() const {
   return md != nullptr ? md->TxComment() : "";
 }
 
-const MdfBlock *MdfBlock::Find(int64_t index) const {
+MdfBlock *MdfBlock::Find(int64_t index) const {
   if (file_position_ == index) {
-    return this;
+    return const_cast<MdfBlock*>(this);
   }
   if (md_comment_ && md_comment_->FilePosition() == index) {
     return md_comment_.get();

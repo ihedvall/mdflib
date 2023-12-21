@@ -39,12 +39,16 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
       const IChannel& reference) const override;
 
   [[nodiscard]] std::string Comment() const override;
-  const MdfBlock* Find(int64_t index) const override;
+  MdfBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
   size_t Read(std::FILE* file) override;
   size_t Write(std::FILE* file) override;
+
   void ReadCnList(std::FILE* file);
   void ReadSrList(std::FILE* file);
+
+  void ReadData(std::FILE* file) const;
+
 
   uint16_t RecordSize() const { return size_of_data_record_; }
 
@@ -58,6 +62,11 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
   }
   size_t ReadDataRecord(std::FILE* file, const IDataGroup& notifier) const;
   void PrepareForWriting();
+
+  void ClearData() override;
+
+  [[nodiscard]] const IDataGroup* DataGroup() const override;
+
  private:
   uint16_t record_id_ = 0;
   uint16_t nof_channels_ = 0;

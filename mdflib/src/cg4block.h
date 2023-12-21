@@ -7,14 +7,17 @@
 #include <string>
 #include <vector>
 
-#include "cn4block.h"
+
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
 #include "mdfblock.h"
 #include "si4block.h"
-#include "sr4block.h"
+
 
 namespace mdf::detail {
+
+class Cn4Block;
+class Sr4Block;
 
 class Cg4Block : public MdfBlock, public IChannelGroup {
  public:
@@ -23,7 +26,7 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
 
   Cg4Block();
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  const MdfBlock* Find(int64_t index) const override;
+  MdfBlock* Find(int64_t index) const override;
 
   void AddCn4(std::unique_ptr<Cn4Block>& cn3);
   [[nodiscard]] const Cn4List& Cn4() const { return cn_list_; }
@@ -102,6 +105,8 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
                                          const std::vector<uint8_t>& buffer);
   Cn4Block* FindSdChannel() const;
   Cn4Block* FindVlsdChannel(uint64_t record_id) const;
+
+  [[nodiscard]] const IDataGroup* DataGroup() const override;
  private:
   uint64_t record_id_ = 0;
   uint64_t nof_samples_ = 0;

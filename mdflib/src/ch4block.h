@@ -39,7 +39,7 @@ class Ch4Block : public MdfBlock, public IChannelHierarchy {
 
   [[nodiscard]] const Ch4List &Ch() const { return ch_list_; }
 
-  [[nodiscard]] const MdfBlock *Find(int64_t index) const override;
+  [[nodiscard]] MdfBlock *Find(int64_t index) const override;
 
   void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;

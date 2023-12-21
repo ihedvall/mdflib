@@ -66,9 +66,10 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] bool IsDecimalUsed() const override;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  [[nodiscard]] const MdfBlock* Find(int64_t index) const override;
+  [[nodiscard]] MdfBlock* Find(int64_t index) const override;
   size_t Read(std::FILE* file) override;
   size_t Write(std::FILE* file) override;
+  void ReadSignalData(std::FILE* file) const;  ///< Reads in (VLSD) channel data (SD)
   size_t WriteSignalData(std::FILE* file, bool compress);
 
   void Init(const MdfBlock& id_block) override;
@@ -78,7 +79,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] const Si4Block* Si() const { return si_block_.get(); }
   void AddCc4(std::unique_ptr<Cc4Block>& cc4);
   [[nodiscard]] const Cc4Block* Cc() const { return cc_block_.get(); }
-  void ReadData(std::FILE* file) const;  ///< Reads in (VLSD) channel data (SD)
+
 
   void ClearData() const { data_list_.clear(); }
   const std::vector<uint8_t>& DataList() const { return data_list_; }

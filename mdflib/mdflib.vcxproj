@@ -229,6 +229,7 @@
     <ClCompile Include="src\iheader.cpp" />
     <ClCompile Include="src\imetadata.cpp" />
     <ClCompile Include="src\isampleobserver.cpp" />
+    <ClCompile Include="src\isamplereduction.cpp" />
     <ClCompile Include="src\isourceinformation.cpp" />
     <ClCompile Include="src\ixmlfile.cpp" />
     <ClCompile Include="src\ixmlnode.cpp" />
@@ -283,6 +284,7 @@
     <ClInclude Include="..\include\mdf\iheader.h" />
     <ClInclude Include="..\include\mdf\imetadata.h" />
     <ClInclude Include="..\include\mdf\isampleobserver.h" />
+    <ClInclude Include="..\include\mdf\isamplereduction.h" />
     <ClInclude Include="..\include\mdf\isourceinformation.h" />
     <ClInclude Include="..\include\mdf\mdffactory.h" />
     <ClInclude Include="..\include\mdf\mdffile.h" />

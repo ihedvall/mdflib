@@ -4,7 +4,8 @@
  */
 #include "sr3block.h"
 
-#include <cstdio>
+#include "mdf/ichannelgroup.h"
+
 
 namespace {
 
@@ -14,6 +15,28 @@ constexpr size_t kIndexData = 1;
 }  // namespace
 
 namespace mdf::detail {
+int64_t Sr3Block::Index() const {
+  return MdfBlock::Index();
+}
+
+std::string Sr3Block::BlockType() const {
+  return MdfBlock::BlockType();
+}
+
+void Sr3Block::NofSamples(uint64_t nof_samples) {
+  nof_reduced_samples_ = static_cast<uint32_t>(nof_samples);
+}
+
+uint64_t Sr3Block::NofSamples() const { return nof_reduced_samples_; }
+
+void Sr3Block::Interval(double interval) {time_interval_ = interval;}
+
+double Sr3Block::Interval() const { return time_interval_; }
+
+const IChannelGroup *Sr3Block::ChannelGroup() const {
+  const auto* mdf_block = CgBlock();
+  return mdf_block != nullptr ? dynamic_cast<const IChannelGroup*>(mdf_block) : nullptr;
+}
 
 size_t Sr3Block::Read(std::FILE *file) {
   size_t bytes = ReadHeader3(file);
@@ -51,6 +74,44 @@ size_t Sr3Block::Write(std::FILE *file) {
   }
 
   return bytes;
+}
+
+
+void Sr3Block::ReadData(std::FILE *file) const {
+  if (file == nullptr) {
+    throw std::invalid_argument("File pointer is null");
+  }
+  std::FILE *data_file = nullptr;
+  size_t data_size = DataSize();
+  if (data_size == 0) {
+    data_list_.clear();
+    return;
+  }
+  try {
+    data_list_.resize(data_size, 0);
+  } catch (const std::exception&) {
+    data_list_.clear();
+    return;
+  }
+
+  SetFilePosition(file, Link(kIndexData));
+  ReadByte(file,data_list_, data_size);
+}
+
+void Sr3Block::ClearData() {
+  DataListBlock::ClearData();
+  data_list_.clear();
+}
+
+void Sr3Block::GetChannelValueUint( const IChannel& channel, uint64_t sample,
+                                   uint64_t array_index, SrValue<uint64_t>& value ) const {
+}
+void Sr3Block::GetChannelValueInt( const IChannel& channel, uint64_t sample,
+                                   uint64_t array_index, SrValue<int64_t>& value ) const {
+}
+
+void Sr3Block::GetChannelValueDouble( const IChannel& channel, uint64_t sample,
+                                      uint64_t array_index, SrValue<double>& value ) const {
 }
 
 }  // namespace mdf::detail

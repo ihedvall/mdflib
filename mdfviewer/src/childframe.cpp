@@ -2,17 +2,25 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+#include "childframe.h"
+
 #include <sstream>
 #include <filesystem>
 #include <wx/sizer.h>
 #include <wx/bitmap.h>
 #include "util/timestamp.h"
-#include "childframe.h"
+
 #include "mdfdocument.h"
 #include "hl4block.h"
 #include "dl4block.h"
 #include "windowid.h"
 #include "ca4block.h"
+#include "dt4block.h"
+#include "dt3block.h"
+#include "dz4block.h"
+#include "sr4block.h"
+#include "cn4block.h"
+
 
 using namespace mdf::detail;
 
@@ -390,24 +398,57 @@ void ChildFrame::RedrawDataList(const mdf::detail::DataListBlock& dg, const wxTr
     if (!data) {
       continue;
     }
-    if (data->BlockType() == "DT") {
-      left_->AppendItem(root, CreateBlockText(*data),
-                        TREE_DT, TREE_DT, new BlockAddress(data->FilePosition()));
+    std::ostringstream block_string;
+    block_string << data->BlockType();
 
+    const auto* data_block = dynamic_cast<const DataBlock*>(data.get());
+    const auto* data_block_list = dynamic_cast<const DataListBlock*>(data.get());
+    uint64_t nof_data_bytes = data_block != nullptr ? data_block->DataSize() : 0;
+    if (data_block_list != nullptr) {
+      nof_data_bytes = data_block_list->DataSize();
+    }
+
+    if (data->BlockType() == "DT") {
+      block_string << " (Size {bytes]: " << nof_data_bytes << ")";
+      left_->AppendItem(root, wxString::FromUTF8(block_string.str()),
+                        TREE_DT, TREE_DT,
+                        new BlockAddress(data->FilePosition()));
+    } else if (data->BlockType() == "DV" || data->BlockType() == "DI") {
+      block_string << " (Size {bytes]: " << nof_data_bytes << ")";
+      left_->AppendItem(root,wxString::FromUTF8(block_string.str()),
+                        TREE_DT, TREE_DT,
+                        new BlockAddress(data->FilePosition()));
     } else if (data->BlockType() == "DZ") {
-      left_->AppendItem(root, CreateBlockText(*data),
+      const auto* dz4 = dynamic_cast<const Dz4Block*>(data.get());
+      if (dz4 != nullptr) {
+        block_string << "/" << dz4->OrigBlockType()
+          << " (Size [bytes]: " << dz4->CompressedDataSize()
+          << "/" << dz4->DataSize() << ")";
+      }
+      left_->AppendItem(root,wxString::FromUTF8(block_string.str()),
                         TREE_DZ, TREE_DZ, new BlockAddress(data->FilePosition()));
-    } else if (data->BlockType() == "RD") {
-      left_->AppendItem(root, CreateBlockText(*data),
+    } else if (data->BlockType() == "RD" || data->BlockType() == "RV" || data->BlockType() == "RI") {
+      block_string << " (Size [bytes]: " << nof_data_bytes << ")";
+      left_->AppendItem(root, wxString::FromUTF8(block_string.str()),
                         TREE_RD, TREE_RD, new BlockAddress(data->FilePosition()));
     } else if (data->BlockType() == "SD") {
-      left_->AppendItem(root, CreateBlockText(*data),
+      block_string << " (Size [bytes]: " << nof_data_bytes << ")";
+      left_->AppendItem(root, wxString::FromUTF8(block_string.str()),
                         TREE_SD, TREE_SD, new BlockAddress(data->FilePosition()));
     } else if (data->BlockType() == "DL") {
-      auto dl_root = left_->AppendItem(root, CreateBlockText(*data),
+      block_string << " (Size [bytes]: " << nof_data_bytes << ")";
+      auto dl_root = left_->AppendItem(root, wxString::FromUTF8(block_string.str()),
                         TREE_DL, TREE_DL, new BlockAddress(data->FilePosition()));
       const auto* dl = dynamic_cast<const mdf::detail::Dl4Block*>(data.get());
       RedrawDataList(*dl, dl_root);
+    } else if (data->BlockType() == "LD") {
+      auto ld_root = left_->AppendItem(root, CreateBlockText(*data),
+                                       TREE_DL, TREE_DL,
+                                       new BlockAddress(data->FilePosition()));
+      const auto* data_list = dynamic_cast<const mdf::detail::DataListBlock*>(data.get());
+      if (data_list != nullptr) {
+        RedrawDataList(*data_list, ld_root);
+      }
     } else if (data->BlockType() == "HL") {
       auto hl_root = left_->AppendItem(root, CreateBlockText(*data),
                       TREE_HL, TREE_HL, new BlockAddress(data->FilePosition()));
@@ -590,26 +631,34 @@ void ChildFrame::RedrawCnList(const detail::Cg3Block &cg3, const wxTreeItemId &r
 
     if (const auto* cd3 = cn3->Cd3(); cd3 != nullptr) {
       left_->AppendItem(cn_root, CreateBlockText(*cd3),
-                                       TREE_CH, TREE_CH, new BlockAddress(cd3->FilePosition()));
+      TREE_CH, TREE_CH, new BlockAddress(cd3->FilePosition()));
     }
 
     if (const auto* ce3 = cn3->Ce3(); ce3 != nullptr) {
       left_->AppendItem(cn_root, CreateBlockText(*ce3),
-                        TREE_SI, TREE_SI, new BlockAddress(ce3->FilePosition()));
+      TREE_SI, TREE_SI, new BlockAddress(ce3->FilePosition()));
     }
     RedrawDataList(*cn3, cn_root);
   }
 }
 
-void ChildFrame::RedrawSrList(const detail::Cg4Block &cg, const wxTreeItemId &root) {
-  for (const auto& sr : cg.Sr4()) {
-    if (!sr) {
+void ChildFrame::RedrawSrList(const detail::Cg4Block &cg4, const wxTreeItemId &root) {
+  for (const auto& sr4 : cg4.Sr4()) {
+    if (!sr4) {
       continue;
     }
-    auto sr_root = left_->AppendItem(root, sr->BlockType(),
-                                     TREE_SR, TREE_SR, new BlockAddress(sr->FilePosition()));
+    std::ostringstream sub_string;
+    sub_string << "Samples: " << sr4->NofSamples()
+               <<", Interval: " << sr4->Interval();
 
-    RedrawDataList(*sr,sr_root);
+    std::ostringstream sr_string;
+    sr_string << sr4->BlockType() << " (" << sub_string.str() << ")";
+    auto sr_root = left_->AppendItem(root,
+           wxString::FromUTF8(sr_string.str()),
+          TREE_SR, TREE_SR,
+          new BlockAddress(sr4->FilePosition()));
+
+    RedrawDataList(*sr4,sr_root);
   }
 }
 
@@ -619,11 +668,12 @@ void ChildFrame::RedrawSrList(const detail::Cg3Block &cg3, const wxTreeItemId &r
       continue;
     }
     auto sr_root = left_->AppendItem(root, sr->BlockType(),
-                                     TREE_SR, TREE_SR, new BlockAddress(sr->FilePosition()));
+          TREE_SR, TREE_SR, new BlockAddress(sr->FilePosition()));
 
     RedrawDataList(*sr,sr_root);
   }
 }
+
 void ChildFrame::RedrawSiBlock(const detail::Si4Block &si, const wxTreeItemId &root) {
   std::ostringstream sub_string;
   const auto& si_name = si.Name();
@@ -798,7 +848,7 @@ void ChildFrame::RedrawCcBlock(const detail::Cc3Block &cc3, const wxTreeItemId &
     cc_string << " (" << sub_string.str() << ")";
   }
 
-  auto cc_root = left_->AppendItem(root, wxString::FromUTF8(cc_string.str()),
+  left_->AppendItem(root, wxString::FromUTF8(cc_string.str()),
                                    TREE_CC, TREE_CC, new BlockAddress(cc3.FilePosition()));
 }
 
@@ -921,6 +971,7 @@ void ChildFrame::OnTreeRightClick(wxTreeEvent& event) {
   wxMenu menu;
   menu.Append(kIdShowGroupData, "Show Group Data");
   menu.Append(kIdShowChannelData, "Show Channel Data");
+  menu.Append(kIdShowSrData, "Show Sample Reduction Data");
   menu.AppendSeparator();
   menu.Append(kIdPlotChannelData, "Plot Channel Data");
   menu.AppendSeparator();

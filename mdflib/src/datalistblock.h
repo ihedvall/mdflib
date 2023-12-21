@@ -16,13 +16,17 @@ class DataListBlock : public MdfBlock {
   BlockList& DataBlockList() { return block_list_; }
   [[nodiscard]] const BlockList& DataBlockList() const { return block_list_; }
   [[nodiscard]] virtual size_t DataSize() const;
-  [[nodiscard]] const MdfBlock* Find(int64_t index) const override;
+  [[nodiscard]] MdfBlock* Find(int64_t index) const override;
   void ReadBlockList(std::FILE* file, size_t data_index);
   void WriteBlockList(std::FILE* file, size_t data_index);
 
   void ReadLinkList(std::FILE* file, size_t data_index, uint32_t nof_link);
   virtual void ClearData();
+  void CopyDataToBuffer(FILE *from_file, std::vector<uint8_t> &buffer,
+                                                   size_t &buffer_index) const;
+  [[nodiscard]] bool IsRdBlock() const;
  protected:
   BlockList block_list_;
 };
+
 }  // namespace mdf::detail

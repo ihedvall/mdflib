@@ -84,8 +84,15 @@ class IDataGroup : public IBlock {
   void NotifySampleObservers(size_t sample, uint64_t record_id,
                              const std::vector<uint8_t>& record) const;
 
-  /** \brief Clear all temporary sample and data buffers. */
-  void ResetSample() const;
+  /** \brief Clear all temporary sample and data buffers.
+   *
+   * Clear all sample and signal data buffers. Call this function
+   * when no need of any signal data (SD) or sample reduction (SR) data
+   * are needed. This reduce memory usage if more DG blocks should
+   * read in data bytes.
+   */
+  virtual void ClearData();
+
   /** \brief Set the DG blocks data as read. */
   void SetAsRead(bool mark_as_read = true) const {
     mark_as_read_ = mark_as_read;
@@ -101,7 +108,7 @@ class IDataGroup : public IBlock {
   /** \brief Support function that return the first CG block that contains
    * a specific CN block.
    */
-  [[nodiscard]] virtual const IChannelGroup *FindParentChannelGroup(
+  [[nodiscard]] virtual IChannelGroup *FindParentChannelGroup(
       const IChannel &channel) const = 0;
 
  protected:

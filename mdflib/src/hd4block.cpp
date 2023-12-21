@@ -68,55 +68,55 @@ namespace mdf::detail {
 
 Hd4Block::Hd4Block() { block_type_ = "##HD"; }
 
-const MdfBlock* Hd4Block::Find(int64_t index) const {
+MdfBlock* Hd4Block::Find(int64_t index) const {
   if (index <= 0) {
     return nullptr;
   }
 
-  for (const auto& dg : dg_list_) {
+  for (auto& dg : dg_list_) {
     if (!dg) {
       continue;
     }
-    const auto* p = dg->Find(index);
+    auto* p = dg->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
-  for (const auto& fh : fh_list_) {
+  for (auto& fh : fh_list_) {
     if (!fh) {
       continue;
     }
-    const auto* p = fh->Find(index);
+    auto* p = fh->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
 
-  for (const auto& ch : ch_list_) {
+  for (auto& ch : ch_list_) {
     if (!ch) {
       continue;
     }
-    const auto* p = ch->Find(index);
+    auto* p = ch->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
 
-  for (const auto& at : at_list_) {
+  for (auto& at : at_list_) {
     if (!at) {
       continue;
     }
-    const auto* p = at->Find(index);
+    auto* p = at->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
 
-  for (const auto& ev : ev_list_) {
+  for (auto& ev : ev_list_) {
     if (!ev) {
       continue;
     }
-    const auto* p = ev->Find(index);
+    auto* p = ev->Find(index);
     if (p != nullptr) {
       return p;
     }

@@ -44,13 +44,11 @@ ChannelObserverFrame::ChannelObserverFrame(std::unique_ptr<ChannelObserverList>&
   }
 
   list_view_->ObserverList(observer_list);
-  list_view_->SetItemCount(samples);
+  list_view_->SetItemCount(static_cast<long>(samples));
   for (int col = 0; col < list_view_->GetColumnCount(); ++col) {
     list_view_->SetColumnWidth(col, wxLIST_AUTOSIZE_USEHEADER);
   }
 
-}
-ChannelObserverFrame::~ChannelObserverFrame() {
 }
 
 }

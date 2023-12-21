@@ -11,6 +11,8 @@
 #include "dt4block.h"
 #include "dz4block.h"
 #include "hl4block.h"
+#include "cn4block.h"
+#include "sr4block.h"
 #include "mdf/mdflogstream.h"
 
 namespace {
@@ -53,12 +55,12 @@ IChannelGroup* Dg4Block::CreateChannelGroup() {
   return cg_list_.empty() ? nullptr : cg_list_.back().get();
 }
 
-const MdfBlock* Dg4Block::Find(int64_t index) const {
-  for (const auto& cg : cg_list_) {
+MdfBlock* Dg4Block::Find(int64_t index) const {
+  for (auto& cg : cg_list_) {
     if (!cg) {
       continue;
     }
-    const auto* p = cg->Find(index);
+    auto* p = cg->Find(index);
     if (p != nullptr) {
       return p;
     }
@@ -122,7 +124,7 @@ size_t Dg4Block::Write(std::FILE* file) {
     // VLSD CG bloks.
     for (auto& cg4 : cg_list_) {
       if (cg4 && (cg4->Flags() & CgFlag::VlsdChannel) ) {
-        // The previous CG block have a channel which need to updates its
+        // The previous CG block have a channel which need to update its
         // signal data link.
         auto* other_cg4 = FindCgRecordId(cg4->RecordId() -1);
         auto* cn4 = other_cg4 != nullptr ?
@@ -133,7 +135,7 @@ size_t Dg4Block::Write(std::FILE* file) {
       }
     }
   }
-  // Need to write any data block so it is positioned last in the file
+  // Need to write any data block, so it is positioned last in the file
   // as any DT block should be appended with data bytes. The DT block must be
   // last in the file
   WriteLink4List(file, block_list_, kIndexData,
@@ -146,7 +148,7 @@ void Dg4Block::ReadCgList(std::FILE* file) {
   ReadLink4List(file, cg_list_, kIndexCg);
 }
 
-void Dg4Block::ReadData(std::FILE* file) const {
+void Dg4Block::ReadData(std::FILE* file) {
   if (file == nullptr) {
     throw std::invalid_argument("File pointer is null");
   }
@@ -158,11 +160,21 @@ void Dg4Block::ReadData(std::FILE* file) const {
   // First scan through all CN blocks and set up any VLSD CG or MLSD channel
   // relations.
 
-  for (const auto& cg : cg_list_) {
-    if (!cg) {
+  for (const auto& cg4 : cg_list_) {
+    if (!cg4) {
       continue;
     }
-    const auto channel_list = cg->Channels();
+
+    // Fetch all data from sample reduction blocks (SR).
+    for (const auto& sr4 : cg4->Sr4()) {
+      if (!sr4) {
+        continue;
+      }
+      sr4->ReadData(file);
+    }
+
+    // Fetch all signal data (SD)
+    const auto channel_list = cg4->Channels();
     for (const auto* channel :channel_list) {
       if (channel == nullptr) {
         continue;
@@ -197,14 +209,14 @@ void Dg4Block::ReadData(std::FILE* file) const {
               cn_block->VlsdRecordId(cg_block->RecordId());
             } else {
               cn_block->VlsdRecordId(0);
-              cn_block->ReadData(file);
+              cn_block->ReadSignalData(file);
             }
           } else if (block->BlockType() == "SD") {
-            cn_block->ReadData(file);
+            cn_block->ReadSignalData(file);
           } else if (block->BlockType() == "DZ") {
-            cn_block->ReadData(file);
+            cn_block->ReadSignalData(file);
           } else if (block->BlockType() == "DL") {
-            cn_block->ReadData(file);          }
+            cn_block->ReadSignalData(file);          }
           break;
 
         case ChannelType::MaxLength:
@@ -272,22 +284,26 @@ void Dg4Block::ReadData(std::FILE* file) const {
   }
 }
 
-void Dg4Block::ParseDataRecords(std::FILE* file, size_t nof_data_bytes) const {
+void Dg4Block::ParseDataRecords(std::FILE* file, size_t nof_data_bytes) {
   if (file == nullptr || nof_data_bytes == 0) {
     return;
   }
-  ResetSample();
+  for (const auto& channel_group : Cg4() ) {
+    if (channel_group) {
+      channel_group->ResetSampleCounter();
+    }
+  }
 
   for (size_t count = 0; count < nof_data_bytes; /* No ++count here*/) {
     // 1. Read Record ID
     uint64_t record_id = 0;
     count += ReadRecordId(file, record_id);
 
-    const auto* cg = FindCgRecordId(record_id);
-    if (cg == nullptr) {
+    const auto* cg4 = FindCgRecordId(record_id);
+    if (cg4 == nullptr) {
       break;
     }
-    const auto read = cg->ReadDataRecord(file, *this);
+    const auto read = cg4->ReadDataRecord(file, *this);
     if (read == 0) {
       break;
     }
@@ -298,7 +314,7 @@ void Dg4Block::ParseDataRecords(std::FILE* file, size_t nof_data_bytes) const {
 
 size_t Dg4Block::ReadRecordId(std::FILE* file, uint64_t& record_id) const {
   record_id = 0;
-  if (file == 0) {
+  if (file == nullptr) {
     return 0;
   }
   size_t count = 0;
@@ -479,7 +495,7 @@ bool Dg4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
   return true;
 }
 
-const IChannelGroup* Dg4Block::FindParentChannelGroup(const IChannel&
+IChannelGroup* Dg4Block::FindParentChannelGroup(const IChannel&
                                                       channel) const {
   const auto channel_index = channel.Index();
   const auto &cg_list = Cg4();
@@ -488,6 +504,27 @@ const IChannelGroup* Dg4Block::FindParentChannelGroup(const IChannel&
     return cg_block && cg_block->Find(channel_index) != nullptr;
   });
   return itr != cg_list.cend() ? itr->get() : nullptr;
+}
+
+void Dg4Block::ClearData() {
+  DataListBlock::ClearData();
+  IDataGroup::ClearData();
+  for (auto& cg4 : Cg4()) {
+    if (!cg4) {
+      continue;
+    }
+    for (auto& sr4 : cg4->Sr4()) {
+      if (sr4) {
+        sr4->ClearData();
+      }
+    }
+
+    for (auto& cn4 : cg4->Cn4()) {
+      if (cn4) {
+        cn4->ClearData();
+      }
+    }
+  }
 }
 
 }  // namespace mdf::detail

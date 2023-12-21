@@ -48,7 +48,7 @@ class MdfDocument : public wxDocument {
     return grand_parent_id_;
   }
 
-  [[nodiscard]] const mdf::detail::MdfBlock* GetBlock(int64_t id) const; ///< Returns a block pointer by block index.
+  [[nodiscard]] mdf::detail::MdfBlock* GetBlock(int64_t id) const; ///< Returns a block pointer by block index.
 
  private:
   std::unique_ptr<mdf::MdfReader> reader_;
@@ -64,6 +64,9 @@ class MdfDocument : public wxDocument {
 
   void OnShowChannelData(wxCommandEvent& event);
   void OnUpdateShowChannelData(wxUpdateUIEvent& event);
+
+  void OnShowSrData(wxCommandEvent& event);
+  void OnUpdateShowSrData(wxUpdateUIEvent& event);
 
   void OnPlotChannelData(wxCommandEvent& event);
   void OnUpdatePlotChannelData(wxUpdateUIEvent& event);

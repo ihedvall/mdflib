@@ -27,7 +27,11 @@ add_executable(mdfview
         src/util/logmessage.cpp src/util/logmessage.h
         src/util/logstream.cpp src/util/logstream.h
         src/util/stringutil.cpp src/util/stringutil.h
-        src/util/timestamp.cpp src/util/timestamp.h)
+        src/util/timestamp.cpp src/util/timestamp.h
+        src/samplereductionframe.cpp
+        src/samplereductionframe.h
+        src/samplereductionlistview.cpp
+        src/samplereductionlistview.h)
 
 target_include_directories(mdfview PRIVATE mdf
                                            "${CMAKE_CURRENT_SOURCE_DIR}/../mdflib/src")

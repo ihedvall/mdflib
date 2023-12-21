@@ -16,5 +16,6 @@ constexpr wxWindowID kIdHistoryList = 9;
 constexpr wxWindowID kIdMeasurementList = 10;
 constexpr wxWindowID kIdEventList = 11;
 constexpr wxWindowID kIdAttachmentList = 12;
-constexpr wxWindowID kIdHierarchyList = 12;
+constexpr wxWindowID kIdHierarchyList = 13;
+constexpr wxWindowID kIdShowSrData = 14;
 }

@@ -12,6 +12,8 @@
 #include "mdf/mdfreader.h"
 #include "mdf3file.h"
 #include "mdf4file.h"
+#include "cn4block.h"
+
 #include "util/logconfig.h"
 #include "util/logstream.h"
 #include "util/stringutil.h"

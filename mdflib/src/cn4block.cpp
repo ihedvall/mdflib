@@ -506,33 +506,33 @@ size_t Cn4Block::Write(std::FILE *file) {
   return bytes;
 }
 
-const MdfBlock *Cn4Block::Find(int64_t index) const {
+MdfBlock *Cn4Block::Find(int64_t index) const {
   if (si_block_) {
-    const auto *p = si_block_->Find(index);
+    auto *p = si_block_->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
 
   if (cc_block_) {
-    const auto *p = cc_block_->Find(index);
+    auto *p = cc_block_->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
 
   if (unit_) {
-    const auto *p = unit_->Find(index);
+    auto *p = unit_->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
 
-  for (const auto& cx : cx_list_) {
+  for (auto& cx : cx_list_) {
     if (!cx) {
       continue;
     }
-    const auto* p = cx->Find(index);
+    auto* p = cx->Find(index);
     if (p != nullptr) {
       return p;
     }
@@ -541,7 +541,7 @@ const MdfBlock *Cn4Block::Find(int64_t index) const {
   return DataListBlock::Find(index);
 }
 
-void Cn4Block::ReadData(std::FILE *file) const {
+void Cn4Block::ReadSignalData(std::FILE *file) const {
   const size_t count = DataSize();
 
   size_t index = 0;
@@ -552,7 +552,7 @@ void Cn4Block::ReadData(std::FILE *file) const {
     const auto *data_list = dynamic_cast<const DataListBlock *>(block.get());
     const auto *data_block = dynamic_cast<const DataBlock *>(block.get());
     if (data_list != nullptr) {
-      CopyDataToBuffer(data_list, file, data_list_, index);
+      data_list->CopyDataToBuffer(file, data_list_, index);
     } else if (data_block != nullptr) {
       data_block->CopyDataToBuffer(file, data_list_, index);
     }

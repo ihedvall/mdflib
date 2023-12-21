@@ -68,7 +68,7 @@ class Cc4Block : public MdfBlock, public IChannelConversion {
   
   [[nodiscard]] const RefList& References() const { return ref_list_; }
 
-  [[nodiscard]] const MdfBlock* Find(int64_t index) const override;
+  [[nodiscard]] MdfBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
 
   size_t Read(std::FILE* file) override;

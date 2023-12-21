@@ -102,7 +102,7 @@ class Hd4Block : public MdfBlock, public IHeader {
 
   [[nodiscard]] const Ev4List &Ev4() const { return ev_list_; }
 
-  [[nodiscard]] const MdfBlock *Find(int64_t index) const override;
+  [[nodiscard]] MdfBlock *Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList &dest) const override;
 
   size_t Read(std::FILE *file) override;

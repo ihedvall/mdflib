@@ -37,7 +37,7 @@ class Mdf4File : public MdfFile {
 
   [[nodiscard]] IDataGroup* CreateDataGroup() override;
 
-  [[nodiscard]] const MdfBlock* Find(int64_t id) const;
+  [[nodiscard]] MdfBlock* Find(int64_t id) const;
 
   [[nodiscard]] bool IsMdf4() const override;
 
@@ -55,7 +55,7 @@ class Mdf4File : public MdfFile {
 
   bool Write(std::FILE* file) override;
 
-  [[nodiscard]] const IDataGroup* FindParentDataGroup(
+  [[nodiscard]] IDataGroup* FindParentDataGroup(
       const IChannel& channel) const  override;
 
  private:

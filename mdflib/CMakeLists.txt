@@ -91,7 +91,10 @@ add_library(mdf STATIC
         src/canmessage.cpp ../include/mdf/canmessage.h
         src/dbchelper.cpp
         src/dbchelper.h
-        src/isampleobserver.cpp)
+        src/isampleobserver.cpp
+        src/isamplereduction.cpp
+        ../include/mdf/isamplereduction.h
+)
 
 if(VCPKG)
   find_package(ZLIB REQUIRED)

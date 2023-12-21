@@ -14,6 +14,7 @@
 #include "mdf4file.h"
 #include "mdfdocument.h"
 #include "ca4block.h"
+#include "cc4block.h"
 
 namespace mdf::viewer {
 class ChildFrame : public wxDocMDIChildFrame {

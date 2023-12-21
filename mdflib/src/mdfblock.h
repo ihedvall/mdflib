@@ -88,12 +88,12 @@ class MdfBlock {
   [[nodiscard]] virtual std::string BlockType() const;
 
   virtual void GetBlockProperty(BlockPropertyList &dest) const;
-  [[nodiscard]] virtual const MdfBlock *Find(int64_t index) const;
+  [[nodiscard]] virtual MdfBlock *Find(int64_t index) const;
 
   void SetLastFilePosition(std::FILE *file) const;
 
   [[nodiscard]] uint64_t BlockLength() const {
-    return block_size_ + block_length_;
+    return block_length_ > 0 ? block_length_ : block_size_;
   }
 
   /**
@@ -129,7 +129,11 @@ class MdfBlock {
 
   void UpdateBlockSize(std::FILE *file, size_t bytes);
 
+  [[nodiscard]] bool IsMdf4() const;
+
   [[nodiscard]] const MdfBlock* HeaderBlock() const;
+
+  [[nodiscard]] const MdfBlock* DgBlock() const;
   [[nodiscard]] const MdfBlock* CgBlock() const;
  protected:
   int64_t file_position_ = 0;  ///< 64-bit file position.
@@ -152,7 +156,7 @@ class MdfBlock {
 
   MdfBlock() = default;
 
-  [[nodiscard]] bool IsMdf4() const;
+
   size_t ReadHeader3(std::FILE *file);  ///< Reads a MDF3 block header.
   size_t ReadLinks3(
       std::FILE *file,

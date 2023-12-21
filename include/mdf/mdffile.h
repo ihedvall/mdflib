@@ -25,7 +25,7 @@ using AttachmentList = std::vector<const IAttachment*>;
 
 /** \brief List of pointers to measurements (DG block).
  */
-using DataGroupList = std::vector<const IDataGroup*>;
+using DataGroupList = std::vector<IDataGroup*>;
 
 /** \class MdfFile mdffile.h mdf/mdffile.h
  * \brief Implements an user interface against a MDF file.
@@ -217,7 +217,7 @@ class MdfFile {
   [[nodiscard]] virtual bool IsFinalized(uint16_t& standard_flags,
                                          uint16_t& custom_flags) const = 0;
   /** \brief Returns a parent data group (DG) depending a channel. */
-  [[nodiscard]] virtual const IDataGroup* FindParentDataGroup(
+  [[nodiscard]] virtual IDataGroup* FindParentDataGroup(
       const IChannel &channel) const = 0;
  protected:
   MdfFile() = default;  ///< Default constructor

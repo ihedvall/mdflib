@@ -91,7 +91,11 @@ MdfChannelGroup^ MdfDataGroup::FindParentChannelGroup(const MdfChannel^ channel)
 
 void MdfDataGroup::ResetSample() {
   if (group_ != nullptr) {
-    group_->ResetSample();
+    for (const auto* channel_group: group_->ChannelGroups()) {
+      if (channel_group != nullptr) {
+        channel_group->ResetSampleCounter();
+      }  
+    }
   }
 }
 

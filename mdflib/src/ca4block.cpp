@@ -340,13 +340,13 @@ uint64_t Ca4Block::NumberOfAxisValues() const {
   return sum;
 }
 
-const MdfBlock *Ca4Block::Find(int64_t index) const {
+MdfBlock *Ca4Block::Find(int64_t index) const {
 
-  for (const auto& composition_block : composition_list_) {
+  for (auto& composition_block : composition_list_) {
     if (!composition_block) {
       continue;
     }
-    const auto* block = composition_block->Find(index);
+    auto* block = composition_block->Find(index);
     if (block != nullptr) {
       return block;
     }

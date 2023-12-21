@@ -348,9 +348,9 @@ void Cn3Block::ByteOffset(uint32_t byte_offset) {
 
 std::string Cn3Block::Comment() const { return comment_; }
 
-const MdfBlock *Cn3Block::Find(int64_t index) const {
+MdfBlock *Cn3Block::Find(int64_t index) const {
   if (cc_block_) {
-    const auto *p = cc_block_->Find(index);
+    auto *p = cc_block_->Find(index);
     if (p != nullptr) {
       return p;
     }

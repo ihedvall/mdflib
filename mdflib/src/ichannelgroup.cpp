@@ -15,7 +15,7 @@ SampleRecord IChannelGroup::GetSampleRecord() const {
   return std::move(record);
 }
 
-void IChannelGroup::ResetSample() const { sample_ = 0; }
+void IChannelGroup::ClearData() { sample_ = 0; }
 
 void IChannelGroup::IncrementSample() const { ++sample_; }
 

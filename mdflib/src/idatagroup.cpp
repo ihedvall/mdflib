@@ -41,10 +41,10 @@ void IDataGroup::NotifySampleObservers(
   }
 }
 
-void IDataGroup::ResetSample() const {
+void IDataGroup::ClearData() {
   auto list = ChannelGroups();
   std::for_each(list.begin(),list.end(),
-                        [](const auto *cg) { cg->ResetSample(); });
+                        [](auto *cg) { cg->ClearData(); });
 }
 
 IMetaData *IDataGroup::CreateMetaData() { return nullptr; }

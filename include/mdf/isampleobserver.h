@@ -15,6 +15,8 @@
 #include "mdf/idatagroup.h"
 namespace mdf {
 
+
+
 /** \brief Interface to a sample observer that handle incoming samples events.
  */
 class ISampleObserver {

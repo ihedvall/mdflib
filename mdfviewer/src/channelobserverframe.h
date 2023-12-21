@@ -13,7 +13,7 @@ class ChannelObserverFrame : public wxFrame {
  public:
   ChannelObserverFrame(std::unique_ptr<ChannelObserverList>& observer_list, wxWindow *parent, wxWindowID id,
                        const wxString& title);
-  virtual ~ChannelObserverFrame();
+
 
  private:
   ChannelObserverListView* list_view_ = nullptr;

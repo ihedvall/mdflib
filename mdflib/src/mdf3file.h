@@ -30,7 +30,7 @@ class Mdf3File : public MdfFile {
 
   [[nodiscard]] IDataGroup *CreateDataGroup() override;
 
-  [[nodiscard]] const MdfBlock *Find(int64_t id) const;
+  [[nodiscard]] MdfBlock *Find(int64_t id) const;
 
   [[nodiscard]] bool IsMdf4() const override;
   void IsFinalized(bool finalized, std::FILE *file, uint16_t standard_flags,
@@ -52,7 +52,7 @@ class Mdf3File : public MdfFile {
   Mdf3File &operator=(const Mdf3File &) = delete;
   Mdf3File &operator=(Mdf3File &&) = delete;
 
-  [[nodiscard]] const IDataGroup* FindParentDataGroup(
+  [[nodiscard]] IDataGroup* FindParentDataGroup(
       const IChannel& channel) const  override;
  private:
   std::unique_ptr<IdBlock> id_block_;

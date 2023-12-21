@@ -310,22 +310,22 @@ size_t Cc4Block::Write(std::FILE* file) {  // NOLINT
   return bytes;
 }
 
-const MdfBlock* Cc4Block::Find(int64_t index) const {  // NOLINT
+MdfBlock* Cc4Block::Find(int64_t index) const {  // NOLINT
   if (cc_block_) {
-    const auto* p = cc_block_->Find(index);
+    auto* p = cc_block_->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
   if (unit_) {
-    const auto* p = unit_->Find(index);
+    auto* p = unit_->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
   for (const auto& ref : ref_list_) {
     if (ref) {
-      const auto* p = ref->Find(index);
+      auto* p = ref->Find(index);
       if (p != nullptr) {
         return p;
       }

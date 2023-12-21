@@ -204,12 +204,12 @@ void Cg3Block::ReadSrList(std::FILE *file) {
   }
 }
 
-const MdfBlock *Cg3Block::Find(int64_t index) const {
-  for (const auto &p : cn_list_) {
+MdfBlock *Cg3Block::Find(int64_t index) const {
+  for (auto &p : cn_list_) {
     if (!p) {
       continue;
     }
-    const auto *pp = p->Find(index);
+    auto *pp = p->Find(index);
     if (pp != nullptr) {
       return pp;
     }
@@ -256,6 +256,27 @@ IChannel *Cg3Block::CreateChannel() {
   cn3->Init(*this);
   AddCn3(cn3);
   return cn_list_.empty() ? nullptr : cn_list_.back().get();
+}
+
+void Cg3Block::ReadData(std::FILE *file) const {
+  for (const auto& sr3 : Sr3()) {
+    if (!sr3) { continue;}
+    sr3->ReadData(file);
+  }
+}
+
+void Cg3Block::ClearData() {
+  IChannelGroup::ClearData();
+  for (const auto& sr3 : Sr3() ) {
+    if (sr3) {
+      sr3->ClearData();
+    }
+  }
+}
+
+const IDataGroup *Cg3Block::DataGroup() const {
+  const auto* mdf_block = DgBlock();
+  return mdf_block != nullptr ? dynamic_cast<const IDataGroup*>(mdf_block) : nullptr;
 }
 
 }  // namespace mdf::detail

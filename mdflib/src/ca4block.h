@@ -41,7 +41,7 @@ class Ca4Block : public MdfBlock, public IChannelArray {
   void CycleCountOffset(uint64_t cycle_count, uint64_t offset ) override; ///< Setting an offset value
   [[nodiscard]] uint64_t CycleCountOffset(uint64_t cycle_count) const override; ///< Getting an axis value
 
-  [[nodiscard]] const MdfBlock *Find(int64_t index) const override;
+  [[nodiscard]] MdfBlock *Find(int64_t index) const override;
   [[nodiscard]] const Cx4List& Cx4() const { return composition_list_; }
 
   size_t Read(std::FILE* file) override;

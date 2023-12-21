@@ -182,12 +182,12 @@ void DataListBlock::WriteBlockList(std::FILE* file, size_t first_index) {
   }
 }
 
-const MdfBlock* DataListBlock::Find(int64_t index) const {
-  for (const auto& p : block_list_) {
+MdfBlock* DataListBlock::Find(int64_t index) const {
+  for (auto& p : block_list_) {
     if (!p) {
       continue;
     }
-    const auto* pp = p->Find(index);
+    auto* pp = p->Find(index);
     if (pp != nullptr) {
       return pp;
     }
@@ -223,6 +223,42 @@ void DataListBlock::ClearData() { // NOLINT
       data_list_block->ClearData();
     }
   }
+}
+
+void DataListBlock::CopyDataToBuffer(std::FILE *from_file, std::vector<uint8_t> &buffer,
+                      size_t &buffer_index) const {
+  for (const auto &block : block_list_) {
+    const auto *data_list = dynamic_cast<const DataListBlock *>(block.get());
+    const auto *data_block = dynamic_cast<const DataBlock *>(block.get());
+    if (data_list != nullptr) {
+      data_list->CopyDataToBuffer(from_file, buffer, buffer_index);
+    } else if (data_block != nullptr) {
+      data_block->CopyDataToBuffer(from_file, buffer, buffer_index);
+    }
+  }
+}
+
+bool DataListBlock::IsRdBlock() const {
+  for (const auto& block : block_list_) {
+    if (!block) {
+      continue;
+    }
+    if (const auto* list = dynamic_cast<const DataListBlock*>(block.get())) {
+      if (list->IsRdBlock()) {
+        return true;
+      }
+    }
+    if (block->BlockType() == "DZ") {
+      const auto* dz4 = dynamic_cast<const Dz4Block*>(block.get());
+      if (dz4->OrigBlockType() == "RD") {
+        return true;
+      }
+    }
+    if (block->BlockType() == "RD") {
+      return true;
+    }
+  }
+  return false;
 }
 
 }  // namespace mdf::detail

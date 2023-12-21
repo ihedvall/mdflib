@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <codecvt>
 #include <climits>
+#include "cn4block.h"
+#include "sr4block.h"
 
 namespace {
 
@@ -262,28 +264,28 @@ void Cg4Block::ReadSrList(std::FILE *file) {
   ReadLink4List(file, sr_list_, kIndexSr);
 }
 
-const MdfBlock *Cg4Block::Find(int64_t index) const {
+MdfBlock *Cg4Block::Find(int64_t index) const {
   if (si_block_) {
-    const auto *p = si_block_->Find(index);
+    auto *p = si_block_->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
-  for (const auto &cn : cn_list_) {
+  for (auto &cn : cn_list_) {
     if (!cn) {
       continue;
     }
-    const auto *p = cn->Find(index);
+    auto *p = cn->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
 
-  for (const auto &sr : sr_list_) {
+  for (auto &sr : sr_list_) {
     if (!sr) {
       continue;
     }
-    const auto *p = sr->Find(index);
+    auto *p = sr->Find(index);
     if (p != nullptr) {
       return p;
     }
@@ -702,4 +704,10 @@ Cn4Block *Cg4Block::FindVlsdChannel(uint64_t record_id) const {
   }
   return dynamic_cast<Cn4Block*>(*itr);
 }
+
+const IDataGroup *Cg4Block::DataGroup() const {
+  const auto* mdf_block = DgBlock();
+  return mdf_block != nullptr ? dynamic_cast<const IDataGroup*>(mdf_block) : nullptr;
+}
+
 }  // namespace mdf::detail

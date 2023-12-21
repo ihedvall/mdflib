@@ -24,6 +24,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxDocMDIParentFrame)
   EVT_UPDATE_UI(kIdSaveAttachment, MainFrame::OnUpdateNoDoc) // Disable the menu if no documents are open
   EVT_UPDATE_UI(kIdShowGroupData, MainFrame::OnUpdateNoDoc)
   EVT_UPDATE_UI(kIdShowChannelData, MainFrame::OnUpdateNoDoc)
+  EVT_UPDATE_UI(kIdShowSrData, MainFrame::OnUpdateNoDoc)
   EVT_UPDATE_UI(kIdPlotChannelData, MainFrame::OnUpdateNoDoc)
   EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
   EVT_CLOSE(MainFrame::OnClose)

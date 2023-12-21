@@ -13,6 +13,8 @@
 #include "dl4block.h"
 #include "dz4block.h"
 #include "dg4block.h"
+#include "cn4block.h"
+
 namespace mdf::detail {
 
 Mdf4Writer::~Mdf4Writer() { StopWorkThread(); }

@@ -18,7 +18,10 @@
 #include "mdfdocument.h"
 #include "windowid.h"
 #include "mdfviewer.h"
+#include <mdf/isamplereduction.h>
 #include "channelobserverframe.h"
+#include "samplereductionframe.h"
+
 
 using namespace util::log;
 using namespace mdf;
@@ -143,6 +146,8 @@ wxBEGIN_EVENT_TABLE(MdfDocument, wxDocument) // NOLINT
   EVT_MENU(kIdShowGroupData, MdfDocument::OnShowGroupData)
   EVT_UPDATE_UI(kIdShowChannelData, MdfDocument::OnUpdateShowChannelData)
   EVT_MENU(kIdShowChannelData, MdfDocument::OnShowChannelData)
+  EVT_UPDATE_UI(kIdShowSrData, MdfDocument::OnUpdateShowSrData)
+  EVT_MENU(kIdShowSrData, MdfDocument::OnShowSrData)
   EVT_UPDATE_UI(kIdPlotChannelData, MdfDocument::OnUpdatePlotChannelData)
   EVT_MENU(kIdPlotChannelData, MdfDocument::OnPlotChannelData)
 wxEND_EVENT_TABLE()
@@ -178,13 +183,13 @@ bool MdfDocument::OnOpenDocument(const wxString &filename) {
   return parse && wxDocument::OnOpenDocument(filename);
 }
 
-const mdf::detail::MdfBlock*MdfDocument::GetBlock(int64_t id) const {
+mdf::detail::MdfBlock*MdfDocument::GetBlock(int64_t id) const {
   const auto *file = GetFile();
   if (file == nullptr || id < 0) {
     return nullptr;
   }
 
-  const mdf::detail::MdfBlock*block = nullptr;
+  mdf::detail::MdfBlock* block = nullptr;
   if (file->IsMdf4()) {
     const auto *file4 = dynamic_cast<const mdf::detail::Mdf4File *>(file);
     if (file4 != nullptr) {
@@ -255,14 +260,14 @@ void MdfDocument::OnUpdateSaveAttachment(wxUpdateUIEvent &event) {
 
 void MdfDocument::OnShowGroupData(wxCommandEvent &) {
   const auto selected_id = GetSelectedBlockId();
-  const auto *selected_block = GetBlock(selected_id);
+  auto *selected_block = GetBlock(selected_id);
   if (selected_block == nullptr) {
     return;
   }
-  const IDataGroup* dg = nullptr;
-  const IChannelGroup* cg = nullptr;
+  IDataGroup* dg = nullptr;
+  IChannelGroup* cg = nullptr;
   if (selected_block->BlockType() == "DG") {
-    dg = dynamic_cast<const IDataGroup*>(selected_block);
+    dg = dynamic_cast<IDataGroup*>(selected_block);
     if (dg != nullptr) {
      auto cg_list = dg->ChannelGroups();
      if (!cg_list.empty()) {
@@ -270,11 +275,11 @@ void MdfDocument::OnShowGroupData(wxCommandEvent &) {
      }
     }
   } else if (selected_block->BlockType() == "CG") {
-    cg = dynamic_cast<const IChannelGroup*>(selected_block);
+    cg = dynamic_cast<IChannelGroup*>(selected_block);
     const auto parent_id = GetParentBlockId();
-    const auto *parent_block = GetBlock(parent_id);
+    auto *parent_block = GetBlock(parent_id);
     if (parent_block != nullptr) {
-      dg = dynamic_cast<const IDataGroup*>(parent_block);
+      dg = dynamic_cast<IDataGroup*>(parent_block);
     }
   }
   if (dg == nullptr || cg == nullptr) {
@@ -365,7 +370,7 @@ void MdfDocument::OnShowChannelData(wxCommandEvent &) {
     return;
   }
 
-  const auto *data_group = mdf_file->FindParentDataGroup(*channel);
+  auto *data_group = mdf_file->FindParentDataGroup(*channel);
   if (data_group == nullptr) {
     return;
   }
@@ -449,27 +454,113 @@ void MdfDocument::OnUpdateShowChannelData(wxUpdateUIEvent &event) {
   }
 }
 
-void MdfDocument::OnPlotChannelData(wxCommandEvent &) {
-  const IDataGroup* dg = nullptr;
-  const IChannelGroup* cg = nullptr;
-  const IChannel* cn = nullptr;
+void MdfDocument::OnShowSrData(wxCommandEvent &) {
+  if (!reader_) {
+    return;
+  }
+  const auto* mdf_file = reader_->GetFile();
+  if (mdf_file == nullptr) {
+    return;
+  }
+
+  ISampleReduction* sr_block = nullptr;
+  const auto selected_id = GetSelectedBlockId();
+  auto *selected_block = GetBlock(selected_id);
+  if (selected_block != nullptr && selected_block->BlockType() == "SR") {
+    sr_block = dynamic_cast<ISampleReduction*>(selected_block);
+  }
+  if (sr_block == nullptr) {
+    return;
+  }
+  const auto* channel_group = sr_block->ChannelGroup();
+  if (channel_group == nullptr) {
+    return;
+  }
+  auto *data_group = const_cast<IDataGroup*>(channel_group->DataGroup());
+  if (data_group == nullptr) {
+    return;
+  }
+
+  auto* view = GetFirstView();
+  if (view == nullptr) {
+    return;
+  }
+
+  auto* parent = view->GetFrame();
+  if (parent == nullptr) {
+    return;
+  }
+
+  std::ostringstream title;
+  title << "SR (Samples: " << sr_block << ")";
+
+  if (!channel_group->Name().empty()) {
+    if (!title.str().empty()) {
+      title << "/";
+    }
+    title << channel_group->Name();
+  }
+  if (!data_group->Description().empty()) {
+    if (!title.str().empty()) {
+      title << "/";
+    }
+    title << data_group->Description();
+  }
+
+  if (!title.str().empty()) {
+    title << "/";
+  }
+  title << reader_->ShortName();
+
+  const bool read = reader_->ReadData(*data_group);
+  if (!read) {
+    wxMessageBox("The read failed.\nMore information in the log file.",
+                 "Failed to Read Data Block", wxCENTRE | wxICON_ERROR);
+    return;
+  }
+
+  auto data_frame = new SampleReductionFrame(*sr_block, parent, wxID_ANY, title.str());
+  data_frame->Show();
+}
+
+void MdfDocument::OnUpdateShowSrData(wxUpdateUIEvent &event) {
+  event.Enable(false);
+  if (!reader_) {
+    return;
+  }
 
   const auto selected_id = GetSelectedBlockId();
-  const auto *selected_block = GetBlock(selected_id);
+  const auto selected_block = GetBlock(selected_id);
+  if (selected_block == nullptr) {
+    return;
+  }
+
+  if (selected_block->BlockType() == "SR") {
+    event.Enable(true);
+  }
+}
+
+void MdfDocument::OnPlotChannelData(wxCommandEvent &) {
+  IDataGroup* dg = nullptr;
+  IChannelGroup* cg = nullptr;
+  IChannel* cn = nullptr;
+
+  const auto selected_id = GetSelectedBlockId();
+  auto *selected_block = GetBlock(selected_id);
   if (selected_block != nullptr && selected_block->BlockType() == "CN") {
-    cn = dynamic_cast<const IChannel*>(selected_block);
+    cn = dynamic_cast<IChannel*>(selected_block);
   }
 
   const auto parent_id = GetParentBlockId();
-  const auto *parent_block = GetBlock(parent_id);
+  auto *parent_block = GetBlock(parent_id);
   if (parent_block != nullptr && parent_block->BlockType() == "CG") {
-    cg = dynamic_cast<const IChannelGroup*>(parent_block);
+    cg = dynamic_cast<IChannelGroup*>(parent_block);
   }
 
   const auto grand_parent_id = GetGrandParentBlockId();
-  const auto *grand_parent_block = GetBlock(grand_parent_id);
+  auto *grand_parent_block = GetBlock(grand_parent_id);
   if (grand_parent_block != nullptr && grand_parent_block->BlockType() == "DG") {
-    dg = dynamic_cast<const IDataGroup*>(grand_parent_block);
+    dg = dynamic_cast<IDataGroup*>(grand_parent_block);
   }
   auto& app = wxGetApp();
   if (dg == nullptr || cg == nullptr || cn == nullptr || app.GnuPlot().empty()) {
@@ -565,23 +656,24 @@ void MdfDocument::OnUpdatePlotChannelData(wxUpdateUIEvent &event) {
 MdfDocument::~MdfDocument() {
   // Close all ObserverFrame
   wxWindowList::compatibility_iterator node = wxTopLevelWindows.GetFirst();
-  std::vector<ChannelObserverFrame*>  obs_win_list;
+  std::vector<wxWindow*>  win_list;
   while (node)
   {
     wxWindow* win = node->GetData();
     // do something with "win"
-    auto* obs_win = dynamic_cast<ChannelObserverFrame*>(win);
-    if (obs_win != nullptr) {
-      obs_win_list.push_back(obs_win);
+    if (auto* obs_win = dynamic_cast<ChannelObserverFrame*>(win);obs_win != nullptr) {
+      win_list.push_back(win);
+    }
+    if (auto* sr_win = dynamic_cast<SampleReductionFrame*>(win);sr_win != nullptr) {
+      win_list.push_back(win);
     }
     node = node->GetNext();
   }
-  for (auto* obs : obs_win_list) {
+  for (auto* obs : win_list) {
     if (obs != nullptr) {
       auto close = obs->Close(true);
     }
   }
-
 }
 
 } // namespace mdf::viewer

@@ -50,7 +50,7 @@ class Hd3Block : public MdfBlock, public IHeader {
   [[nodiscard]] const Dg3List &Dg3() const;
 
   [[nodiscard]] std::string Comment() const override;
-  [[nodiscard]] const MdfBlock *Find(int64_t index) const override;
+  [[nodiscard]] MdfBlock *Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;

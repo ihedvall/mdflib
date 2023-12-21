@@ -117,7 +117,8 @@ class IChannelGroup : public IBlock {
   /** \brief Support function that creates a sample record. */
   [[nodiscard]] SampleRecord GetSampleRecord() const;
 
-  void ResetSample() const; ///< Resets all temporary stored samples.
+  void ResetSampleCounter() const { sample_ = 0;}
+  virtual void ClearData(); ///< Resets all temporary stored samples.
   void IncrementSample() const; ///< Add a sample
   [[nodiscard]] size_t Sample() const; ///< Returns number of samples.
 
@@ -126,6 +127,9 @@ class IChannelGroup : public IBlock {
 
   /** \brief Returns the meta-data (MD) block if it exist. */
   [[nodiscard]] virtual IMetaData* MetaData() const;
+
+  [[nodiscard]] virtual const IDataGroup* DataGroup() const = 0;
+
  protected:
   mutable std::vector<uint8_t>
       sample_buffer_;  ///< Temporary record when saving samples.

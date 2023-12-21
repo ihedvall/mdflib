@@ -15,18 +15,18 @@ constexpr size_t kIndexData = 3;
 }  // namespace
 namespace mdf::detail {
 
-const MdfBlock *Dg3Block::Find(int64_t index) const {
+MdfBlock *Dg3Block::Find(int64_t index) const {
   if (tr_block_) {
-    const auto *pos = tr_block_->Find(index);
+    auto *pos = tr_block_->Find(index);
     if (pos != nullptr) {
       return pos;
     }
   }
-  for (const auto &cg3 : cg_list_) {
+  for (auto &cg3 : cg_list_) {
     if (!cg3) {
       continue;
     }
-    const auto *pos = cg3->Find(index);
+    auto *pos = cg3->Find(index);
     if (pos != nullptr) {
       return pos;
     }
@@ -174,7 +174,7 @@ IChannelGroup *Dg3Block::CreateChannelGroup() {
   return cg_list_.empty() ? nullptr : cg_list_.back().get();
 }
 
-void Dg3Block::ReadData(std::FILE *file) const {
+void Dg3Block::ReadData(std::FILE *file) {
   if (file == nullptr) {
     throw std::invalid_argument("File pointer is null");
   }
@@ -186,13 +186,28 @@ void Dg3Block::ReadData(std::FILE *file) const {
   auto pos = GetFilePosition(data_file);
   // Read through all record
   ParseDataRecords(data_file, data_size);
+
+  // Read in all SR block data
+  for (const auto& cg3 :Cg3()) {
+    if (!cg3) { continue;}
+    cg3->ReadData(file);
+  }
 }
 
-void Dg3Block::ParseDataRecords(std::FILE *file, size_t nof_data_bytes) const {
+void Dg3Block::ClearData() {
+  DataListBlock::ClearData();
+  IDataGroup::ClearData();
+}
+
+void Dg3Block::ParseDataRecords(std::FILE *file, size_t nof_data_bytes) {
   if (file == nullptr || nof_data_bytes == 0) {
     return;
   }
-  ResetSample();
+  for (const auto& channel_group : Cg3() ) {
+    if (channel_group) {
+      channel_group->ResetSampleCounter();
+    }
+  }
 
   for (size_t count = 0; count < nof_data_bytes; /* No ++count here*/) {
     // 1. Read Record ID
@@ -232,7 +247,7 @@ const Cg3Block *Dg3Block::FindCgRecordId(const uint64_t record_id) const {
   return nullptr;
 }
 
-const IChannelGroup* Dg3Block::FindParentChannelGroup(const IChannel&
+IChannelGroup* Dg3Block::FindParentChannelGroup(const IChannel&
                                                           channel) const {
   const auto channel_index = channel.Index();
   const auto &cg_list = Cg3();
@@ -242,5 +257,7 @@ const IChannelGroup* Dg3Block::FindParentChannelGroup(const IChannel&
   });
   return itr != cg_list.cend() ? itr->get() : nullptr;
 }
+
+
 
 }  // end namespace mdf::detail

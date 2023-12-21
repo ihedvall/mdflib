@@ -31,12 +31,14 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   [[nodiscard]] const Cg4List& Cg4() const { return cg_list_; }
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  const MdfBlock* Find(int64_t index) const override;
+  MdfBlock* Find(int64_t index) const override;
 
   size_t Read(std::FILE* file) override;
   void ReadCgList(std::FILE* file);
 
-  void ReadData(std::FILE* file) const;
+  void ReadData(std::FILE* file);
+  void ClearData() override;
+
   IMetaData* CreateMetaData() override;
   IMetaData* MetaData() const override;
   void RecordIdSize(uint8_t id_size) override;
@@ -47,7 +49,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   bool UpdateDtBlocks(std::FILE *file);
   bool UpdateCgAndVlsdBlocks(std::FILE *file, bool update_cg, bool update_vlsd);
 
-  [[nodiscard]] const IChannelGroup *FindParentChannelGroup(
+  [[nodiscard]] IChannelGroup *FindParentChannelGroup(
       const IChannel &channel) const override;
   [[nodiscard]] Cg4Block* FindCgRecordId(uint64_t record_id) const;
  private:
@@ -55,7 +57,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   /* 7 byte reserved */
   Cg4List cg_list_;
 
-  void ParseDataRecords(std::FILE* file, size_t nof_data_bytes) const;
+  void ParseDataRecords(std::FILE* file, size_t nof_data_bytes);
   size_t ReadRecordId(std::FILE* file, uint64_t& record_id) const;
 
 };

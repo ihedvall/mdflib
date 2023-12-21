@@ -54,7 +54,7 @@ class Cn3Block : public DataListBlock, public IChannel {
   [[nodiscard]] bool IsDecimalUsed() const override;
 
   [[nodiscard]] std::string Comment() const override;
-  [[nodiscard]] const MdfBlock* Find(int64_t index) const override;
+  [[nodiscard]] MdfBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
   void Init(const MdfBlock& id_block) override;
   size_t Read(std::FILE* file) override;

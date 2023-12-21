@@ -2727,7 +2727,7 @@ TEST_F(TestWrite, Mdf4SampleObserver ) {
   ASSERT_TRUE(reader.IsOk());
   ASSERT_TRUE(reader.ReadEverythingButData());
   const auto* header1 = reader.GetHeader();
-  const auto* last_dg1 = header1->LastDataGroup();
+  auto* last_dg1 = header1->LastDataGroup();
   ASSERT_TRUE(last_dg1 != nullptr);
 
   const auto* channel_group1 = last_dg1->GetChannelGroup("CAN_DataFrame");

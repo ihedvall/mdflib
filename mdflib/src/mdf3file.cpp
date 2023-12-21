@@ -86,15 +86,15 @@ const Hd3Block &Mdf3File::Hd() const {
   return *hd_block_;
 }
 
-const MdfBlock *Mdf3File::Find(int64_t id) const {
+MdfBlock *Mdf3File::Find(int64_t id) const {
   if (id_block_) {
-    const auto *p = id_block_->Find(id);
+    auto *p = id_block_->Find(id);
     if (p != nullptr) {
       return p;
     }
   }
   if (hd_block_) {
-    const auto *p = hd_block_->Find(id);
+    auto *p = hd_block_->Find(id);
     if (p != nullptr) {
       return p;
     }
@@ -162,12 +162,12 @@ bool Mdf3File::IsFinalized(uint16_t &standard_flags,
   return finalized;
 }
 
-const IDataGroup *Mdf3File::FindParentDataGroup(const IChannel &channel) const {
+IDataGroup *Mdf3File::FindParentDataGroup(const IChannel &channel) const {
   const auto channel_index = channel.Index();
   if (!hd_block_ || channel_index <= 0) {
     return nullptr;
   }
-  const auto &dg_list = hd_block_->Dg3();
+  auto &dg_list = hd_block_->Dg3();
   const auto itr = std::find_if(dg_list.cbegin(), dg_list.cend(),
                                 [&](const auto &dg_block) {
     return dg_block && dg_block->Find(channel_index) != nullptr;

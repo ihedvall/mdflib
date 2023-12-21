@@ -82,7 +82,7 @@ bool MdfReader::ReadEverythingButData() {
 }
 
 bool MdfReader::ReadData(MdfDataGroup^ group) {
-  const auto* data_group = group->group_;
+  auto* data_group = group->group_;
   return reader_ != nullptr && data_group != nullptr ?
      reader_->ReadData(*data_group) : false;    
 }

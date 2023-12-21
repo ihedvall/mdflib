@@ -371,7 +371,7 @@ bool MdfReader::ExportAttachmentData(const IAttachment &attachment,
   return no_error;
 }
 
-bool MdfReader::ReadData(const IDataGroup &data_group) {
+bool MdfReader::ReadData(IDataGroup &data_group) {
   if (!instance_) {
     MDF_ERROR() << "No instance created. File: " << filename_;
     return false;
@@ -386,10 +386,10 @@ bool MdfReader::ReadData(const IDataGroup &data_group) {
   bool no_error = true;
   try {
     if (instance_->IsMdf4()) {
-      const auto &dg4 = dynamic_cast<const detail::Dg4Block &>(data_group);
+      auto &dg4 = dynamic_cast<detail::Dg4Block &>(data_group);
       dg4.ReadData(file_);
     } else {
-      const auto &dg3 = dynamic_cast<const detail::Dg3Block &>(data_group);
+      auto &dg3 = dynamic_cast<detail::Dg3Block &>(data_group);
       dg3.ReadData(file_);
     }
   } catch (const std::exception &error) {

@@ -73,15 +73,15 @@ const Hd4Block &Mdf4File::Hd() const {
   return *hd_block_;
 }
 
-const MdfBlock *Mdf4File::Find(int64_t id) const {
+MdfBlock *Mdf4File::Find(int64_t id) const {
   if (id_block_) {
-    const auto *p = id_block_->Find(id);
+    auto *p = id_block_->Find(id);
     if (p != nullptr) {
       return p;
     }
   }
   if (hd_block_) {
-    const auto *p = hd_block_->Find(id);
+    auto *p = hd_block_->Find(id);
     if (p != nullptr) {
       return p;
     }
@@ -230,7 +230,7 @@ bool Mdf4File::FinalizeFile(std::FILE* file) {
   return updated;
 }
 
-const IDataGroup *Mdf4File::FindParentDataGroup(const IChannel &channel) const {
+IDataGroup *Mdf4File::FindParentDataGroup(const IChannel &channel) const {
   const auto channel_index = channel.Index();
   if (!hd_block_ || channel_index <= 0) {
     return nullptr;

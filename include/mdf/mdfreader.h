@@ -104,8 +104,8 @@ class MdfReader {
   bool ExportAttachmentData(const IAttachment& attachment,
                             const std::string& dest_file);
 
-  bool ReadData(const IDataGroup& data_group);  ///< Reads the sample data. See
-                                                ///< sample observer.
+  bool ReadData(IDataGroup& data_group);  ///< Reads the sample data. See
+                                          ///< sample observer.
 
  private:
   std::FILE* file_ = nullptr;          ///< Pointer to the file stream.
@@ -114,4 +114,5 @@ class MdfReader {
   int64_t index_ = 0;  ///< Unique (database) file index that can be used to
                        ///< identify a file instead of its path.
 };
+
 }  // namespace mdf

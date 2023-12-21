@@ -25,18 +25,18 @@ const Hd3Block::Dg3List &Hd3Block::Dg3() const { return dg_list_; }
 
 std::string Hd3Block::Comment() const { return comment_; }
 
-const MdfBlock *Hd3Block::Find(int64_t index) const {
+MdfBlock *Hd3Block::Find(int64_t index) const {
   if (pr_block_) {
-    const auto *p = pr_block_->Find(index);
+    auto *p = pr_block_->Find(index);
     if (p != nullptr) {
       return p;
     }
   }
-  for (const auto &dg : dg_list_) {
+  for (auto &dg : dg_list_) {
     if (!dg) {
       continue;
     }
-    const auto *p = dg->Find(index);
+    auto *p = dg->Find(index);
     if (p != nullptr) {
       return p;
     }

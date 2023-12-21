@@ -2,6 +2,9 @@
 name: CMake Build MacOS
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 env:

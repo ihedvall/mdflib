@@ -2,6 +2,9 @@
 name: CMake Build Linux
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 env:

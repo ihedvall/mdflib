@@ -8,6 +8,8 @@
 
 #include "ixmlfile.h"
 #include "dt4block.h"
+#include "cn4block.h"
+#include "sr4block.h"
 #include "mdf/mdflogstream.h"
 
 namespace {

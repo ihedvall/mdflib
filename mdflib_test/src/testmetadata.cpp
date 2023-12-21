@@ -10,6 +10,8 @@
 #include "md4block.h"
 #include "hd4block.h"
 #include "fh4block.h"
+#include "cn4block.h"
+#include "sr4block.h"
 
 using namespace mdf::detail;
 

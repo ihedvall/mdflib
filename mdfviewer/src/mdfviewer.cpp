@@ -6,7 +6,7 @@
 #include <codecvt>
 #define BOOST_LOCALE_HIDE_AUTO_PTR
 #include <boost/process.hpp>
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
 #include <boost/locale.hpp>
 
 #include <wx/wx.h>

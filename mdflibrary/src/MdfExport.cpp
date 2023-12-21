@@ -61,7 +61,7 @@ EXPORTFEATUREFUNC(bool, ReadMeasurementInfo) {
 EXPORTFEATUREFUNC(bool, ReadEverythingButData) {
   return reader->ReadEverythingButData();
 }
-EXPORTFEATUREFUNC(bool, ReadData, const mdf::IDataGroup* group) {
+EXPORTFEATUREFUNC(bool, ReadData, mdf::IDataGroup* group) {
   return reader->ReadData(*group);
 }
 #undef EXPORTFEATUREFUNC
@@ -340,7 +340,15 @@ EXPORTFEATUREFUNC(const mdf::IChannelGroup*, FindParentChannelGroup,
                   const mdf::IChannel* channel) {
   return group->FindParentChannelGroup(*channel);
 }
-EXPORTFEATUREFUNC(void, ResetSample) { group->ResetSample(); }
+EXPORTFEATUREFUNC(void, ResetSample) {
+  if (group != nullptr) {
+    for (const auto* channel_group: group->ChannelGroups()) {
+      if (channel_group != nullptr) {
+        channel_group->ResetSampleCounter();
+      }
+    }
+  }
+}
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 

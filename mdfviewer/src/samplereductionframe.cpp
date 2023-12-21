@@ -7,7 +7,9 @@
 #include "samplereductionlistview.h"
 
 #include <mdf/ichannelgroup.h>
-
+namespace {
+#include "img/sub.xpm"
+}
 namespace mdf::viewer {
 
 SampleReductionFrame::SampleReductionFrame(ISampleReduction &sr_block,

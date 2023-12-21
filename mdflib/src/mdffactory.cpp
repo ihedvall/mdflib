@@ -11,6 +11,8 @@
 #include "mdf4writer.h"
 #include "mdfbuslogger.h"
 #include "mdf/mdflogstream.h"
+#include "cn4block.h"
+#include "sr4block.h"
 
 using namespace mdf::detail;
 

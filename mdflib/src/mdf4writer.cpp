@@ -14,6 +14,7 @@
 #include "dz4block.h"
 #include "dg4block.h"
 #include "cn4block.h"
+#include "sr4block.h"
 
 namespace mdf::detail {
 

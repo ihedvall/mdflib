@@ -5,6 +5,7 @@
 #pragma once
 #include <cstdio>
 #include <memory>
+#include <algorithm>
 
 #include "datalistblock.h"
 #include "mdf/isamplereduction.h"

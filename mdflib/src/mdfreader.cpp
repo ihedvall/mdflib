@@ -20,7 +20,7 @@
 #include "platform.h"
 #include "cn4block.h"
 #include "sr4block.h"
-
+#include "sr3block.h"
 using namespace std::chrono_literals;
 
 namespace mdf {
@@ -390,6 +390,39 @@ bool MdfReader::ReadData(IDataGroup &data_group) {
     } else {
       auto &dg3 = dynamic_cast<detail::Dg3Block &>(data_group);
       dg3.ReadData(file_);
+    }
+  } catch (const std::exception &error) {
+    MDF_ERROR() << "Failed to read the file information blocks. Error: "
+                << error.what();
+    no_error = false;
+  }
+
+  if (shall_close) {
+    Close();
+  }
+  return no_error;
+}
+
+bool MdfReader::ReadSrData(ISampleReduction &sr_group) {
+  if (!instance_) {
+    MDF_ERROR() << "No instance created. File: " << filename_;
+    return false;
+  }
+
+  bool shall_close = file_ == nullptr && Open();
+  if (file_ == nullptr) {
+    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    return false;
+  }
+
+  bool no_error = true;
+  try {
+    if (instance_->IsMdf4()) {
+      auto &sr4 = dynamic_cast<detail::Sr4Block &>(sr_group);
+      sr4.ReadData(file_);
+    } else {
+      auto &sr3 = dynamic_cast<detail::Sr3Block &>(sr_group);
+      sr3.ReadData(file_);
     }
   } catch (const std::exception &error) {
     MDF_ERROR() << "Failed to read the file information blocks. Error: "

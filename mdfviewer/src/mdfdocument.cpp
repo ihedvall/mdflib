@@ -476,7 +476,7 @@ void MdfDocument::OnShowSrData(wxCommandEvent &) {
   if (channel_group == nullptr) {
     return;
   }
-  auto *data_group = const_cast<IDataGroup*>(channel_group->DataGroup());
+  const auto *data_group = channel_group->DataGroup();
   if (data_group == nullptr) {
     return;
   }
@@ -512,7 +512,7 @@ void MdfDocument::OnShowSrData(wxCommandEvent &) {
   }
   title << reader_->ShortName();
 
-  const bool read = reader_->ReadData(*data_group);
+  const bool read = reader_->ReadSrData(*sr_block);
   if (!read) {
     wxMessageBox("The read failed.\nMore information in the log file.",
                  "Failed to Read Data Block", wxCENTRE | wxICON_ERROR);

@@ -5,7 +5,7 @@
 #include "sr3block.h"
 
 #include "mdf/ichannelgroup.h"
-
+#include "cg3block.h"
 
 namespace {
 
@@ -81,7 +81,7 @@ void Sr3Block::ReadData(std::FILE *file) const {
   if (file == nullptr) {
     throw std::invalid_argument("File pointer is null");
   }
-  std::FILE *data_file = nullptr;
+
   size_t data_size = DataSize();
   if (data_size == 0) {
     data_list_.clear();
@@ -105,13 +105,31 @@ void Sr3Block::ClearData() {
 
 void Sr3Block::GetChannelValueUint( const IChannel& channel, uint64_t sample,
                                    uint64_t array_index, SrValue<uint64_t>& value ) const {
+  GetChannelValueT(channel, sample, array_index, value);
 }
 void Sr3Block::GetChannelValueInt( const IChannel& channel, uint64_t sample,
                                    uint64_t array_index, SrValue<int64_t>& value ) const {
+  GetChannelValueT(channel, sample, array_index, value);
 }
 
 void Sr3Block::GetChannelValueDouble( const IChannel& channel, uint64_t sample,
                                       uint64_t array_index, SrValue<double>& value ) const {
+  GetChannelValueT(channel, sample, array_index, value);
 }
+
+uint16_t Sr3Block::BlockSize() const {
+  const auto* channel_group = ChannelGroup();
+  if (channel_group == nullptr) {
+    return 0;
+  }
+
+  const auto* cg3 = dynamic_cast<const Cg3Block*>(channel_group);
+  if (cg3 == nullptr) {
+    return 0;
+  }
+
+  return cg3->RecordSize();
+}
+
 
 }  // namespace mdf::detail

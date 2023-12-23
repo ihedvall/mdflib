@@ -10,6 +10,7 @@
 
 #include "mdf/ichannelobserver.h"
 #include "mdf/mdffile.h"
+#include "mdf/isamplereduction.h"
 
 namespace mdf {
 
@@ -104,8 +105,31 @@ class MdfReader {
   bool ExportAttachmentData(const IAttachment& attachment,
                             const std::string& dest_file);
 
-  bool ReadData(IDataGroup& data_group);  ///< Reads the sample data. See
-                                          ///< sample observer.
+  /** \brief Reads all sample, sample reduction and signal data into memory.
+   *
+   * Reads in all data bytes that belongs to a data group (DG). The function
+   * reads in sample data (DT..) blocks, sample reduction (RD/RV/RI) blocks
+   * and signal data (SD) blocks. Note that this function may consume a lot
+   * of memory, so remember to call the IDataGroup::ClearData() function
+   * when data not are needed anymore.
+   *
+   * The attached observers also consumes memory, so remember to delete
+   * them when they are no more needed.
+   * @param data_group Reference to the data group (DG) object.
+   * @return True if the red was successful.
+   */
+  bool ReadData(IDataGroup& data_group);
+
+  /** \brief Reads in data bytes to a sample reduction (SR) block.
+   *
+   * To minimíze the use of time and memory, this function reads in
+   * data for one sample reduction (SR) block. The function is much
+   * faster than to read in all data bytes for a data group (DG).
+   * @param sr_group Reference to a sample reduction (SR) block.
+   * @return True if the read was successful.
+   */
+  bool ReadSrData(ISampleReduction& sr_group);
+
 
  private:
   std::FILE* file_ = nullptr;          ///< Pointer to the file stream.

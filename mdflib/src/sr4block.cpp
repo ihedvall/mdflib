@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: MIT
  */
 #include "sr4block.h"
-#include "mdf/ichannelgroup.h"
 #include "datablock.h"
 #include "cg4block.h"
 
@@ -168,6 +167,47 @@ void Sr4Block::GetChannelValueDouble( const IChannel& channel, uint64_t sample,
   GetChannelValueT(channel, sample, array_index,value);
 }
 
+uint64_t Sr4Block::BlockSize() const {
+  const auto* channel_group = ChannelGroup();
+  if (channel_group == nullptr) {
+    return 0;
+  }
+
+  const auto* cg4 = dynamic_cast<const Cg4Block*>(channel_group);
+  if (cg4 == nullptr) {
+    return 0;
+  }
+
+  return cg4->NofDataBytes() + cg4->NofInvalidBytes();
+}
+
+uint64_t Sr4Block::BlockDataSize() const {
+  const auto* channel_group = ChannelGroup();
+  if (channel_group == nullptr) {
+    return 0;
+  }
+
+  const auto* cg4 = dynamic_cast<const Cg4Block*>(channel_group);
+  if (cg4 == nullptr) {
+    return 0;
+  }
+
+  return cg4->NofDataBytes();
+}
+
+uint64_t Sr4Block::BlockInvalidSize() const {
+  const auto* channel_group = ChannelGroup();
+  if (channel_group == nullptr) {
+    return 0;
+  }
+
+  const auto* cg4 = dynamic_cast<const Cg4Block*>(channel_group);
+  if (cg4 == nullptr) {
+    return 0;
+  }
+
+  return cg4->NofInvalidBytes();
+}
 
 
 }  // namespace mdf::detail

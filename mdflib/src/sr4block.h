@@ -7,7 +7,7 @@
 #include "datalistblock.h"
 #include "mdf/isamplereduction.h"
 #include "mdf/ichannelgroup.h"
-#include "cg4block.h"
+
 
 namespace mdf::detail {
 class Sr4Block : public DataListBlock, public ISampleReduction {
@@ -55,44 +55,104 @@ class Sr4Block : public DataListBlock, public ISampleReduction {
   template <typename T>
   void GetChannelValueT( const IChannel& channel, uint64_t sample,
                                uint64_t array_index, SrValue<T>& value ) const;
-
+  /** \brief Returns the block size of the associated CG block.
+   *
+   * Returns the block size in bytes of the associated CG block. It also
+   * hides some include files that we don't want in this include file.
+   * @return Number of bytes of one RD record.
+   */
+  uint64_t BlockSize() const;
+  uint64_t BlockDataSize() const;
+  uint64_t BlockInvalidSize() const;
 };
 
 
+/** \brief Returns the channel value for one sample.
+ *
+ * @tparam T Type of channel value
+ * @param channel Reference to the channel object
+ * @param sample Sample number (0...N)
+ * @param array_index Array index if the channel is an array.
+ * @param value Reference to value mean, min and max structure.
+ */
 template<typename T>
 void Sr4Block::GetChannelValueT(const IChannel &channel,
                                 uint64_t sample,
                                 uint64_t array_index,
                                 SrValue<T> &value) const {
-  const auto* channel_group = ChannelGroup();
-  if (data_list_.empty() || channel_group == nullptr) {
+  const auto block_size = BlockSize();
+  if (data_list_.empty() || block_size == 0) {
     return;
   }
 
-  const auto* cg4 = dynamic_cast<const Cg4Block*>(channel_group);
-  if (cg4 == nullptr) {
-    return;
-  }
-
-  const auto block_size = cg4->NofDataBytes() + cg4->NofInvalidBytes();
+  // Set up a temporary record buffer. It will be used as temporary
+  // buffer. It solves the RD vs RV/RI blocks data storage.
   std::vector<uint8_t> record_buffer(block_size, 0);
 
+  // Check if the data_list_ buffer is format as an RD block
+  // or as RV/RI blocks. The main idea is to copy to the
+  // temporary buffer, so it looks like an "RD" stored record.
   if (IsRdBlock()) {
-    const auto mean_index = static_cast<int64_t>(sample * 3 * block_size);
-    if (static_cast<size_t>(mean_index + block_size) <= data_list_.size()) {
+    if (const auto mean_index = static_cast<int>(sample * 3 * block_size);
+        static_cast<size_t>(mean_index + block_size) <= data_list_.size()) {
       std::copy_n(data_list_.cbegin() + mean_index, block_size, record_buffer.begin() );
-      value.MeanValid = channel.GetChannelValue(record_buffer, value.MeanValue, array_index);
     }
-    const auto min_index = static_cast<int64_t>(sample * 3 * block_size) + block_size;
-    if (static_cast<size_t>(min_index + block_size) <= data_list_.size()) {
+    value.MeanValid = channel.GetChannelValue(record_buffer, value.MeanValue, array_index);
+
+    if (const auto min_index = static_cast<int>((sample * 3 * block_size) + block_size);
+        static_cast<size_t>(min_index + block_size) <= data_list_.size()) {
       std::copy_n(data_list_.cbegin() + min_index, block_size, record_buffer.begin() );
-      value.MinValid = channel.GetChannelValue(record_buffer, value.MinValue, array_index);
     }
-    const auto max_index = static_cast<int64_t>(sample * 3 * block_size) + (2 * block_size);
-    if (static_cast<size_t>(max_index + block_size) <= data_list_.size()) {
+    value.MinValid = channel.GetChannelValue(record_buffer, value.MinValue, array_index);
+
+    if (const auto max_index = static_cast<int>((sample * 3 * block_size) + (2 * block_size));
+        static_cast<size_t>(max_index + block_size) <= data_list_.size()) {
       std::copy_n(data_list_.cbegin() + max_index, block_size, record_buffer.begin() );
-      value.MaxValid = channel.GetChannelValue(record_buffer, value.MaxValue, array_index);
     }
+    value.MaxValid = channel.GetChannelValue(record_buffer, value.MaxValue, array_index);
+  } else {
+    const auto block_data_size = BlockDataSize();
+    const auto block_invalid_size = BlockInvalidSize();
+    const auto invalid_index = NofSamples() * 3 * block_data_size;
+
+    if (const auto mean_data_index = static_cast<int>(sample * 3 * block_data_size);
+        static_cast<size_t>(mean_data_index + block_data_size) <= data_list_.size()) {
+      std::copy_n(data_list_.cbegin() + mean_data_index, block_data_size,
+                  record_buffer.begin() );
+    }
+    if (const auto mean_invalid_index = static_cast<int>(invalid_index + (sample * 3 * block_invalid_size));
+        static_cast<size_t>(mean_invalid_index + block_invalid_size) <= data_list_.size()) {
+      std::copy_n(data_list_.cbegin() + mean_invalid_index, block_invalid_size,
+                  record_buffer.begin() + static_cast<int>(block_data_size));
+    }
+    value.MeanValid = channel.GetChannelValue(record_buffer, value.MeanValue, array_index);
+
+    if (const auto min_data_index = static_cast<int>((sample * 3 * block_data_size) + block_data_size);
+        static_cast<size_t>(min_data_index + block_data_size) <= data_list_.size()) {
+      std::copy_n(data_list_.cbegin() + min_data_index, block_data_size,
+                  record_buffer.begin() );
+    }
+    if (const auto min_invalid_index =
+        static_cast<int>(invalid_index + (sample * 3 * block_invalid_size) + block_invalid_size);
+        static_cast<size_t>(min_invalid_index + block_invalid_size) <= data_list_.size()) {
+      std::copy_n(data_list_.cbegin() + min_invalid_index, block_invalid_size,
+                  record_buffer.begin() + static_cast<int>(block_data_size) );
+    }
+    value.MinValid = channel.GetChannelValue(record_buffer, value.MinValue, array_index);
+
+    if (const auto max_data_index =
+        static_cast<int>((sample * 3 * block_data_size) + (2 * block_data_size));
+        static_cast<size_t>(max_data_index + block_data_size) <= data_list_.size()) {
+      std::copy_n(data_list_.cbegin() + max_data_index, block_data_size,
+                  record_buffer.begin() );
+    }
+    if (const auto max_invalid_index =
+        static_cast<int>(invalid_index + (sample * 3 * block_invalid_size) + (2 * block_invalid_size));
+        static_cast<size_t>(max_invalid_index + block_invalid_size) <= data_list_.size()) {
+      std::copy_n(data_list_.cbegin() + max_invalid_index, block_invalid_size,
+                  record_buffer.begin() + static_cast<int>(block_data_size) );
+    }
+    value.MaxValid = channel.GetChannelValue(record_buffer, value.MaxValue, array_index);
   }
 }
 

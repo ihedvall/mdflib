@@ -37,6 +37,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   void ReadCgList(std::FILE* file);
 
   void ReadData(std::FILE* file);
+  bool ReadOneData(std::FILE* file);
   void ClearData() override;
 
   IMetaData* CreateMetaData() override;
@@ -53,11 +54,20 @@ class Dg4Block : public DataListBlock, public IDataGroup {
       const IChannel &channel) const override;
   [[nodiscard]] Cg4Block* FindCgRecordId(uint64_t record_id) const;
  private:
+  struct read_one_data_info_t{
+    size_t read_count = 0;
+    size_t total_data_size = 0;
+    bool valid = false;
+    FILE* data_file = nullptr;
+    bool close_file = false;
+  };
+  read_one_data_info_t one_data_info_;
   uint8_t rec_id_size_ = 0;
   /* 7 byte reserved */
   Cg4List cg_list_;
 
   void ParseDataRecords(std::FILE* file, size_t nof_data_bytes);
+  bool ParseDataRecordsEx(std::FILE* file, size_t& current_count, size_t nof_data_bytes);
   size_t ReadRecordId(std::FILE* file, uint64_t& record_id) const;
 
 };

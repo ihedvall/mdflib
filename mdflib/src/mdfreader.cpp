@@ -21,6 +21,8 @@
 #include "cn4block.h"
 #include "sr4block.h"
 #include "sr3block.h"
+#include "fastchannelobserver.h"
+#include <iostream>
 using namespace std::chrono_literals;
 
 namespace mdf {
@@ -196,7 +198,143 @@ void CreateChannelObserverForChannelGroup(const IDataGroup &data_group,
     }
   }
 }
+ChannelObserverPtr CreateFastChannelObserver(
+    const IDataGroup& data_group, const IChannelGroup& group,
+    const IChannel& channel){
+  std::unique_ptr<IChannelObserver> observer;
+  const auto* channel_array = channel.ChannelArray();
+  // Note, that num,ber of bytes returns number of bytes for
+  // all value in the array
+  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto value_size = channel.DataBytes() / array_size;
 
+  switch (channel.DataType()) {
+    case ChannelDataType::UnsignedIntegerLe:
+    case ChannelDataType::UnsignedIntegerBe:
+      switch (value_size) {
+        case 1:
+          observer = std::make_unique<detail::FastChannelObserver<uint8_t>>(
+              data_group, group, channel);
+          break;
+
+        case 2:
+          observer = std::make_unique<detail::FastChannelObserver<uint16_t>>(
+              data_group, group, channel);
+          break;
+
+        case 4:
+          observer = std::make_unique<detail::ChannelObserver<uint32_t>>(
+              data_group, group, channel);
+          break;
+
+        case 8:
+        default:
+          observer = std::make_unique<detail::FastChannelObserver<uint64_t>>(
+              data_group, group, channel);
+          break;
+      }
+      break;
+
+    case ChannelDataType::SignedIntegerLe:
+    case ChannelDataType::SignedIntegerBe:
+      if (value_size <= 1) {
+        observer = std::make_unique<detail::FastChannelObserver<int8_t>>(
+            data_group, group, channel);
+      } else if (value_size <= 2) {
+        observer = std::make_unique<detail::FastChannelObserver<int16_t>>(
+            data_group, group, channel);
+      } else if (value_size <= 4) {
+        observer = std::make_unique<detail::FastChannelObserver<int32_t>>(
+            data_group, group, channel);
+      } else {
+        observer = std::make_unique<detail::FastChannelObserver<int64_t>>(
+            data_group, group, channel);
+      }
+      break;
+
+    case ChannelDataType::FloatLe:
+    case ChannelDataType::FloatBe:
+      if (value_size <= 4) {
+        observer = std::make_unique<detail::FastChannelObserver<float>>(
+            data_group, group, channel);
+      } else {
+        observer = std::make_unique<detail::FastChannelObserver<double>>(
+            data_group, group, channel);
+      }
+      break;
+
+    case ChannelDataType::StringUTF16Le:
+    case ChannelDataType::StringUTF16Be:
+    case ChannelDataType::StringUTF8:
+    case ChannelDataType::StringAscii:
+      observer = std::make_unique<detail::FastChannelObserver<std::string>>(
+          data_group, group, channel);
+      break;
+
+    case ChannelDataType::MimeStream:
+    case ChannelDataType::MimeSample:
+    case ChannelDataType::ByteArray:
+      observer =
+          std::make_unique<detail::FastChannelObserver<std::vector<uint8_t>>>(
+              data_group, group, channel);
+      break;
+
+    case ChannelDataType::CanOpenDate:  // Convert to ms since 1970
+    case ChannelDataType::CanOpenTime:
+      observer = std::make_unique<detail::FastChannelObserver<uint64_t>>(
+          data_group, group, channel);
+      break;
+
+    default:
+      break;
+  }
+  return std::move(observer);
+}
+
+ChannelObserverPtr CreateFastChannelObserver(
+    const IDataGroup& dg_group, const std::string& channel_name){
+  std::unique_ptr<IChannelObserver> observer;
+
+  const IChannelGroup *channel_group = nullptr;
+  const IChannel *channel = nullptr;
+  uint64_t nof_samples = 0;
+  const auto cg_list = dg_group.ChannelGroups();
+  for (const auto *cg_group : cg_list) {
+    if (cg_group == nullptr) {
+      continue;
+    }
+    const auto cn_list = cg_group->Channels();
+    for (const auto *cn_item : cn_list) {
+      if (cn_item == nullptr) {
+        continue;
+      }
+      if (Platform::stricmp(channel_name.c_str(), cn_item->Name().c_str()) ==
+          0) {
+        if (nof_samples <= cg_group->NofSamples()) {
+          nof_samples = cg_group->NofSamples();
+          channel_group = cg_group;
+          channel = cn_item;
+        }
+      }
+    }
+  }
+  if (channel_group != nullptr && channel != nullptr) {
+    observer = CreateFastChannelObserver(dg_group, *channel_group, *channel);
+  }
+  return observer;
+}
+void CreateFastChannelObserverForChannelGroup(const IDataGroup& data_group,
+                                              const IChannelGroup& group,
+                                              ChannelObserverList& dest){
+  auto cn_list = group.Channels();
+  for (const auto *cn : cn_list) {
+    if (cn != nullptr) {
+      dest.emplace_back(
+          std::move(CreateFastChannelObserver(data_group, group, *cn)));
+    }
+  }
+
+}
 MdfReader::MdfReader(const std::string &filename) : filename_(filename) {
   // Need to create MDF3 of MDF4 file
   bool bExist = false;
@@ -452,5 +590,42 @@ const IDataGroup *MdfReader::GetDataGroup(size_t order) const {
   }
   return nullptr;
 }
+bool MdfReader::ReadOneData(mdf::IDataGroup &data_group) {
+  if (!instance_) {
+    MDF_ERROR() << "No instance created. File: " << filename_;
+    return false;
+  }
 
+  bool shall_close = file_ == nullptr && Open();
+  if (file_ == nullptr) {
+    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    return false;
+  }
+
+  bool no_error = true;
+  try {
+    if (instance_->IsMdf4()) {
+      MDF_ERROR() << "Read dg4 " << filename_;
+      auto &dg4 = dynamic_cast<detail::Dg4Block &>(data_group);
+      no_error = dg4.ReadOneData(file_);
+    } else {
+      /*
+      auto &dg3 = dynamic_cast<detail::Dg3Block &>(data_group);
+      bool result = dg3.ReadData(file_);
+       */
+      return false;
+    }
+  } catch (const std::exception &error) {
+    MDF_ERROR() << "Failed to read the file information blocks. Error: "
+                << error.what();
+    std::cout<<"error:"<<error.what()<<std::endl;
+    no_error = false;
+  }
+
+  if (shall_close) {
+    Close();
+  }
+  return no_error;
+}
 }  // namespace mdf
+

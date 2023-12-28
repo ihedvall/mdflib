@@ -94,6 +94,7 @@ add_library(mdf STATIC
         src/isampleobserver.cpp
         src/isamplereduction.cpp
         ../include/mdf/isamplereduction.h
+        src/fastchannelobserver.cpp
 )
 
 if(VCPKG)

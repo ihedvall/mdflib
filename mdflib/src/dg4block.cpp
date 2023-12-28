@@ -14,6 +14,7 @@
 #include "cn4block.h"
 #include "sr4block.h"
 #include "mdf/mdflogstream.h"
+#include <iostream>
 
 namespace {
 constexpr size_t kIndexCg = 1;
@@ -283,7 +284,144 @@ void Dg4Block::ReadData(std::FILE* file) {
     }
   }
 }
+bool Dg4Block::ReadOneData(std::FILE* file) {
+  if (file == nullptr) {
+    throw std::invalid_argument("File pointer is null");
+  }
+  const auto& block_list = DataBlockList();
+  if (block_list.empty()) {
+    std::cout << "block_list is empty "<<std::endl;
+    return false;
+  }
+  if(!one_data_info_.valid){
+    // First scan through all CN blocks and set up any VLSD CG or MLSD channel
+    // relations.
+    std::cout<<"read cg4"<<std::endl;
+    for (const auto& cg4 : cg_list_) {
+      if (!cg4) {
+        continue;
+      }
 
+      // Fetch all data from sample reduction blocks (SR).
+      std::cout<<"read sr4"<<std::endl;
+      for (const auto& sr4 : cg4->Sr4()) {
+        if (!sr4) {
+          continue;
+        }
+        sr4->ReadData(file);
+      }
+
+      // Fetch all signal data (SD)
+      std::cout<<"fetch all signal data"<<std::endl;
+      const auto channel_list = cg4->Channels();
+      for (const auto* channel :channel_list) {
+        if (channel == nullptr) {
+          continue;
+        }
+        const auto* cn_block = dynamic_cast<const Cn4Block*>(channel);
+        if (cn_block == nullptr) {
+          continue;
+        }
+        // Fetch the channels referenced data block. Note that some type of
+        // data blocks are own by this channel as SD block but some are only
+        // references to block own by another block. Of interest is VLSD CG block
+        // and MLSD channel.
+        const auto data_link = cn_block->DataLink();
+        if (data_link == 0) {
+          continue; // No data to read into the system
+        }
+        const auto* block = Find(data_link);
+        if (block == nullptr) {
+          MDF_DEBUG() << "Missing data block in channel. Channel :"
+                      << cn_block->Name()
+                      << ", Data Link: " << data_link;
+
+          continue; // Strange that the block doesn't exist
+        }
+
+        switch (cn_block->Type()) {
+          case ChannelType::VariableLength:
+            if (block->BlockType() == "CG") {
+              const auto* cg_block = dynamic_cast<const Cg4Block*>(block);
+              if (cg_block != nullptr &&
+                  (cg_block->Flags() & CgFlag::VlsdChannel) != 0 ) {
+                cn_block->VlsdRecordId(cg_block->RecordId());
+              } else {
+                cn_block->VlsdRecordId(0);
+                cn_block->ReadSignalData(file);
+              }
+            } else if (block->BlockType() == "SD") {
+              cn_block->ReadSignalData(file);
+            } else if (block->BlockType() == "DZ") {
+              cn_block->ReadSignalData(file);
+            } else if (block->BlockType() == "DL") {
+              cn_block->ReadSignalData(file);          }
+            break;
+
+          case ChannelType::MaxLength:
+            if (block->BlockType() == "CN") {
+              // Point to the length of byte array channel
+              const auto* mlsd_channel = dynamic_cast<const Cn4Block*>(block);
+              if (mlsd_channel != nullptr) {
+                cn_block->MlsdChannel(mlsd_channel);
+              } else {
+                cn_block->MlsdChannel(nullptr);
+              }
+            }
+            break;
+
+          default:
+            break;
+        }
+      }
+    }
+
+    // Convert everything to a samples in a file single DT block can be read
+    // directly but remaining block types are streamed to a temporary file. The
+    // main reason is that linked data blocks,is not aligned to a record or even
+    // worse a channel value bytes. Converting everything to a simple DT block
+    // solves that problem.
+
+    bool close_data_file = false; // If DT block do not close the data file.
+    std::FILE* data_file = nullptr;
+    size_t data_size = 0;
+    if (block_list.size() == 1 && block_list[0] &&
+        block_list[0]->BlockType() == "DT") {  // If DT read from file directly
+      const auto* dt = dynamic_cast<const Dt4Block*>(block_list[0].get());
+      if (dt != nullptr) {
+        SetFilePosition(file, dt->DataPosition());
+        data_file = file;
+        data_size = dt->DataSize();
+        one_data_info_.total_data_size = data_size;
+        std::cout<<"total data size:"<<one_data_info_.total_data_size<<std::endl;
+        one_data_info_.read_count = 0;
+        one_data_info_.data_file = file;
+        one_data_info_.close_file = false;
+        one_data_info_.valid = true;
+      }
+    } else {
+      // If not a DT block, extract the linked data block list into temporary
+      // file which is a DT block according to the above DT block.
+      std::cout << "not a DT block "<<std::endl;
+      close_data_file = true;
+      data_file = std::tmpfile();
+      data_size = CopyDataToFile(block_list, file, data_file);
+      std::rewind(data_file);
+      one_data_info_.total_data_size = data_size;
+      one_data_info_.read_count = 0;
+      one_data_info_.valid = true;
+      one_data_info_.data_file = data_file;
+      one_data_info_.close_file = close_data_file;
+    }
+  }
+
+  // Now, it is time to scan through and do a call-back for each record
+  // auto pos = GetFilePosition(data_file);
+  // Read through all record
+  auto ret = ParseDataRecordsEx(one_data_info_.data_file, one_data_info_.read_count, one_data_info_.total_data_size);
+
+  return ret;
+}
 void Dg4Block::ParseDataRecords(std::FILE* file, size_t nof_data_bytes) {
   if (file == nullptr || nof_data_bytes == 0) {
     return;
@@ -311,7 +449,31 @@ void Dg4Block::ParseDataRecords(std::FILE* file, size_t nof_data_bytes) {
     count += read;
   }
 }
+bool Dg4Block::ParseDataRecordsEx(std::FILE* file, size_t& current_count, size_t nof_data_bytes){
+  if (file == nullptr || nof_data_bytes == 0) {
+    return false;
+  }
+  const auto& cg4 = Cg4();
+  auto cg4_num = cg4.size();
+  size_t readed_cg4_num = 0 ;
+  while(current_count<nof_data_bytes && readed_cg4_num<cg4_num){
+    uint64_t record_id = 0;
+    current_count += ReadRecordId(file, record_id);
 
+    const auto* cg4 = FindCgRecordId(record_id);
+    if (cg4 == nullptr) {
+      return false;
+    }
+    const auto read = cg4->ReadDataRecord(file, *this);
+    if (read == 0) {
+      return false;
+    }
+
+    current_count += read;
+    readed_cg4_num++;
+  }
+  return true;
+}
 size_t Dg4Block::ReadRecordId(std::FILE* file, uint64_t& record_id) const {
   record_id = 0;
   if (file == nullptr) {
@@ -509,6 +671,16 @@ IChannelGroup* Dg4Block::FindParentChannelGroup(const IChannel&
 void Dg4Block::ClearData() {
   DataListBlock::ClearData();
   IDataGroup::ClearData();
+  if(one_data_info_.valid){
+    if(one_data_info_.close_file&&one_data_info_.data_file!= nullptr){
+      fclose(one_data_info_.data_file);
+      one_data_info_.data_file= nullptr;
+    }
+    one_data_info_.valid = false;
+    one_data_info_.total_data_size = 0;
+    one_data_info_.close_file = false;
+    one_data_info_.read_count = 0;
+  }
   for (auto& cg4 : Cg4()) {
     if (!cg4) {
       continue;

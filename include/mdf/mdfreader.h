@@ -44,6 +44,27 @@ void CreateChannelObserverForChannelGroup(const IDataGroup& data_group,
                                           const IChannelGroup& group,
                                           ChannelObserverList& dest);
 
+/// \brief Creates and attaches a fast channel sample observer.
+[[nodiscard]] ChannelObserverPtr CreateFastChannelObserver(
+    const IDataGroup& data_group, const IChannelGroup& group,
+    const IChannel& channel);
+/**
+ * Function that creates a fast channel observer by searching the channel name. In
+ * case that the channel exist in many channel groups, it selects the group with
+ * the largest number of samples.
+ * @param dg_group The data group with the channel.
+ * @param channel_name The channel name
+ * @return A smart pointer to a channel observer.
+ */
+[[nodiscard]] ChannelObserverPtr CreateFastChannelObserver(
+    const IDataGroup& dg_group, const std::string& channel_name);
+
+/** \brief Creates a fast channel observer. */
+void CreateFastChannelObserverForChannelGroup(const IDataGroup& data_group,
+                                              const IChannelGroup& group,
+                                              ChannelObserverList& dest);
+
+
 /** \class MdfReader mdfreader.h "mdf/mdfreader.h"
  * \brief Reader interface to an MDF file.
  *
@@ -119,6 +140,16 @@ class MdfReader {
    * @return True if the red was successful.
    */
   bool ReadData(IDataGroup& data_group);
+  /**
+   * Reads selected sample from group , sample reduction and signal data into memory.
+   * This function only read one frame data from group. When read big signal from channel,
+   * read all data will cost more memory. Then you can use this function and only read you needed
+   * signal data and only one frame data will be readed in memory. This will cost low memory.
+   * @param data_group Reference to the data group (DG) object.
+   * @param sample sample index, must less than total signal num.
+   * @return True if the red was successful.
+   */
+  bool ReadOneData(IDataGroup& data_group);
 
   /** \brief Reads in data bytes to a sample reduction (SR) block.
    *

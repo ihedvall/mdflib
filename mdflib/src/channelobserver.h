@@ -13,6 +13,7 @@
 
 namespace mdf::detail {
 
+
 template <class T>
 class ChannelObserver : public IChannelObserver {
  private:
@@ -20,7 +21,6 @@ class ChannelObserver : public IChannelObserver {
   std::vector<T> value_list_;
   std::vector<bool> valid_list_;
   const IChannelGroup& group_;       ///< Reference to the channel group (CG) block.
-
 
  protected:
   bool GetSampleUnsigned(uint64_t sample, uint64_t& value , uint64_t array_index) const override;

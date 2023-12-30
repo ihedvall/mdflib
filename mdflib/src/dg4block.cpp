@@ -296,15 +296,14 @@ bool Dg4Block::ReadOneData(std::FILE* file) {
   if(!one_data_info_.valid){
     // First scan through all CN blocks and set up any VLSD CG or MLSD channel
     // relations.
-    std::cout<<"read cg4"<<std::endl;
     for (const auto& cg4 : cg_list_) {
       if (!cg4) {
         continue;
       }
 
       // Fetch all data from sample reduction blocks (SR).
-      std::cout<<"read sr4"<<std::endl;
       for (const auto& sr4 : cg4->Sr4()) {
+        std::cout<<"Read Sr4"<<std::endl;
         if (!sr4) {
           continue;
         }
@@ -312,7 +311,6 @@ bool Dg4Block::ReadOneData(std::FILE* file) {
       }
 
       // Fetch all signal data (SD)
-      std::cout<<"fetch all signal data"<<std::endl;
       const auto channel_list = cg4->Channels();
       for (const auto* channel :channel_list) {
         if (channel == nullptr) {
@@ -393,7 +391,6 @@ bool Dg4Block::ReadOneData(std::FILE* file) {
         data_file = file;
         data_size = dt->DataSize();
         one_data_info_.total_data_size = data_size;
-        std::cout<<"total data size:"<<one_data_info_.total_data_size<<std::endl;
         one_data_info_.read_count = 0;
         one_data_info_.data_file = file;
         one_data_info_.close_file = false;
@@ -402,11 +399,12 @@ bool Dg4Block::ReadOneData(std::FILE* file) {
     } else {
       // If not a DT block, extract the linked data block list into temporary
       // file which is a DT block according to the above DT block.
-      std::cout << "not a DT block "<<std::endl;
+      std::cout<<"Not a DT block, linkd data block list into temporary"<<std::endl;
       close_data_file = true;
       data_file = std::tmpfile();
       data_size = CopyDataToFile(block_list, file, data_file);
       std::rewind(data_file);
+      std::cout<<"File total size:"<<data_size<<std::endl;
       one_data_info_.total_data_size = data_size;
       one_data_info_.read_count = 0;
       one_data_info_.valid = true;

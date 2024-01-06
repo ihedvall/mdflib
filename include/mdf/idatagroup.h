@@ -111,8 +111,14 @@ class IDataGroup : public IBlock {
   [[nodiscard]] virtual IChannelGroup *FindParentChannelGroup(
       const IChannel &channel) const = 0;
 
+  /**
+   * \brief Checks if this data group subscribes on a specific record.
+   * @param record_id Record ID of the channel group
+   * @return True if the observer list subscribe on this channel group.
+   */
+  [[nodiscard]] bool IsSubscribingOnRecord(uint64_t record_id) const;
  protected:
-  mutable std::vector<ISampleObserver*> observer_list; ///< List of observers.
+  mutable std::vector<ISampleObserver*> observer_list_; ///< List of observers.
   ~IDataGroup() override = default; ///< Default destructor
 
  private:

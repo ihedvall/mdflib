@@ -9,6 +9,7 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include <set>
 #include <functional>
 
 #include "mdf/ichannelgroup.h"
@@ -53,6 +54,17 @@ class ISampleObserver {
    */
   virtual void OnSample(uint64_t sample, uint64_t record_id,
                         const std::vector<uint8_t>& record);
+
+  /**
+   * \brief Function that test if this observer needs to read a specific
+   * record.
+   *
+   * @param record_id The channel groups record ID
+   * @return True if this channel subscribe on this record (channel group).
+   */
+  [[nodiscard]] bool IsRecordIdNeeded(uint64_t record_id) const {
+    return record_id_list_.find(record_id) != record_id_list_.cend();
+  }
 
   /** \brief Function object that is called if assigned.
    *
@@ -171,7 +183,7 @@ class ISampleObserver {
   }
 
  protected:
-
+  std::set<uint64_t> record_id_list_; ///< List of subscribed channel groups.
   const IDataGroup& data_group_;  ///< Reference to the data group (DG) block.
  private:
   bool attached_ = false; ///< True if the observer is active

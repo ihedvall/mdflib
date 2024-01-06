@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <iostream>
 #include "datalistblock.h"
 
 #include "di4block.h"
@@ -259,6 +260,22 @@ bool DataListBlock::IsRdBlock() const {
     }
   }
   return false;
+}
+
+void DataListBlock::GetDataBlockList(std::vector<DataBlock*>& block_list) const {
+  for (const auto& block : block_list_) {
+    if (!block) {
+      continue;
+    }
+
+    auto* data_list = dynamic_cast<DataListBlock*>(block.get());
+    auto* data_block = dynamic_cast<DataBlock*>(block.get());
+    if (data_list != nullptr) {
+      data_list->GetDataBlockList(block_list);
+    } else if (data_block != nullptr) {
+      block_list.push_back(data_block);
+    }
+  }
 }
 
 }  // namespace mdf::detail

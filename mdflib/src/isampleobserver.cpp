@@ -10,6 +10,13 @@ namespace mdf {
 ISampleObserver::ISampleObserver(const IDataGroup &data_group)
 : data_group_(data_group) {
   ISampleObserver::AttachObserver();
+  // Subscribe on all channel groups
+  const auto cg_list = data_group.ChannelGroups();
+  for (const auto* channel_group : cg_list) {
+    if ( channel_group != nullptr) {
+      record_id_list_.insert(channel_group->RecordId());
+    }
+  }
 }
 
 ISampleObserver::~ISampleObserver() {

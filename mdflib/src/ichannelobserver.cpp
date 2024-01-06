@@ -24,7 +24,17 @@ namespace mdf {
 
 IChannelObserver::IChannelObserver(const IDataGroup& data_group, const IChannel &channel)
     : ISampleObserver(data_group),
-    channel_(channel) {}
+    channel_(channel) {
+
+  // Subscribe on all channel groups
+  record_id_list_.clear();
+  const auto cg_list = data_group.ChannelGroups();
+  record_id_list_.insert(channel_.RecordId());
+  if (channel_.VlsdRecordId() > 0 && read_vlsd_data_) {
+    record_id_list_.insert(channel_.VlsdRecordId());
+  }
+
+}
 
 std::string IChannelObserver::Name() const { return channel_.Name(); }
 
@@ -76,6 +86,22 @@ std::string IChannelObserver::EngValueToString(uint64_t sample) const {
 
 
   return output.str();
+}
+
+void IChannelObserver::ReadVlsdData(bool read_vlsd_data) {
+  read_vlsd_data_ = read_vlsd_data;
+  // Need to setup the record id subscription list.
+  record_id_list_.clear();
+  record_id_list_.insert(channel_.RecordId());
+  if (channel_.VlsdRecordId() > 0 && read_vlsd_data_) {
+    record_id_list_.insert(channel_.VlsdRecordId());
+  }
+}
+
+bool IChannelObserver::GetOffsetValue(uint64_t sample, uint64_t& offset) const {
+  const auto index = static_cast<size_t>(sample);
+  offset = index < offset_list_.size() ? offset_list_[index] : 0;
+  return index < valid_list_.size() && valid_list_[index];;
 }
 
 template <>

@@ -14,27 +14,27 @@
 namespace mdf {
 
 void IDataGroup::AttachSampleObserver(ISampleObserver *observer) const {
-  observer_list.emplace_back(observer);
+  observer_list_.emplace_back(observer);
 }
 
 void IDataGroup::DetachSampleObserver(const ISampleObserver *observer) const {
-  if (observer_list.empty()) return;
-  for (auto itr = observer_list.begin(); itr != observer_list.end();
+  if (observer_list_.empty()) return;
+  for (auto itr = observer_list_.begin(); itr != observer_list_.end();
        /* No ++itr here */) {
     if (*itr == observer) {
-      itr = observer_list.erase(itr);
+      itr = observer_list_.erase(itr);
     } else {
       ++itr;
     }
   }
 }
 
-void IDataGroup::DetachAllSampleObservers() const { observer_list.clear(); }
+void IDataGroup::DetachAllSampleObservers() const { observer_list_.clear(); }
 
 void IDataGroup::NotifySampleObservers(
     size_t sample, uint64_t record_id,
     const std::vector<uint8_t> &record) const {
-  for (auto *observer : observer_list) {
+  for (auto *observer : observer_list_) {
     if (observer != nullptr) {
       observer->OnSample(sample, record_id, record);
     }
@@ -101,4 +101,13 @@ IChannelGroup *IDataGroup::GetChannelGroup(uint64_t record_id) const {
                 });
   return itr != cg_list.end() ? *itr : nullptr;
 }
+
+bool IDataGroup::IsSubscribingOnRecord(uint64_t record_id) const {
+  return std::any_of(observer_list_.cbegin(), observer_list_.cend(),
+                     [&] (const auto* observer) {
+    return observer != nullptr && observer->IsRecordIdNeeded(record_id);
+
+  });
+}
+
 }  // namespace mdf

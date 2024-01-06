@@ -19,7 +19,7 @@ add_library(mdf STATIC
         src/cc3block.cpp src/cc3block.h
         src/cd3block.cpp src/cd3block.h
         src/ce3block.cpp src/ce3block.h
-        ../include/mdf/mdfreader.h src/mdfreader.cpp
+        src/mdfreader.cpp ../include/mdf/mdfreader.h
         src/mdf3file.cpp src/mdf3file.h
         src/hd4block.cpp src/hd4block.h
         src/tx4block.cpp src/tx4block.h
@@ -46,11 +46,10 @@ add_library(mdf STATIC
         src/datalistblock.cpp src/datalistblock.h
         src/blockproperty.cpp src/blockproperty.h
         src/mdf4timestamp.cpp src/mdf4timestamp.h
-        ../include/mdf/iattachment.h src/iattachment.cpp
+        src/iattachment.cpp ../include/mdf/iattachment.h
         ../include/mdf/ichannel.h src/ichannel.cpp
         ../include/mdf/idatagroup.h src/idatagroup.cpp
         ../include/mdf/ichannelgroup.h src/ichannelgroup.cpp
-        ../include/mdf/isampleobserver.h
         src/channelobserver.h src/channelobserver.cpp
         ../include/mdf/ichannelobserver.h src/ichannelobserver.cpp
         ../include/mdf/ichannelconversion.h src/ichannelconversion.cpp
@@ -89,11 +88,10 @@ add_library(mdf STATIC
         src/vlsddata.cpp src/vlsddata.h
         src/mdfbuslogger.cpp src/mdfbuslogger.h
         src/canmessage.cpp ../include/mdf/canmessage.h
-        src/dbchelper.cpp
-        src/dbchelper.h
-        src/isampleobserver.cpp
-        src/isamplereduction.cpp
-        ../include/mdf/isamplereduction.h
+        src/dbchelper.cpp src/dbchelper.h
+        src/isampleobserver.cpp  ../include/mdf/isampleobserver.h
+        src/isamplereduction.cpp ../include/mdf/isamplereduction.h
+        src/readcache.cpp src/readcache.h
 )
 
 if(VCPKG)

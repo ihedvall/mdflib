@@ -10,6 +10,7 @@
 #include "mdfblock.h"
 
 namespace mdf::detail {
+class DataBlock;
 class DataListBlock : public MdfBlock {
  public:
   using BlockList = std::vector<std::unique_ptr<MdfBlock>>;
@@ -25,6 +26,7 @@ class DataListBlock : public MdfBlock {
   void CopyDataToBuffer(FILE *from_file, std::vector<uint8_t> &buffer,
                                                    size_t &buffer_index) const;
   [[nodiscard]] bool IsRdBlock() const;
+   void GetDataBlockList(std::vector<DataBlock*>& block_list) const;
  protected:
   BlockList block_list_;
 };

@@ -14,6 +14,7 @@
 #include "cn4block.h"
 #include "sr4block.h"
 #include "mdf/mdflogstream.h"
+#include "readcache.h"
 
 namespace {
 constexpr size_t kIndexCg = 1;
@@ -237,6 +238,7 @@ void Dg4Block::ReadData(std::FILE* file) {
     }
   }
 
+/*
   // Convert everything to a samples in a file single DT block can be read
   // directly but remaining block types are streamed to a temporary file. The
   // main reason is that linked data blocks,is not aligned to a record or even
@@ -269,6 +271,16 @@ void Dg4Block::ReadData(std::FILE* file) {
   ParseDataRecords(data_file, data_size);
   if (data_file != nullptr && close_data_file) {
     fclose(data_file);
+  }
+*/
+
+  for (const auto& channel_group : Cg4() ) {
+    if (channel_group) {
+      channel_group->ResetSampleCounter();
+    }
+  }
+  ReadCache read_cache(this, file);
+  while (read_cache.ParseRecord()) {
   }
 
   for (const auto& cg : cg_list_) {

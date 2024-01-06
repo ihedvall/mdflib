@@ -18,7 +18,7 @@ class ChannelObserver : public IChannelObserver {
  private:
   uint64_t record_id_ = 0;
   std::vector<T> value_list_;
-  std::vector<bool> valid_list_;
+
   const IChannelGroup& group_;       ///< Reference to the channel group (CG) block.
 
 
@@ -48,7 +48,7 @@ class ChannelObserver : public IChannelObserver {
     value_list_.resize(group.NofSamples() * array_size, T{});
 
     if (channel_.Type() == ChannelType::VariableLength) {
-      index_list_.resize(group.NofSamples() * array_size,0);
+      offset_list_.resize(group.NofSamples() * array_size, 0);
     }
     ChannelObserver::AttachObserver();
   }
@@ -101,25 +101,30 @@ class ChannelObserver : public IChannelObserver {
             uint64_t offset = 0; // Offset into SD/CG block
             valid = channel_.GetUnsignedValue(record, offset, array_index);
 
-            const auto sample_index = (sample * array_size) + array_index;
-            if (sample_index < index_list_.size()) {
-              index_list_[sample_index] = offset;
+            const auto sample_index = static_cast<size_t>((sample * array_size) + array_index);
+            if (sample_index < offset_list_.size()) {
+              offset_list_[sample_index] = offset;
             }
-            // Value should be in the channels data list (SD). The channels
-            // GetChannelValue handle this situation
-            valid = channel_.GetChannelValue(record, value, array_index);
             if (sample_index < valid_list_.size()) {
               valid_list_[sample_index] = valid;
             }
-            if (sample_index < value_list_.size()) {
-              value_list_[sample_index] = value;
+            if (ReadVlsdData()) {
+              // Value should be in the channels data list (SD). The channels
+              // GetChannelValue handle this situation
+              valid = channel_.GetChannelValue(record, value, array_index);
+              if (sample_index < valid_list_.size()) {
+                valid_list_[sample_index] = valid;
+              }
+              if (sample_index < value_list_.size()) {
+                value_list_[sample_index] = value;
+              }
             }
           }
         } else if (channel_.VlsdRecordId() > 0 &&
                    record_id == channel_.VlsdRecordId()) {
           // Add the VLSD offset data to this channel
           for (uint64_t array_index = 0; array_index < array_size; ++array_index) {
-            const auto sample_index = (sample * array_size) + array_index;
+            const auto sample_index = static_cast<size_t>((sample * array_size) + array_index);
             valid = channel_.GetChannelValue(record, value, array_index);
             if (sample_index < value_list_.size()) {
               value_list_[sample_index] = value;
@@ -138,7 +143,7 @@ class ChannelObserver : public IChannelObserver {
       default:
         if (record_id_ == record_id) {
           for (uint64_t array_index = 0; array_index < array_size; ++array_index) {
-            const auto sample_index = (sample * array_size) + array_index;
+            const auto sample_index = static_cast<size_t>((sample * array_size) + array_index);
             valid = channel_.GetChannelValue(record, value, array_index);
             if (sample_index < value_list_.size()) {
               value_list_[sample_index] = value;

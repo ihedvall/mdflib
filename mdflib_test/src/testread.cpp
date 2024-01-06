@@ -29,6 +29,18 @@ const std::string mdf_source_dir =
     "k:/test/mdf";  // Where all source MDF files exist
 const std::string log_root_dir = "o:/test";
 const std::string log_file = "mdfread.log";
+
+constexpr std::string_view  kLargeLocalSsdFile =
+    "c:/temp/Zeekr_PR60126_BX1E_583_R08A04_dia_left_5kph_0.5m_NO_08_01_psd_1_2023_12_21_041519#CANape_log_056_TDA4GMSL.mf4";
+constexpr std::string_view  kLargeLocalDriveFile =
+    "o:/Zeekr_PR60126_BX1E_583_R08A04_dia_left_5kph_0.5m_NO_08_01_psd_1_2023_12_21_041519#CANape_log_056_TDA4GMSL.mf4";
+constexpr std::string_view  kLargeNasFile =
+    "k:/test/mdf/Zeekr_PR60126_BX1E_583_R08A04_dia_left_5kph_0.5m_NO_08_01_psd_1_2023_12_21_041519#CANape_log_056_TDA4GMSL.mf4";
+
+constexpr std::string_view kLargeTime = "t";
+constexpr std::string_view kLargeFrameCounter = "FrameCounter_VC0";
+constexpr std::string_view kLargeFrameData = "VideoRawdata_VC0";
+
 using MdfList = std::map<std::string, std::string, util::string::IgnoreCase>;
 MdfList mdf_list;
 
@@ -37,6 +49,17 @@ std::string GetMdfFile(const std::string &name) {
   return itr == mdf_list.cend() ? std::string() : itr->second;
 }
 
+double ConvertToMs(uint64_t diff) {
+  auto temp = static_cast<double>(diff);
+  temp /= 1'000'000;
+  return temp;
+}
+
+double ConvertToSec(uint64_t diff) {
+  auto temp = static_cast<double>(diff);
+  temp /= 1'000'000'000;
+  return temp;
+}
 }  // namespace
 
 namespace mdf::test {
@@ -161,6 +184,7 @@ TEST_F(TestRead, HeaderBlock)  // NOLINT
     }
   }
 }
+
 TEST_F(TestRead, Benchmark) {
   GTEST_SKIP();
   {
@@ -203,5 +227,193 @@ TEST_F(TestRead, Benchmark) {
               << " ms" << std::endl;
   }
 }
+
+TEST_F(TestRead, TestLargeFile) {
+
+  std::array<std::string_view, 3> file_list = {
+      kLargeLocalSsdFile,
+      kLargeLocalDriveFile,
+      kLargeNasFile};
+  std::array<std::string_view, 3> storage_list = {
+      "Local SSD Drive",
+      "Local Mechanical Drive",
+      "NAS"
+  };
+
+  for (size_t file = 0; file < file_list.size(); ++file) {
+    const std::string test_file(file_list[file]);
+    const std::string storage_type(storage_list[file]);
+
+    try {
+      const auto full_path = path(test_file);
+      if (!exists(full_path)) {
+        throw std::runtime_error("File doesn't exist");
+      }
+    } catch (const std::exception &err) {
+      continue;
+    }
+
+    {
+      std::cout << "BENCHMARK Large (" << storage_type << ") Storage ReadData(without VLSD data)" << std::endl;
+
+      const auto start_open = MdfHelper::NowNs();
+      MdfReader oRead(test_file);
+      const auto stop_open = MdfHelper::NowNs();
+      std::cout << "Open File (ms): " << ConvertToMs(stop_open - start_open) << std::endl;
+
+      const auto start_info = MdfHelper::NowNs();
+      EXPECT_TRUE(oRead.ReadEverythingButData()) << oRead.ShortName();
+      const auto stop_info = MdfHelper::NowNs();
+      std::cout << "Read Info (ms): " << ConvertToMs(stop_info - start_info) << std::endl;
+
+      const auto *header = oRead.GetHeader();
+      ASSERT_TRUE(header != nullptr);
+
+      auto *last_dg = header->LastDataGroup();
+      ASSERT_TRUE(last_dg != nullptr);
+
+      auto channel_groups = last_dg->ChannelGroups();
+      ASSERT_FALSE(channel_groups.empty());
+
+      auto *channel_group = channel_groups[0];
+      ASSERT_TRUE(channel_group != nullptr);
+
+      auto *time_channel = channel_group->GetChannel(kLargeTime);
+      ASSERT_TRUE(time_channel != nullptr);
+
+      auto *counter_channel = channel_group->GetChannel(kLargeFrameCounter);
+      ASSERT_TRUE(counter_channel != nullptr);
+
+      auto time_observer = CreateChannelObserver(*last_dg,
+                                                 *channel_group, *time_channel);
+      auto counter_observer = CreateChannelObserver(*last_dg,
+                                                    *channel_group, *counter_channel);
+
+      const auto start_data = MdfHelper::NowNs();
+      EXPECT_TRUE(oRead.ReadData(*last_dg)) << oRead.ShortName();
+      const auto stop_data = MdfHelper::NowNs();
+      std::cout << "Read Data (s): " << ConvertToSec(stop_data - start_data) << std::endl;
+
+      last_dg->ClearData();
+      time_observer.reset();
+      counter_observer.reset();
+      std::cout << std::endl;
+    }
+
+    {
+      std::cout << "BENCHMARK Large (" << storage_type << ") Storage ReadData(with VLSD data)" << std::endl;
+
+      const auto start_open = MdfHelper::NowNs();
+      MdfReader oRead(test_file.data());
+      const auto stop_open = MdfHelper::NowNs();
+      std::cout << "Open File (ms): " << ConvertToMs(stop_open - start_open) << std::endl;
+
+      const auto start_info = MdfHelper::NowNs();
+      EXPECT_TRUE(oRead.ReadEverythingButData()) << oRead.ShortName();
+      const auto stop_info = MdfHelper::NowNs();
+      std::cout << "Read Info (ms): " << ConvertToMs(stop_info - start_info) << std::endl;
+
+      const auto *header = oRead.GetHeader();
+      ASSERT_TRUE(header != nullptr);
+
+      auto *last_dg = header->LastDataGroup();
+      ASSERT_TRUE(last_dg != nullptr);
+
+      auto channel_groups = last_dg->ChannelGroups();
+      ASSERT_FALSE(channel_groups.empty());
+
+      auto *channel_group = channel_groups[0];
+      ASSERT_TRUE(channel_group != nullptr);
+
+      auto *time_channel = channel_group->GetChannel(kLargeTime);
+      ASSERT_TRUE(time_channel != nullptr);
+
+      auto *counter_channel = channel_group->GetChannel(kLargeFrameCounter);
+      ASSERT_TRUE(counter_channel != nullptr);
+
+      auto time_observer = CreateChannelObserver(*last_dg,
+                                                 *channel_group, *time_channel);
+      auto counter_observer = CreateChannelObserver(*last_dg,
+                                                    *channel_group, *counter_channel);
+
+      ISampleObserver sample_observer(*last_dg);
+      sample_observer.AttachObserver();
+      uint64_t stop_temp_file = 0; // Time for first sample
+      sample_observer.DoOnSample = [&](uint64_t sample, uint64_t, const std::vector<uint8_t> &) {
+        if (stop_temp_file == 0) {
+          stop_temp_file = MdfHelper::NowNs();
+        }
+      };
+
+      const auto start_data = MdfHelper::NowNs();
+      EXPECT_TRUE(oRead.ReadData(*last_dg)) << oRead.ShortName();
+      const auto stop_data = MdfHelper::NowNs();
+      std::cout << "Read Data (s): " << ConvertToSec(stop_data - start_data) << std::endl;
+
+      sample_observer.DetachObserver();
+      last_dg->ClearData();
+      time_observer.reset();
+      counter_observer.reset();
+
+      std::cout << std::endl;
+    }
+
+    {
+      std::cout << "BENCHMARK Large (" << storage_type << ") Storage ReadData(VLSD offset data)" << std::endl;
+
+      const auto start_open = MdfHelper::NowNs();
+      MdfReader oRead(test_file);
+      const auto stop_open = MdfHelper::NowNs();
+      std::cout << "Open File (ms): " << ConvertToMs(stop_open - start_open) << std::endl;
+
+      const auto start_info = MdfHelper::NowNs();
+      EXPECT_TRUE(oRead.ReadEverythingButData()) << oRead.ShortName();
+      const auto stop_info = MdfHelper::NowNs();
+      std::cout << "Read Info (ms): " << ConvertToMs(stop_info - start_info) << std::endl;
+
+      const auto *header = oRead.GetHeader();
+      ASSERT_TRUE(header != nullptr);
+
+      auto *last_dg = header->LastDataGroup();
+      ASSERT_TRUE(last_dg != nullptr);
+
+      auto channel_groups = last_dg->ChannelGroups();
+      ASSERT_FALSE(channel_groups.empty());
+
+      auto *channel_group = channel_groups[0];
+      ASSERT_TRUE(channel_group != nullptr);
+
+      auto *time_channel = channel_group->GetChannel(kLargeTime);
+      ASSERT_TRUE(time_channel != nullptr);
+
+      auto *counter_channel = channel_group->GetChannel(kLargeFrameCounter);
+      ASSERT_TRUE(counter_channel != nullptr);
+
+      auto *frame_channel = channel_group->GetChannel(kLargeFrameData);
+      ASSERT_TRUE(frame_channel != nullptr);
+
+      auto time_observer = CreateChannelObserver(*last_dg,
+                                                 *channel_group, *time_channel);
+      auto counter_observer = CreateChannelObserver(*last_dg,
+                                                    *channel_group, *counter_channel);
+
+      auto frame_observer = CreateChannelObserver(*last_dg,
+                                                    *channel_group, *counter_channel);
+      frame_observer->ReadVlsdData(false);
+
+      const auto start_data = MdfHelper::NowNs();
+      EXPECT_TRUE(oRead.ReadData(*last_dg)) << oRead.ShortName();
+      const auto stop_data = MdfHelper::NowNs();
+      std::cout << "Read Data (s): " << ConvertToSec(stop_data - start_data) << std::endl;
+
+      last_dg->ClearData();
+      time_observer.reset();
+      counter_observer.reset();
+
+      std::cout << std::endl;
+    }
+  }
+}
+
 
 }  // namespace mdf::test

@@ -48,6 +48,7 @@ size_t DataBlock::CopyDataToBuffer(std::FILE *from_file,
   if (data_size == 0) {
     return 0;
   }
+
   const auto reads =
       fread(buffer.data() + buffer_index, 1, data_size, from_file);
   buffer_index += reads;

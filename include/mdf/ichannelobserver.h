@@ -26,8 +26,11 @@ namespace mdf {
 class IChannelObserver : public ISampleObserver {
  protected:
    const IChannel& channel_; ///< Reference to the channel (CN) block.
+   bool read_vlsd_data_ = true;
 
-  std::vector<uint64_t> index_list_; ///< Only used for VLSD channels.
+  std::vector<uint64_t> offset_list_; ///< Only used for VLSD channels.
+  std::vector<bool> valid_list_; ///< List of valid samples.
+
   virtual bool GetSampleUnsigned(uint64_t sample, uint64_t& value, uint64_t array_index)
       const = 0; ///< Returns a unsigned  sample value.
   virtual bool GetSampleSigned(uint64_t sample, int64_t& value, uint64_t array_index)
@@ -65,8 +68,14 @@ class IChannelObserver : public ISampleObserver {
    * @return Returns the channel object.
    */
   [[nodiscard]] const IChannel& Channel() const;
+
   [[nodiscard]] bool IsMaster() const; ///< True if this is the master channel.
+
   [[nodiscard]] bool IsArray() const; ///< True if this channel is an array channel.
+
+  void ReadVlsdData(bool read_vlsd_data);
+  [[nodiscard]] bool ReadVlsdData() const { return read_vlsd_data_; }
+
   /** \brief If this is an array channel, this function returns the array size.
    *
    * Returns the array size if the channel is an array channel. The function
@@ -105,6 +114,8 @@ class IChannelObserver : public ISampleObserver {
    * @return JSON formatted string
    */
   [[nodiscard]] std::string EngValueToString(uint64_t sample) const;
+
+   bool GetOffsetValue(uint64_t sample, uint64_t& offset) const;
 };
 
 template <typename V>

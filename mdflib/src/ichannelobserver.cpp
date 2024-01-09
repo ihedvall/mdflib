@@ -98,11 +98,7 @@ void IChannelObserver::ReadVlsdData(bool read_vlsd_data) {
   }
 }
 
-bool IChannelObserver::GetOffsetValue(uint64_t sample, uint64_t& offset) const {
-  const auto index = static_cast<size_t>(sample);
-  offset = index < offset_list_.size() ? offset_list_[index] : 0;
-  return index < valid_list_.size() && valid_list_[index];;
-}
+
 
 template <>
 bool IChannelObserver::GetChannelValue(uint64_t sample, std::string& value, uint64_t array_index) const {

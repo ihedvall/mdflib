@@ -8,7 +8,7 @@
 
 #include "mdf/ichannel.h"
 #include "mdf/ichannelgroup.h"
-#include "mdf/isampleobserver.h"
+#include "mdf/ichannelobserver.h"
 
 
 namespace mdf {
@@ -110,4 +110,41 @@ bool IDataGroup::IsSubscribingOnRecord(uint64_t record_id) const {
   });
 }
 
+bool IDataGroup::IsSubscribingOnChannel(const IChannel& channel) const {
+  return std::any_of(observer_list_.cbegin(), observer_list_.cend(),
+              [&] ( const auto& observer) {
+    if (!observer) {
+      return false;
+    }
+    const auto* channel_observer = dynamic_cast<const IChannelObserver*>(observer);
+    if (channel_observer == nullptr) {
+      // Some type of OnSample observer. Check if the record ID is un use.
+      if (IsSubscribingOnRecord(channel.RecordId())) {
+        return true;
+      }
+    } else if (channel_observer->Channel().Index() == channel.Index()) {
+      return true;
+    }
+    return false;
+  });
+}
+
+bool IDataGroup::IsSubscribingOnChannelVlsd(const IChannel& channel) const {
+  return std::any_of(observer_list_.cbegin(), observer_list_.cend(),
+   [&] ( const auto& observer) {
+     if (!observer) {
+       return false;
+     }
+     const auto* channel_observer = dynamic_cast<const IChannelObserver*>(observer);
+     if (channel_observer == nullptr) {
+       // Some type of OnSample observer. Check if the record ID is un use.
+       if (IsSubscribingOnRecord(channel.RecordId())) {
+         return true;
+       }
+     } else if (channel_observer->Channel().Index() == channel.Index()) {
+       return channel_observer->ReadVlsdData();
+     }
+     return false;
+   });
+}
 }  // namespace mdf

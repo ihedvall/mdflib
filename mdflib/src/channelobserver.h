@@ -95,7 +95,7 @@ class ChannelObserver : public IChannelObserver {
 
         // This channel may reference a SD/CG blocks
       case ChannelType::VariableLength:
-        if (record_id_ == record_id && channel_.VlsdRecordId() == 0) {
+        if (record_id_ == record_id) {
           // If variable length, the value is an index into an SD block.
           for (uint64_t array_index = 0; array_index < array_size; ++array_index) {
             uint64_t offset = 0; // Offset into SD/CG block
@@ -108,7 +108,7 @@ class ChannelObserver : public IChannelObserver {
             if (sample_index < valid_list_.size()) {
               valid_list_[sample_index] = valid;
             }
-            if (ReadVlsdData()) {
+            if (ReadVlsdData() && channel_.VlsdRecordId() == 0) {
               // Value should be in the channels data list (SD). The channels
               // GetChannelValue handle this situation
               valid = channel_.GetChannelValue(record, value, array_index);

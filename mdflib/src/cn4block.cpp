@@ -339,6 +339,7 @@ void Cn4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
+  dest.emplace_back("Id", std::to_string(Index()));
   dest.emplace_back("Name", name_);
   dest.emplace_back("Description", Description());
   dest.emplace_back("Unit", Unit());

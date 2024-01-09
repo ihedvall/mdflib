@@ -6,6 +6,7 @@
 
 #include <stdexcept>
 #include <algorithm>
+#include <set>
 
 #include "dl4block.h"
 #include "dt4block.h"
@@ -98,6 +99,8 @@ size_t Dg4Block::Read(std::FILE* file) {
 
   ReadMdComment(file, kIndexMd);
   ReadBlockList(file, kIndexData);
+
+
   return bytes;
 }
 
@@ -180,6 +183,10 @@ void Dg4Block::ReadData(std::FILE* file) {
       if (channel == nullptr) {
         continue;
       }
+      // Check if channel is in the subscription
+      if (!IsSubscribingOnChannel(*channel) ) {
+        continue;
+      }
       const auto* cn_block = dynamic_cast<const Cn4Block*>(channel);
       if (cn_block == nullptr) {
         continue;
@@ -203,31 +210,15 @@ void Dg4Block::ReadData(std::FILE* file) {
 
       switch (cn_block->Type()) {
         case ChannelType::VariableLength:
-          if (block->BlockType() == "CG") {
-            const auto* cg_block = dynamic_cast<const Cg4Block*>(block);
-            if (cg_block != nullptr &&
-                (cg_block->Flags() & CgFlag::VlsdChannel) != 0 ) {
-              cn_block->VlsdRecordId(cg_block->RecordId());
-            } else {
-              cn_block->VlsdRecordId(0);
+          if (IsSubscribingOnChannelVlsd(*channel)) {
+            if (block->BlockType() == "SD") {
               cn_block->ReadSignalData(file);
-            }
-          } else if (block->BlockType() == "SD") {
-            cn_block->ReadSignalData(file);
-          } else if (block->BlockType() == "DZ") {
-            cn_block->ReadSignalData(file);
-          } else if (block->BlockType() == "DL") {
-            cn_block->ReadSignalData(file);          }
-          break;
-
-        case ChannelType::MaxLength:
-          if (block->BlockType() == "CN") {
-            // Point to the length of byte array channel
-            const auto* mlsd_channel = dynamic_cast<const Cn4Block*>(block);
-            if (mlsd_channel != nullptr) {
-              cn_block->MlsdChannel(mlsd_channel);
-            } else {
-              cn_block->MlsdChannel(nullptr);
+            } else if (block->BlockType() == "DZ") {
+              cn_block->ReadSignalData(file);
+            } else if (block->BlockType() == "DL") {
+              cn_block->ReadSignalData(file);
+            } else if (block->BlockType() == "HL") {
+              cn_block->ReadSignalData(file);
             }
           }
           break;
@@ -294,6 +285,70 @@ void Dg4Block::ReadData(std::FILE* file) {
       cn->ClearData();
     }
   }
+}
+
+void  Dg4Block::ReadVlsdData(std::FILE* file,Cn4Block& channel,
+                  const std::vector<uint64_t>& offset_list,
+                  std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback) {
+  if (file == nullptr) {
+    throw std::invalid_argument("File pointer is null");
+  }
+
+  // Fetch the channels referenced data block. Note that some type of
+  // data blocks are own by this channel as SD block but some are only
+  // references to block own by another block. Of interest is VLSD CG block
+  // and MLSD channel.
+
+  const auto data_link = channel.DataLink();
+  if (data_link == 0) {
+    return; // No data to read into the system
+  }
+  auto* block = Find(data_link);
+  if (block == nullptr) {
+    throw std::runtime_error(
+        "Missing referenced data block in channel.");
+  }
+  bool read_signal_data = false;
+  bool read_vlsd_cg_data = false;
+
+  switch (channel.Type()) {
+    case ChannelType::VariableLength:
+      if (block->BlockType() == "CG") {
+        const auto* cg_block = dynamic_cast<const Cg4Block*>(block);
+        if (cg_block != nullptr &&
+            (cg_block->Flags() & CgFlag::VlsdChannel) != 0 ) {
+          read_vlsd_cg_data = true;
+        }
+      } else if (block->BlockType() == "SD") {
+        read_signal_data = true;
+      } else if (block->BlockType() == "DZ") {
+        read_signal_data = true;
+      } else if (block->BlockType() == "DL") {
+        read_signal_data = true;
+      }
+      break;
+
+    default:
+      throw std::runtime_error("The channel is not a VLSD type.");
+  }
+
+  if (read_signal_data) {
+    ReadCache read_cache(block, file);
+    read_cache.SetOffsetFilter(offset_list);
+    read_cache.SetCallback(callback);
+
+    while (read_cache.ParseSignalData()) {
+    }
+  } else if (read_vlsd_cg_data) {
+    ReadCache read_cache(this, file);
+    read_cache.SetRecordId(channel.VlsdRecordId());
+    read_cache.SetOffsetFilter(offset_list);
+    read_cache.SetCallback(callback);
+
+    while (read_cache.ParseVlsdCgData()) {
+    }
+  }
+
 }
 
 void Dg4Block::ParseDataRecords(std::FILE* file, size_t nof_data_bytes) {

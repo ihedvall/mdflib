@@ -7,6 +7,8 @@
 
 #include <vector>
 #include <set>
+#include <functional>
+
 #include "dg4block.h"
 #include "dg3block.h"
 
@@ -15,13 +17,25 @@ namespace mdf::detail {
 class ReadCache {
  public:
   ReadCache() = delete;
-  ReadCache( DataListBlock* data_block, FILE* file);
+  ReadCache( MdfBlock* block, FILE* file);
 
   bool ParseRecord();
+  bool ParseVlsdCgData();
+  bool ParseSignalData(); // Used against SD/DL/DZ blocks
+
+  void SetRecordId(uint64_t record_id) {
+    record_id_list_.clear();
+    record_id_list_.insert(record_id);
+  }
+
+  void SetOffsetFilter(const std::vector<uint64_t>& offset_list);
+
+  void SetCallback(const std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback );
  private:
 
   FILE* file_;
-  DataListBlock* data_list_;
+  DataListBlock* data_list_ = nullptr; ///< List of data_block example a DL block
+  DataBlock* data_block_ = nullptr; ///< A single data block
   Dg4Block* dg4_block_ = nullptr;
 
   size_t file_index_ = 0;
@@ -35,6 +49,9 @@ class ReadCache {
   std::vector<DataBlock*> block_list_;
   std::set<uint64_t> record_id_list_;
 
+  uint64_t offset_ = 0;
+  std::set<uint64_t> offset_filter_;
+  std::function<void(uint64_t, const std::vector<uint8_t>&)> callback_;
 
   uint64_t ParseRecordId();
   bool GetNextByte(uint8_t& input);

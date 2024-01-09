@@ -8,11 +8,13 @@
 
 namespace mdf::detail {
 
-ReadCache::ReadCache( DataListBlock* data_block, FILE* file)
-: file_(file),
-  data_list_(data_block)
+ReadCache::ReadCache( MdfBlock* block, FILE* file)
+: file_(file)
 {
-  dg4_block_ = dynamic_cast<Dg4Block*>(data_block);
+  data_list_ = dynamic_cast<DataListBlock*>(block);
+  data_block_ = dynamic_cast<DataBlock*>(block);
+  dg4_block_ = dynamic_cast<Dg4Block*>(block);
+
   if (dg4_block_ != nullptr) {
     const auto cg_list = dg4_block_->ChannelGroups();
     for (const auto* channel_group : cg_list) {
@@ -24,9 +26,16 @@ ReadCache::ReadCache( DataListBlock* data_block, FILE* file)
 
   if (data_list_ != nullptr) {
     max_data_count_ = data_list_->DataSize();
+  } else if (data_block_ != nullptr) {
+    max_data_count_ = data_block_->DataSize();
   }
+
+  // Make at list of data blocks that simplify the stepping of data blocks,
+  // The block_index
   if (data_list_ != nullptr)  {
     data_list_->GetDataBlockList(block_list_);
+  } else if (data_block_ != nullptr) {
+    block_list_.push_back(data_block_);
   }
 }
 
@@ -41,15 +50,15 @@ bool ReadCache::ParseRecord() {
 
   try {
     const auto record_id = ParseRecordId();
-    const auto* channel_group = dg4_block_->FindCgRecordId(record_id);
+    const auto *channel_group = dg4_block_->FindCgRecordId(record_id);
     if (channel_group == nullptr) {
       throw std::runtime_error("No channel group found.");
     }
     if (channel_group->Flags() & CgFlag::VlsdChannel) {
       // This is normally used for string and the CG block only include one signal
-      std::vector<uint8_t> temp(4,0);
+      std::vector<uint8_t> temp(4, 0);
       GetArray(temp);
-      const LittleBuffer<uint32_t> length(temp,0);
+      const LittleBuffer<uint32_t> length(temp, 0);
 
       if (record_id_list_.find(record_id) == record_id_list_.cend()) {
         SkipBytes(length.value());
@@ -64,12 +73,12 @@ bool ReadCache::ParseRecord() {
         if (sample < channel_group->NofSamples()) {
           dg4_block_->NotifySampleObservers(sample, channel_group->RecordId(), record);
           channel_group->IncrementSample();
-        }
+        };
       }
 
     } else {
       const size_t record_size = channel_group->NofDataBytes()
-                                             + channel_group->NofInvalidBytes();
+                                 + channel_group->NofInvalidBytes();
       // Normal fixed length records
       if (record_id_list_.find(record_id) == record_id_list_.cend()) {
         SkipBytes(record_size);
@@ -87,10 +96,103 @@ bool ReadCache::ParseRecord() {
         }
       }
     }
-  } catch (const std::exception&) {
+  } catch (const std::exception &) {
     return false;
   }
+
   return true;
+}
+
+bool ReadCache::ParseSignalData() {
+  if (data_count_ >= max_data_count_ || block_list_.empty()) {
+    return false;
+  }
+
+  while (data_count_ < max_data_count_ ) {
+    bool skip = false;
+    try {
+
+      std::vector<uint8_t> temp(4, 0);
+      GetArray(temp);
+      const LittleBuffer<uint32_t> length(temp, 0);
+
+      if (!offset_filter_.empty() &&
+           offset_filter_.find(offset_) == offset_filter_.cend()) {
+        SkipBytes(length.value());
+        skip = true;
+        offset_ += 4 + length.value();
+      } else {
+        std::vector<uint8_t> raw_data(length.value());
+        GetArray(raw_data);
+        if (callback_) {
+          callback_(offset_, raw_data);
+        }
+        offset_ += 4 + length.value();
+      }
+    } catch (const std::exception &) {
+      return false;
+    }
+    if (!skip) {
+      break;
+    }
+  }
+  return data_count_ <= max_data_count_;
+
+}
+bool ReadCache::ParseVlsdCgData() {
+
+  if (dg4_block_ == nullptr || dg4_block_->Cg4().empty() ) {
+    return false;
+  }
+  if (data_count_ >= max_data_count_ || block_list_.empty()) {
+    return false;
+  }
+
+  while (data_count_ < max_data_count_ ) {
+    bool skip = false;
+    try {
+      const auto record_id = ParseRecordId();
+      const auto *channel_group = dg4_block_->FindCgRecordId(record_id);
+      if (channel_group == nullptr) {
+        throw std::runtime_error("No channel group found.");
+      }
+      if (channel_group->Flags() & CgFlag::VlsdChannel) {
+        // This is normally used for string and the CG block only include one signal
+        std::vector<uint8_t> temp(4, 0);
+        GetArray(temp);
+        const LittleBuffer<uint32_t> length(temp, 0);
+
+        if (record_id_list_.find(record_id) == record_id_list_.cend()) {
+          SkipBytes(length.value());
+          skip = true; // Do not return
+        } else if (!offset_filter_.empty() &&
+                   offset_filter_.find(offset_) == offset_filter_.cend()) {
+          SkipBytes(length.value());
+          offset_ += 4 + length.value();
+          skip = true;
+        } else {
+          std::vector<uint8_t> raw_data(length.value());
+          GetArray(raw_data);
+          if (callback_) {
+            callback_(offset_, raw_data);
+          }
+          offset_ += 4 + length.value();
+        }
+      } else {
+        const size_t record_size = channel_group->NofDataBytes()
+                                   + channel_group->NofInvalidBytes();
+        SkipBytes(record_size);
+        skip = true;
+      }
+    } catch (const std::exception &) {
+      return false;
+    }
+    if (!skip) {
+      break;
+    }
+  }
+
+  return data_count_ <= max_data_count_;
 }
 
 bool ReadCache::GetNextByte(uint8_t &input) {
@@ -202,6 +304,7 @@ uint64_t ReadCache::ParseRecordId() {
   throw std::runtime_error("Invalid record ID size.");
 }
 
+
 void ReadCache::GetArray(std::vector<uint8_t> &buffer) {
   const auto nof_bytes = buffer.size();
   if (file_index_ + nof_bytes <= data_size_) {
@@ -295,5 +398,17 @@ bool ReadCache::SkipByte() {
   ++data_count_;
   return true;
 }
+
+void ReadCache::SetOffsetFilter(const std::vector<uint64_t> &offset_list) {
+  offset_filter_.clear();
+  for (const auto offset : offset_list ) {
+    offset_filter_.insert(offset);
+  }
+}
+
+void ReadCache::SetCallback(const std::function<void(uint64_t, const std::vector<uint8_t> &)> &callback) {
+  callback_ = callback;
+}
+
 
 } // Rnd namespace mdf::detail

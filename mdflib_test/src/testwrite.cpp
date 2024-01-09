@@ -2563,6 +2563,7 @@ TEST_F(TestWrite, Mdf4CompressedVlsdCanConfig) {
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
     EXPECT_EQ(observer->NofSamples(), 100'000);
+
   }
 
 }

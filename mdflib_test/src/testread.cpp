@@ -40,6 +40,7 @@ constexpr std::string_view  kLargeNasFile =
 constexpr std::string_view kLargeTime = "t";
 constexpr std::string_view kLargeFrameCounter = "FrameCounter_VC0";
 constexpr std::string_view kLargeFrameData = "VideoRawdata_VC0";
+constexpr std::string_view kBenchMarkFile = "K:/test/mdf/net/test.mf4";
 
 using MdfList = std::map<std::string, std::string, util::string::IgnoreCase>;
 MdfList mdf_list;
@@ -186,9 +187,16 @@ TEST_F(TestRead, HeaderBlock)  // NOLINT
 }
 
 TEST_F(TestRead, Benchmark) {
-  GTEST_SKIP();
+  try {
+    if (!exists(kBenchMarkFile)) {
+      GTEST_SKIP();
+    }
+  } catch (const std::exception& ) {
+    GTEST_SKIP();
+  }
+
   {
-    MdfReader oRead("K:/test/mdf/net/testfiles/test.mf4");
+    MdfReader oRead(kBenchMarkFile.data());
     const auto start = std::chrono::steady_clock::now();
     oRead.ReadMeasurementInfo();
     const auto stop = std::chrono::steady_clock::now();
@@ -198,7 +206,7 @@ TEST_F(TestRead, Benchmark) {
   }
   {
     const auto start = std::chrono::steady_clock::now();
-    MdfReader oRead("K:/test/mdf/net/testfiles/test.mf4");
+    MdfReader oRead(kBenchMarkFile.data());
     oRead.ReadEverythingButData();
     const auto *file = oRead.GetFile();
     DataGroupList dg_list;
@@ -219,6 +227,7 @@ TEST_F(TestRead, Benchmark) {
           valid = channel->GetEngValue(sample, eng_value);
         }
       }
+
     }
 
     const auto stop = std::chrono::steady_clock::now();
@@ -330,65 +339,6 @@ TEST_F(TestRead, TestLargeFile) {
 
       auto *counter_channel = channel_group->GetChannel(kLargeFrameCounter);
       ASSERT_TRUE(counter_channel != nullptr);
-
-      auto time_observer = CreateChannelObserver(*last_dg,
-                                                 *channel_group, *time_channel);
-      auto counter_observer = CreateChannelObserver(*last_dg,
-                                                    *channel_group, *counter_channel);
-
-      ISampleObserver sample_observer(*last_dg);
-      sample_observer.AttachObserver();
-      uint64_t stop_temp_file = 0; // Time for first sample
-      sample_observer.DoOnSample = [&](uint64_t sample, uint64_t, const std::vector<uint8_t> &) {
-        if (stop_temp_file == 0) {
-          stop_temp_file = MdfHelper::NowNs();
-        }
-      };
-
-      const auto start_data = MdfHelper::NowNs();
-      EXPECT_TRUE(oRead.ReadData(*last_dg)) << oRead.ShortName();
-      const auto stop_data = MdfHelper::NowNs();
-      std::cout << "Read Data (s): " << ConvertToSec(stop_data - start_data) << std::endl;
-
-      sample_observer.DetachObserver();
-      last_dg->ClearData();
-      time_observer.reset();
-      counter_observer.reset();
-
-      std::cout << std::endl;
-    }
-
-    {
-      std::cout << "BENCHMARK Large (" << storage_type << ") Storage ReadData(VLSD offset data)" << std::endl;
-
-      const auto start_open = MdfHelper::NowNs();
-      MdfReader oRead(test_file);
-      const auto stop_open = MdfHelper::NowNs();
-      std::cout << "Open File (ms): " << ConvertToMs(stop_open - start_open) << std::endl;
-
-      const auto start_info = MdfHelper::NowNs();
-      EXPECT_TRUE(oRead.ReadEverythingButData()) << oRead.ShortName();
-      const auto stop_info = MdfHelper::NowNs();
-      std::cout << "Read Info (ms): " << ConvertToMs(stop_info - start_info) << std::endl;
-
-      const auto *header = oRead.GetHeader();
-      ASSERT_TRUE(header != nullptr);
-
-      auto *last_dg = header->LastDataGroup();
-      ASSERT_TRUE(last_dg != nullptr);
-
-      auto channel_groups = last_dg->ChannelGroups();
-      ASSERT_FALSE(channel_groups.empty());
-
-      auto *channel_group = channel_groups[0];
-      ASSERT_TRUE(channel_group != nullptr);
-
-      auto *time_channel = channel_group->GetChannel(kLargeTime);
-      ASSERT_TRUE(time_channel != nullptr);
-
-      auto *counter_channel = channel_group->GetChannel(kLargeFrameCounter);
-      ASSERT_TRUE(counter_channel != nullptr);
-
       auto *frame_channel = channel_group->GetChannel(kLargeFrameData);
       ASSERT_TRUE(frame_channel != nullptr);
 
@@ -396,15 +346,38 @@ TEST_F(TestRead, TestLargeFile) {
                                                  *channel_group, *time_channel);
       auto counter_observer = CreateChannelObserver(*last_dg,
                                                     *channel_group, *counter_channel);
-
       auto frame_observer = CreateChannelObserver(*last_dg,
-                                                    *channel_group, *counter_channel);
+                                                  *channel_group, *frame_channel);
       frame_observer->ReadVlsdData(false);
 
       const auto start_data = MdfHelper::NowNs();
       EXPECT_TRUE(oRead.ReadData(*last_dg)) << oRead.ShortName();
+      auto offset_list = frame_observer->GetOffsetList();
+      EXPECT_FALSE(offset_list.empty());
       const auto stop_data = MdfHelper::NowNs();
-      std::cout << "Read Data (s): " << ConvertToSec(stop_data - start_data) << std::endl;
+      std::cout << "Read Offset Data (s): " << ConvertToSec(stop_data - start_data) << std::endl;
+
+//      size_t sample_count = 0;
+      std::function callback = [&](uint64_t offset, const std::vector<uint8_t> &buffer) {
+        const bool offset_exist = std::any_of(offset_list.cbegin(),offset_list.cend(),
+                                              [&] (uint64_t off) {
+          return off == offset;
+        });
+        EXPECT_TRUE(offset_exist) << "Offset: " << offset << std::endl;
+
+//        std::cout << "Offset: " << offset << "/" << offset_list[sample_count]
+//                  << ", Size: " << buffer.size() << std::endl;
+//        ++sample_count;
+      };
+      const auto start_vlsd = MdfHelper::NowNs();
+      while (offset_list.size() > 100) {
+        offset_list.pop_back();
+      }
+      EXPECT_TRUE(oRead.ReadVlsdData(*last_dg, *frame_channel, offset_list, callback)) << oRead.ShortName();
+      const auto stop_vlsd = MdfHelper::NowNs();
+
+      std::cout << "Read 100 VLSD Data (s): " << ConvertToSec(stop_vlsd - start_vlsd) << std::endl;
+
 
       last_dg->ClearData();
       time_observer.reset();

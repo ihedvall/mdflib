@@ -4,7 +4,7 @@
  */
 #include "mdf/mdfreader.h"
 
-#include <chrono>
+
 #include <cstdio>
 #include <filesystem>
 #include <string>
@@ -382,7 +382,7 @@ bool MdfReader::ReadData(IDataGroup &data_group) {
     return false;
   }
 
-  bool no_error = true;
+  bool error = false;
   try {
     if (instance_->IsMdf4()) {
       auto &dg4 = dynamic_cast<detail::Dg4Block &>(data_group);
@@ -391,16 +391,16 @@ bool MdfReader::ReadData(IDataGroup &data_group) {
       auto &dg3 = dynamic_cast<detail::Dg3Block &>(data_group);
       dg3.ReadData(file_);
     }
-  } catch (const std::exception &error) {
+  } catch (const std::exception &err) {
     MDF_ERROR() << "Failed to read the file information blocks. Error: "
-                << error.what();
-    no_error = false;
+                << err.what();
+    error = true;
   }
 
   if (shall_close) {
     Close();
   }
-  return no_error;
+  return !error;
 }
 
 bool MdfReader::ReadSrData(ISampleReduction &sr_group) {
@@ -415,7 +415,7 @@ bool MdfReader::ReadSrData(ISampleReduction &sr_group) {
     return false;
   }
 
-  bool no_error = true;
+  bool error = false;
   try {
     if (instance_->IsMdf4()) {
       auto &sr4 = dynamic_cast<detail::Sr4Block &>(sr_group);
@@ -424,16 +424,16 @@ bool MdfReader::ReadSrData(ISampleReduction &sr_group) {
       auto &sr3 = dynamic_cast<detail::Sr3Block &>(sr_group);
       sr3.ReadData(file_);
     }
-  } catch (const std::exception &error) {
+  } catch (const std::exception &err) {
     MDF_ERROR() << "Failed to read the file information blocks. Error: "
-                << error.what();
-    no_error = false;
+                << err.what();
+    error = true;
   }
 
   if (shall_close) {
     Close();
   }
-  return no_error;
+  return !error;
 }
 
 const IHeader *MdfReader::GetHeader() const {
@@ -451,6 +451,53 @@ const IDataGroup *MdfReader::GetDataGroup(size_t order) const {
     }
   }
   return nullptr;
+}
+
+bool MdfReader::ReadVlsdData(IDataGroup &data_group,
+                             IChannel &vlsd_channel,
+                             const std::vector<uint64_t>& offset_list,
+                             std::function<void (uint64_t, const std::vector<uint8_t>&)>& callback)
+{
+  if (vlsd_channel.DataType() != ChannelDataType::MimeSample) {
+    MDF_ERROR() << "The channels data type is not a mime sample.";
+    return false;
+  }
+  if (vlsd_channel.Type() != ChannelType::VariableLength) {
+    MDF_ERROR() << "The channels type is not variable length type.";
+    return false;
+  }
+
+  if (!instance_) {
+    MDF_ERROR() << "No instance created. File: " << filename_;
+    return false;
+  }
+
+  bool shall_close = file_ == nullptr && Open();
+  if (file_ == nullptr) {
+    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    return false;
+  }
+
+  bool error = false;
+  try {
+    if (instance_->IsMdf4()) {
+      auto &dg4 = dynamic_cast<detail::Dg4Block &>(data_group);
+      auto &cn4 = dynamic_cast<detail::Cn4Block &>(vlsd_channel);
+      dg4.ReadVlsdData(file_, cn4,offset_list, callback);
+    } else {
+      MDF_ERROR() << "Function not support for version MDF version 3.";
+      error = true;
+    }
+  } catch (const std::exception &err) {
+    MDF_ERROR() << "Failed to read the file information blocks. Error: "
+                << err.what();
+    error = true;
+  }
+
+  if (shall_close) {
+    Close();
+  }
+  return !error;
 }
 
 }  // namespace mdf

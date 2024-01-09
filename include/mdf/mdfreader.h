@@ -7,6 +7,8 @@
 #include <cstdio>
 #include <memory>
 #include <string>
+#include <functional>
+#include <vector>
 
 #include "mdf/ichannelobserver.h"
 #include "mdf/mdffile.h"
@@ -129,6 +131,11 @@ class MdfReader {
    * @return True if the read was successful.
    */
   bool ReadSrData(ISampleReduction& sr_group);
+
+  bool ReadVlsdData(IDataGroup &data_group,
+                    IChannel &vlsd_channel,
+                    const std::vector<uint64_t>& offset_list,
+                    std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback);
 
 
  private:

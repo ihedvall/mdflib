@@ -115,7 +115,14 @@ class IChannelObserver : public ISampleObserver {
    */
   [[nodiscard]] std::string EngValueToString(uint64_t sample) const;
 
-   bool GetOffsetValue(uint64_t sample, uint64_t& offset) const;
+  [[nodiscard]] const std::vector<uint64_t>& GetOffsetList() const {
+     return offset_list_;
+  }
+
+  [[nodiscard]] const std::vector<bool>& GetValidList() const {
+    return valid_list_;
+  }
+
 };
 
 template <typename V>

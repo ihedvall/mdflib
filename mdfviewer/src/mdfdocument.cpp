@@ -21,6 +21,8 @@
 #include <mdf/isamplereduction.h>
 #include "channelobserverframe.h"
 #include "samplereductionframe.h"
+#include "cn4block.h"
+
 
 
 using namespace util::log;
@@ -343,10 +345,41 @@ void MdfDocument::OnUpdateShowGroupData(wxUpdateUIEvent &event) {
       return;
     }
     auto cg_list = dg->ChannelGroups();
+    bool enable = cg_list.size() == 1;
     event.Enable(cg_list.size() == 1);
   } else if (selected_block->BlockType() == "CG") {
-    event.Enable(true);
+    const auto* cg_block = dynamic_cast<const IChannelGroup*>(selected_block);
+    if (cg_block == nullptr) {
+      return;
+    }
+    bool enable = !cg_block->Channels().empty(); // No channels == VLSD CG block
+    const auto channel_list = cg_block->Channels();
+    for (const auto* channel : channel_list) {
+      const auto* cn4 = dynamic_cast<const detail::Cn4Block*>(channel);
+      if (cn4 == nullptr || cn4->DataLink() == 0) {
+        continue;
+      }
+      const auto* block = GetBlock(cn4->DataLink());
+      if ( const auto* data_block_list = dynamic_cast<const detail::DataListBlock*>(block);
+           data_block_list != nullptr && data_block_list->DataSize() > 100'000'000) {
+        enable = false;
+        break;
+      }
+      if (const auto* data_block = dynamic_cast<const detail::DataBlock*>(block);
+          data_block != nullptr && data_block->DataSize() > 100'000'000) {
+        enable = false;
+        break;
+      }
+      if (const auto* vlsd_block = dynamic_cast<const detail::Cg4Block*>(block);
+          vlsd_block != nullptr && vlsd_block->NofDataBytes() > 100'000'000) {
+        enable = false;
+        break;
+      }
+    }
+
+    event.Enable(enable);
   }
+
 }
 
 void MdfDocument::OnShowChannelData(wxCommandEvent &) {

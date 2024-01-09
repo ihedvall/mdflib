@@ -200,13 +200,37 @@ void Hd4Block::ReadMeasurementInfo(std::FILE* file) {
 
 void Hd4Block::ReadEverythingButData(std::FILE* file) {
   // We assume that ReadMeasurementInfo have been called earlier
-  for (auto& dg : dg_list_) {
-    if (!dg) {
+  for (auto& dg4 : dg_list_) {
+    if (!dg4) {
       continue;
     }
-    for (auto& cg : dg->Cg4()) {
-      cg->ReadCnList(file);
-      cg->ReadSrList(file);
+    for (auto& cg4 : dg4->Cg4()) {
+      cg4->ReadCnList(file);
+      cg4->ReadSrList(file);
+
+      // Update the VLSD record id reference on all channels
+      // and fix the MSLD channel as well
+      auto channel_list = cg4->Channels();
+      for (auto *channel : channel_list) {
+        auto *cn4 = dynamic_cast<Cn4Block *>(channel);
+        if (cn4 == nullptr || cn4->DataLink() == 0) {
+          // Nothing to set
+          continue;
+        }
+        // Search for the block within the DG block
+        const auto *block = Find(cn4->DataLink());
+        if (block != nullptr && block->BlockType() == "CG"
+            && cn4->Type() == ChannelType::VariableLength) {
+          const auto *ref_cg = dynamic_cast<const Cg4Block *>(block);
+          cn4->VlsdRecordId(ref_cg == nullptr ? 0 : ref_cg->RecordId());
+        } else if (block != nullptr && block->BlockType() == "CN") {
+          // Point to the length of byte array channel
+          const auto *mlsd_channel = dynamic_cast<const Cn4Block *>(block);
+          if (mlsd_channel != nullptr) {
+            cn4->MlsdChannel(mlsd_channel);
+          }
+        }
+      }
     }
   }
   // Must read in all channels before creating CH block that references the CN

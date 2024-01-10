@@ -509,7 +509,7 @@ EXPORTFEATUREFUNC(mdf::ISourceInformation*, CreateSourceInformation) {
 EXPORTFEATUREFUNC(mdf::IChannelConversion*, CreateChannelConversion) {
   return channel->CreateChannelConversion();
 }
-EXPORTFEATUREFUNC(mdf::IChannel*, CreateChannelCompositions) {
+EXPORTFEATUREFUNC(mdf::IChannel*, CreateChannelComposition) {
   return channel->CreateChannelComposition();
 }
 EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData) {

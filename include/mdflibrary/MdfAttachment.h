@@ -15,7 +15,7 @@ class MdfAttachment {
  public:
   MdfAttachment(mdf::IAttachment* attachment) : attachment(attachment) {
     if (attachment == nullptr)
-      throw std::runtime_error("MdfAttachmentInit failed");
+      throw std::runtime_error("MdfAttachment Init failed");
   }
   MdfAttachment(const mdf::IAttachment* attachment)
       : MdfAttachment(const_cast<mdf::IAttachment*>(attachment)) {}

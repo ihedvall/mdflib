@@ -13,14 +13,27 @@ using namespace MdfLibrary::ExportFunctions;
 namespace MdfLibrary {
 class CanMessage {
  private:
+  bool isNew = false;
   mdf::CanMessage* can;
 
  public:
   CanMessage(mdf::CanMessage* can) : can(can) {
-    if (can == nullptr) throw std::runtime_error("MdfAttachmentInit failed");
+    if (can == nullptr) throw std::runtime_error("CanMessage Init failed");
   }
-  ~CanMessage() { can = nullptr; };
-
+  CanMessage() : CanMessage(CanMessageInit()) { isNew = true; };
+  ~CanMessage() {
+    if (isNew) CanMessageUnInit(can);
+    can = nullptr;
+  };
+  CanMessage(const CanMessage&) = delete;
+  CanMessage(CanMessage&& can) {
+    if (isNew) CanMessageUnInit(this->can);
+    this->isNew = can.isNew;
+    this->can = can.can;
+    can.isNew = false;
+    can.can = nullptr;
+  }
+  mdf::CanMessage* GetCanMessage() const { return can; }
   uint32_t GetMessageId() const { return CanMessageGetMessageId(can); };
   void SetMessageId(uint32_t msgId) { CanMessageSetMessageId(can, msgId); };
   uint32_t GetCanId() const { return CanMessageGetCanId(can); };

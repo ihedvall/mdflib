@@ -16,7 +16,7 @@ class MdfMetaData {
 
  public:
   MdfMetaData(mdf::IMetaData* metaData) : metaData(metaData) {
-    if (metaData == nullptr) throw std::runtime_error("MdfMetaDataInit failed");
+    if (metaData == nullptr) throw std::runtime_error("MdfMetaData Init failed");
   }
   MdfMetaData(const mdf::IMetaData* metaData)
       : MdfMetaData(const_cast<mdf::IMetaData*>(metaData)) {}
@@ -55,7 +55,7 @@ class MdfMetaData {
     delete[] pTags;
     return tags;
   }
-  void SetCommonProperties(std::vector<MdfETag> pProperty, size_t count) {
+  void SetCommonProperties(const std::vector<MdfETag> pProperty, size_t count) {
     auto pTags = new const mdf::ETag*[count];
     for (size_t i = 0; i < count; i++) pTags[i] = pProperty[i].GetETag();
     MdfMetaDataSetCommonProperties(metaData, pTags, count);
@@ -69,7 +69,7 @@ class MdfMetaData {
   void SetXmlSnippet(const char* xml) {
     MdfMetaDataSetXmlSnippet(metaData, xml);
   }
-  void AddCommonProperty(MdfETag tag) {
+  void AddCommonProperty(const MdfETag &tag) {
     MdfMetaDataAddCommonProperty(metaData, tag.GetETag());
   }
 };

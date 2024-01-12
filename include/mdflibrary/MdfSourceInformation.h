@@ -16,7 +16,7 @@ class MdfSourceInformation {
   MdfSourceInformation(mdf::ISourceInformation* sourceInformation)
       : sourceInformation(sourceInformation) {
     if (sourceInformation == nullptr)
-      throw std::runtime_error("MdfSourceInformationInit failed");
+      throw std::runtime_error("MdfSourceInformation Init failed");
   }
   MdfSourceInformation(const mdf::ISourceInformation* sourceInformation)
       : MdfSourceInformation(

@@ -16,7 +16,7 @@ class MdfHeader {
 
  public:
   MdfHeader(mdf::IHeader* header) : header(header) {
-    if (header == nullptr) throw std::runtime_error("MdfHeaderInit failed");
+    if (header == nullptr) throw std::runtime_error("MdfHeader Init failed");
   }
   MdfHeader(const mdf::IHeader* header)
       : MdfHeader(const_cast<mdf::IHeader*>(header)) {}
@@ -84,8 +84,8 @@ class MdfHeader {
   void SetStartDistance(double distance) {
     MdfHeaderSetStartDistance(header, distance);
   }
-  const MdfMetaData GetMetaDatas() const {
-    return MdfHeaderGetMetaDatas(header);
+  const MdfMetaData GetMetaData() const {
+    return MdfHeaderGetMetaData(header);
   }
   std::vector<MdfAttachment> GetAttachments() const {
     size_t count = MdfHeaderGetAttachments(header, nullptr);
@@ -127,6 +127,8 @@ class MdfHeader {
     delete[] pDataGroups;
     return dataGroups;
   }
+  MdfDataGroup GetLastDataGroup() { return MdfHeaderGetLastDataGroup(header); }
+  MdfMetaData CreateMetaData() { return MdfHeaderCreateMetaData(header); }
   MdfAttachment CreateAttachment() { return MdfHeaderCreateAttachment(header); }
   MdfFileHistory CreateFileHistory() {
     return MdfHeaderCreateFileHistory(header);

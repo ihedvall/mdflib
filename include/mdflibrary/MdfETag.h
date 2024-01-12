@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <string>
 #include <stdexcept>
+#include <string>
 
 #include "MdfExport.h"
 
@@ -13,22 +13,25 @@ using namespace MdfLibrary::ExportFunctions;
 namespace MdfLibrary {
 class MdfETag {
  private:
+  bool isNew = false;
   mdf::ETag* eTag;
 
  public:
   MdfETag(mdf::ETag* eTag) : eTag(eTag) {
-    if (eTag == nullptr) throw std::runtime_error("MdfETagInit failed");
+    if (eTag == nullptr) throw std::runtime_error("MdfETag Init failed");
   }
   MdfETag(const mdf::ETag* eTag) : MdfETag(const_cast<mdf::ETag*>(eTag)) {}
-  MdfETag() : MdfETag(MdfETagInit()) {}
+  MdfETag() : MdfETag(MdfETagInit()) { isNew = true; }
   ~MdfETag() {
-    if (eTag == nullptr) return;
-    MdfETagUnInit(eTag);
+    if (isNew) MdfETagUnInit(eTag);
     eTag = nullptr;
   }
   MdfETag(const MdfETag&) = delete;
   MdfETag(MdfETag&& eTag) {
+    if (isNew) MdfETagUnInit(this->eTag);
+    this->isNew = eTag.isNew;
     this->eTag = eTag.eTag;
+    eTag.isNew = false;
     eTag.eTag = nullptr;
   }
   mdf::ETag* GetETag() const { return eTag; }

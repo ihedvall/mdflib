@@ -10,7 +10,7 @@
     workflow_dispatch:
   
   env:
-    vcpkgCommitId: c8696863d371ab7f46e213d8f5ca923c4aef2a00
+    vcpkgCommitId: c9140a3b500812ad3206317885860d9553b93f13
   
   
   jobs:
@@ -69,6 +69,7 @@
             # the project files. This configuration leverages the vcpkg.cmake toolchain file to
             # run vcpkg and install all dependencies specified in vcpkg.json.
             configurePreset: 'msvc-vcpkg-static-${{ matrix.arch }}'
+            configurePresetAdditionalArgs: "['-DMDF_BUILD_SHARED_LIB_NET=ON']"
   
             # This is the name of the CMakePresets.json's configuration to build the project.
             buildPreset: 'msvc-vcpkg-static-${{ matrix.arch }}-release'
@@ -85,7 +86,7 @@
             # the project files. This configuration leverages the vcpkg.cmake toolchain file to
             # run vcpkg and install all dependencies specified in vcpkg.json.
             configurePreset: 'msvc-vcpkg-${{ matrix.arch }}'
-            configurePresetAdditionalArgs: "['-DMDF_BUILD_TEST=ON']"
+            configurePresetAdditionalArgs: "['-DMDF_BUILD_SHARED_LIB_NET=ON', '-DMDF_BUILD_TEST=ON', '-DMDF_BUILD_SHARED_LIB_EXAMPLE=ON', '-DMDF_BUILD_TOOL=ON']"
   
             # This is the name of the CMakePresets.json's configuration to build the project.
             buildPreset: 'msvc-vcpkg-${{ matrix.arch }}-debug'
@@ -153,7 +154,7 @@
             # the project files. This configuration leverages the vcpkg.cmake toolchain file to
             # run vcpkg and install all dependencies specified in vcpkg.json.
             configurePreset: 'ninja-vcpkg-${{ matrix.arch }}'
-            configurePresetAdditionalArgs: "['-DMDF_BUILD_TEST=ON']"
+            configurePresetAdditionalArgs: "['-DMDF_BUILD_TEST=ON', '-DMDF_BUILD_SHARED_LIB_EXAMPLE=ON']"
             
             # This is the name of the CMakePresets.json's configuration to build the project.
             buildPreset: 'ninja-vcpkg-${{ matrix.arch }}-release'

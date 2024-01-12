@@ -15,7 +15,7 @@ class MdfChannel {
 
  public:
   MdfChannel(mdf::IChannel* channel) : channel(channel) {
-    if (channel == nullptr) throw std::runtime_error("MdfChannelInit failed");
+    if (channel == nullptr) throw std::runtime_error("MdfChannel Init failed");
   }
   MdfChannel(const mdf::IChannel* channel)
       : MdfChannel(const_cast<mdf::IChannel*>(channel)) {}

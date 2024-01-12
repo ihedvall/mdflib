@@ -16,7 +16,7 @@ class MdfChannelConversion {
   MdfChannelConversion(mdf::IChannelConversion* conversion)
       : conversion(conversion) {
     if (conversion == nullptr)
-      throw std::runtime_error("MdfChannelConversionInit failed");
+      throw std::runtime_error("MdfChannelConversion Init failed");
   }
   MdfChannelConversion(const mdf::IChannelConversion* conversion)
       : MdfChannelConversion(const_cast<mdf::IChannelConversion*>(conversion)) {

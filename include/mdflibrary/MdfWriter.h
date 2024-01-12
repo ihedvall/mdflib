@@ -4,6 +4,7 @@
  */
 #pragma once
 #include "MdfFile.h"
+#include "CanMessage.h"
 
 using namespace MdfLibrary::ExportFunctions;
 
@@ -15,7 +16,7 @@ class MdfWriter {
  public:
   MdfWriter(MdfWriterType type, const char* filename)
       : writer(MdfWriterInit(type, filename)) {
-    if (writer == nullptr) throw std::runtime_error("MdfWriterInit failed");
+    if (writer == nullptr) throw std::runtime_error("MdfWriter Init failed");
   }
   ~MdfWriter() {
     if (writer == nullptr) return;
@@ -46,13 +47,17 @@ class MdfWriter {
   }
   uint32_t GetMaxLength() const { return MdfWriterGetMaxLength(writer); }
   void SetMaxLength(uint32_t length) { MdfWriterSetMaxLength(writer, length); }
+  bool CreateBusLogConfiguration() { return MdfWriterCreateBusLogConfiguration(writer); }
   MdfDataGroup CreateDataGroup() {
     return MdfDataGroup(MdfWriterCreateDataGroup(writer));
   }
-  bool InitMeasurement() { return MdfWriterInitMeasurement(writer); }
   void SaveSample(MdfChannelGroup group, uint64_t time) {
     MdfWriterSaveSample(writer, group.GetChannelGroup(), time);
   }
+  void SaveCanMessage(const MdfChannelGroup group, uint64_t time, const CanMessage& msg) {
+    MdfWriterSaveCanMessage(writer, group.GetChannelGroup(), time, msg.GetCanMessage());
+  }
+  bool InitMeasurement() { return MdfWriterInitMeasurement(writer); }
   void StartMeasurement(uint64_t start_time) {
     MdfWriterStartMeasurement(writer, start_time);
   }

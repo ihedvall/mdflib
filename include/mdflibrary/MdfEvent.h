@@ -14,7 +14,7 @@ class MdfEvent {
 
  public:
   MdfEvent(mdf::IEvent* event) : event(event) {
-    if (event == nullptr) throw std::runtime_error("MdfEventInit failed");
+    if (event == nullptr) throw std::runtime_error("MdfEvent Init failed");
   }
   MdfEvent(const mdf::IEvent* event)
       : MdfEvent(const_cast<mdf::IEvent*>(event)) {}

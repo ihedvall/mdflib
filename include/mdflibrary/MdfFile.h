@@ -14,7 +14,7 @@ class MdfFile {
 
  public:
   MdfFile(mdf::MdfFile* file) : file(file) {
-    if (file == nullptr) throw std::runtime_error("MdfFileInit failed");
+    if (file == nullptr) throw std::runtime_error("MdfFile Init failed");
   }
   MdfFile(const mdf::MdfFile* file)
       : MdfFile(const_cast<mdf::MdfFile*>(file)) {}

@@ -14,7 +14,7 @@ class MdfReader {
 
  public:
   MdfReader(const char* filename) : reader(MdfReaderInit(filename)) {
-    if (reader == nullptr) throw std::runtime_error("MdfReaderInit failed");
+    if (reader == nullptr) throw std::runtime_error("MdfReader Init failed");
   }
   ~MdfReader() {
     if (reader == nullptr) return;

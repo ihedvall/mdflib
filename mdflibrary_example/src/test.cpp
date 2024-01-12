@@ -177,7 +177,8 @@ void c_example() {
       std::cout << "Start measure" << std::endl;
       for (size_t i = 0; i < 90; i++) {
         MdfChannelSetChannelValueAsFloat(pChannel[1], i * 2);
-        MdfChannelSetChannelValueAsString(pChannel[2], std::to_string(i * 3).c_str());
+        MdfChannelSetChannelValueAsString(pChannel[2],
+                                          std::to_string(i * 3).c_str());
         MdfWriterSaveSample(Writer, cg, 100000000 + i * 1000);
       }
       std::cout << "Stop measure" << std::endl;
@@ -193,12 +194,11 @@ void c_example() {
 #include <mdflibrary/MdfWriter.h>
 void cpp_example() {
   std::cout << "C++ example" << std::endl;
-
-  if (std::filesystem::exists("test_cpp.mf4"))
-    std::filesystem::remove("test_cpp.mf4");
-
   {
-    std::cout << "Write" << std::endl;
+    if (std::filesystem::exists("test_cpp.mf4"))
+      std::filesystem::remove("test_cpp.mf4");
+
+    std::cout << "Write Basic" << std::endl;
     MdfWriter Writer(MdfWriterType::Mdf4Basic, "test_cpp.mf4");
     MdfHeader Header = Writer.GetHeader();
     Header.SetAuthor("Caller");
@@ -207,7 +207,7 @@ void cpp_example() {
     Header.SetProject("Mdf3WriteHD");
     Header.SetStartTime(1000);
     Header.SetSubject("PXY");
-    auto History = Header.CreateFileHistory();
+    MdfFileHistory History = Header.CreateFileHistory();
     History.SetTime(1000000);
     History.SetDescription("Initial stuff");
     History.SetToolName("Unit Test");
@@ -215,12 +215,12 @@ void cpp_example() {
     History.SetToolVersion("2.3");
     History.SetUserName("Ducky");
 
-    auto dg = Writer.CreateDataGroup();
-    auto cg = dg.CreateChannelGroup();
+    MdfDataGroup dg = Writer.CreateDataGroup();
+    MdfChannelGroup cg = dg.CreateChannelGroup();
     cg.SetName("Test");
     cg.SetDescription("Test channel group");
 
-    auto si = cg.CreateSourceInformation();
+    MdfSourceInformation si = cg.CreateSourceInformation();
     si.SetName("SI-Name");
     si.SetPath("SI-Path");
     si.SetDescription("SI-Desc");
@@ -228,7 +228,7 @@ void cpp_example() {
     si.SetBus(BusType::Can);
 
     {
-      auto cn = cg.CreateChannel();
+      MdfChannel cn = cg.CreateChannel();
       cn.SetName("Time");
       cn.SetDescription("Time channel");
       cn.SetType(ChannelType::Master);
@@ -240,7 +240,7 @@ void cpp_example() {
     }
 
     {
-      auto cn = cg.CreateChannel();
+      MdfChannel cn = cg.CreateChannel();
       cn.SetName("SignedLe");
       cn.SetDescription("int32_t");
       cn.SetType(ChannelType::FixedLength);
@@ -248,7 +248,7 @@ void cpp_example() {
       cn.SetDataBytes(sizeof(int32_t));
     }
     {
-      auto cn = cg.CreateChannel();
+      MdfChannel cn = cg.CreateChannel();
       cn.SetName("SignedBe");
       cn.SetDescription("int8_t");
       cn.SetType(ChannelType::FixedLength);
@@ -256,7 +256,7 @@ void cpp_example() {
       cn.SetDataBytes(sizeof(int8_t));
     }
     {
-      auto cn = cg.CreateChannel();
+      MdfChannel cn = cg.CreateChannel();
       cn.SetName("FloatLe");
       cn.SetDescription("float");
       cn.SetType(ChannelType::FixedLength);
@@ -264,7 +264,7 @@ void cpp_example() {
       cn.SetDataBytes(sizeof(float));
     }
     {
-      auto cn = cg.CreateChannel();
+      MdfChannel cn = cg.CreateChannel();
       cn.SetName("FloatBe");
       cn.SetDescription("double");
       cn.SetType(ChannelType::FixedLength);
@@ -272,7 +272,7 @@ void cpp_example() {
       cn.SetDataBytes(sizeof(double));
     }
     {
-      auto cn = cg.CreateChannel();
+      MdfChannel cn = cg.CreateChannel();
       cn.SetName("String");
       cn.SetDescription("string");
       cn.SetType(ChannelType::FixedLength);
@@ -280,7 +280,7 @@ void cpp_example() {
       cn.SetDataBytes(4);
     }
     {
-      auto cn = cg.CreateChannel();
+      MdfChannel cn = cg.CreateChannel();
       cn.SetName("ByteArray");
       cn.SetDescription("bytes");
       cn.SetType(ChannelType::FixedLength);
@@ -303,6 +303,61 @@ void cpp_example() {
       channels[6].SetChannelValue((uint8_t*)std::to_string(i * 6).c_str(), 4);
       Writer.SaveSample(cg, 100000000 + i * 1000);
       std::cout << "Save sample " << i << std::endl;
+    }
+    std::cout << "Stop measure" << std::endl;
+    Writer.StopMeasurement(1100000000);
+    Writer.FinalizeMeasurement();
+  }
+
+  {
+    if (std::filesystem::exists("test_can_cpp.mf4"))
+      std::filesystem::remove("test_can_cpp.mf4");
+
+    std::cout << "Write Can" << std::endl;
+    MdfWriter Writer(MdfWriterType::MdfBusLogger, "test_can_cpp.mf4");
+    MdfHeader Header = Writer.GetHeader();
+    MdfFileHistory History = Header.CreateFileHistory();
+    History.SetDescription("Test data types");
+    History.SetToolName("MdfWrite");
+    History.SetToolVendor("ACME Road Runner Company");
+    History.SetToolVersion("1.0");
+    History.SetUserName("Ingemar Hedvall");
+
+    Writer.SetBusType(MdfBusType::CAN);
+    Writer.SetStorageType(MdfStorageType::MlsdStorage);
+    Writer.SetMaxLength(8);
+    Writer.CreateBusLogConfiguration();
+    Writer.SetPreTrigTime(0.0);
+    Writer.SetCompressData(false);
+    MdfDataGroup last_dg = Header.GetLastDataGroup();
+
+    MdfChannelGroup can_data_frame = last_dg.GetChannelGroup("CAN_DataFrame");
+    MdfChannelGroup can_remote_frame =
+        last_dg.GetChannelGroup("CAN_RemoteFrame");
+    MdfChannelGroup can_error_frame = last_dg.GetChannelGroup("CAN_ErrorFrame");
+    MdfChannelGroup can_overload_frame =
+        last_dg.GetChannelGroup("CAN_OverloadFrame");
+
+    Writer.InitMeasurement();
+    uint64_t tick_time = 100000000;
+    Writer.StartMeasurement(tick_time);
+    std::cout << "Start measure" << std::endl;
+    for (size_t i = 0; i < 100'000; i++) {
+      std::vector<uint8_t> data;
+      data.assign(i < 8 ? i + 1 : 8,
+                  static_cast<uint8_t>(i + 1));
+
+      CanMessage msg;
+      msg.SetMessageId(123);
+      msg.SetExtendedId(true);
+      msg.SetBusChannel(11);
+      msg.SetDataBytes(data);
+
+      Writer.SaveCanMessage(can_data_frame, tick_time, msg);
+      Writer.SaveCanMessage(can_remote_frame, tick_time, msg);
+      Writer.SaveCanMessage(can_error_frame, tick_time, msg);
+      Writer.SaveCanMessage(can_overload_frame, tick_time, msg);
+      tick_time += 1'000'000;
     }
     std::cout << "Stop measure" << std::endl;
     Writer.StopMeasurement(1100000000);

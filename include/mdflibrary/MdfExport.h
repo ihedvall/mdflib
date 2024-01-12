@@ -417,9 +417,12 @@ EXPORTFEATUREFUNC(MdfStorageType, GetStorageType);
 EXPORTFEATUREFUNC(void, SetStorageType, MdfStorageType type);
 EXPORTFEATUREFUNC(uint32_t, GetMaxLength);
 EXPORTFEATUREFUNC(void, SetMaxLength, uint32_t length);
+EXPORTFEATUREFUNC(bool, CreateBusLogConfiguration);
 EXPORTFEATUREFUNC(mdf::IDataGroup*, CreateDataGroup);
 EXPORTFEATUREFUNC(bool, InitMeasurement);
 EXPORTFEATUREFUNC(void, SaveSample, mdf::IChannelGroup* group, uint64_t time);
+EXPORTFEATUREFUNC(void, SaveCanMessage, mdf::IChannelGroup* group,
+                  uint64_t time, mdf::CanMessage* message);
 EXPORTFEATUREFUNC(void, StartMeasurement, uint64_t start_time);
 EXPORTFEATUREFUNC(void, StopMeasurement, uint64_t stop_time);
 EXPORTFEATUREFUNC(bool, FinalizeMeasurement);
@@ -479,14 +482,16 @@ EXPORTFEATUREFUNC(void, SetStartAngle, double angle);
 EXPORTFEATUREFUNC(bool, IsStartDistanceUsed);
 EXPORTFEATUREFUNC(double, GetStartDistance);
 EXPORTFEATUREFUNC(void, SetStartDistance, double distance);
-EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaDatas);
+EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaData);
 EXPORTFEATUREFUNC(size_t, GetAttachments, mdf::IAttachment* pAttachments[]);
 EXPORTFEATUREFUNC(size_t, GetFileHistorys, mdf::IFileHistory* pFileHistorys[]);
 EXPORTFEATUREFUNC(size_t, GetEvents, mdf::IEvent* pEvents[]);
 EXPORTFEATUREFUNC(size_t, GetDataGroups, mdf::IDataGroup* pDataGroups[]);
+EXPORTFEATUREFUNC(mdf::IDataGroup*, GetLastDataGroup);
+EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData);
 EXPORTFEATUREFUNC(mdf::IAttachment*, CreateAttachment);
 EXPORTFEATUREFUNC(mdf::IFileHistory*, CreateFileHistory);
-#undef CreateEvent
+#undef CreateEvent  // **** Microsoft !!
 EXPORTFEATUREFUNC(mdf::IEvent*, CreateEvent);
 EXPORTFEATUREFUNC(mdf::IDataGroup*, CreateDataGroup);
 #undef EXPORTFEATUREFUNC
@@ -500,6 +505,10 @@ EXPORTFEATUREFUNC(int64_t, GetIndex);
 EXPORTFEATUREFUNC(size_t, GetDescription, char* description);
 EXPORTFEATUREFUNC(uint8_t, GetRecordIdSize);
 EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaData);
+EXPORTFEATUREFUNC(mdf::IChannelGroup*, GetChannelGroupByName,
+                  const char* name);
+EXPORTFEATUREFUNC(mdf::IChannelGroup*, GetChannelGroupByRecordId,
+                  uint64_t record_id);
 EXPORTFEATUREFUNC(size_t, GetChannelGroups,
                   mdf::IChannelGroup* pChannelGroups[]);
 EXPORTFEATUREFUNC(bool, IsRead);
@@ -507,7 +516,6 @@ EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData);
 EXPORTFEATUREFUNC(mdf::IChannelGroup*, CreateChannelGroup);
 EXPORTFEATUREFUNC(const mdf::IChannelGroup*, FindParentChannelGroup,
                   const mdf::IChannel* channel);
-EXPORTFEATUREFUNC(void, ResetSample);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 
@@ -836,8 +844,10 @@ EXPORTFEATUREFUNC(void, AddCommonProperty, mdf::ETag* tag);
 #pragma endregion
 
 #pragma region mdf::CanMessage
+EXPORT(mdf::CanMessage*, CanMessage, Init);
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, CanMessage, FuncName, mdf::CanMessage* can, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(void, UnInit);
 EXPORTFEATUREFUNC(uint32_t, GetMessageId);
 EXPORTFEATUREFUNC(void, SetMessageId, const uint32_t msgId);
 EXPORTFEATUREFUNC(uint32_t, GetCanId);

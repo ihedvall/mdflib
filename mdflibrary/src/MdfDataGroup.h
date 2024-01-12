@@ -26,7 +26,6 @@ public:
   MdfChannelGroup^ GetChannelGroup(String^ groupName);
 
   MdfChannelGroup^ FindParentChannelGroup(const MdfChannel^ channel);
-  void ResetSample();
   
 private:
   MdfDataGroup() {};

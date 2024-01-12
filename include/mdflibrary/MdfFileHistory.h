@@ -15,7 +15,7 @@ class MdfFileHistory {
  public:
   MdfFileHistory(mdf::IFileHistory* history) : history(history) {
     if (history == nullptr)
-      throw std::runtime_error("MdfFileHistoryInit failed");
+      throw std::runtime_error("MdfFileHistory Init failed");
   }
   MdfFileHistory(const mdf::IFileHistory* history)
       : MdfFileHistory(const_cast<mdf::IFileHistory*>(history)) {}

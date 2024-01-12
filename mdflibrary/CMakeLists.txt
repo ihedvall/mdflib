@@ -10,10 +10,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_DEBUG_POSTFIX d)
 
 message(STATUS  "Compiler Version " ${CMAKE_CXX_COMPILER_VERSION})
-message(STATUS  "MSVC " ${MSVC})
 if (MDF_BUILD_SHARED_LIB_NET)
-    message(STATUS  "CLR compile")
-    add_library(mdflibrary SHARED
+  message(STATUS  "Enable CLR")
+  add_library(mdflibrary SHARED
             # C++ files
             src/MdfExport.cpp
             

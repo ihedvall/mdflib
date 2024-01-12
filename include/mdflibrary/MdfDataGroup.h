@@ -14,7 +14,7 @@ class MdfDataGroup {
 
  public:
   MdfDataGroup(mdf::IDataGroup* group) : group(group) {
-    if (group == nullptr) throw std::runtime_error("MdfDataGroupInit failed");
+    if (group == nullptr) throw std::runtime_error("MdfDataGroup Init failed");
   }
   MdfDataGroup(const mdf::IDataGroup* group)
       : MdfDataGroup(const_cast<mdf::IDataGroup*>(group)) {}
@@ -29,6 +29,12 @@ class MdfDataGroup {
   uint8_t GetRecordIdSize() const { return MdfDataGroupGetRecordIdSize(group); }
   const MdfMetaData GetMetaData() const {
     return MdfDataGroupGetMetaData(group);
+  }
+  MdfChannelGroup GetChannelGroup(const std::string name) const {
+    return MdfDataGroupGetChannelGroupByName(group, name.c_str());
+  }
+  MdfChannelGroup GetChannelGroup(uint64_t record_id) const {
+    return MdfDataGroupGetChannelGroupByRecordId(group, record_id);
   }
   std::vector<MdfChannelGroup> GetChannelGroups() const {
     size_t count = MdfDataGroupGetChannelGroups(group, nullptr);
@@ -49,6 +55,5 @@ class MdfDataGroup {
   const MdfChannelGroup FindParentChannelGroup(MdfChannel channel) {
     return MdfDataGroupFindParentChannelGroup(group, channel.GetChannel());
   }
-  void ResetSample() { MdfDataGroupResetSample(group); }
 };
 }  // namespace MdfLibrary

@@ -89,16 +89,6 @@ MdfChannelGroup^ MdfDataGroup::FindParentChannelGroup(const MdfChannel^ channel)
   return temp != nullptr ? gcnew MdfChannelGroup(const_cast<mdf::IChannelGroup*>(temp)) : nullptr;  
 }
 
-void MdfDataGroup::ResetSample() {
-  if (group_ != nullptr) {
-    for (const auto* channel_group: group_->ChannelGroups()) {
-      if (channel_group != nullptr) {
-        channel_group->ResetSampleCounter();
-      }  
-    }
-  }
-}
-
 MdfDataGroup::MdfDataGroup(mdf::IDataGroup* group)
   : group_(group) {
 }

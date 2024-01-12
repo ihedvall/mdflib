@@ -103,12 +103,19 @@ EXPORTFEATUREFUNC(uint32_t, GetMaxLength) { return writer->MaxLength(); }
 EXPORTFEATUREFUNC(void, SetMaxLength, uint32_t length) {
   writer->MaxLength(length);
 }
+EXPORTFEATUREFUNC(bool, CreateBusLogConfiguration) {
+  return writer->CreateBusLogConfiguration();
+}
 EXPORTFEATUREFUNC(mdf::IDataGroup*, CreateDataGroup) {
   return writer->CreateDataGroup();
 }
 EXPORTFEATUREFUNC(bool, InitMeasurement) { return writer->InitMeasurement(); }
 EXPORTFEATUREFUNC(void, SaveSample, mdf::IChannelGroup* group, uint64_t time) {
   writer->SaveSample(*group, time);
+}
+EXPORTFEATUREFUNC(void, SaveCanMessage, mdf::IChannelGroup* group,
+                  uint64_t time, mdf::CanMessage* message) {
+  writer->SaveCanMessage(*group, time, *message);
 }
 EXPORTFEATUREFUNC(void, StartMeasurement, uint64_t start_time) {
   writer->StartMeasurement(start_time);
@@ -264,7 +271,7 @@ EXPORTFEATUREFUNC(double, GetStartDistance) {
 EXPORTFEATUREFUNC(void, SetStartDistance, double distance) {
   header->StartDistance(distance);
 }
-EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaDatas) {
+EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaData) {
   return header->MetaData();
 }
 EXPORTFEATUREFUNC(size_t, GetAttachments, mdf::IAttachment* pAttachments[]) {
@@ -294,6 +301,12 @@ EXPORTFEATUREFUNC(size_t, GetDataGroups, mdf::IDataGroup* pDataGroups[]) {
     pDataGroups[i] = data_groups[i];
   return data_groups.size();
 }
+EXPORTFEATUREFUNC(mdf::IDataGroup*, GetLastDataGroup) {
+  return header->LastDataGroup();
+}
+EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData) {
+  return header->CreateMetaData();
+}
 EXPORTFEATUREFUNC(mdf::IAttachment*, CreateAttachment) {
   return header->CreateAttachment();
 }
@@ -321,6 +334,14 @@ EXPORTFEATUREFUNC(uint8_t, GetRecordIdSize) { return group->RecordIdSize(); }
 EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaData) {
   return group->MetaData();
 }
+EXPORTFEATUREFUNC(mdf::IChannelGroup*, GetChannelGroupByName,
+                  const char* name) {
+  return group->GetChannelGroup(name);
+}
+EXPORTFEATUREFUNC(mdf::IChannelGroup*, GetChannelGroupByRecordId,
+                  uint64_t record_id) {
+  return group->GetChannelGroup(record_id);
+}
 EXPORTFEATUREFUNC(size_t, GetChannelGroups,
                   mdf::IChannelGroup* pChannelGroups[]) {
   if (pChannelGroups == nullptr) return group->ChannelGroups().size();
@@ -339,15 +360,6 @@ EXPORTFEATUREFUNC(mdf::IChannelGroup*, CreateChannelGroup) {
 EXPORTFEATUREFUNC(const mdf::IChannelGroup*, FindParentChannelGroup,
                   const mdf::IChannel* channel) {
   return group->FindParentChannelGroup(*channel);
-}
-EXPORTFEATUREFUNC(void, ResetSample) {
-  if (group != nullptr) {
-    for (const auto* channel_group: group->ChannelGroups()) {
-      if (channel_group != nullptr) {
-        channel_group->ResetSampleCounter();
-      }
-    }
-  }
 }
 #undef EXPORTFEATUREFUNC
 #pragma endregion
@@ -927,7 +939,7 @@ EXPORTFEATUREFUNC(void, AddAttachment, const mdf::IAttachment* attachment) {
 #pragma endregion
 
 #pragma region MdfETag
-EXPORT(mdf::ETag*, MdfETag, Init) { return new ETag; }
+EXPORT(mdf::ETag*, MdfETag, Init) { return new mdf::ETag; }
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfETag, FuncName, mdf::ETag* etag, ##__VA_ARGS__)
 EXPORTFEATUREFUNC(void, UnInit) { delete etag; }
@@ -1050,8 +1062,10 @@ EXPORTFEATUREFUNC(void, AddCommonProperty, mdf::ETag* tag) {
 #pragma endregion
 
 #pragma region mdf::CanMessage
+EXPORT(mdf::CanMessage*, CanMessage, Init) { return new mdf::CanMessage; }
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, CanMessage, FuncName, mdf::CanMessage* can, ##__VA_ARGS__)
+EXPORTFEATUREFUNC(void, UnInit) { delete can; }
 EXPORTFEATUREFUNC(uint32_t, GetMessageId) { return can->MessageId(); }
 EXPORTFEATUREFUNC(void, SetMessageId, const uint32_t msgId) {
   can->MessageId(msgId);

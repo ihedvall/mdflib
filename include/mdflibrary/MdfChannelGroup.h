@@ -15,7 +15,7 @@ class MdfChannelGroup {
  public:
   MdfChannelGroup(mdf::IChannelGroup* group) : group(group) {
     if (group == nullptr)
-      throw std::runtime_error("MdfChannelGroupInit failed");
+      throw std::runtime_error("MdfChannelGroup Init failed");
   }
   MdfChannelGroup(const mdf::IChannelGroup* group)
       : MdfChannelGroup(const_cast<mdf::IChannelGroup*>(group)) {}

@@ -15,7 +15,7 @@ class MdfChannelObserver {
  public:
   MdfChannelObserver(mdf::IChannelObserver* observer) : observer(observer) {
     if (observer == nullptr)
-      throw std::runtime_error("MdfChannelObserverInit failed");
+      throw std::runtime_error("MdfChannelObserver Init failed");
   }
   MdfChannelObserver(const mdf::IChannelObserver* observer)
       : MdfChannelObserver(const_cast<mdf::IChannelObserver*>(observer)) {}

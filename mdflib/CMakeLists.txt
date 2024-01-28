@@ -3,8 +3,9 @@
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_DEBUG_POSTFIX d)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-add_library(mdf STATIC
+add_library(mdf
         src/mdfblock.cpp src/mdfblock.h
         src/mdffile.cpp ../include/mdf/mdffile.h
         src/idblock.cpp src/idblock.h
@@ -147,6 +148,8 @@ set(MDF_PUBLIC_HEADERS
 set_target_properties(mdf PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")
 get_target_property(PH1 mdf PUBLIC_HEADER)
 message(STATUS "MDF Target Includes: " "${PH1}")
+
+
 
 if(WIN32)
   install(

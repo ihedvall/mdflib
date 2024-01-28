@@ -45,7 +45,6 @@ else()
   target_link_libraries(test_mdf PRIVATE ${Boost_LIBRARIES})
 
   include("../script/googletest.cmake")
-  target_include_directories(test_mdf PRIVATE ${GTEST_INCLUDE_DIRS})
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main)
 endif()
 

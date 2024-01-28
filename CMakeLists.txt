@@ -8,17 +8,21 @@ else()
   set(VCPKG ON)
 endif()
 
+option(BUILD_SHARED_LIBS "Build static library as default." OFF)
 option(MDF_BUILD_SHARED_LIB "Build shared library." ON)
 option(MDF_BUILD_SHARED_LIB_NET "Build shared library with .NET." OFF) # Only for MSVC 19.36+
-option(MDF_BUILD_SHARED_LIB_EXAMPLE "Build MdfLibrary Example." OFF)
+option(MDF_BUILD_SHARED_LIB_NET "Build shared library with .NET." OFF)
+option(MDF_BUILD_SHARED_LIB_EXAMPLE "Build shared library example." OFF)
 option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
+option(MDF_BUILD_TEST "Build Google Unit Tests. Requires Google Test." OFF)
+
 if(MDF_BUILD_TOOL AND VCPKG)
 # Boost & wxWidgets need /MT for static linking
   # string(REPLACE "-static" "" VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
   list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
 endif()
-option(MDF_BUILD_TEST "Build Google unit tests. Requires Google Test." OFF)
+
 if(MDF_BUILD_TEST AND VCPKG)
 # GTest need /MT for static linking
   # string(REPLACE "-static" "" VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
@@ -27,7 +31,7 @@ endif()
 
 project(
   mdflib
-  VERSION 2.0
+  VERSION 2.1
   DESCRIPTION "Interface against MDF 3/4 files"
   LANGUAGES CXX)
   

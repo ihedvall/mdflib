@@ -1,26 +1,27 @@
 {
-    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-    "name": "mdflib",
-    "version": "2.1",
-    "dependencies": [
-        "zlib",
-        "expat"
-    ],
-    "features": {
-        "mdfviewer": {
-            "description": "Build mdf viewer",
-            "dependencies": [
-                "boost-process",
-                "boost-locale",
-                "wxwidgets"
-            ]
-        },
-        "mdflibtest": {
-            "description": "Build mdf tests",
-            "dependencies": [
-                "boost-endian",
-                "gtest"
-            ]
-        }
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "mdflib",
+  "version": "2.1",
+  "dependencies": [
+    "zlib",
+    "expat"
+  ],
+  "features": {
+    "mdfviewer": {
+      "description": "Build mdf viewer",
+      "dependencies": [
+        "boost-process",
+        "boost-locale",
+        "wxwidgets"
+      ]
+    },
+    "mdflibtest": {
+      "description": "Build mdf tests",
+      "dependencies": [
+        "boost-endian",
+        "gtest"
+      ]
     }
+  },
+  "builtin-baseline": "2b681d95e08447fde261b4404fbeab324f7d1e5b"
 }

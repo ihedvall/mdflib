@@ -1,17 +1,16 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
 
-if (NOT GTest_FOUND)
-    set(GTEST_MSVC_SEARCH MT)
-    if (COMP_DIR)
-        # Ignore the error message that GTest_ROOT should be used. It has to be capital letters
-        set(GTEST_ROOT ${COMP_DIR}/googletest/master)
-    endif()
+include (FetchContent)
 
-    find_package(GTest)
-    message(STATUS "GTest Found: " ${GTest_FOUND})
-    message(STATUS "GTest Include Dirs: " ${GTEST_INCLUDE_DIRS})
-    message(STATUS "GTest Libraries: " ${GTEST_LIBRARIES})
-    message(STATUS "GTest Main Libraries: " ${GTEST_MAIN_LIBRARIES})
-    message(STATUS "GTest Both Libraries: " ${GTEST_BOTH_LIBRARIES})
-endif()
+include(FetchContent)
+FetchContent_Declare(googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG HEAD
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+message(STATUS "googletest Populated: " ${googletest_POPULATED})
+message(STATUS "googletest Source: " ${googletest_SOURCE_DIR})
+message(STATUS "googletest Binary: " ${googletest_BINARY_DIR})

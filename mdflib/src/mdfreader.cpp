@@ -441,7 +441,7 @@ const IHeader *MdfReader::GetHeader() const {
   return file != nullptr ? file->Header() : nullptr;
 }
 
-const IDataGroup *MdfReader::GetDataGroup(size_t order) const {
+IDataGroup *MdfReader::GetDataGroup(size_t order) const {
   const auto *file = GetFile();
   if (file != nullptr) {
     DataGroupList dg_list;

@@ -91,7 +91,7 @@ class MdfReader {
   /** \brief Returns the header (HD) block. */
   [[nodiscard]] const IHeader* GetHeader() const;
   /** \brief Returns the data group (DG) block. */
-  [[nodiscard]] const IDataGroup* GetDataGroup(size_t order) const;
+  [[nodiscard]] IDataGroup* GetDataGroup(size_t order) const;
 
   [[nodiscard]] std::string ShortName()
       const;  ///< Returns the file name without paths.

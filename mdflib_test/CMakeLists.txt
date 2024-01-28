@@ -36,7 +36,6 @@ if(VCPKG)
   find_package(Boost)
   target_link_libraries(test_mdf PRIVATE Boost::boost)
 
-  find_package(GTest)
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
                                         GTest::gmock GTest::gmock_main)
 else()
@@ -44,7 +43,6 @@ else()
   target_include_directories(test_mdf PRIVATE ${Boost_INCLUDE_DIRS})
   target_link_libraries(test_mdf PRIVATE ${Boost_LIBRARIES})
 
-  include("../script/googletest.cmake")
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main)
 endif()
 

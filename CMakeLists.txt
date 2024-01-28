@@ -45,6 +45,7 @@ if(MDF_BUILD_SHARED_LIB)
 endif()
 
 if(MDF_BUILD_TEST)
+  include("script/googletest.cmake")
   enable_testing()
   add_subdirectory(mdflib_test)
 endif()

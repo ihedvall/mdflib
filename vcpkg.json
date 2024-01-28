@@ -18,10 +18,8 @@
     "mdflibtest": {
       "description": "Build mdf tests",
       "dependencies": [
-        "boost-endian",
-        "gtest"
+        "boost-endian"
       ]
     }
-  },
-  "builtin-baseline": "2b681d95e08447fde261b4404fbeab324f7d1e5b"
+  }
 }

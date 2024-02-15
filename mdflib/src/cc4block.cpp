@@ -100,13 +100,16 @@ ConversionType Cc4Block::Type() const {
   return static_cast<ConversionType>(type_);
 }
 
-void Cc4Block::Decimals(uint8_t decimals) { precision_ = decimals; }
+void Cc4Block::Decimals(uint8_t decimals) {
+  flags_ |= CcFlag::PrecisionValid;
+  precision_ = decimals;
+}
 
 uint8_t Cc4Block::Decimals() const {
   const auto max = static_cast<uint8_t>(
-      channel_data_type_ == 4 ? std::numeric_limits<float>::max_digits10
-                              : std::numeric_limits<double>::max_digits10);
-  return std::min(precision_, max);
+                              std::numeric_limits<double>::max_digits10);
+  return  flags_ & CcFlag::PrecisionValid ?
+                             precision_ : max;
 }
 
 bool Cc4Block::IsUnitValid() const { return Link(kIndexUnit) != 0; }
@@ -116,7 +119,9 @@ bool Cc4Block::IsDecimalUsed() const {
 }
 
 void Cc4Block::Range(double min, double max) {
-  flags_ |= CcFlag::RangeValid;
+  if (max > min) {
+    flags_ |= CcFlag::RangeValid;
+  }
   range_min_ = min;
   range_max_ = max;
 }

@@ -850,14 +850,20 @@ TEST_F(TestWrite, Mdf4WriteCN_SI_CC) {
         EXPECT_EQ(cn4->DataType(),ChannelDataType::UnsignedIntegerLe);
         EXPECT_EQ(cn4->DataBytes(), 8);
         // EXPECT_DOUBLE_EQ(cn4->SamplingRate(), 1.33); Not supported in MDF4
+
+        EXPECT_TRUE(cn4->Flags() & CnFlag::RangeValid);
         const auto range = cn4->Range();
         EXPECT_TRUE(range.has_value());
         EXPECT_DOUBLE_EQ(range.value().first, 0);
         EXPECT_DOUBLE_EQ(range.value().second, 10);
+
+        EXPECT_TRUE(cn4->Flags() & CnFlag::LimitValid);
         const auto limit = cn4->Limit();
         EXPECT_TRUE(limit.has_value());
         EXPECT_DOUBLE_EQ(limit.value().first, 1);
         EXPECT_DOUBLE_EQ(limit.value().second, 9);
+
+        EXPECT_TRUE(cn4->Flags() & CnFlag::ExtendedLimitValid);
         const auto ext_limit = cn4->ExtLimit();
         EXPECT_TRUE(ext_limit.has_value());
         EXPECT_DOUBLE_EQ(ext_limit.value().first, 2);
@@ -883,11 +889,17 @@ TEST_F(TestWrite, Mdf4WriteCN_SI_CC) {
         EXPECT_STREQ(cc4->Description().c_str(),"Cc1-Desc");
         EXPECT_STREQ(cc4->Unit().c_str(),"Cc1-Unit");
         EXPECT_EQ(cc4->Type(),ConversionType::Linear);
+
+        EXPECT_TRUE(cc4->Flags() & CcFlag::PrecisionValid);
         EXPECT_EQ(cc4->Decimals(),3);
+
+        EXPECT_TRUE(cc4->Flags() & CcFlag::RangeValid);
         const auto range1 = cc4->Range();
         EXPECT_TRUE(range1.has_value());
         EXPECT_DOUBLE_EQ(range1.value().first, 0);
         EXPECT_DOUBLE_EQ(range1.value().second, 10);
+
+        EXPECT_TRUE(cc4->Flags() & CcFlag::PrecisionValid);
       }
     }
   }

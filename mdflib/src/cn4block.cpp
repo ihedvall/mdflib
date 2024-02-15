@@ -274,7 +274,8 @@ uint8_t Cn4Block::Decimals() const {
   const auto max = static_cast<uint8_t>(
       DataBytes() == 4 ? std::numeric_limits<float>::max_digits10
                        : std::numeric_limits<double>::max_digits10);
-  return std::min(precision_, max);
+  return flags_ & CnFlag::PrecisionValid ?
+         precision_ : max;
 }
 
 bool Cn4Block::IsDecimalUsed() const { return flags_ & CnFlag::PrecisionValid; }

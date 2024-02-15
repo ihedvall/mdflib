@@ -249,7 +249,8 @@ ChannelDataType Cn4Block::DataType() const {
 ChannelType Cn4Block::Type() const { return static_cast<ChannelType>(type_); }
 
 uint64_t Cn4Block::DataBytes() const {
-  auto value_size = static_cast<uint64_t>((bit_count_) / 8) + (bit_count_ % 8 > 0 ? 1 : 0);
+  auto value_size = static_cast<uint64_t>((bit_count_) / 8)
+                    + (bit_count_ % 8 > 0 ? 1 : 0);
 /*
   auto* channel_array = ChannelArray();
   if (channel_array != nullptr) {
@@ -263,6 +264,7 @@ uint64_t Cn4Block::DataBytes() const {
   */
   return value_size;
 }
+
 void Cn4Block::Decimals(uint8_t precision) {
   precision_ = precision;
   flags_ |= CnFlag::PrecisionValid;
@@ -784,6 +786,7 @@ void Cn4Block::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
     IChannel::SetByteArray(value, valid);
   }
 }
+
 void Cn4Block::Unit(const std::string &unit) {
   if (unit.empty()) {
     unit_.reset();
@@ -1006,10 +1009,10 @@ void Cn4Block::PrepareForWriting(size_t offset) {
 
     case ChannelDataType::FloatLe:
     case ChannelDataType::FloatBe:
-      if (DataBytes() == 0) {
+      if (bit_count_ == 0) {
         bit_count_ = 64; // Assume double
       } else {
-        switch (DataBytes()) {
+        switch (bit_count_) {
           case 32:
           case 64:
             break;
@@ -1049,7 +1052,7 @@ void Cn4Block::PrepareForWriting(size_t offset) {
       if (bit_count_ == 0) {
         bit_count_ = 128; // Assume 2 double
       } else {
-        switch (DataBytes()) {
+        switch (bit_count_) {
           case 64: // 2 float
           case 128:// 2 double
             break;

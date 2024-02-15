@@ -1239,11 +1239,42 @@ TEST_F(TestWrite, Mdf4Float) {
   const auto* file1 = reader.GetFile();
   const auto* header1 = file1->Header();
   const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
   for (auto* dg4 : dg_list) {
     const auto cg_list = dg4->ChannelGroups();
     EXPECT_EQ(cg_list.size(), 1);
     for (auto* cg4 : cg_list) {
       CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+      const auto channel_list = cg4->Channels();
+      EXPECT_EQ(channel_list.size(), 4);
+      for (size_t index = 0; index < channel_list.size(); ++index) {
+        const auto* channel = channel_list[index];
+        EXPECT_TRUE(channel != nullptr);
+        switch (index) {
+          case 0:
+            EXPECT_EQ(channel->DataBytes(), 4) << channel->Name();
+            EXPECT_EQ(channel->DataType(), ChannelDataType::FloatLe);
+            break;
+
+          case 1:
+            EXPECT_EQ(channel->DataBytes(), 8) << channel->Name();
+            EXPECT_EQ(channel->DataType(), ChannelDataType::FloatLe);
+            break;
+
+          case 2:
+            EXPECT_EQ(channel->DataBytes(), 4) << channel->Name();
+            EXPECT_EQ(channel->DataType(), ChannelDataType::FloatBe);
+            break;
+
+          case 3:
+            EXPECT_EQ(channel->DataBytes(), 8) << channel->Name();
+            EXPECT_EQ(channel->DataType(), ChannelDataType::FloatBe);
+            break;
+          default:
+            break;
+        }
+      }
+
     }
     reader.ReadData(*dg4);
   }

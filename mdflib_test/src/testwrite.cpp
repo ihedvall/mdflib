@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <string>
 #include <thread>
+#include <set>
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
@@ -2419,9 +2420,19 @@ TEST_F(TestWrite, Mdf4MlsdCanConfig) {
   }
   reader.Close();
 
+  std::set<std::string> unique_list;
+
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
     EXPECT_EQ(observer->NofSamples(), 100'000);
+
+    // Verify that the CAN_RemoteFrame.DLC exist
+    const auto name = observer->Name();
+    if (unique_list.find(name) == unique_list.cend()) {
+      unique_list.emplace(name);
+    } else if (name != "t")  {
+      EXPECT_TRUE(false) << "Duplicate: " << name;
+    }
   }
 
 }

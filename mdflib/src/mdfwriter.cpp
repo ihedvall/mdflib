@@ -763,7 +763,7 @@ void MdfWriter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
   CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.IDE", 8 + 3, 7);
 
   auto* frame_dlc = cn_remote_frame->CreateChannelComposition(
-      "CAN_DataFrame.DLC");
+      "CAN_RemoteFrame.DLC");
   if (frame_dlc != nullptr) {
     frame_dlc->Type(ChannelType::FixedLength);
     frame_dlc->Sync(ChannelSyncType::None);

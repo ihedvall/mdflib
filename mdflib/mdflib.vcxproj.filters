@@ -249,16 +249,28 @@
     <ClCompile Include="src\zlibutil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\mdfblock.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\vlsddata.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\canmessage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\mdfbuslogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vlsddata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mdfblock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dbchelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\isampleobserver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\isamplereduction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\readcache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -516,6 +528,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\mdfbuslogger.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dbchelper.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mdf\isamplereduction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\readcache.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -252,6 +252,7 @@
     <ClCompile Include="src\platform.cpp" />
     <ClCompile Include="src\pr3block.cpp" />
     <ClCompile Include="src\rd4block.cpp" />
+    <ClCompile Include="src\readcache.cpp" />
     <ClCompile Include="src\ri4block.cpp" />
     <ClCompile Include="src\rv4block.cpp" />
     <ClCompile Include="src\sd4block.cpp" />
@@ -342,6 +343,7 @@
     <ClInclude Include="src\platform.h" />
     <ClInclude Include="src\pr3block.h" />
     <ClInclude Include="src\rd4block.h" />
+    <ClInclude Include="src\readcache.h" />
     <ClInclude Include="src\ri4block.h" />
     <ClInclude Include="src\rv4block.h" />
     <ClInclude Include="src\sd4block.h" />

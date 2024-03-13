@@ -324,7 +324,7 @@ public class MdfLibraryTest
         Assert.IsNotNull(group.CreateChannelGroup());
         Assert.IsNotNull(group.CreateMetaData());
         Assert.IsNull(group.FindParentChannelGroup(null));
-        group.ResetSample();
+
     }
 
     [TestMethod]
@@ -656,29 +656,29 @@ public class MdfLibraryTest
         {
             File.Delete(TestFile5);
         }
-        var Writer = new MdfWriter(MdfWriterType.Mdf4Basic);
-        Writer.Init(TestFile5);
-        var Header = Writer.Header;
-        Header.Author = "Caller";
-        Header.Department = "Home Alone";
-        Header.Description = "Testing i";
-        Header.Project = "Mdf3WriteHD";
-        Header.StartTime = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
-        Header.Subject = "PXY";
+        var writer = new MdfWriter(MdfWriterType.Mdf4Basic);
+        writer.Init(TestFile5);
+        var header = writer.Header;
+        header.Author = "Caller";
+        header.Department = "Home Alone";
+        header.Description = "Testing i";
+        header.Project = "Mdf3WriteHD";
+        header.StartTime = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
+        header.Subject = "PXY";
 
-        var History = Header.CreateFileHistory();
-        History.Time = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
-        History.Description = "Initial stuff";
-        History.ToolName = "Unit Test";
-        History.ToolVendor = "ACME";
-        History.ToolVersion = "2.3";
-        History.UserName = "Ducky";
+        var history = header.CreateFileHistory();
+        history.Time = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
+        history.Description = "Initial stuff";
+        history.ToolName = "Unit Test";
+        history.ToolVendor = "ACME";
+        history.ToolVersion = "2.3";
+        history.UserName = "Ducky";
 
-        var Event = Header.CreateEvent();
+        var Event = header.CreateEvent();
         Event.GroupName = "Olle";
         Event.Description = "Olle Event";
 
-        var dg = Writer.CreateDataGroup();
+        var dg = writer.CreateDataGroup();
         var cg = dg.CreateChannelGroup();
         cg.Name = "Test";
         cg.Description = "Test channel group";
@@ -795,8 +795,8 @@ public class MdfLibraryTest
         Attachment.FileName = "test.txt";
         Attachment.FileType = "text/plain";*/
 
-        Writer.InitMeasurement();
-        Writer.StartMeasurement((ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000));
+        writer.InitMeasurement();
+        writer.StartMeasurement((ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000));
         // Write the data
         for (int i = 0; i < 50; i++)
         {
@@ -823,10 +823,10 @@ public class MdfLibraryTest
             cns[9].SetChannelValue(ns70);
             cns[10].SetChannelValue(ns70);
 
-            Writer.SaveSample(cg, (ulong)ns70);
+            writer.SaveSample(cg, (ulong)ns70);
         }
-        Writer.StopMeasurement((ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000));
-        Writer.FinalizeMeasurement();
+        writer.StopMeasurement((ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000));
+        writer.FinalizeMeasurement();
 
     }
 

@@ -22,7 +22,7 @@ jobs:
       - name: CMAKE Configure
         run: >
           cmake -B ${{github.workspace}}/build 
-          -D MDF_BUILD_TOOL=ON -D MDF_BUILD_TEST=ON -D MDF_BUILD_SHARED_LIB=ON
+          -D MDF_BUILD_TOOL=OFF -D MDF_BUILD_TEST=ON -D MDF_BUILD_SHARED_LIB=ON
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
           -D CMAKE_TOOLCHAIN_FILE=${{env.VCPKG_FILE}}
 

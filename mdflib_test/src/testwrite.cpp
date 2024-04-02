@@ -1497,6 +1497,87 @@ TEST_F(TestWrite, CompressData) {
   }
 }
 
+TEST_F(TestWrite, CompressArrayData) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  constexpr size_t nof_samples = 1'000'000;
+  path mdf_file(kTestDir);
+  mdf_file.append("compress_array.mf4");
+
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  writer->CompressData(true);
+
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test compress");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("Float");
+
+
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("ByteArray");
+  ch1->Type(ChannelType::VariableLength);
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::ByteArray);
+  ch1->DataBytes(8);
+
+  const std::vector<uint8_t> data_array(32,0xFE);
+
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+
+  for (size_t sample = 0; sample < nof_samples; ++sample) {
+    ch1->SetChannelValue(data_array, true);
+
+    writer->SaveSample(*group1,tick_time);
+    tick_time += 100'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    ASSERT_EQ(observer->NofSamples(), nof_samples);
+    for (size_t sample = 0; sample < nof_samples; ++sample) {
+      std::vector<uint8_t> channel_value;
+      const auto valid = observer->GetChannelValue(sample, channel_value);
+      EXPECT_TRUE(valid);
+      EXPECT_EQ(channel_value, data_array) << observer->Name();
+    }
+  }
+}
+
 TEST_F(TestWrite, StringData) {
   if (kSkipTest) {
     GTEST_SKIP();
@@ -2479,7 +2560,7 @@ TEST_F(TestWrite, Mdf4CompressedCanSdStorage ) {
   writer->StartMeasurement(tick_time);
   size_t sample;
   for (sample = 0; sample < 10; ++sample) {
-    // Assigna some dummy data
+    // Assign some dummy data
     auto value = static_cast<double>(sample) + 0.23;
     std::vector<uint8_t> data;
     data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));

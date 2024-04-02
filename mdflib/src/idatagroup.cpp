@@ -72,7 +72,7 @@ IChannelGroup *IDataGroup::CreateChannelGroup(const std::string_view &name) {
   auto cg_list = ChannelGroups();
   auto itr = std::find_if(cg_list.begin(), cg_list.end(),
                           [&] (const auto* group) {
-    return group != nullptr && group->Name() == name;
+    return group != nullptr && group->Name() == name && !name.empty();
   });
   if (itr != cg_list.end()) {
     return *itr;

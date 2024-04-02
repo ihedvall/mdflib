@@ -405,7 +405,7 @@ size_t Cg4Block::UpdateVlsdSize(std::FILE *file) {
     if (length > 0) {
       count += StepFilePosition(file, length);
     }
-    vlsd_size += count;
+    vlsd_size += length;
     nof_data_bytes_ = static_cast<uint32_t>(vlsd_size & 0xFFFFFFFF);
     nof_invalid_bytes_ = static_cast<uint32_t>(vlsd_size >> 32);
     ++nof_samples_;
@@ -571,25 +571,25 @@ uint64_t Cg4Block::WriteVlsdSample(FILE *file, uint8_t record_id_size,
 
     case 1: {
       const auto id = static_cast<uint8_t>(RecordId());
-      total_count += WriteNumber(file, id);
+      WriteNumber(file, id);
       break;
     }
 
     case 2: {
       const auto id = static_cast<uint16_t>(RecordId());
-      total_count += WriteNumber(file, id);
+      WriteNumber(file, id);
       break;
     }
 
     case 4: {
       const auto id = static_cast<uint32_t>(RecordId());
-      total_count += WriteNumber(file, id);
+      WriteNumber(file, id);
       break;
     }
 
     default: {
       const auto id = RecordId();
-      total_count += WriteNumber(file, id);
+      WriteNumber(file, id);
       break;
     }
 
@@ -597,7 +597,7 @@ uint64_t Cg4Block::WriteVlsdSample(FILE *file, uint8_t record_id_size,
   const auto length = static_cast<uint32_t>(buffer.size());
   const LittleBuffer buff(length);
   const auto length_count = fwrite(buff.data(), 1, sizeof(length), file);
-  total_count += length_count;
+  // total_count += length_count;
   const auto buffer_count = fwrite(buffer.data(), 1, buffer.size(), file);
   total_count += buffer_count;
   IncrementSample();            // Increment internal sample counter
@@ -627,7 +627,6 @@ uint64_t Cg4Block::WriteCompressedVlsdSample(std::vector<uint8_t>& dest,
       const auto id = static_cast<uint8_t>(RecordId());
       const LittleBuffer ident(id);
       std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
-      total_count += ident.size();
       break;
     }
 
@@ -635,7 +634,6 @@ uint64_t Cg4Block::WriteCompressedVlsdSample(std::vector<uint8_t>& dest,
       const auto id = static_cast<uint16_t>(RecordId());
       const LittleBuffer ident(id);
       std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
-      total_count += ident.size();
       break;
     }
 
@@ -643,7 +641,6 @@ uint64_t Cg4Block::WriteCompressedVlsdSample(std::vector<uint8_t>& dest,
       const auto id = static_cast<uint32_t>(RecordId());
       const LittleBuffer ident(id);
       std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
-      total_count += ident.size();
       break;
     }
 
@@ -651,7 +648,6 @@ uint64_t Cg4Block::WriteCompressedVlsdSample(std::vector<uint8_t>& dest,
       const auto id = RecordId();
       const LittleBuffer ident(id);
       std::copy(ident.cbegin(), ident.cend(), std::back_inserter(dest));
-      total_count += ident.size();
       break;
     }
   }
@@ -660,7 +656,6 @@ uint64_t Cg4Block::WriteCompressedVlsdSample(std::vector<uint8_t>& dest,
 
   const LittleBuffer buff(length);
   std::copy(buff.cbegin(), buff.cend(), std::back_inserter(dest));
-  total_count += buff.size();
 
   std::copy(buffer.cbegin(), buffer.cend(), std::back_inserter(dest));
   total_count += buffer.size();

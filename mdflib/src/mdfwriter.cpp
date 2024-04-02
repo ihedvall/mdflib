@@ -563,7 +563,7 @@ void MdfWriter::CreateCanConfig(IDataGroup& dg_block) const {
   if (StorageType() == MdfStorageType::VlsdStorage && cn_data_byte != nullptr) {
     // Need to add a special CG group for the data samples
 
-    auto* cg_samples_frame = dg_block.CreateChannelGroup("Samples");
+    auto* cg_samples_frame = dg_block.CreateChannelGroup("");
     if (cg_samples_frame != nullptr) {
       cg_samples_frame->Flags(CgFlag::VlsdChannel);
       cn_data_byte->VlsdRecordId(cg_samples_frame->RecordId());
@@ -590,7 +590,7 @@ void MdfWriter::CreateCanConfig(IDataGroup& dg_block) const {
 
   if (StorageType() == MdfStorageType::VlsdStorage && cn_error_byte != nullptr) {
     // Need to add a special CG group for the error samples
-    auto* cg_errors_frame = dg_block.CreateChannelGroup("Errors");
+    auto* cg_errors_frame = dg_block.CreateChannelGroup("");
     if (cg_errors_frame != nullptr) {
       cg_errors_frame->Flags(CgFlag::VlsdChannel);
       cn_error_byte->VlsdRecordId(cg_errors_frame->RecordId());
@@ -651,7 +651,7 @@ void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
     frame_id->Flags(CnFlag::BusEvent);
     frame_id->ByteOffset(8);
     frame_id->BitOffset(0);
-    frame_id->BitCount(32);
+    frame_id->BitCount(29);
   }
   CreateBitChannel(*cn_data_frame,"CAN_DataFrame.IDE", 8 + 3, 7);
 
@@ -677,17 +677,15 @@ void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
     frame_length->ByteOffset(8+4);
     frame_length->BitOffset(0);
     frame_length->BitCount(4);
-    if (MaxLength() > 8) {
-      auto* cc_length = frame_length->CreateChannelConversion();
-      if (cc_length != nullptr) {
-        cc_length->Type(ConversionType::ValueToValue);
-        uint16_t index = 0;
-        for (uint8_t key = 0; key < 16; ++key) {
-          cc_length->Parameter(index++,static_cast<double>(key));
-          cc_length->Parameter(index++,
-            static_cast<double>(CanMessage::DlcToLength(key)));
-        }
-        cc_length->Parameter(index, 0.0);
+
+    auto* cc_length = frame_length->CreateChannelConversion();
+    if (cc_length != nullptr) {
+      cc_length->Type(ConversionType::ValueToValue);
+      uint16_t index = 0;
+      for (uint8_t key = 0; key < 16; ++key) {
+        cc_length->Parameter(index++,static_cast<double>(key));
+        cc_length->Parameter(index++,
+          static_cast<double>(CanMessage::DlcToLength(key)));
       }
     }
   }
@@ -757,7 +755,7 @@ void MdfWriter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
     frame_id->DataType(ChannelDataType::UnsignedIntegerLe);
     frame_id->ByteOffset(8);
     frame_id->BitOffset(0);
-    frame_id->BitCount(32);
+    frame_id->BitCount(29);
     frame_id->Flags(CnFlag::BusEvent);
   }
   CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.IDE", 8 + 3, 7);
@@ -784,17 +782,14 @@ void MdfWriter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
     frame_length->BitOffset(0);
     frame_length->BitCount(4);
     frame_length->Flags(CnFlag::BusEvent);
-    if (MaxLength() > 8) {
-      auto* cc_length = frame_length->CreateChannelConversion();
-      if (cc_length != nullptr) {
-        cc_length->Type(ConversionType::ValueToValue);
-        uint16_t index = 0;
-        for (uint8_t key = 0; key < 16; ++key) {
-          cc_length->Parameter(index++,static_cast<double>(key));
-          cc_length->Parameter(index++,
-            static_cast<double>(CanMessage::DlcToLength(key)));
-        }
-        cc_length->Parameter(index, 0.0);
+    auto* cc_length = frame_length->CreateChannelConversion();
+    if (cc_length != nullptr) {
+      cc_length->Type(ConversionType::ValueToValue);
+      uint16_t index = 0;
+      for (uint8_t key = 0; key < 16; ++key) {
+        cc_length->Parameter(index++,static_cast<double>(key));
+        cc_length->Parameter(index++,
+          static_cast<double>(CanMessage::DlcToLength(key)));
       }
     }
   }
@@ -842,7 +837,7 @@ void MdfWriter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
     frame_id->DataType(ChannelDataType::UnsignedIntegerLe);
     frame_id->ByteOffset(8);
     frame_id->BitOffset(0);
-    frame_id->BitCount(32);
+    frame_id->BitCount(29);
     frame_id->Flags(CnFlag::BusEvent);
   }
   CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.IDE", 8 + 3, 7);

@@ -14,6 +14,7 @@
 #include "sd4block.h"
 #include "dz4block.h"
 #include "dl4block.h"
+#include "hl4block.h"
 
 namespace {
 
@@ -1119,7 +1120,7 @@ size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
     sd4->Data(data_list_);
     bytes = sd4->Write(file);
     UpdateLink(file, kIndexData,sd4->FilePosition());
-  } else if (data_list_.size() <= kMaxDataSize) {
+  } else if (data_list_.size() <= kMaxDataSize) { // Compress data
     // Store DZ (SD) block
     auto dz4 = std::make_unique<Dz4Block>();
     dz4->OrigBlockType("SD");
@@ -1128,7 +1129,11 @@ size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
     bytes = dz4->Write(file);
     UpdateLink(file, kIndexData,dz4->FilePosition());
   } else {
-    // Store DL + DZ blocks
+    // Store HL + DL + DZ blocks
+    auto hl4 = std::make_unique<Hl4Block>();
+    hl4->Flags(Hl4Flags::EqualLength);
+    hl4->Type(Hl4ZipType::Deflate);
+
     auto dl4 = std::make_unique<Dl4Block>();
     std::vector<uint8_t> buffer;
     buffer.reserve(kMaxDataSize);
@@ -1159,8 +1164,11 @@ size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
       auto& block_list = dl4->DataBlockList();
       block_list.push_back(std::move(dz4));
     }
-    bytes = dl4->Write(file);
-    UpdateLink(file, kIndexData,dl4->FilePosition());
+    auto& top_list = hl4->DataBlockList();
+    top_list.push_back(std::move(dl4));
+
+    bytes = hl4->Write(file);
+    UpdateLink(file, kIndexData,hl4->FilePosition());
   }
   return bytes;
 }

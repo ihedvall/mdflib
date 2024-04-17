@@ -165,11 +165,11 @@ void c_example() {
 
       {
         pChannel[2] = MdfChannelGroupCreateChannel(cg);
-        MdfChannelSetName(pChannel[1], "String");
-        MdfChannelSetDescription(pChannel[1], "string");
-        MdfChannelSetType(pChannel[1], ChannelType::FixedLength);
-        MdfChannelSetDataType(pChannel[1], ChannelDataType::StringAscii);
-        MdfChannelSetDataBytes(pChannel[1], 4);
+        MdfChannelSetName(pChannel[2], "String");
+        MdfChannelSetDescription(pChannel[2], "string");
+        MdfChannelSetType(pChannel[2], ChannelType::FixedLength);
+        MdfChannelSetDataType(pChannel[2], ChannelDataType::StringAscii);
+        MdfChannelSetDataBytes(pChannel[2], 4);
       }
 
       MdfWriterInitMeasurement(Writer);

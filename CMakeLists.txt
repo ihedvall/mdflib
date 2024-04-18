@@ -1,6 +1,6 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.10)
 
 if("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
   set(VCPKG OFF)

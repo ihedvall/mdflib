@@ -4,7 +4,6 @@
  */
 #include "ixmlfile.h"
 
-#include <filesystem>
 #include <fstream>
 
 #include "expatxml.h"
@@ -12,11 +11,19 @@
 #include "writexml.h"
 #include "xmlnode.h"
 
+#if INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
 namespace mdf {
 
 std::string IXmlFile::FileNameWithoutPath() const {
   try {
-    auto filename = std::filesystem::u8path(filename_).stem().u8string();
+    auto filename = fs::u8path(filename_).stem().u8string();
     return std::string(filename.begin(), filename.end());
   } catch (const std::exception &error) {
     MDF_ERROR() << "Invalid path. File: " << filename_
@@ -65,7 +72,7 @@ bool IXmlFile::WriteFile() {
     return false;
   }
   try {
-    std::ofstream file(std::filesystem::u8path(filename_),
+    std::ofstream file(fs::u8path(filename_),
                        std::ofstream::out | std::ofstream::trunc);
     if (!file.is_open()) {
       MDF_ERROR() << "Couldn't open file for writing. File: " << filename_;

@@ -4,9 +4,7 @@
  */
 #include "mdf/mdfreader.h"
 
-
 #include <cstdio>
-#include <filesystem>
 #include <string>
 #include <thread>
 #include <vector>
@@ -21,6 +19,15 @@
 #include "cn4block.h"
 #include "sr4block.h"
 #include "sr3block.h"
+
+#if INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
 using namespace std::chrono_literals;
 
 namespace mdf {
@@ -201,8 +208,8 @@ MdfReader::MdfReader(const std::string &filename) : filename_(filename) {
   // Need to create MDF3 of MDF4 file
   bool bExist = false;
   try {
-    std::filesystem::path p = std::filesystem::u8path(filename_);
-    if (std::filesystem::exists(p)) {
+    fs::path p = fs::u8path(filename_);
+    if (fs::exists(p)) {
       bExist = true;
     }
   } catch (const std::exception &error) {
@@ -251,7 +258,7 @@ MdfReader::~MdfReader() { Close(); }
 
 std::string MdfReader::ShortName() const {
   try {
-    auto filename = std::filesystem::u8path(filename_).stem().u8string();
+    auto filename = fs::u8path(filename_).stem().u8string();
     return std::string(filename.begin(), filename.end());
   } catch (const std::exception &) {
   }

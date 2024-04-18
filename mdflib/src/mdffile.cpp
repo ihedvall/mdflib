@@ -4,11 +4,18 @@
  */
 #include "mdf/mdffile.h"
 
-#include <filesystem>
 #include <string>
 
 #include "at4block.h"
 #include "mdf/mdflogstream.h"
+
+#if INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
 
 namespace mdf {
 
@@ -44,7 +51,7 @@ void MdfFile::FileName(const std::string& filename) {
   filename_ = filename;
   if (name_.empty()) {
     try {
-      auto name = std::filesystem::u8path(filename).stem().u8string();
+      auto name = fs::u8path(filename).stem().u8string();
       name_ = std::string(name.begin(), name.end());
     } catch (const std::exception& err) {
       MDF_ERROR() << "Invalid file name detected. Error: " << err.what()

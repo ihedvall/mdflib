@@ -8,10 +8,18 @@
 
 #include <cstdint>
 #include <cstring>
-#include <filesystem>
 #include <string>
 
 #include "platform.h"
+
+#if INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
 namespace {
 constexpr size_t kZlibChunk = 16384;
 }
@@ -76,8 +84,8 @@ bool Deflate(FILE* in, FILE* out) {
 
 bool Deflate(const std::string& filename, ByteArray& buf_out) {
   try {
-    std::filesystem::path name = std::filesystem::u8path(filename);
-    auto size = std::filesystem::file_size(name);
+    fs::path name = fs::u8path(filename);
+    auto size = fs::file_size(name);
 
     std::FILE* file = nullptr;
     Platform::fileopen(&file, filename.c_str(), "rb");

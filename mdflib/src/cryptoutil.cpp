@@ -7,11 +7,19 @@
 #include <array>
 #include <cstdio>
 #include <cstring>
-#include <filesystem>
+#include <iomanip>
 
 #include "mdf/mdflogstream.h"
-
 #include "platform.h"
+
+#if INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
 namespace {
 
 #define F(x, y, z) ((z) ^ ((x) & ((y) ^ (z))))
@@ -240,8 +248,8 @@ bool CreateMd5FileChecksum(const std::string &file, std::vector<uint8_t> &md5) {
   }
 
   try {
-    std::filesystem::path p = std::filesystem::u8path(file);
-    if (std::filesystem::exists(p)) {
+    fs::path p = fs::u8path(file);
+    if (fs::exists(p)) {
       std::FILE *f = nullptr;
       Platform::fileopen(&f, file.c_str(), "rb");
       if (f != nullptr) {

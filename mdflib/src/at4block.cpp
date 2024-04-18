@@ -5,7 +5,6 @@
 #include "at4block.h"
 
 #include <cerrno>
-#include <filesystem>
 #include <sstream>
 
 #include "mdf/cryptoutil.h"
@@ -14,7 +13,15 @@
 #include "mdf/zlibutil.h"
 #include "platform.h"
 
-using namespace std::filesystem;
+#if INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
+using namespace fs;
 
 namespace {
 
@@ -114,7 +121,7 @@ void At4Block::GetBlockProperty(BlockPropertyList& dest) const {
   std::string name;
   if (Link(kIndexFilename) > 0) {
     try {
-      std::filesystem::path p = std::filesystem::u8path(filename_);
+      fs::path p = fs::u8path(filename_);
       const auto& u8str = p.filename().u8string();
       name = std::string(u8str.begin(), u8str.end());
     } catch (const std::exception&) {
@@ -165,7 +172,7 @@ size_t At4Block::Write(std::FILE* file) {
   ByteArray data_buffer;
   try {
     path filename = u8path(filename_);
-    if (!std::filesystem::exists(filename)) {
+    if (!fs::exists(filename)) {
       MDF_ERROR() << "Attachment File doesn't exist. File: " << filename_;
       return 0;
     }
@@ -244,11 +251,11 @@ void At4Block::ReadData(std::FILE* file, const std::string& dest_file) const {
     }
   } else {
     // Need to copy the source file
-    std::filesystem::path s = std::filesystem::u8path(filename_);
-    std::filesystem::path d = std::filesystem::u8path(dest_file);
+    fs::path s = fs::u8path(filename_);
+    fs::path d = fs::u8path(dest_file);
     if (s != d) {
-      std::filesystem::copy_file(
-          s, d, std::filesystem::copy_options::overwrite_existing);
+      fs::copy_file(
+          s, d, fs::copy_options::overwrite_existing);
     }
   }
   if (flags_ & At4Flags::kUsingMd5) {

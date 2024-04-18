@@ -12,14 +12,20 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
-#include <filesystem>
-
 
 #include "dg3block.h"
 #include "mdfblock.h"
 #include "platform.h"
 
-using namespace std::filesystem;
+#if INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
+using namespace fs;
 using namespace std::chrono_literals;
 
 namespace {
@@ -111,7 +117,7 @@ bool MdfWriter::Init(const std::string& filename) {
   }
   std::FILE* file = nullptr;
   try {
-    if (std::filesystem::exists(filename_)) {
+    if (fs::exists(filename_)) {
       // Read in existing file so we can append to it
 
       detail::OpenMdfFile(file, filename_, "rb");

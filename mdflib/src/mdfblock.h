@@ -15,6 +15,7 @@
 #include "blockproperty.h"
 #include "littlebuffer.h"
 #include "mdf/imetadata.h"
+#include "platform.h"
 
 namespace mdf::detail {
 

@@ -6,6 +6,7 @@
 #include <sstream>
 
 // Pure C example
+#pragma region C
 #include <mdflibrary/MdfExport.h>
 using namespace MdfLibrary;
 using namespace MdfLibrary::ExportFunctions;
@@ -183,8 +184,10 @@ void c_example() {
     }
   }
 }
+#pragma endregion C
 
 // C++ example
+#pragma region C++
 #include <mdflibrary/MdfChannelObserver.h>
 #include <mdflibrary/MdfReader.h>
 #include <mdflibrary/MdfWriter.h>
@@ -336,8 +339,7 @@ void cpp_example() {
     std::cout << "Start measure" << std::endl;
     for (size_t i = 0; i < 100'000; i++) {
       std::vector<uint8_t> data;
-      data.assign(i < 8 ? i + 1 : 8,
-                  static_cast<uint8_t>(i + 1));
+      data.assign(i < 8 ? i + 1 : 8, static_cast<uint8_t>(i + 1));
 
       CanMessage msg;
       msg.SetMessageId(123);
@@ -494,6 +496,7 @@ void cpp_example() {
     }
   }
 }
+#pragma endregion C++
 
 int main() {
   c_example();

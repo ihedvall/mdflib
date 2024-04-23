@@ -13,7 +13,7 @@
 
 #if __has_include(<source_location>)
 #include <source_location>
-#else
+#elif __has_include(<experimental/source_location>)
 #include <experimental/source_location>
 #endif
 
@@ -38,8 +38,16 @@ enum class LogSeverity : uint8_t {
 
 #if __has_include(<source_location>)
 using Loc = std::source_location;
-#else
+#elif __has_include(<experimental/source_location>)
 using Loc = std::experimental::source_location;
+#else
+struct Loc {
+  uint_least32_t line() const noexcept { return 0; }
+  uint_least32_t column() const noexcept { return 0; }
+  const char *file_name() const noexcept { return "UNKNOWN"; }
+  const char *function_name() const noexcept { return "UNKNOWN"; }
+  static constexpr Loc current() noexcept { return Loc{}; }
+};
 #endif
 
 void LogDebug(const Loc &loc, const char *fmt,

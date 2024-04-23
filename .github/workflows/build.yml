@@ -10,7 +10,7 @@
     workflow_dispatch:
   
   env:
-    vcpkgCommitId: c9140a3b500812ad3206317885860d9553b93f13
+    vcpkgCommitId: da4b78d35084ec4e9808aa02017028da03b8d2ab
   
   
   jobs:
@@ -25,8 +25,8 @@
         - name: Checkout repository
           uses: actions/checkout@v4
           
-        # Install latest CMake.
-        - uses: lukka/get-cmake@latest
+        - name: Setup cmake
+          uses: lukka/get-cmake@latest
   
         # Setup vcpkg: ensures vcpkg is downloaded and built.
         # Since vcpkg.json is being used later on to install the packages
@@ -69,7 +69,7 @@
             # the project files. This configuration leverages the vcpkg.cmake toolchain file to
             # run vcpkg and install all dependencies specified in vcpkg.json.
             configurePreset: 'msvc-vcpkg-static-${{ matrix.arch }}'
-            configurePresetAdditionalArgs: "['-DMDF_BUILD_SHARED_LIB_NET=ON', '-DMDF_BUILD_TOOL=ON']"
+            configurePresetAdditionalArgs: "['-DMDF_BUILD_SHARED_LIB_NET=ON']"
   
             # This is the name of the CMakePresets.json's configuration to build the project.
             buildPreset: 'msvc-vcpkg-static-${{ matrix.arch }}-release'
@@ -109,9 +109,9 @@
       steps:
         - name: Checkout repository
           uses: actions/checkout@v4
-          
-        # Install latest CMake.
-        - uses: lukka/get-cmake@latest
+
+        - name: Setup cmake
+          uses: lukka/get-cmake@latest
   
         # Setup vcpkg: ensures vcpkg is downloaded and built.
         # Since vcpkg.json is being used later on to install the packages
@@ -142,6 +142,11 @@
             # using the vcpkg.cmake toolchain. The default is `false`.
             # runVcpkgInstall: true
   
+          
+        - name: Install dependencies
+          run: sudo apt-get install -y libxi-dev libxtst-dev libxrandr-dev
+          if: runner.os == 'Linux'
+
         - name: Build And Test
           uses: lukka/run-cmake@v10
           with:

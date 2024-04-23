@@ -618,7 +618,7 @@ EXPORTFEATUREFUNC(uint64_t, GetParameterAsUInt64, uint16_t index) {
 }
 EXPORTFEATUREFUNC(void, SetParameterAsUInt64, uint16_t index,
                   uint64_t parameter) {
-  conv->Parameter(index, parameter);
+  conv->ParameterUint(index, parameter);
 }
 EXPORTFEATUREFUNC(mdf::IChannelConversion*, CreateInverse) {
   return conv->CreateInverse();
@@ -1077,7 +1077,7 @@ EXPORTFEATUREFUNC(void, SetExtendedId, const bool extendedId) {
 }
 EXPORTFEATUREFUNC(uint8_t, GetDlc) { return can->Dlc(); }
 EXPORTFEATUREFUNC(void, SetDlc, const uint8_t dlc) { can->Dlc(dlc); }
-EXPORTFEATUREFUNC(uint32_t, GetDataLength) { return can->DataLength(); }
+EXPORTFEATUREFUNC(size_t, GetDataLength) { return can->DataLength(); }
 EXPORTFEATUREFUNC(void, SetDataLength, const uint32_t dataLength) {
   can->DataLength(dataLength);
 }

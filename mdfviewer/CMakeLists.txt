@@ -85,6 +85,20 @@ if(WIN32)
   target_link_libraries(mdfview PRIVATE ws2_32)
 endif()
 
-if(UNIX)
-  target_link_libraries(mdfview PRIVATE rt icuuc icui18n)
-endif(UNIX)
+if(WIN32)
+  install(
+    TARGETS mdfview
+    EXPORT MdfViewTargets
+    LIBRARY DESTINATION mdfview/lib
+    ARCHIVE DESTINATION mdfview/lib
+    RUNTIME DESTINATION mdfview/bin
+    PUBLIC_HEADER DESTINATION mdfview/include/mdfview)
+else()
+  install(
+    TARGETS mdfview
+    EXPORT MdfViewTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    PUBLIC_HEADER DESTINATION include/mdfview)
+endif()

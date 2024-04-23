@@ -3,14 +3,13 @@
  * SPDX-License-Identifier: MIT
  */
 #include "csvwriter.h"
+#include "logstream.h"
 
 #include <algorithm>
-#include <boost/lexical_cast.hpp>
 #include <filesystem>
-#include <fstream>
-#include <string>
 
-#include "logstream.h"
+#include <boost/lexical_cast.hpp>
+
 
 using namespace util::log;
 
@@ -23,7 +22,7 @@ std::string kEmptyString;
  * @param text
  */
 void CheckIfDittoMarkNeeded(std::string &text) {
-  auto need_ditto_mark = std::ranges::any_of(text, [](const char in) {
+  auto need_ditto_mark = std::any_of(text.cbegin(), text.cend(), [](const char in) {
     const auto byte = static_cast<unsigned char>(in);
     if (std::isspace(byte) || !std::isprint(byte) || in == ',') {
       return true;

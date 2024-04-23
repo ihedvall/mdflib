@@ -855,7 +855,7 @@ EXPORTFEATUREFUNC(bool, GetExtendedId);
 EXPORTFEATUREFUNC(void, SetExtendedId, const bool extendedId);
 EXPORTFEATUREFUNC(uint8_t, GetDlc);
 EXPORTFEATUREFUNC(void, SetDlc, const uint8_t dlc);
-EXPORTFEATUREFUNC(uint32_t, GetDataLength);
+EXPORTFEATUREFUNC(size_t, GetDataLength);
 EXPORTFEATUREFUNC(void, SetDataLength, const uint32_t dataLength);
 EXPORTFEATUREFUNC(size_t, GetDataBytes, uint8_t dataList[]);
 EXPORTFEATUREFUNC(void, SetDataBytes, const uint8_t* dataList,

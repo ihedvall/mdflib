@@ -14,7 +14,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
                                                   "-Wl,-rpath,'$ORIGIN'")
 endif()
 
-target_link_libraries(mdflibraryexample PRIVATE mdflibrary)
+target_link_libraries(mdflibraryexample PRIVATE mdflibrary pthread)
 
 target_include_directories(
   mdflibrary PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>)

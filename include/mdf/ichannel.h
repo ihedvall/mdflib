@@ -19,6 +19,7 @@
 #include "mdf/isourceinformation.h"
 #include "mdf/ichannelarray.h"
 #include "mdf/mdfhelper.h"
+#include "mdf/iattachment.h"
 
 namespace mdf {
 
@@ -281,6 +282,24 @@ class IChannel : public IBlock  {
 
   /** \brief Returns the  meta-data (MD) block if it exist. */
   [[nodiscard]] virtual IMetaData* MetaData() const;
+
+  /** \brief Adds an attachment reference to the channel.
+   *
+   * Adds an attachment reference to the channel. This function is used
+   * when writing MDF 4 files.
+   *
+   * Note that this function must be called
+   * before the any measurement is started and the attachment must also be
+   * added before measurement is started. This is a design flaw in the MDF
+   * standard why for example video attachments cannot be embedded as they
+   * are created after the CN block is written. DBC files will work as they
+   * already exist when the measurement is started.
+   * @param attachment Pointer to the attachment.
+   */
+  virtual void AddAttachmentReference(const IAttachment* attachment);
+
+  /** \brief Returns a list of attachment pointers */
+  virtual std::vector<const IAttachment*> AttachmentList() const;
 
   /** \brief Sets the VLSD record id.
    *

@@ -1,12 +1,15 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
+include(CMakePrintHelpers)
 cmake_minimum_required(VERSION 3.10)
-
+cmake_policy(SET CMP0074 NEW)
+cmake_policy(SET CMP0144 NEW)
 if("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
   set(VCPKG OFF)
 else()
   set(VCPKG ON)
 endif()
+
 
 option(BUILD_SHARED_LIBS "Build static library as default." OFF)
 option(MDF_BUILD_SHARED_LIB "Build shared library." ON)
@@ -15,6 +18,7 @@ option(MDF_BUILD_SHARED_LIB_EXAMPLE "Build shared library example." OFF)
 option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." OFF)
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
 option(MDF_BUILD_TEST "Build Google Unit Tests. Requires Google Test." OFF)
+option(MDF_BUILD_PYTHON "Build Python module" OFF)
 
 if(MDF_BUILD_TOOL AND VCPKG)
 # Boost & wxWidgets need /MT for static linking
@@ -55,6 +59,22 @@ endif()
 
 if(MDF_BUILD_TOOL)
   add_subdirectory(mdfviewer)
+endif()
+
+if (MDF_BUILD_PYTHON)  
+
+  find_package(Python3 COMPONENTS Interpreter Development)
+  cmake_print_properties(TARGETS Python3::Python PROPERTIES
+          NAME
+          LOCATION
+          INTERFACE_INCLUDE_DIRECTORIES)
+
+  cmake_print_variables(
+          Python3_FOUND
+          Python3_INCLUDE_DIRS
+          Python3_RUNTIME_LIBRARY_DIRS)
+  include("script/pybind11.cmake")
+  add_subdirectory(python)
 endif()
 
 if((CMAKE_BUILD_TYPE MATCHES "^[Rr]elease") AND MDF_BUILD_DOC)

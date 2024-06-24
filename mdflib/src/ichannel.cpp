@@ -189,17 +189,29 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer,
 
 bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
                                  std::vector<uint8_t> &dest) const {
-  dest.resize(DataBytes(), 0);
+  try {
+    dest.resize(DataBytes(), 0);
+  } catch (const std::exception&) {
+    return false;
+  }
   if (Type() == ChannelType::VariableLength && VlsdRecordId() > 0) {
     dest = record_buffer;
   } else {
     if (dest.size() != DataBytes()) {
-      dest.resize(DataBytes());
+      try {
+        dest.resize(DataBytes());
+      } catch (const std::exception&) {
+        return false;
+      }
     }
     if (dest.empty()) {
       return true;
     }
-    memcpy(dest.data(), record_buffer.data() + ByteOffset(), DataBytes());
+    if (ByteOffset() + DataBytes() <= record_buffer.size()) {
+      memcpy(dest.data(), record_buffer.data() + ByteOffset(), DataBytes());
+    } else {
+      return false;
+    }
   }
   return true;
 }
@@ -207,8 +219,12 @@ bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
 bool IChannel::GetCanOpenDate(const std::vector<uint8_t> &record_buffer,
                               uint64_t &dest) const {
   std::vector<uint8_t> date_array(7, 0);
-  memcpy(date_array.data(), record_buffer.data() + ByteOffset(),
-         date_array.size());
+  if (ByteOffset() + date_array.size() <= record_buffer.size()) {
+    memcpy(date_array.data(), record_buffer.data() + ByteOffset(),
+           date_array.size());
+  } else {
+    return false;
+  }
   dest = MdfHelper::CanOpenDateArrayToNs(date_array);
   return true;
 }
@@ -216,8 +232,12 @@ bool IChannel::GetCanOpenDate(const std::vector<uint8_t> &record_buffer,
 bool IChannel::GetCanOpenTime(const std::vector<uint8_t> &record_buffer,
                               uint64_t &dest) const {
   std::vector<uint8_t> time_array(6, 0);
-  memcpy(time_array.data(), record_buffer.data() + ByteOffset(),
-         time_array.size());
+  if (ByteOffset() + time_array.size() <= record_buffer.size()) {
+    memcpy(time_array.data(), record_buffer.data() + ByteOffset(),
+           time_array.size());
+  } else {
+    return false;
+  }
   dest = MdfHelper::CanOpenTimeArrayToNs(time_array);
   return true;
 }
@@ -818,6 +838,15 @@ void IChannel::Decimals(uint8_t precision) {
 uint64_t IChannel::RecordId() const {
   const auto* channel_group = ChannelGroup();
   return channel_group != nullptr ? channel_group->RecordId() : 0;
+}
+
+void IChannel::AddAttachmentReference(const IAttachment *) {
+  // Implements the MDF 3 functionality that doesn't support attachments
+}
+
+std::vector<const IAttachment *> IChannel::AttachmentList() const {
+  // Returns an empty list as MDF 3 doesn't support attachments.
+  return {};
 }
 
 }  // end namespace mdf

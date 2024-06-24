@@ -356,8 +356,8 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
     cn_list[0]->SetChannelValue(0.01 * static_cast<double>(sample));
     cn_list[1]->SetChannelValue(sample);
     cn_list[2]->SetChannelValue(sample);
-    cn_list[3]->SetChannelValue(-sample);
-    cn_list[4]->SetChannelValue(-sample);
+    cn_list[3]->SetChannelValue(-static_cast<int>(sample));
+    cn_list[4]->SetChannelValue(-static_cast<int>(sample));
     cn_list[5]->SetChannelValue(11.1 * static_cast<double>(sample));
     cn_list[6]->SetChannelValue(11.1 * static_cast<double>(sample));
 
@@ -525,7 +525,7 @@ TEST_F(TestWrite, Mdf4WriteAT) {  // NOLINT
   const auto log_file = log_config.GetLogFile();
 
 
-  for (size_t count = 0; count < 3; ++count) {
+  for (uint16_t count = 0; count < 3; ++count) {
     auto* attachment = header->CreateAttachment();
     ASSERT_TRUE(attachment != nullptr);
     EXPECT_EQ(attachment->Index(), 0);
@@ -1300,7 +1300,7 @@ TEST_F(TestWrite, Mdf4Float) {
       double channel_value = 0;
       const auto valid = observer->GetChannelValue(sample, channel_value);
       EXPECT_TRUE(valid);
-      EXPECT_FLOAT_EQ(channel_value, static_cast<double>(sample) + 0.23)
+      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample) + 0.23)
           << observer->Name();
     }
   }
@@ -1491,7 +1491,7 @@ TEST_F(TestWrite, CompressData) {
       double channel_value = 0;
       const auto valid = observer->GetChannelValue(sample, channel_value);
       EXPECT_TRUE(valid);
-      EXPECT_FLOAT_EQ(channel_value, static_cast<double>(sample) + 0.23)
+      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample) + 0.23)
           << observer->Name();
     }
   }
@@ -1861,7 +1861,7 @@ TEST_F(TestWrite, Mdf4Invalid) {
       } else {
         EXPECT_FALSE(valid);
       }
-      EXPECT_FLOAT_EQ(channel_value, static_cast<double>(sample) + 0.23)
+      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample) + 0.23)
           << observer->Name();
     }
   }
@@ -2023,7 +2023,7 @@ TEST_F(TestWrite, Mdf4Multi) {
       double channel_value = 0;
       const auto valid = observer->GetChannelValue(sample, channel_value);
       EXPECT_TRUE(valid);
-      EXPECT_FLOAT_EQ(channel_value, static_cast<double>(sample) + 0.23)
+      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample) + 0.23)
           << observer->Name();
     }
   }
@@ -2836,7 +2836,7 @@ TEST_F(TestWrite, Mdf4SampleObserver ) {
   writer->StartMeasurement(tick_time);
   size_t sample;
   for (sample = 0; sample < 10; ++sample) {
-    // Assigna some dummy data
+    // Assign some dummy data
     auto value = static_cast<double>(sample) + 0.23;
     std::vector<uint8_t> data;
     data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));

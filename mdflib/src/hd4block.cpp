@@ -190,11 +190,15 @@ size_t Hd4Block::Read(std::FILE* file) {
 
 void Hd4Block::ReadMeasurementInfo(std::FILE* file) {
   // We assume that the ID and HD block have been read (see ReadHeader)
+
   // Special handling of DG blocks.
   ReadLink4List(file, dg_list_, kIndexDg);
   for (auto& dg4 : dg_list_) {
     dg4->ReadCgList(file);
   }
+
+  // Need to read in any attachments before we read in the channels as
+  // they reference the attachments.
   ReadLink4List(file, at_list_, kIndexAt);
 }
 

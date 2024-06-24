@@ -775,7 +775,7 @@ public class MdfLibraryTest
         }
         {
             var cn = cg.CreateChannel();
-            cn.Name = "Time";
+            cn.Name = "AbsTime";
             cn.Description = "CANopen Time";
             cn.Type = ChannelType.FixedLength;
             cn.DataType = ChannelDataType.CanOpenTime;
@@ -796,13 +796,14 @@ public class MdfLibraryTest
         Attachment.FileType = "text/plain";*/
 
         writer.InitMeasurement();
-        writer.StartMeasurement((ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000));
+        ulong ns1970 = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000); // ns 
+        writer.StartMeasurement(ns1970);
         // Write the data
         for (int i = 0; i < 50; i++)
         {
             var cns = cg.Channels;
 
-            cns[0].SetChannelValue(0.01 * i);
+            cns[0].SetChannelValue(0.01 * i); // Has no meaning
             cns[1].SetChannelValue(i);
             cns[2].SetChannelValue(i);
             cns[3].SetChannelValue(-i);
@@ -819,13 +820,13 @@ public class MdfLibraryTest
             temp[3] = (byte)(i + 3);
             cns[8].SetChannelValue(temp);
 
-            ulong ns70 = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds()) * 1000000;
-            cns[9].SetChannelValue(ns70);
-            cns[10].SetChannelValue(ns70);
+            cns[9].SetChannelValue(ns1970);
+            cns[10].SetChannelValue(ns1970);
 
-            writer.SaveSample(cg, (ulong)ns70);
+            writer.SaveSample(cg, (ulong)ns1970);
+            ns1970 += 10000000;
         }
-        writer.StopMeasurement((ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000));
+        writer.StopMeasurement(ns1970);
         writer.FinalizeMeasurement();
 
     }

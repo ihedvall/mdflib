@@ -61,3 +61,8 @@ build/
 *.userosscache
 *.sln.docstates
 TestResults/
+
+#Python
+venv/
+.pytest_cache
+python/tests/__pycache__/

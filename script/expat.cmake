@@ -1,13 +1,14 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
 
+set(EXPAT_USE_STATIC_LIBS ON)
 if (NOT EXPAT_FOUND)
-    set(EXPAT_USE_STATIC_LIBS ON)
-    if (COMP_DIR)
+    find_package(EXPAT)
+    message(STATUS "EXPAT Found (Try 1): " ${EXPAT_FOUND})
+    if (NOT EXPAT_FOUND)
         set(EXPAT_ROOT ${COMP_DIR}/expat/master)
+        find_package(EXPAT REQUIRED)
     endif()
-
-    find_package(EXPAT REQUIRED)
 endif()
 
 message(STATUS "EXPAT Found: "  ${EXPAT_FOUND})

@@ -135,6 +135,9 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] IChannelArray *CreateChannelArray() override;
 
   const IChannelGroup* ChannelGroup() const override;
+  void AddAttachmentReference(const IAttachment* attachment) override;
+  std::vector<const IAttachment*> AttachmentList() const override;
+
  protected:
 
   bool GetTextValue(const std::vector<uint8_t>& record_buffer,

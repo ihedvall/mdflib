@@ -251,12 +251,12 @@ bool IChannelConversion::ConvertValueToValue(double channel_value,
 
 bool IChannelConversion::ConvertValueRangeToValue(double channel_value,
                                                   double &eng_value) const {
-  if (!value_list_.empty()) {
+  if (value_list_.empty()) {
     return false;
   }
 
   for (uint16_t n = 0; n < nof_values_; ++n) {
-    const uint32_t key_min_index = n * 2;
+    const uint32_t key_min_index = n * 3;
     const uint32_t key_max_index = key_min_index + 1;
     const uint32_t value_index = key_min_index + 2;
     if (value_index >= value_list_.size()) {

@@ -444,6 +444,31 @@ size_t Cn4Block::Read(std::FILE *file) {
   }
   ReadMdComment(file, kIndexMd);
 
+  if (nof_attachments_ > 0) {
+    // Need the header block to find the AT blocks by its file position.
+    const auto *header = HeaderBlock();
+    const auto at_list = AtLinkList();
+
+    // Get a list of attachment file positions and convert
+    // these pointers to attachment block pointers.
+    for (auto index : at_list) {
+      if (header == nullptr) {
+        continue;
+      }
+      const auto *block = header->Find(index);
+      if (block == nullptr || block->BlockType() != "AT") {
+        continue;
+      }
+      try {
+        const auto *attachment = dynamic_cast<const IAttachment *>(block);
+        if (attachment != nullptr) {
+          attachment_list_.emplace_back(attachment);
+        }
+      } catch (const std::exception &) {
+      }
+    }
+  }
+
   return bytes;
 }
 
@@ -603,7 +628,11 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
       return false;
     }
     const LittleBuffer<uint32_t> length(data_list_, index);
-    temp.resize(length.value(), 0);
+    try {
+      temp.resize(length.value(), 0);
+    } catch (const std::exception&) {
+      return false;
+    }
     if (index + 4 + length.value() <= data_list_.size()) {
       memcpy(temp.data(), data_list_.data() + index + 4, length.value());
     } else {
@@ -611,8 +640,16 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
     }
 
   } else {
-    temp.resize(nof_bytes);
-    memcpy(temp.data(), record_buffer.data() + offset, nof_bytes);
+    try {
+      temp.resize(nof_bytes);
+    } catch(const std::exception&) {
+      return false;
+    }
+    if (offset + nof_bytes <= record_buffer.size()) {
+      memcpy(temp.data(), record_buffer.data() + offset, nof_bytes);
+    } else {
+      valid = false;
+    }
   }
 
   switch (DataType()) {
@@ -716,7 +753,11 @@ bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
       return false;
     }
     const LittleBuffer<uint32_t> length(data_list_, index);
-    dest.resize(length.value(), 0);
+    try {
+      dest.resize(length.value(), 0);
+    } catch (const std::exception&) {
+      return false; // Return invalid value
+    }
     if (index + 4 + length.value() <= data_list_.size()) {
       memcpy(dest.data(), data_list_.data() + index + 4, length.value());
     } else {
@@ -724,8 +765,16 @@ bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
     }
 
   } else {
-    dest.resize(nof_bytes);
-    memcpy(dest.data(), record_buffer.data() + offset, nof_bytes);
+    try {
+      dest.resize(nof_bytes, 0);
+    } catch (const std::exception&) {
+      return false; // Return invalid value
+    }
+    if (offset + nof_bytes <= record_buffer.size()) {
+      memcpy(dest.data(), record_buffer.data() + offset, nof_bytes);
+    } else {
+      valid = false;
+    }
   }
 
   return valid;
@@ -1216,6 +1265,25 @@ IChannelArray *Cn4Block::CreateChannelArray() {
 
 const IChannelGroup* Cn4Block::ChannelGroup() const {
   return dynamic_cast<const IChannelGroup*> (CgBlock());
+}
+
+void Cn4Block::AddAttachmentReference(const IAttachment *attachment) {
+  if (attachment == nullptr) {
+    return;
+  }
+  const auto exists = std::find_if(
+      attachment_list_.cbegin(),attachment_list_.cend(),
+      [&] (const IAttachment* attach) {
+          return attach != nullptr && attach == attachment;
+       });
+  if (exists == attachment_list_.cend()) {
+    attachment_list_.emplace_back(attachment);
+  }
+  nof_attachments_ = static_cast<uint16_t>(attachment_list_.size());
+}
+
+std::vector<const IAttachment *> Cn4Block::AttachmentList() const {
+  return attachment_list_;
 }
 
 }  // namespace mdf::detail

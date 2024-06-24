@@ -258,7 +258,7 @@ TEST_F(TestRead, TestLargeFile) {
       if (!exists(full_path)) {
         throw std::runtime_error("File doesn't exist");
       }
-    } catch (const std::exception &err) {
+    } catch (const std::exception&) {
       continue;
     }
 
@@ -388,5 +388,63 @@ TEST_F(TestRead, TestLargeFile) {
   }
 }
 
+TEST_F(TestRead, TestExampleCrash) {
+    const std::string crash_file = GetMdfFile("crashfile");
+    if (crash_file.empty()) {
+      GTEST_SKIP();
+    }
+
+    MdfReader reader(crash_file);  // Note the file is now open.
+
+    // Read all blocks but not the raw data and attachments.
+    // This reads in the block information into memory.
+    EXPECT_TRUE(reader.ReadEverythingButData());
+
+    const auto* mdf_file = reader.GetFile(); // Get the file interface.
+    DataGroupList dg_list;                   // Get all measurements.
+    mdf_file->DataGroups(dg_list);
+    EXPECT_EQ(dg_list.size(), 2);
+
+    // In this example, we read in all sample data and fetch all values.
+    for (auto* dg4 : dg_list) {
+      // Subscribers holds the sample data for a channel.
+      // You should normally only subscribe on some channels.
+      // We need a list to hold them.
+      ChannelObserverList subscriber_list;
+      const auto cg_list = dg4->ChannelGroups();
+      for (const auto* cg4 : cg_list ) {
+        const auto cn_list = cg4->Channels();
+        for (const auto* cn4 : cn_list) {
+          // Create a subscriber and add it to the temporary list
+          auto sub = CreateChannelObserver(*dg4, *cg4, *cn4);
+          EXPECT_TRUE(sub);
+          subscriber_list.push_back(std::move(sub));
+        }
+      }
+
+      // Now it is time to read in all samples
+      EXPECT_TRUE(reader.ReadData(*dg4)); // Read raw data from file
+      std::string channel_value; // Channel value (no scaling)
+      std::string eng_value; // Engineering value
+      for (auto& obs : subscriber_list) {
+        EXPECT_GT(obs->NofSamples(), 0);
+        std::cout << obs->Name() << " Samples: " << obs->NofSamples() << std::endl;
+        for (size_t sample = 0; sample < obs->NofSamples(); ++sample) {
+          const auto channel_valid = obs->GetChannelValue(sample, channel_value);
+          const auto eng_valid = obs->GetEngValue(sample, eng_value);
+          // You should do something with data here
+          std::cout << sample << ": " << (eng_valid ? eng_value : "*") << std::endl;
+        }
+        std::cout << std::endl;
+      }
+
+      // Not needed in this example as we delete the subscribers,
+      // but it is good practise to remove samples data from memory
+      // when it is no longer needed.
+      dg4->ClearData();
+    }
+    reader.Close(); // Close the file
+
+}
 
 }  // namespace mdf::test

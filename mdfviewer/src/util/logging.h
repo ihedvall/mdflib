@@ -8,6 +8,7 @@
  */
 #pragma once
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <string>
 

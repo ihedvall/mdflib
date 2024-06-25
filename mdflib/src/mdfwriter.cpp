@@ -461,7 +461,14 @@ void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
     lock.lock();
   }
 
+  // Update channel group headers to reflect the new number of samples
   lock.unlock();
+  for (const auto& cg3 : dg3->Cg3()) {
+    if (cg3 != nullptr) {
+      cg3->Write(file);
+    }
+  }
+
   fclose(file);
   lock.lock();
 }

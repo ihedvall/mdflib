@@ -278,7 +278,7 @@ void MdfBlock::ReadLink4List(std::FILE *file,
       block->Read(file);
       link = block->Link(0);
       block_list.emplace_back(std::move(block));
-    };
+    }
 }
 
 template <typename T>

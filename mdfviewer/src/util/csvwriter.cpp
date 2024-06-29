@@ -50,7 +50,7 @@ CsvWriter::CsvWriter(const std::string &filename) : filename_(filename) {
     } else {
       LOG_ERROR() << "Failed to open the CSV file. File: " << filename_;
     }
-  } catch (const std::exception &err) {
+  } catch (const std::exception &) {
     LOG_ERROR() << "Failed to open the CSV file. File: " << filename_;
   }
 }
@@ -186,7 +186,7 @@ void CsvWriter::OpenFile(const std::string &filename) {
     } else {
       LOG_ERROR() << "Failed to open the CSV file. File: " << filename_;
     }
-  } catch (const std::exception &err) {
+  } catch (const std::exception &) {
     LOG_ERROR() << "Failed to open the CSV file. File: " << filename_;
   }
 }

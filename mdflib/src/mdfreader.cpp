@@ -19,6 +19,7 @@
 #include "cn4block.h"
 #include "sr4block.h"
 #include "sr3block.h"
+#include "dgrange.h"
 
 #if INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
 #include <experimental/filesystem>
@@ -410,6 +411,45 @@ bool MdfReader::ReadData(IDataGroup &data_group) {
   return !error;
 }
 
+bool MdfReader::ReadPartialData(IDataGroup &data_group, size_t min_sample,
+                                size_t max_sample) {
+  if (!instance_) {
+    MDF_ERROR() << "No instance created. File: " << filename_;
+    return false;
+  }
+  if (max_sample < min_sample) {
+    max_sample = min_sample;
+  }
+  bool shall_close = file_ == nullptr && Open();
+  if (file_ == nullptr) {
+    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    return false;
+  }
+
+  bool error = false;
+  try {
+    if (instance_->IsMdf4()) {
+
+      auto &dg4 = dynamic_cast<detail::Dg4Block &>(data_group);
+      DgRange range(dg4, min_sample, max_sample);
+      dg4.ReadRangeData(file_, range);
+    } else {
+      auto &dg3 = dynamic_cast<detail::Dg3Block &>(data_group);
+      DgRange range(dg3, min_sample, max_sample);
+      dg3.ReadRangeData(file_, range);
+    }
+  } catch (const std::exception &err) {
+    MDF_ERROR() << "Failed to read the file information blocks. Error: "
+                << err.what();
+    error = true;
+  }
+
+  if (shall_close) {
+    Close();
+  }
+  return !error;
+}
+
 bool MdfReader::ReadSrData(ISampleReduction &sr_group) {
   if (!instance_) {
     MDF_ERROR() << "No instance created. File: " << filename_;
@@ -463,7 +503,8 @@ IDataGroup *MdfReader::GetDataGroup(size_t order) const {
 bool MdfReader::ReadVlsdData(IDataGroup &data_group,
                              IChannel &vlsd_channel,
                              const std::vector<uint64_t>& offset_list,
-                             std::function<void (uint64_t, const std::vector<uint8_t>&)>& callback)
+                             std::function<void (uint64_t,
+                                      const std::vector<uint8_t>&)>& callback)
 {
   if (vlsd_channel.DataType() != ChannelDataType::MimeSample) {
     MDF_ERROR() << "The channels data type is not a mime sample.";

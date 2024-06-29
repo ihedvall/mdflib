@@ -118,9 +118,31 @@ class MdfReader {
    * The attached observers also consumes memory, so remember to delete
    * them when they are no more needed.
    * @param data_group Reference to the data group (DG) object.
-   * @return True if the red was successful.
+   * @return True if the read was successful.
    */
   bool ReadData(IDataGroup& data_group);
+
+  /** \brief Reads a range of samples.
+   *
+   * Reads in a range of samples a data group (DG). The function
+   * reads in sample data (DT..) blocks, sample reduction (RD/RV/RI) blocks
+   * and signal data (SD) blocks. The function is faster that reading all data
+   * bytes, skipping records it doesn't need to read.
+   *
+   * Note that this function still may consume a lot
+   * of memory, so remember to call the IDataGroup::ClearData() function
+   * when data not are needed anymore.
+   *
+   * The attached observers also consumes memory, so remember to delete
+   * them when they are no more needed.
+   *
+   * @param data_group Reference to the data group (DG) object.
+   * @param min_sample First sample index to read.
+   * @param max_sample Last sample index to read.
+   * @return True if the read was successful.
+   */
+  bool ReadPartialData(IDataGroup& data_group, size_t min_sample,
+                       size_t max_sample);
 
   /** \brief Reads in data bytes to a sample reduction (SR) block.
    *
@@ -132,10 +154,30 @@ class MdfReader {
    */
   bool ReadSrData(ISampleReduction& sr_group);
 
+  /** \brief Read in partial variable length data with an offset list.
+   *
+   * This function reads in VLSD stored data according to an offset list.
+   * For smaller MDF files that fits in the primary memory, this function is not
+   * needed but sometimes the VLSD data sample holds a large amount of data
+   * bytes typical a video stream. These files tends to be huge so the
+   * application runs out of memory.
+   *
+   * This function reads in VLSD stored data in smaller batcher. The
+   * application first reads in all offsets to the raw data. Using these offsets
+   * the application can read in typically one sample (offset) at a time. This
+   * tactic saves primary memory.
+   *
+   * @param data_group Data group to read VLSD data from
+   * @param vlsd_channel Which channel that stores the VLSD data
+   * @param offset_list List of offsets (samples) to read.
+   * @param callback Callback function for each offset/sample data
+   * @return Returns true if the read was successful
+   */
   bool ReadVlsdData(IDataGroup &data_group,
                     IChannel &vlsd_channel,
                     const std::vector<uint64_t>& offset_list,
-                    std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback);
+                    std::function<void(uint64_t,
+                                       const std::vector<uint8_t>&)>& callback);
 
 
  private:

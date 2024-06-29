@@ -54,9 +54,8 @@ const IChannel *Cg3Block::GetXChannel(const IChannel &) const {
   // Search for the master channel in the group
   auto master = std::find_if(cn_list_.cbegin(), cn_list_.cend(),
                              [&](const auto &cn3) {
-    return !cn3 ? false
-                : cn3->Type() == ChannelType::Master ||
-                      cn3->Type() == ChannelType::VirtualMaster;
+    return cn3 && (cn3->Type() == ChannelType::Master ||
+                         cn3->Type() == ChannelType::VirtualMaster);
   });
 
   return master != cn_list_.cend() ? master->get() : nullptr;
@@ -236,7 +235,7 @@ void Cg3Block::PrepareForWriting() {
 
 size_t Cg3Block::ReadDataRecord(std::FILE *file,
                                 const IDataGroup &notifier) const {
-  size_t count = 0;
+  size_t count;
 
   // Normal fixed length records
   size_t record_size = size_of_data_record_;
@@ -244,13 +243,58 @@ size_t Cg3Block::ReadDataRecord(std::FILE *file,
   count = std::fread(record.data(), 1, record.size(), file);
   size_t sample = Sample();
   if (sample < NofSamples()) {
-    notifier.NotifySampleObservers(sample, RecordId(), record);
+    const bool continue_reading = notifier.NotifySampleObservers(sample, RecordId(), record);
     IncrementSample();
+    if (!continue_reading) {
+      return 0; // Indicating no more reading
+    }
   }
 
   return count;
 }
 
+size_t Cg3Block::ReadRangeDataRecord(std::FILE *file,
+                                const IDataGroup &notifier,
+                                     DgRange& range) const {
+  size_t count;
+  const size_t sample = Sample();
+  const size_t next_sample = sample + 1;
+  const size_t record_size = size_of_data_record_;
+  CgRange* cg_range = range.GetCgRange(RecordId());
+  if (cg_range == nullptr) {
+    return 0;
+  }
+
+  if (!cg_range->IsUsed() ||
+      next_sample < range.MinSample() ||
+      next_sample > range.MaxSample()) {
+    count = StepFilePosition(file, record_size);
+
+    if (sample < NofSamples()) {
+      IncrementSample();
+    }
+    if (next_sample > range.MaxSample()) {
+      cg_range->IsUsed(false);
+    }
+  } else {
+    // Normal fixed length records
+
+    std::vector<uint8_t> record(record_size, 0);
+
+    count = std::fread(record.data(), 1, record.size(), file);
+
+    if (sample < NofSamples()) {
+      const bool continue_reading =
+          notifier.NotifySampleObservers(sample, RecordId(), record);
+      IncrementSample();
+      if (!continue_reading) {
+        return 0;  // Indicating no more reading
+      }
+    }
+  }
+
+  return count;
+}
 IChannel *Cg3Block::CreateChannel() {
   auto cn3 = std::make_unique<detail::Cn3Block>();
   cn3->Init(*this);

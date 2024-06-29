@@ -287,9 +287,115 @@ void Dg4Block::ReadData(std::FILE* file) {
   }
 }
 
+void Dg4Block::ReadRangeData(std::FILE* file, DgRange& range) {
+  if (file == nullptr) {
+    throw std::invalid_argument("File pointer is null");
+  }
+  const auto& block_list = DataBlockList();
+  if (block_list.empty()) {
+    return;
+  }
+
+  // First scan through all CN blocks and set up any VLSD CG or MLSD channel
+  // relations.
+  for (const auto& cg4 : cg_list_) {
+    if (!cg4) {
+      continue;
+    }
+    const uint64_t record_id = cg4->RecordId();
+    const bool cg_used = range.IsUsed(record_id);
+    // Do not read SD or SD data if the channel group isn't requested.
+    if (!cg_used) {
+      continue;
+    }
+    // Fetch all data from sample reduction blocks (SR) but only if the
+    // channel group data is subscribed.
+    for (const auto& sr4 : cg4->Sr4()) {
+      if (!sr4) {
+        continue;
+      }
+      sr4->ReadData(file);
+    }
+
+    // Fetch all signal data (SD)
+    const auto channel_list = cg4->Channels();
+    for (const auto* channel :channel_list) {
+      if (channel == nullptr) {
+        continue;
+      }
+      // Check if channel is in the subscription
+      if (!IsSubscribingOnChannel(*channel) ) {
+        continue;
+      }
+      const auto* cn_block = dynamic_cast<const Cn4Block*>(channel);
+      if (cn_block == nullptr) {
+        continue;
+      }
+      // Fetch the channels referenced data block. Note that some type of
+      // data blocks are own by this channel as SD block but some are only
+      // references to block own by another block. Of interest is VLSD CG block
+      // and MLSD channel.
+      const auto data_link = cn_block->DataLink();
+      if (data_link == 0) {
+        continue; // No data to read into the system
+      }
+      const auto* block = Find(data_link);
+      if (block == nullptr) {
+        MDF_DEBUG() << "Missing data block in channel. Channel :"
+                    << cn_block->Name()
+                    << ", Data Link: " << data_link;
+
+        continue; // Strange that the block doesn't exist
+      }
+
+      switch (cn_block->Type()) {
+        case ChannelType::VariableLength:
+          if (IsSubscribingOnChannelVlsd(*channel)) {
+            if (block->BlockType() == "SD") {
+              cn_block->ReadSignalData(file);
+            } else if (block->BlockType() == "DZ") {
+              cn_block->ReadSignalData(file);
+            } else if (block->BlockType() == "DL") {
+              cn_block->ReadSignalData(file);
+            } else if (block->BlockType() == "HL") {
+              cn_block->ReadSignalData(file);
+            }
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+  }
+
+  // Reset the internal sample counter and initial the read cache
+  for (const auto& channel_group : Cg4() ) {
+    if (channel_group) {
+      channel_group->ResetSampleCounter();
+    }
+  }
+  ReadCache read_cache(this, file);
+  while (read_cache.ParseRangeRecord(range)) {
+  }
+
+  for (const auto& cg : cg_list_) {
+    if (!cg) {
+      continue;
+    }
+    for (const auto& cn : cg->Cn4()) {
+      if (!cn) {
+        continue;
+      }
+      cn->ClearData();
+    }
+  }
+}
+
 void  Dg4Block::ReadVlsdData(std::FILE* file,Cn4Block& channel,
                   const std::vector<uint64_t>& offset_list,
-                  std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback) {
+                  std::function<void(uint64_t,
+                              const std::vector<uint8_t>&)>& callback) {
   if (file == nullptr) {
     throw std::invalid_argument("File pointer is null");
   }

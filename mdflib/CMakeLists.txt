@@ -93,6 +93,10 @@ add_library(mdf
         src/isampleobserver.cpp  ../include/mdf/isampleobserver.h
         src/isamplereduction.cpp ../include/mdf/isamplereduction.h
         src/readcache.cpp src/readcache.h
+        src/dgrange.cpp
+        src/dgrange.h
+        src/cgrange.cpp
+        src/cgrange.h
 )
 
 if(VCPKG)
@@ -117,6 +121,8 @@ target_include_directories(
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set_target_properties(mdf PROPERTIES COMPILE_FLAGS "-fPIC")
+elseif(MSVC)
+  target_compile_definitions(mdf PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS _CRT_SECURE_NO_WARNINGS)
 endif()
 
 set(MDF_PUBLIC_HEADERS

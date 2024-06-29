@@ -12,6 +12,7 @@
 #include "dt3block.h"
 #include "mdf/idatagroup.h"
 #include "tr3block.h"
+#include "dgrange.h"
 
 namespace mdf::detail {
 
@@ -36,6 +37,7 @@ class Dg3Block : public DataListBlock, public IDataGroup {
   size_t Write(std::FILE* file) override;
 
   void ReadData(std::FILE* file);
+  void ReadRangeData(std::FILE* file, DgRange& range);
   void ClearData() override;
 
 
@@ -48,6 +50,8 @@ class Dg3Block : public DataListBlock, public IDataGroup {
   std::unique_ptr<Tr3Block> tr_block_;
   Cg3List cg_list_;
   void ParseDataRecords(std::FILE* file, size_t nof_data_bytes);
+  void ParseRangeDataRecords(std::FILE* file, size_t nof_data_bytes,
+                             DgRange& range);
   const Cg3Block* FindCgRecordId(const uint64_t record_id) const;
 };
 

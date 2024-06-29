@@ -10,6 +10,7 @@
 #include "mdfblock.h"
 #include "sr3block.h"
 #include "tx3block.h"
+#include "dgrange.h"
 namespace mdf::detail {
 class Cg3Block : public MdfBlock, public IChannelGroup {
  public:
@@ -61,6 +62,8 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
     return sample_buffer_;
   }
   size_t ReadDataRecord(std::FILE* file, const IDataGroup& notifier) const;
+  size_t ReadRangeDataRecord(std::FILE* file, const IDataGroup& notifier,
+                             DgRange& range) const;
   void PrepareForWriting();
 
   void ClearData() override;

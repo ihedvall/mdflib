@@ -1032,7 +1032,7 @@ TEST_F(TestWrite, Mdf4Unsigned) {
     for (size_t sample = 0; sample < 100; ++sample) {
       uint64_t channel_value = 0;
       const auto valid = observer->GetChannelValue(sample, channel_value);
-      EXPECT_TRUE(valid);
+      EXPECT_TRUE(valid) << "Sample: " << sample << ", Name: " << observer->Name();
       EXPECT_EQ(channel_value, static_cast<uint64_t>(sample))
           << observer->Name();
     }
@@ -1297,10 +1297,10 @@ TEST_F(TestWrite, Mdf4Float) {
     ASSERT_TRUE(observer);
     ASSERT_EQ(observer->NofSamples(), 100);
     for (size_t sample = 0; sample < 100; ++sample) {
-      double channel_value = 0;
+      float channel_value = 0;
       const auto valid = observer->GetChannelValue(sample, channel_value);
       EXPECT_TRUE(valid);
-      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample) + 0.23)
+      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample + 0.23F))
           << observer->Name();
     }
   }
@@ -1488,10 +1488,10 @@ TEST_F(TestWrite, CompressData) {
     ASSERT_TRUE(observer);
     ASSERT_EQ(observer->NofSamples(), 1'000'000);
     for (size_t sample = 0; sample < 100; ++sample) {
-      double channel_value = 0;
+      float channel_value = 0;
       const auto valid = observer->GetChannelValue(sample, channel_value);
       EXPECT_TRUE(valid);
-      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample) + 0.23)
+      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample + 0.23))
           << observer->Name();
     }
   }
@@ -1854,14 +1854,14 @@ TEST_F(TestWrite, Mdf4Invalid) {
     ASSERT_TRUE(observer);
     ASSERT_EQ(observer->NofSamples(), 100);
     for (size_t sample = 0; sample < 100; ++sample) {
-      double channel_value = 0;
+      float channel_value = 0;
       const auto valid = observer->GetChannelValue(sample, channel_value);
       if ((sample % 2) == 0) {
         EXPECT_TRUE(valid);
       } else {
         EXPECT_FALSE(valid);
       }
-      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample) + 0.23)
+      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample + 0.23))
           << observer->Name();
     }
   }
@@ -2020,10 +2020,10 @@ TEST_F(TestWrite, Mdf4Multi) {
     ASSERT_TRUE(observer);
     ASSERT_EQ(observer->NofSamples(), 100);
     for (size_t sample = 0; sample < 100; ++sample) {
-      double channel_value = 0;
+      float channel_value = 0;
       const auto valid = observer->GetChannelValue(sample, channel_value);
       EXPECT_TRUE(valid);
-      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample) + 0.23)
+      EXPECT_FLOAT_EQ(channel_value, static_cast<float>(sample) + 0.23F)
           << observer->Name();
     }
   }
@@ -2163,7 +2163,7 @@ TEST_F(TestWrite, Mdf4Mime) {
   ch1->Unit("image/png");
   ch1->DataBytes(8); // 64-bit index
 
-  // Not very likely that we using the same time channel for
+  // Not very likely that we are using the same time channel for
   // picture and video streams
   auto* ch2 = group1->CreateChannel();
   ch2->Name("Video");
@@ -2835,7 +2835,7 @@ TEST_F(TestWrite, Mdf4SampleObserver ) {
   auto tick_time = TimeStampToNs();
   writer->StartMeasurement(tick_time);
   size_t sample;
-  for (sample = 0; sample < 10; ++sample) {
+  for (sample = 0; sample < 1000; ++sample) {
     // Assign some dummy data
     auto value = static_cast<double>(sample) + 0.23;
     std::vector<uint8_t> data;
@@ -2872,9 +2872,10 @@ TEST_F(TestWrite, Mdf4SampleObserver ) {
   const auto* channel1 = channel_group1->GetChannel("CAN_DataFrame.DataBytes");
   ASSERT_TRUE(channel1 != nullptr);
 
+  uint64_t nof_sample_read = 0; // Testing abort of reading just 10 samples
   ISampleObserver sample_observer(*last_dg1);
   sample_observer.DoOnSample = [&] (uint64_t sample1, uint64_t record_id,
-      const std::vector<uint8_t>& record) {
+      const std::vector<uint8_t>& record ) -> bool {
     bool valid = true;
     std::string values;
     if (channel1->RecordId() == record_id) {
@@ -2883,11 +2884,18 @@ TEST_F(TestWrite, Mdf4SampleObserver ) {
       std::cout << "Sample: " << sample1
                 << ", Record: " << record_id
                 << ", Values: " << values << std::endl;
+      ++nof_sample_read;
+      if (sample1 >= 9) {
+        return false;
+      }
+
     }
     EXPECT_TRUE(valid);
-
+    return true;
   };
   reader.ReadData(*last_dg1);
+  EXPECT_EQ(nof_sample_read, 10); // The read should be interrupted after
+                                  // 10 samples
   sample_observer.DetachObserver();
   reader.Close();
 

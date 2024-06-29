@@ -47,12 +47,19 @@ class ISampleObserver {
    *
    * The function may be override by an inheritance for more complex
    * implementations but in simpler use cases the DoOnSample function
-   * should be used instead,
+   * should be used instead.
+   *
+   * The function normally returns true indicating that more reading is
+   * expected. If any observer want to stop further parsing, the function
+   * should return false.
+   *
    * @param sample Sample number.
    * @param record_id Record ID (channel group identity).
    * @param record Sample record (excluding the record ID.
+   * @return If this function returns false it indicate that reading should be
+   * aborted.
    */
-  virtual void OnSample(uint64_t sample, uint64_t record_id,
+  virtual bool OnSample(uint64_t sample, uint64_t record_id,
                         const std::vector<uint8_t>& record);
 
   /**
@@ -71,7 +78,7 @@ class ISampleObserver {
    * The function object is typically assigned to a lambda function.
    * See also OnSample() function.
    */
-  std::function<void(uint64_t sample, uint64_t record_id,
+  std::function<bool(uint64_t sample, uint64_t record_id,
       const std::vector<uint8_t>& record)> DoOnSample;
 
   /** \brief The function returns a channel value.

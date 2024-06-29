@@ -174,4 +174,10 @@ bool IChannelObserver::GetChannelValue(uint64_t sample,
   return valid;
 }
 
+template <>
+bool IChannelObserver::GetEngValue(uint64_t sample,
+                                   std::vector<uint8_t>& value,
+                                   uint64_t array_index) const {
+  return GetChannelValue(sample, value, array_index );
+}
 }  // namespace mdf

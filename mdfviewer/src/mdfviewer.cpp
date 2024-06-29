@@ -137,7 +137,7 @@ int MdfViewer::OnExit() {
   try {
     std::filesystem::remove_all(my_temp_dir_);
     LOG_INFO() << "Removed temporary directory. Path: " << my_temp_dir_;
-  } catch (const std::exception& error) {
+  } catch (const std::exception&) {
     LOG_ERROR() << "Failed to remove temporary directory. Path: " << my_temp_dir_;
   }
 

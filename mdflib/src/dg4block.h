@@ -11,6 +11,7 @@
 #include "cg4block.h"
 #include "datalistblock.h"
 #include "mdf/idatagroup.h"
+#include "dgrange.h"
 
 namespace mdf::detail {
 class Dg4Block : public DataListBlock, public IDataGroup {
@@ -38,6 +39,7 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   void ReadCgList(std::FILE* file);
 
   void ReadData(std::FILE* file);
+  void ReadRangeData(std::FILE* file, DgRange& range);
   void ReadVlsdData(std::FILE* file,Cn4Block& channel,
                     const std::vector<uint64_t>& offset_list,
                     std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback);

@@ -43,6 +43,12 @@ elseif(MINGW)
   target_link_options(mdfview PRIVATE -mwindows -static -fstack-protector)
 endif()
 
+if(MSVC)
+  target_compile_definitions(mdfview PRIVATE
+          _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
+          _CRT_SECURE_NO_WARNINGS
+          _SILENCE_CXX20_U8PATH_DEPRECATION_WARNING)
+endif()
 target_link_libraries(mdfview PRIVATE mdf)
 
 if(VCPKG)

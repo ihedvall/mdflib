@@ -47,7 +47,7 @@ bool ReadCache::ParseRecord() {
   if (data_count_ >= max_data_count_ || block_list_.empty()) {
     return false;
   }
-
+  bool continue_reading = true;
   try {
     const auto record_id = ParseRecordId();
     const auto *channel_group = dg4_block_->FindCgRecordId(record_id);
@@ -71,9 +71,10 @@ bool ReadCache::ParseRecord() {
         GetArray(record);
         const size_t sample = channel_group->Sample();
         if (sample < channel_group->NofSamples()) {
-          dg4_block_->NotifySampleObservers(sample, channel_group->RecordId(), record);
+          continue_reading = dg4_block_->NotifySampleObservers(sample,
+                                  channel_group->RecordId(), record);
           channel_group->IncrementSample();
-        };
+       };
       }
 
     } else {
@@ -91,7 +92,8 @@ bool ReadCache::ParseRecord() {
         GetArray(record);
         const size_t sample = channel_group->Sample();
         if (sample < channel_group->NofSamples()) {
-          dg4_block_->NotifySampleObservers(sample, channel_group->RecordId(), record);
+          continue_reading = dg4_block_->NotifySampleObservers(sample,
+                               channel_group->RecordId(), record);
           channel_group->IncrementSample();
         }
       }
@@ -100,7 +102,101 @@ bool ReadCache::ParseRecord() {
     return false;
   }
 
-  return true;
+  return continue_reading;
+}
+
+bool ReadCache::ParseRangeRecord(DgRange& range) {
+
+  if (dg4_block_ == nullptr || dg4_block_->Cg4().empty() ) {
+    return false;
+  }
+  if (data_count_ >= max_data_count_ || block_list_.empty()) {
+    return false;
+  }
+  bool continue_reading = true;
+  try {
+    const auto record_id = ParseRecordId();
+    auto *cg_range = range.GetCgRange(record_id);
+    Cg4Block* channel_group = dg4_block_->FindCgRecordId(record_id);
+
+    if (cg_range == nullptr || channel_group == nullptr) {
+      throw std::runtime_error("No channel group range found.");
+    }
+    const size_t sample = channel_group->Sample(); // Previous sample index
+    const size_t next_sample = sample + 1;
+
+    if (channel_group->Flags() & CgFlag::VlsdChannel) {
+      // This is normally used for string and the CG block only include one signal
+      std::vector<uint8_t> temp(4, 0);
+      GetArray(temp);
+      const LittleBuffer<uint32_t> length(temp, 0);
+      if (!cg_range->IsUsed() ||
+          next_sample < range.MinSample() ||
+          next_sample > range.MaxSample() ) {
+        // Skip this sample
+        SkipBytes(length.value());
+        if (sample < channel_group->NofSamples()) {
+          channel_group->IncrementSample();
+        }
+        if (next_sample > range.MaxSample()) {
+          // Mark this group as read
+          cg_range->IsUsed(false);
+        }
+      } else if  (record_id_list_.find(record_id) == record_id_list_.cend()) {
+        // This block should be covered by the above code.
+        SkipBytes(length.value());
+        if (sample < channel_group->NofSamples()) {
+          channel_group->IncrementSample();
+        }
+      } else {
+        std::vector<uint8_t> record(length.value(), 0);
+        GetArray(record);
+        if (sample < channel_group->NofSamples()) {
+          continue_reading = dg4_block_->NotifySampleObservers(sample,
+                            record_id, record);
+          channel_group->IncrementSample();
+        };
+      }
+    } else {
+      const size_t record_size = channel_group->NofDataBytes()
+                                 + channel_group->NofInvalidBytes();
+      // Normal fixed length records
+      if (!cg_range->IsUsed() ||
+          next_sample < range.MinSample() ||
+          next_sample > range.MaxSample() ) {
+        // Skip this sample
+        SkipBytes(record_size);
+        if (sample < channel_group->NofSamples()) {
+          channel_group->IncrementSample();
+        }
+        if (next_sample > range.MaxSample()) {
+          // Mark this group as read
+          cg_range->IsUsed(false);
+        }
+      } else if (record_id_list_.find(record_id) == record_id_list_.cend()) {
+        SkipBytes(record_size);
+
+        if (sample < channel_group->NofSamples()) {
+          channel_group->IncrementSample();
+        }
+      } else {
+        std::vector<uint8_t> record(record_size, 0);
+        GetArray(record);
+        if (sample < channel_group->NofSamples()) {
+          continue_reading = dg4_block_->NotifySampleObservers(sample,
+                                            channel_group->RecordId(), record);
+          channel_group->IncrementSample();
+        }
+      }
+    }
+  } catch (const std::exception &) {
+    return false;
+  }
+  if (continue_reading) {
+    continue_reading = !range.IsReady();
+  }
+
+  return continue_reading;
 }
 
 bool ReadCache::ParseSignalData() {

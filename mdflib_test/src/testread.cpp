@@ -447,4 +447,74 @@ TEST_F(TestRead, TestExampleCrash) {
 
 }
 
+TEST_F(TestRead, TestPartialRead) {
+  try {
+    const auto full_path = path(kLargeNasFile);
+    if (!exists(full_path)) {
+      throw std::runtime_error("File doesn't exist");
+    }
+  } catch (const std::exception &) {
+    GTEST_SKIP();
+  }
+
+  std::cout << "Start reading large 22GB file (NAS storage." << std::endl;
+
+  const auto start_open = MdfHelper::NowNs();
+  MdfReader oRead(kLargeNasFile.data());
+  const auto stop_open = MdfHelper::NowNs();
+  std::cout << "Open File (ms): " << ConvertToMs(stop_open - start_open)
+            << std::endl;
+
+  const auto start_info = MdfHelper::NowNs();
+  EXPECT_TRUE(oRead.ReadEverythingButData()) << oRead.ShortName();
+  const auto stop_info = MdfHelper::NowNs();
+  std::cout << "Read Info (ms): " << ConvertToMs(stop_info - start_info)
+            << std::endl;
+
+  const auto *header = oRead.GetHeader();
+  auto *last_dg = header->LastDataGroup();
+  auto channel_groups = last_dg->ChannelGroups();
+  auto *channel_group = channel_groups[0];
+  auto *time_channel = channel_group->GetChannel(kLargeTime);
+  auto *counter_channel = channel_group->GetChannel(kLargeFrameCounter);
+  auto *data_channel = channel_group->GetChannel(kLargeFrameData);
+
+  auto time_observer =
+      CreateChannelObserver(*last_dg, *channel_group, *time_channel);
+  auto counter_observer =
+      CreateChannelObserver(*last_dg, *channel_group, *counter_channel);
+  auto data_observer =
+      CreateChannelObserver(*last_dg, *channel_group, *data_channel);
+
+  const auto start_data = MdfHelper::NowNs();
+  EXPECT_TRUE(oRead.ReadPartialData(*last_dg, 0, 1)) << oRead.ShortName();
+  const auto stop_data = MdfHelper::NowNs();
+  std::cout << "Read 1 sample data (ms): "
+            << ConvertToMs(stop_data - start_data) << std::endl;
+
+  for (size_t sample = 0; sample < time_observer->NofSamples(); ++sample) {
+    double time = 0;
+    bool valid = time_observer->GetEngValue(sample, time);
+    if (sample == 0) {
+      EXPECT_TRUE(valid);
+    } else {
+      EXPECT_FALSE(valid);
+    }
+    std::vector<uint8_t> data;
+    valid = data_observer->GetEngValue(sample, data);
+    if (sample == 0) {
+      EXPECT_GT(data.size(), 0);
+      EXPECT_TRUE(valid);
+    } else {
+      EXPECT_FALSE(valid);
+      EXPECT_TRUE(data.empty());
+    }
+  }
+
+  last_dg->ClearData();
+  time_observer.reset();
+  counter_observer.reset();
+  data_observer.reset();
+}
+
 }  // namespace mdf::test

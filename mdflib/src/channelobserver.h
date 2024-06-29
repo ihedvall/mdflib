@@ -68,7 +68,7 @@ class ChannelObserver : public IChannelObserver {
     return group_.NofSamples();
   }
 
-  void OnSample(uint64_t sample, uint64_t record_id,
+  bool OnSample(uint64_t sample, uint64_t record_id,
                 const std::vector<uint8_t>& record) override {
     const auto* channel_array = channel_.ChannelArray();
     auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
@@ -155,7 +155,9 @@ class ChannelObserver : public IChannelObserver {
         }
         break;
     }
+    return true;
   }
+
 };
 
 

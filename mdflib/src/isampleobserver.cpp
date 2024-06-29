@@ -37,11 +37,13 @@ void ISampleObserver::DetachObserver() {
   }
 }
 
-void ISampleObserver::OnSample(uint64_t sample, uint64_t record_id,
+bool ISampleObserver::OnSample(uint64_t sample, uint64_t record_id,
                                const std::vector<uint8_t> &record) {
+  bool continue_reading = true;
   if (DoOnSample) {
-    DoOnSample(sample, record_id, record);
+    continue_reading = DoOnSample(sample, record_id, record);
   }
+  return continue_reading;
 }
 
 

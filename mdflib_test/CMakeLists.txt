@@ -46,6 +46,9 @@ else()
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main)
 endif()
 
+if(MSVC)
+  target_compile_definitions(test_mdf PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS _CRT_SECURE_NO_WARNINGS)
+endif()
 target_link_libraries(test_mdf PRIVATE mdf)
 
 include(GoogleTest)

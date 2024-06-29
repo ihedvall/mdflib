@@ -20,6 +20,7 @@ class ReadCache {
   ReadCache( MdfBlock* block, FILE* file);
 
   bool ParseRecord();
+  bool ParseRangeRecord(DgRange& range);
   bool ParseVlsdCgData();
   bool ParseSignalData(); // Used against SD/DL/DZ blocks
 

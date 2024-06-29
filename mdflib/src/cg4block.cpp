@@ -4,11 +4,16 @@
  */
 #include "cg4block.h"
 
+
+
 #include <algorithm>
+
 #include <codecvt>
 #include <climits>
 #include "cn4block.h"
 #include "sr4block.h"
+
+
 
 namespace {
 
@@ -307,8 +312,12 @@ size_t Cg4Block::ReadDataRecord(std::FILE *file,
     }
     const size_t sample = Sample();
     if (sample < NofSamples()) {
-      notifier.NotifySampleObservers(sample, RecordId(), record);
+      const bool continue_reading = notifier.NotifySampleObservers(sample,
+                                                 RecordId(), record);
       IncrementSample();
+      if (!continue_reading) {
+        return 0;
+      }
     }
   } else {
     // Normal fixed length records
@@ -317,8 +326,12 @@ size_t Cg4Block::ReadDataRecord(std::FILE *file,
     count = std::fread(record.data(), 1, record.size(), file);
     const size_t sample = Sample();
     if (sample < NofSamples()) {
-      notifier.NotifySampleObservers(sample, RecordId(), record);
+      const bool continue_reading = notifier.NotifySampleObservers(sample, RecordId(), record);
       IncrementSample();
+      if (!continue_reading) {
+        return 0;
+      }
+
     }
   }
   return count;

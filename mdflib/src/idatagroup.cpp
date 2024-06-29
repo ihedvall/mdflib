@@ -31,14 +31,17 @@ void IDataGroup::DetachSampleObserver(const ISampleObserver *observer) const {
 
 void IDataGroup::DetachAllSampleObservers() const { observer_list_.clear(); }
 
-void IDataGroup::NotifySampleObservers(
-    size_t sample, uint64_t record_id,
+bool IDataGroup::NotifySampleObservers(size_t sample, uint64_t record_id,
     const std::vector<uint8_t> &record) const {
   for (auto *observer : observer_list_) {
     if (observer != nullptr) {
-      observer->OnSample(sample, record_id, record);
+      const bool continue_reading = observer->OnSample(sample, record_id, record);
+      if (!continue_reading) {
+        return false;
+      }
     }
   }
+  return true;
 }
 
 void IDataGroup::ClearData() {

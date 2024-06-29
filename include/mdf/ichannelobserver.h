@@ -254,4 +254,9 @@ bool IChannelObserver::GetEngValue(uint64_t sample, V& value, uint64_t array_ind
   return valid;
 }
 
+/** \brief Returns the sample engineering (channel) value as a byte array. */
+template <>
+bool IChannelObserver::GetEngValue(uint64_t sample,
+                                       std::vector<uint8_t>& value,
+                                       uint64_t array_index) const;
 }  // namespace mdf

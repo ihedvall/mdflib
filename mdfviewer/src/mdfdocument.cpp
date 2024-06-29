@@ -97,7 +97,7 @@ std::string CreateGnuPlotFile(const mdf::ChannelObserverList& list, const std::s
     std::filesystem::path p(csv_file);
     p.replace_extension(".gp");
     gp_file = p.generic_string();
-  } catch(const std::exception& error) {
+  } catch(const std::exception&) {
     LOG_ERROR() << "Failed to create gnuplot file. CSV File: " << csv_file;
   }
   const bool master = list.size() > 1 && list[0]->IsMaster();

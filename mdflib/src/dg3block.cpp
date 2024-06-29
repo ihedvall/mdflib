@@ -194,6 +194,32 @@ void Dg3Block::ReadData(std::FILE *file) {
   }
 }
 
+void Dg3Block::ReadRangeData(std::FILE *file, DgRange& range) {
+  if (file == nullptr) {
+    throw std::invalid_argument("File pointer is null");
+  }
+  std::FILE *data_file = nullptr;
+  size_t data_size = DataSize();
+  SetFilePosition(file, Link(kIndexData));
+  data_file = file;
+
+  // Read in all SR block data
+  for (const auto& cg3 :Cg3()) {
+    if (!cg3) {
+      continue;
+    }
+    const auto record_id = cg3->RecordId();
+    if (range.IsUsed(record_id)) {
+      cg3->ReadData(file);
+    }
+  }
+
+  //  auto pos = GetFilePosition(data_file);
+  // Read through all record
+  ParseRangeDataRecords(data_file, data_size, range);
+
+
+}
 void Dg3Block::ClearData() {
   DataListBlock::ClearData();
   IDataGroup::ClearData();
@@ -227,6 +253,45 @@ void Dg3Block::ParseDataRecords(std::FILE *file, size_t nof_data_bytes) {
     count += read;
     if (nof_record_id_ == 2) {
       count += ReadNumber(file, record_id);
+    }
+  }
+}
+
+void Dg3Block::ParseRangeDataRecords(std::FILE *file, size_t nof_data_bytes,
+                                     DgRange& range) {
+  if (file == nullptr || nof_data_bytes == 0) {
+    return;
+  }
+  for (const auto& channel_group : Cg3() ) {
+    if (channel_group) {
+      channel_group->ResetSampleCounter();
+    }
+  }
+
+  for (size_t count = 0; count < nof_data_bytes; /* No ++count here*/) {
+    // 1. Read Record ID
+    uint8_t record_id = 0;
+    if (nof_record_id_ == 1 || nof_record_id_ == 2) {
+      count += ReadNumber(file, record_id);
+    }
+    const auto *cg3 = FindCgRecordId(record_id);
+    const auto* cg_range = range.GetCgRange(record_id);
+    if (cg3 == nullptr || cg_range == nullptr) {
+      break;
+    }
+
+    const auto read = cg3->ReadRangeDataRecord(file,
+                                               *this,
+                                               range);
+    if (read == 0) {
+      break;
+    }
+    count += read;
+    if (nof_record_id_ == 2) {
+      count += ReadNumber(file, record_id);
+    }
+    if (range.IsReady()) {
+      break;
     }
   }
 }

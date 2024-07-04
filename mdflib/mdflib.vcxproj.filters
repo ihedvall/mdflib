@@ -273,6 +273,12 @@
     <ClCompile Include="src\readcache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\cgrange.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dgrange.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\at4block.h">
@@ -538,6 +544,12 @@
     </ClInclude>
     <ClInclude Include="src\readcache.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cgrange.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dgrange.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

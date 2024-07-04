@@ -12,7 +12,7 @@ SampleRecord IChannelGroup::GetSampleRecord() const {
   record.timestamp = MdfHelper::NowNs();
   record.record_id = RecordId();
   record.record_buffer = sample_buffer_;
-  return std::move(record);
+  return record;
 }
 
 void IChannelGroup::ClearData() { sample_ = 0; }

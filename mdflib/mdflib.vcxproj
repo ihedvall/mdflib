@@ -31,6 +31,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -38,12 +39,14 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -51,6 +54,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -191,6 +195,7 @@
     <ClCompile Include="src\ce3block.cpp" />
     <ClCompile Include="src\cg3block.cpp" />
     <ClCompile Include="src\cg4block.cpp" />
+    <ClCompile Include="src\cgrange.cpp" />
     <ClCompile Include="src\ch4block.cpp" />
     <ClCompile Include="src\channelobserver.cpp" />
     <ClCompile Include="src\cn3block.cpp" />
@@ -201,6 +206,7 @@
     <ClCompile Include="src\dbchelper.cpp" />
     <ClCompile Include="src\dg3block.cpp" />
     <ClCompile Include="src\dg4block.cpp" />
+    <ClCompile Include="src\dgrange.cpp" />
     <ClCompile Include="src\di4block.cpp" />
     <ClCompile Include="src\dl4block.cpp" />
     <ClCompile Include="src\dt3block.cpp" />
@@ -305,6 +311,7 @@
     <ClInclude Include="src\ce3block.h" />
     <ClInclude Include="src\cg3block.h" />
     <ClInclude Include="src\cg4block.h" />
+    <ClInclude Include="src\cgrange.h" />
     <ClInclude Include="src\ch4block.h" />
     <ClInclude Include="src\channelobserver.h" />
     <ClInclude Include="src\cn3block.h" />
@@ -314,6 +321,7 @@
     <ClInclude Include="src\dbchelper.h" />
     <ClInclude Include="src\dg3block.h" />
     <ClInclude Include="src\dg4block.h" />
+    <ClInclude Include="src\dgrange.h" />
     <ClInclude Include="src\di4block.h" />
     <ClInclude Include="src\dl4block.h" />
     <ClInclude Include="src\dt3block.h" />

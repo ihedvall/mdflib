@@ -97,6 +97,8 @@ add_library(mdf
         src/dgrange.h
         src/cgrange.cpp
         src/cgrange.h
+        src/mdfconverter.cpp
+        src/mdfconverter.h
 )
 
 if(VCPKG)

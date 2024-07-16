@@ -8,6 +8,7 @@
 #include "mdf/mdfwriter.h"
 
 namespace mdf::detail {
+class Dg4Block;
 
 class Mdf4Writer : public MdfWriter {
  public:
@@ -19,21 +20,27 @@ class Mdf4Writer : public MdfWriter {
   IChannelConversion* CreateChannelConversion(IChannel* parent) override;
 
  protected:
+  uint64_t offset_ = 0;
   void CreateMdfFile() override;
   void SetLastPosition(std::FILE* file) override;
   bool PrepareForWriting() override;
   void SaveQueue(std::unique_lock<std::mutex>& lock) override;
   void CleanQueue(std::unique_lock<std::mutex>& lock) override;
-  void SetDataPosition(std::FILE* file) override;
-  bool WriteSignalData(std::FILE* file) override;
- private:
-  uint64_t offset_ = 0;
+
   /** \brief Calculates number of DZ blocks in the sample queue */
   [[nodiscard]] size_t CalculateNofDzBlocks();
-  void SaveQueueCompressed(std::unique_lock<std::mutex>& lock);
+  virtual void SaveQueueCompressed(std::unique_lock<std::mutex>& lock);
 
   /** \brief Save one DZ block from the sample queue. */
-  void CleanQueueCompressed(std::unique_lock<std::mutex>& lock, bool finalize);
+  virtual void CleanQueueCompressed(std::unique_lock<std::mutex>& lock, bool finalize);
+
+  void SetDataPosition(std::FILE* file) override;
+  bool WriteSignalData(std::FILE* file) override;
+
+  Dg4Block* GetLastDg4();
+ private:
+
+
 };
 
 }  // namespace mdf::detail

@@ -10,6 +10,7 @@
 #include "mdf4file.h"
 #include "mdf4writer.h"
 #include "mdfbuslogger.h"
+#include "mdfconverter.h"
 #include "mdf/mdflogstream.h"
 #include "cn4block.h"
 #include "sr4block.h"
@@ -36,6 +37,12 @@ std::unique_ptr<MdfWriter> MdfFactory::CreateMdfWriter(MdfWriterType type) {
 
     case MdfWriterType::MdfBusLogger: {
       auto mdf4 = std::make_unique<MdfBusLogger>();
+      writer = std::move(mdf4);
+      break;
+    }
+
+    case MdfWriterType::MdfConverter: {
+      auto mdf4 = std::make_unique<MdfConverter>();
       writer = std::move(mdf4);
       break;
     }

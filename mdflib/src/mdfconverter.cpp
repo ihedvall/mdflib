@@ -1,131 +1,85 @@
 /*
- * Copyright 2021 Ingemar Hedvall
- * SPDX-License-Identifier: MIT
+* Copyright 2024 Ingemar Hedvall
+* SPDX-License-Identifier: MIT
  */
 
-#include "mdf4writer.h"
-#include <ctime>
+#include "mdfconverter.h"
+#include <chrono>
 #include "mdf/mdflogstream.h"
-#include "mdf4file.h"
-#include "platform.h"
+#include "mdfblock.h"
+#include "dg4block.h"
 #include "dt4block.h"
+#include "cn4block.h"
 #include "hl4block.h"
 #include "dl4block.h"
 #include "dz4block.h"
-#include "dg4block.h"
-#include "cn4block.h"
-#include "sr4block.h"
+
+using namespace std::chrono_literals;
 
 namespace mdf::detail {
-
-Mdf4Writer::~Mdf4Writer() { StopWorkThread(); }
-
-IChannelConversion* Mdf4Writer::CreateChannelConversion(IChannel* parent) {
-  auto* cn4 = dynamic_cast<Cn4Block*>(parent);
-  IChannelConversion* cc = nullptr;
-  if (cn4 != nullptr) {
-    auto cc4 = std::make_unique<Cc4Block>();
-    cc4->Init(*cn4);
-    cn4->AddCc4(cc4);
-    cc = const_cast<Cc4Block*>(cn4->Cc());
+MdfConverter::~MdfConverter() {
+  StopWorkThread();
+  if (file_ != nullptr) {
+    fclose(file_);
+    file_ = nullptr;
   }
-  return cc;
 }
 
-void Mdf4Writer::CreateMdfFile() {
-  auto mdf4 = std::make_unique<Mdf4File>();
-  mdf_file_ = std::move(mdf4);
-}
+bool MdfConverter::InitMeasurement() {
+  StopWorkThread();  // Just in case
 
-void Mdf4Writer::SetLastPosition(std::FILE* file) {
-  Platform::fseek64(file, 0, SEEK_END);
-
-  auto* header = Header();
-  if (header == nullptr) {
-    return;
-  }
-  auto* last_dg = header->LastDataGroup();
-  if (last_dg == nullptr) {
-    return;
-  }
-  auto* dg4 = dynamic_cast<Dg4Block*>(last_dg);
-  if (dg4 == nullptr) {
-    return;
+  if (file_ != nullptr) {
+    fclose(file_);
+    file_ = nullptr;
   }
 
-  if (dg4->Link(2) > 0) {
-    return;
-  }
-
-  dg4->SetLastFilePosition(file);
-  auto position = GetFilePosition(file);
-  dg4->UpdateLink(file, 2, position);
-  dg4->SetLastFilePosition(file);
-}
-
-bool Mdf4Writer::PrepareForWriting() {
-
-  auto *header = Header();
-  if (header == nullptr) {
-    MDF_ERROR() << "No header  found. Invalid use of the function.";
+  if (!mdf_file_) {
+    MDF_ERROR() << "The MDF file is not created. Invalid use of the function.";
     return false;
   }
 
-  // Only the last DG block is updated. So go to the last
-  // DG block and add an uncompressed DT block to the DG block
-  // or an HL/DL/DZ thing for compressed data.
-  auto *last_dg = header->LastDataGroup();
-  if (last_dg == nullptr) {
-    return true;
-  }
-  auto* dg4 = dynamic_cast<Dg4Block*>(last_dg);
-  if (dg4 == nullptr) {
-    MDF_ERROR() << "Invalid DG block type detected.";
+  // Set up internal sample buffers so the last channel values can be stored
+  const bool prep = PrepareForWriting();
+  if (!prep) {
+    MDF_ERROR() << "Failed to prepare the file for writing. File: "
+                << filename_;
     return false;
   }
-  if (CompressData()) {
-    auto hl4 = std::make_unique<Hl4Block>();
-    hl4->Init(*dg4);
-  } else {
-    // The data block list should include a DT block that we later will append
-    // samples (buffers) to.
-    auto& block_list = dg4->DataBlockList();
-    auto dt4 = std::make_unique<Dt4Block>();
-    dt4->Init(*dg4);
-    block_list.push_back(std::move(dt4));
+  // 1: Save ID, HD, DG, AT, CG and CN blocks to the file.
+
+  detail::OpenMdfFile(file_, filename_,
+                      write_state_ == WriteState::Create ? "wb" : "r+b");
+  if (file_ == nullptr) {
+    MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
+    return false;
   }
 
-  // Size the sample buffers for each CG block
-  auto cg_list = dg4->ChannelGroups();
-  for (auto& cg4 : dg4->Cg4()) {
-    if (!cg4) {
-      continue;
-    }
-    // I need to update the CN to CG reference
-    cg4->PrepareForWriting();
-  }
+  // Save the configuration to disc
+  const bool write = mdf_file_->Write(file_);
+  SetDataPosition(file_);  // Set up data position to end of file
 
-  return true;
+  // Keep the file open to save conversion time
+
+  start_time_ = 0;  // Zero indicate not started
+  stop_time_ = 0;   // Zero indicate not stopped
+  // Start the working thread that handles the samples
+  write_state_ = WriteState::Init;  // Waits for new samples
+  work_thread_ = std::thread(&MdfConverter::ConverterThread, this);
+  return write;
 }
 
-void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
+void MdfConverter::TrimQueue() {
+  // No need to trim the queue as all samples should be stored onto file.
+}
+
+void MdfConverter::SaveQueue(std::unique_lock<std::mutex>& lock) {
   if (CompressData()) {
     SaveQueueCompressed(lock);
     return;
   }
-
+  lock.unlock(); // OK to add samples to the queue
   // Save uncompressed data in last DG/DT block
-  auto *header = Header();
-  if (header == nullptr) {
-    return;
-  }
-
-  // Only the last DT block is updated. So go to the last DT
-  auto *last_dg = header->LastDataGroup();
-  if (last_dg == nullptr) {
-    return;
-  }
-  auto* dg4 = dynamic_cast<Dg4Block*>(last_dg);
+  auto* dg4 = GetLastDg4();
   if (dg4 == nullptr) {
     return;
   }
@@ -141,31 +95,24 @@ void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
   if (data_position <= 0) {
     return;
   }
-  lock.unlock();
 
-  std::FILE* file = nullptr;
-  Platform::fileopen(&file, filename_.c_str(), "r+b");
-  if (file == nullptr) {
+  // File should be open at this point
+  if (file_ == nullptr) {
     lock.lock();
     return;
   }
 
-  SetLastPosition(file);
-
-  lock.lock();
-
-  TrimQueue();
+  SetLastPosition(file_);
 
   const auto id_size = dg4->RecordIdSize();
 
+  lock.lock(); // Lock the sample queue while flushing out to file
+
   while (!sample_queue_.empty()) {
-    // Write a sample last to file
+    // Write all samples last to file
     auto sample = sample_queue_.front();
     sample_queue_.pop_front();
 
-    if (stop_time_ > 0 && sample.timestamp > stop_time_) {
-      break;
-    }
     auto* cg4 = dg4->FindCgRecordId(sample.record_id);
     if (cg4 == nullptr) {
       continue;
@@ -174,20 +121,20 @@ void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
 
 
     auto* vlsd_group = sample.vlsd_data ?
-                       dg4->FindCgRecordId(sample.record_id + 1) : nullptr;
+                                        dg4->FindCgRecordId(sample.record_id + 1) : nullptr;
     // The next group must have the VLSD flag set otherwise it's not a VLSD group.
     if (vlsd_group != nullptr && (vlsd_group->Flags() & CgFlag::VlsdChannel) == 0) {
       vlsd_group = nullptr;
     }
     auto* cn4 = sample.vlsd_data && vlsd_group == nullptr ?
-                  cg4->FindSdChannel() : nullptr;
+                                    cg4->FindSdChannel() : nullptr;
     // If the sample holds VLSD data, save this data first and then update
     // the data index. VLSD data is stored in SD or CG. A dirty trick is that
     // the VLSD CG must have the next record_id
     if (vlsd_group != nullptr) {
       // Store as a VLSD record
-      const auto vlsd_index = vlsd_group->WriteVlsdSample(file, id_size,
-                                                    sample.vlsd_buffer);
+      const auto vlsd_index = vlsd_group->WriteVlsdSample(file_, id_size,
+                                                          sample.vlsd_buffer);
       // Update the sample buffer with the new vlsd_index. Index is always
       // last 8 bytes in sample buffer
       const LittleBuffer buff(vlsd_index);
@@ -211,21 +158,20 @@ void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
       }
     }
 
-    cg4->WriteSample(file, id_size, sample.record_buffer);
+    cg4->WriteSample(file_, id_size, sample.record_buffer);
     lock.lock();
   }
 
   lock.unlock();
-  const auto last_position = GetFilePosition(file);
+  const auto last_position = GetFilePosition(file_);
   uint64_t block_length = 24 + (last_position - data_position);
-  dt4->UpdateBlockSize(file, block_length);
-  dg4->Write(file); // Flush out data
-  fclose(file);
-  lock.lock();
+  dt4->UpdateBlockSize(file_, block_length);
+  dg4->Write(file_); // Flush out data
 
+  lock.lock();
 }
 
-void Mdf4Writer::CleanQueue(std::unique_lock<std::mutex>& lock) {
+void MdfConverter::CleanQueue(std::unique_lock<std::mutex>& lock) {
   if (CompressData()) {
     CleanQueueCompressed(lock, true);
     return;
@@ -233,9 +179,7 @@ void Mdf4Writer::CleanQueue(std::unique_lock<std::mutex>& lock) {
   SaveQueue(lock);
 }
 
-void Mdf4Writer::SaveQueueCompressed(std::unique_lock<std::mutex>& lock) {
-  TrimQueue();
-
+void MdfConverter::SaveQueueCompressed(std::unique_lock<std::mutex>& lock) {
   const auto nof_dz = CalculateNofDzBlocks();
   if (nof_dz < 2) {
     // Only save full 4MB DZ blocks
@@ -244,7 +188,7 @@ void Mdf4Writer::SaveQueueCompressed(std::unique_lock<std::mutex>& lock) {
   CleanQueueCompressed(lock, false); // Saves one DZ block only
 }
 
-void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
+void MdfConverter::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
                                       bool finalize) {
   // Save compressed data in last DG block by appending HL/DL and DZ/DT blocks
   constexpr size_t buffer_max = 4'000'000;
@@ -253,21 +197,10 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
     return;
   }
 
-  auto *header = Header();
-  if (header == nullptr) {
-    return;
-  }
-
-  // Only the last DT block is updated. So go to the last DT
-  auto *last_dg = header->LastDataGroup();
-  if (last_dg == nullptr) {
-    return;
-  }
-  auto* dg4 = dynamic_cast<Dg4Block*>(last_dg);
+  auto* dg4 = GetLastDg4();
   if (dg4 == nullptr) {
     return;
   }
-
 
   if (dg4->DataBlockList().empty()) {
     auto& hl4_list = dg4->DataBlockList();
@@ -277,22 +210,19 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
     hl_block->Type(Hl4ZipType::Deflate);
     hl4_list.push_back(std::move(hl_block));
   }
+
   auto* hl4 = dynamic_cast<Hl4Block*>(dg4->DataBlockList().back().get());
   if (hl4 == nullptr) {
     return;
   }
 
-  // Open the file for writing
   lock.unlock();
-
-  std::FILE* file = nullptr;
-  Platform::fileopen(&file, filename_.c_str(), "r+b");
-  if (file == nullptr) {
+  if (file_ == nullptr) {
     lock.lock();
     return;
   }
 
-  SetLastPosition(file);
+  SetLastPosition(file_);
 
   std::vector<uint8_t> buffer;
   buffer.reserve(4'000'000);
@@ -306,22 +236,17 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
   const auto id_size = dg4->RecordIdSize();
 
   lock.lock();
-  TrimQueue();
 
   while (!sample_queue_.empty()) {
     auto sample = sample_queue_.front();
     sample_queue_.pop_front();
 
-    if (stop_time_ > 0 && sample.timestamp > stop_time_) {
-      // No more data.
-      break;
-    }
     lock.unlock(); // Need to unlock the sample queue while file operation
-    sample_queue_size_ -= sample.SampleSize();
 
+    sample_queue_size_ -= sample.SampleSize();
     size_t max_index = sample.record_buffer.size()
-                             + dg4->RecordIdSize()
-                             + buffer.size();
+                       + dg4->RecordIdSize()
+                       + buffer.size();
     if (sample.vlsd_data ) {
       max_index += sample.vlsd_buffer.size() + 4 + id_size;
     }
@@ -342,7 +267,6 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
         ++dz_count;
         offset_ += buffer.size();
         dl4->DataBlockList().push_back(std::move(dz4));
-
 
         buffer.clear();
         buffer.reserve(buffer_max);
@@ -365,7 +289,7 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
     // If the sample have vlsd data, it could be stored in the next VLSD CG or
     // in a SD block.
     auto* vlsd_group = sample.vlsd_data ?
-                       dg4->FindCgRecordId(sample.record_id + 1) : nullptr;
+                                        dg4->FindCgRecordId(sample.record_id + 1) : nullptr;
     // The next group must have the VLSD flag set otherwise it's not a VLSD group.
     if (vlsd_group != nullptr &&
         (vlsd_group->Flags() & CgFlag::VlsdChannel) == 0) {
@@ -373,7 +297,7 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
     }
     // Needs a pointer to the channel in case of VLSD SD storage
     auto* cn4 = sample.vlsd_data && vlsd_group == nullptr ?
-                        cg4->FindSdChannel() : nullptr;
+                                                          cg4->FindSdChannel() : nullptr;
     // If the sample holds VLSD data, save this data first and then update
     // the data index. VLSD data is stored in SD or CG. A dirty trick is that
     // the VLSD CG must have the next record_id
@@ -382,7 +306,7 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
       // Store as a VLSD record
       const auto vlsd_index = vlsd_group->WriteCompressedVlsdSample(buffer,
                                                                     id_size,
-                                                          sample.vlsd_buffer);
+                                                                    sample.vlsd_buffer);
       // Update the sample buffer with the new vlsd_index. Index is always
       // last 8 bytes in sample buffer
       const LittleBuffer buff(vlsd_index);
@@ -432,152 +356,74 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
   hl4->DataBlockList().push_back(std::move(dl4));
 
 
-  dg4->Write(file); // Flush out data
-  fclose(file);
+  dg4->Write(file_); // Flush out data
   lock.lock();
 
   hl4->ClearData(); // Remove temp data
 }
 
-void Mdf4Writer::SetDataPosition(std::FILE* file) {
-  if (CompressData()) {
-    return;
-  }
-  auto *header = Header();
-  if (header == nullptr) {
-    return;
-  }
+bool MdfConverter::FinalizeMeasurement() {
+  StopWorkThread();
 
-  // Only the last DT block is updated. So go to the last DT
-  auto *last_dg = header->LastDataGroup();
-  if (last_dg == nullptr) {
-    return;
-  }
-  auto* dg4 = dynamic_cast<Dg4Block*>(last_dg);
-  if (dg4 == nullptr) {
-    return;
-  }
-  auto& block_list = dg4->DataBlockList();
-  if (block_list.empty()) {
-    return;
-  }
-  auto* dt4 = dynamic_cast<Dt4Block*>(block_list.back().get());
-  if (dt4 == nullptr) {
-    return;
-  }
-  SetLastPosition(file);
-  const auto data_position = GetFilePosition(file);
-  dt4->DataPosition(data_position);
-}
-
-size_t Mdf4Writer::CalculateNofDzBlocks() {
-  // The sample queue is locked but the queue is trimmed
-  // First make a list record ID -> record size
-
-  const auto *header = Header();
-  if (header == nullptr) {
-    return 0;
-  }
-
-  // Only the last DG block is updated. So go to the last DT
-  const auto *last_dg = header->LastDataGroup();
-  if (last_dg == nullptr) {
-    return 0;
-  }
-  const auto* dg4 = dynamic_cast<const Dg4Block*>(last_dg);
-  if (dg4 == nullptr) {
-    return 0;
-  }
-
-  bool vlsd = false;
-  const auto id_size = dg4->RecordIdSize();
-  std::map<uint64_t, size_t> id_size_list;
-  const auto& cg4_list = dg4->Cg4();
-  for (const auto& cg4 : cg4_list) {
-    if (!cg4) {
-      continue;
-    }
-    // Ignore any VLSD CG group. There size is calculated later.
-    if (cg4->Flags() & CgFlag::VlsdChannel) {
-      // Indicate if the samples extra bytes should be counted
-      vlsd = true;
-      id_size_list.emplace(cg4->RecordId(), 0);
-      continue;
-    }
-    const auto& sample_buffer = cg4->SampleBuffer();
-    const auto record_size = id_size + sample_buffer.size();
-    id_size_list.emplace(cg4->RecordId(), record_size);
-  }
-  uint64_t nof_bytes = 0; // Total
-  for(const auto& sample : sample_queue_) {
-    const auto itr = id_size_list.find(sample.record_id);
-    if (itr == id_size_list.cend()) {
-      continue;
-    }
-    nof_bytes += itr->second;
-    if (vlsd) {
-      nof_bytes += id_size + 4 + sample.vlsd_buffer.size();
-    }
-  }
-  return (nof_bytes / 4'000'000) + 1;
-}
-
-bool Mdf4Writer::InitMeasurement() {
-  offset_ = 0;
-  return MdfWriter::InitMeasurement();
-}
-
-bool Mdf4Writer::WriteSignalData(std::FILE* file) {
-  if (file == nullptr) {
-    MDF_ERROR() << "File is not opened. File: " << Name();
+  // Save outstanding non-written blocks and any block updates as
+  // sample counters which changes during DG/DT updates
+  if (!mdf_file_) {
+    MDF_ERROR() << "The MDF file is not created. Invalid use of the function.";
     return false;
   }
 
-  const auto *header = Header();
-  if (header == nullptr) {
-    MDF_ERROR() << "No header block found. File: " << Name();
+  if (file_ == nullptr) {
+    MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
-
-  // Only the last DG block is updated. So go to the last DT
-  const auto *last_dg = header->LastDataGroup();
-  if (last_dg == nullptr) {
-    return true;
-  }
-
-  auto cg_list = last_dg->ChannelGroups();
-  for (auto* group : cg_list) {
-    if (group == nullptr) {
-      continue;
-    }
-    auto cn_list = group->Channels();
-    for (auto* channel : cn_list) {
-      if (channel == nullptr) {
-        continue;
-      }
-      auto* cn4 = dynamic_cast<Cn4Block*>(channel);
-      if (cn4 == nullptr) {
-        continue;
-      }
-      cn4->WriteSignalData(file, CompressData());
-      cn4->ClearData();
-    }
-  }
-  return true;
+  const bool write = mdf_file_ && mdf_file_->Write(file_);
+  const bool signal_data = WriteSignalData(file_);
+  fclose(file_);
+  file_ = nullptr;
+  write_state_ = WriteState::Finalize;
+  return write && signal_data;
 }
 
-Dg4Block* Mdf4Writer::GetLastDg4() {
-  auto *header = Header();
-  if (header == nullptr) {
-    return nullptr;
+void MdfConverter::SaveSample(const IChannelGroup& group, uint64_t time) {
+  MdfWriter::SaveSample(group, time);
+  if (write_state_ == WriteState::StartMeas && sample_queue_size_ > 8'000'000) {
+    sample_event_.notify_one();
   }
-
-  // Only the last DT block is updated. So go to the last DT
-  auto *last_dg = header->LastDataGroup();
-  if (last_dg == nullptr) {
-    return nullptr;
-  }
-  return dynamic_cast<Dg4Block*>(last_dg);
 }
 
-}  // namespace mdf::detail
+void MdfConverter::ConverterThread() {
+  do {
+    // Wait on stop condition
+    std::unique_lock lock(locker_);
+    sample_event_.wait_for(lock, 10s);
+    switch (write_state_) {
+      case WriteState::Init: {
+        TrimQueue();  // Purge the queue using pre-trig time
+        break;
+      }
+      case WriteState::StartMeas: {
+//        MDF_TRACE() << "Start " << sample_queue_.size();
+        SaveQueue(lock);  // Save the contents of the queue to file
+        break;
+      }
+
+      case WriteState::StopMeas: {
+//        MDF_TRACE() << "Stop " << sample_queue_.size();
+        CleanQueue(lock);
+        break;
+      }
+
+      default:
+        break;
+    }
+  } while (!stop_thread_);
+  {
+//    MDF_TRACE() << "Stopping " << sample_queue_.size();
+    {
+      std::unique_lock lock(locker_);
+      CleanQueue(lock);
+    }
+  }
+}
+
+}  // namespace mdf

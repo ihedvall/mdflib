@@ -23,6 +23,9 @@ struct SampleRecord {
   std::vector<uint8_t> record_buffer;  ///< Record buffer (fixed size).
   bool vlsd_data = false; ///< True if the vlsd_buffer holds data.
   std::vector<uint8_t> vlsd_buffer; ///< VLSD record buffer.
+  [[nodiscard]] size_t SampleSize() const {
+    return record_buffer.size() + vlsd_buffer.size();
+  }
 };
 
 }  // namespace mdf

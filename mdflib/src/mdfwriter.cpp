@@ -183,6 +183,7 @@ bool MdfWriter::InitMeasurement() {
   stop_time_ = 0;   // Zero indicate not stopped
   // Start the working thread that handles the samples
   write_state_ = WriteState::Init;  // Waits for new samples
+  sample_queue_size_ = 0;
   work_thread_ = std::thread(&MdfWriter::WorkThread, this);
   return write;
 }
@@ -199,7 +200,7 @@ void MdfWriter::SaveSample(const IChannelGroup& group, uint64_t time) {
     const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
     master->SetTimestamp(rel_s, sample.record_buffer);
   }
-
+  sample_queue_size_ += sample.SampleSize();
   std::lock_guard lock(locker_);
   sample_queue_.emplace_back(sample);
 }

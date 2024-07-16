@@ -185,7 +185,7 @@ class MdfWriter {
    * to a relative time before it is stored onto the disc. The will be relative
    * to the start time, see StartMeasurement() function.
    */
-  void SaveSample(const IChannelGroup& group, uint64_t time);
+  virtual void SaveSample(const IChannelGroup& group, uint64_t time);
 
   /** \brief Saves a CAN message into a bus logger channel group.
    *
@@ -296,7 +296,7 @@ class MdfWriter {
   std::atomic_bool stop_thread_ = false; ///< Set to true to stop the thread.
   std::mutex locker_; ///< Mutex for thread-safe handling of the sample queue.
   std::condition_variable sample_event_; ///< Used internally.
-
+  std::atomic<size_t> sample_queue_size_ = 0; ///< Used to trig flushing to disc.
 
   using SampleQueue = std::deque<SampleRecord>; ///< Sample queue
   SampleQueue sample_queue_; ///< Sample queue
@@ -308,7 +308,8 @@ class MdfWriter {
 
   void StopWorkThread(); ///< Stops the worker thread
   void WorkThread(); ///< Worker thread function
-  void TrimQueue(); ///< Trims the sample queue.
+
+  virtual void TrimQueue(); ///< Trims the sample queue.
   /** \brief Saves the queue to file. */
   virtual void SaveQueue(std::unique_lock<std::mutex>& lock);
   /** \brief Flush the sample queue. */

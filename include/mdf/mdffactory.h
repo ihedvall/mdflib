@@ -17,6 +17,7 @@ enum class MdfWriterType : int {
   Mdf3Basic = 0, ///< Basic MDF version 3 writer.
   Mdf4Basic = 1,  ///< Basic MDF version 4 writer.
   MdfBusLogger = 2, ///< Specialized bus logger writer.
+  MdfConverter = 3, ///< MDF writer for MDF 4 conversion applications.
 };
 
 /** \brief MDF file type. */

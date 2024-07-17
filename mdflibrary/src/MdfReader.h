@@ -38,7 +38,7 @@ public:
   bool ReadMeasurementInfo();
   bool ReadEverythingButData();
   bool ReadData( MdfDataGroup^ group);
-  
+  bool ReadPartialData( MdfDataGroup^ group, UInt64 min_sample, UInt64 max_sample);
 protected:
   !MdfReader();
 private:

@@ -249,6 +249,7 @@
     <ClCompile Include="src\mdf4writer.cpp" />
     <ClCompile Include="src\mdfblock.cpp" />
     <ClCompile Include="src\mdfbuslogger.cpp" />
+    <ClCompile Include="src\mdfconverter.cpp" />
     <ClCompile Include="src\mdffactory.cpp" />
     <ClCompile Include="src\mdffile.cpp" />
     <ClCompile Include="src\mdfhelper.cpp" />
@@ -348,6 +349,7 @@
     <ClInclude Include="src\mdf4writer.h" />
     <ClInclude Include="src\mdfblock.h" />
     <ClInclude Include="src\mdfbuslogger.h" />
+    <ClInclude Include="src\mdfconverter.h" />
     <ClInclude Include="src\platform.h" />
     <ClInclude Include="src\pr3block.h" />
     <ClInclude Include="src\rd4block.h" />

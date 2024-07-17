@@ -87,5 +87,15 @@ bool MdfReader::ReadData(MdfDataGroup^ group) {
      reader_->ReadData(*data_group) : false;    
 }
 
+bool MdfReader::ReadPartialData(MdfDataGroup^ group, 
+    UInt64 min_sample,
+    UInt64 max_sample) {
+  auto* data_group = group->group_;
+  return reader_ != nullptr && data_group != nullptr ?
+     reader_->ReadPartialData(*data_group,
+         static_cast<size_t>(min_sample),
+         static_cast<size_t>(max_sample)) : false;    
+}
+
 }
 

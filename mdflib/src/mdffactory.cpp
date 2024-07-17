@@ -91,6 +91,11 @@ MdfWriter* MdfFactory::CreateMdfWriterEx(MdfWriterType type) {
       writer = new MdfBusLogger();
       break;
     }
+
+    case MdfWriterType::MdfConverter: {
+      writer = new MdfConverter();
+      break;
+    }
     
     default:
       break;

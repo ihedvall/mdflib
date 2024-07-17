@@ -34,6 +34,7 @@ public enum class MdfWriterType : int {
   Mdf3Basic = 0,  ///< Basic MDF version 3 writer.
   Mdf4Basic = 1,   ///< Basic MDF version 4 writer.
   MdfBusLogger = 2, ///< Bus Logger MDF 4 version only
+  MdfConverter = 3, ///< MDF writer for MDF 4 conversion applications.
 };
 
 /** \brief Enumerate that defines how the raw data is stored. By default

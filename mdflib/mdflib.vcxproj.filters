@@ -279,6 +279,9 @@
     <ClCompile Include="src\dgrange.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\mdfconverter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\at4block.h">
@@ -550,6 +553,9 @@
     </ClInclude>
     <ClInclude Include="src\dgrange.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mdfconverter.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

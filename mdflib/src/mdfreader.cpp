@@ -205,6 +205,7 @@ void CreateChannelObserverForChannelGroup(const IDataGroup &data_group,
   }
 }
 
+
 MdfReader::MdfReader(const std::string &filename) : filename_(filename) {
   // Need to create MDF3 of MDF4 file
   bool bExist = false;

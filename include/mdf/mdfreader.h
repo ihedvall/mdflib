@@ -46,6 +46,7 @@ void CreateChannelObserverForChannelGroup(const IDataGroup& data_group,
                                           const IChannelGroup& group,
                                           ChannelObserverList& dest);
 
+
 /** \class MdfReader mdfreader.h "mdf/mdfreader.h"
  * \brief Reader interface to an MDF file.
  *

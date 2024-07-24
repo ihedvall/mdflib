@@ -58,6 +58,7 @@ if(MDF_BUILD_SHARED_LIB AND MDF_BUILD_SHARED_LIB_EXAMPLE)
 endif()
 
 if(MDF_BUILD_TOOL)
+  add_subdirectory(mdf2csv)
   add_subdirectory(mdfviewer)
 endif()
 

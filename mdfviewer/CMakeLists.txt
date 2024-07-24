@@ -49,6 +49,7 @@ if(MSVC)
           _CRT_SECURE_NO_WARNINGS
           _SILENCE_CXX20_U8PATH_DEPRECATION_WARNING)
 endif()
+
 target_link_libraries(mdfview PRIVATE mdf)
 
 if(VCPKG)
@@ -78,7 +79,7 @@ else()
   target_link_libraries(mdfview PRIVATE ${wxWidgets_LIBRARIES})
   target_link_libraries(mdfview PRIVATE ${Boost_LIBRARIES})
   target_link_libraries(mdfview PRIVATE ${ZLIB_LIBRARIES})
-  target_link_libraries(mdfview PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
+  # target_link_libraries(mdfview PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
 endif()
 
 

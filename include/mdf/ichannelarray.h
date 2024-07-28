@@ -30,18 +30,14 @@ enum class ArrayType : uint8_t {
   ClassificationResult = 4 ///< Classification result.
 };
 
-/** \brief Type of storage.
- *
- */
+/** \brief Type of storage. */
 enum class ArrayStorage : uint8_t {
   CnTemplate = 0, ///< Channel template.
   CgTemplate = 1, ///< Channel group template.
   DgTemplate = 2  ///< Data group template.
 };
 
-/** \brief Channel array flags..
- *
- */
+/** \brief Channel array (CA) block flags. */
 namespace CaFlag {
 constexpr uint32_t DynamicSize = 0x0001; ///< Dynamic size
 constexpr uint32_t InputQuantity = 0x0002; ///< Input quantity.
@@ -54,16 +50,15 @@ constexpr uint32_t LeftOpenInterval = 0x0080; ///< Left-over interval.
 constexpr uint32_t StandardAxis = 0x0100; ///< Standard axis.
 }  // namespace CaFlag
 
+/** \brief Structure that defines the channel array (CA) blocks references.*/
 struct  CaTripleReference {
-  const mdf::IDataGroup* DataGroup = nullptr;
-  const mdf::IChannelGroup* ChannelGroup = nullptr;
-  const mdf::IChannel* Channel = nullptr;
+  const mdf::IDataGroup* DataGroup = nullptr; ///< Pointer to the data group (DG) block
+  const mdf::IChannelGroup* ChannelGroup = nullptr; ///< Pointer to the channel group (CG) block.
+  const mdf::IChannel* Channel = nullptr; ///< Pointer to the channel (CN) block.
 };
 
 
-/** \brief Channel array
- *
- */
+/** \brief Channel array */
 class IChannelArray : public IBlock {
  public:
 

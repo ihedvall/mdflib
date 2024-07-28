@@ -15,6 +15,7 @@ The library have the main components.
 
 The project also include the following applications.
 - **[MDF Viewer](mdfviewer.html)**. GUI application that show contents of MDF files.
+- **[MDF to CSV](mdf2csv.html)**. Command line (CLI) application that converts an MDF file to one or more CSV files.
 
 Detailed library documentation can be found here: [API Documentation](/manual/html/index.html).
 

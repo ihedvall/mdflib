@@ -23,7 +23,10 @@ namespace mdf {
 class ISampleObserver {
  public:
   ISampleObserver() = delete;
+
+  /** \brief Sample observer constructor. */
   explicit ISampleObserver(const IDataGroup& data_group);
+
   virtual ~ISampleObserver(); ///< Destructor
 
   /** \brief Attach the observer to an observer list (publisher).
@@ -131,6 +134,23 @@ class ISampleObserver {
     return valid;
   }
 
+  /** \brief Returns the scaled sample value for the channel with the record
+   * bytes as input. This function is mainly for internal use but is used
+   * together with sample observers.
+   *
+   * The engineering value is the scaled value of the channel value.
+   * The attached conversion block defines the type of scaling to apply.
+   * Note that the channel value and the scaled value may have different type
+   * and unit.
+   *
+   * @tparam V Type of value to return.
+   * @param channel Reference to the channel.
+   * @param sample Sample index.
+   * @param record Record data bytes excluding the record ID bytes
+   * @param value Returns the scaled value.
+   * @param array_index Optional array index in case of channel array.
+   * @return Return true if the value is valid.
+   */
   template <typename V>
   bool GetEngValue(const IChannel& channel,
       uint64_t sample,

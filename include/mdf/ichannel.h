@@ -333,6 +333,7 @@ class IChannel : public IBlock  {
    * @tparam T Type of value to return
    * @param record_buffer Data record from a data block.
    * @param dest Destination value.
+   * @param array_index Array offset used by channel arrays.
    * @return True if the value is valid.
    */
   template <typename T>
@@ -354,6 +355,7 @@ class IChannel : public IBlock  {
    *
    * @param record_buffer The sample record buffer.
    * @param dest Destination value.
+   * @param array_index Array offset used by channel arrays.
    * @return True if the value is valid.
    */
   bool GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
@@ -425,8 +427,25 @@ class IChannel : public IBlock  {
    * \return Pointer to the channel group.
    */
   virtual const IChannelGroup* ChannelGroup() const = 0;
+
+  /** \brief Returns th channel group (CG) record ID.
+   *
+   * Convenient function that returns the record ID for the channel group which
+   * the channel belongs to.
+   * @return Returns the record ID.
+   */
   uint64_t RecordId() const;
 
+  /** \brief Returns the value for a virtual sample.
+   *
+   * Virtual samples are calculated from the sample index instead of the channel
+   * value as normally.
+   *
+   * @tparam V Type of value to return.
+   * @param sample Sample index.
+   * @param value Reference to return value.
+   * @return True if the value is valid.
+   */
   template <typename V>
   static bool GetVirtualSample(uint64_t sample, V& value) {
     // No need for array index here. Array is weird usage for virtual channels
@@ -435,6 +454,13 @@ class IChannel : public IBlock  {
     return true;
   }
 
+  /** \brief Specialization that returns virtual sample values.
+   *
+   * @tparam V Type of value to return.
+   * @param sample Sample index.
+   * @param value Reference to return string value.
+   * @return True if the value is valid.
+   */
   template <typename V = std::string>
   static bool GetVirtualSample(uint64_t sample, std::string& value) {
     value = std::to_string(sample);

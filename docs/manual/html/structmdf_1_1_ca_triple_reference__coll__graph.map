@@ -1,5 +1,5 @@
 <map id="mdf::CaTripleReference" name="mdf::CaTripleReference">
-<area shape="rect" id="Node000001" title=" " alt="" coords="136,168,292,193"/>
+<area shape="rect" id="Node000001" title="Structure that defines the channel array (CA) blocks references." alt="" coords="136,168,292,193"/>
 <area shape="rect" id="Node000002" href="$classmdf_1_1_i_data_group.html" title="Interface to a data group (DG) block." alt="" coords="5,80,121,105"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,111,143,142,190,166,188,170,141,146,90,115"/>
 <area shape="rect" id="Node000003" href="$classmdf_1_1_i_block.html" title="Base class for all MDF blocks." alt="" coords="171,5,257,31"/>

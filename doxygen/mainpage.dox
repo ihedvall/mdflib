@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Ingemar Hedvall
+ * Copyright 2022-2024 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
 /**
@@ -13,6 +13,8 @@ suited for long-term storage of data.
 The project consist of the following main components.
 
 - C++ Library with all main functionality.
+- C++/CLI .NET assembly DLL that simply is a wrapper of the C++ library.
+- MDF to CSV command line interface. Converts an MDF file to one or more CSV files.
 - MDF Viewer GUI application that simply display the content of MDF files.
 
 ## Measurement Data File

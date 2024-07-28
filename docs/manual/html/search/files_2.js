@@ -14,5 +14,6 @@ var searchData=
   ['iheader_2eh_11',['iheader.h',['../iheader_8h.html',1,'']]],
   ['imetadata_2eh_12',['imetadata.h',['../imetadata_8h.html',1,'']]],
   ['isampleobserver_2eh_13',['isampleobserver.h',['../isampleobserver_8h.html',1,'']]],
-  ['isourceinformation_2eh_14',['isourceinformation.h',['../isourceinformation_8h.html',1,'']]]
+  ['isamplereduction_2eh_14',['isamplereduction.h',['../isamplereduction_8h.html',1,'']]],
+  ['isourceinformation_2eh_15',['isourceinformation.h',['../isourceinformation_8h.html',1,'']]]
 ];

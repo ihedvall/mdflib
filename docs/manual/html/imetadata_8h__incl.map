@@ -1,18 +1,19 @@
 <map id="include/mdf/imetadata.h" name="include/mdf/imetadata.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="79,5,239,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="179,152,234,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,30,201,138,196,140,160,32"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,61,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="134,33,100,52,69,80,52,109,41,139,36,137,47,107,65,77,97,48,131,28"/>
-<area shape="rect" id="Node000004" href="$etag_8h.html" title="Simple wrapper around meta data items." alt="" coords="79,79,161,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="155,32,135,68,130,65,150,30"/>
-<area shape="rect" id="Node000006" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="237,79,329,104"/>
-<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="180,28,252,69,249,74,177,33"/>
-<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="136,102,184,141,180,145,132,106"/>
-<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="108,106,60,145,56,141,104,102"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="85,152,155,177"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="123,104,123,138,117,138,117,104"/>
-<area shape="poly" id="edge9_Node000006_Node000002" title=" " alt="" coords="272,106,231,144,227,141,269,102"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="259,152,320,177"/>
-<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="286,104,290,138,284,139,281,105"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="71,5,231,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,152,60,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,33,71,51,54,64,40,80,31,109,31,138,25,138,25,108,36,77,50,60,68,47,106,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="263,152,319,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,28,226,47,263,77,280,107,290,137,285,139,275,109,259,80,224,52,185,33"/>
+<area shape="rect" id="Node000004" href="$etag_8h.html" title="Simple wrapper around meta data items." alt="" coords="166,79,249,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="163,29,192,66,188,69,158,33"/>
+<area shape="rect" id="Node000007" href="$iblock_8h.html" title="All MDF blocks inherits from the IBlock class. The interface class is used internally in lists...." alt="" coords="49,79,141,104"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="144,33,115,69,111,66,140,29"/>
+<area shape="poly" id="edge6_Node000004_Node000002" title=" " alt="" coords="180,106,74,150,72,145,178,102"/>
+<area shape="poly" id="edge7_Node000004_Node000003" title=" " alt="" coords="223,102,269,141,265,145,219,106"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="85,152,146,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="194,106,143,146,139,141,191,102"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="170,152,239,177"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="210,104,208,139,203,138,204,104"/>
+<area shape="poly" id="edge10_Node000007_Node000002" title=" " alt="" coords="87,106,54,143,50,140,83,103"/>
+<area shape="poly" id="edge9_Node000007_Node000005" title=" " alt="" coords="101,104,111,138,106,140,96,105"/>
 </map>

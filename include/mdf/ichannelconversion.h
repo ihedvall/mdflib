@@ -186,7 +186,9 @@ class IChannelConversion : public IBlock {
   /** \brief Returns formula string. */
   [[nodiscard]] virtual const std::string& Formula() const;
 
-  [[nodiscard]] uint16_t NofParameters() const; 
+  /** \brief Returns number of parameters in the block. */
+  [[nodiscard]] uint16_t NofParameters() const;
+
   /** \brief Sets a floating point parameter value.
    *
    * @param index Parameter index to set.
@@ -214,7 +216,9 @@ class IChannelConversion : public IBlock {
    */
   void ParameterUint(uint16_t index, uint64_t parameter);
 
-  [[nodiscard]] virtual uint16_t NofReferences() const; 
+  /** \brief Number of references in the block. */
+  [[nodiscard]] virtual uint16_t NofReferences() const;
+
   /** \brief Sets text reference (TX) block
    *
    * @param index Index of the text block (TX).

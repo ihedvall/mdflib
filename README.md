@@ -1,21 +1,29 @@
-# Library MDF version 2.0
+# Library MDF version 2.2
 
 ## Summary
 
 The MDF library repository implements an interface against the ASAM Measurement Data File (MDF). 
 It supports reading and writing of MDF files version 3 and 4. 
-The release 2.0 of the project support reading and writing of MDF files up to version 4.2. 
+The release 2.2 of the project support reading and writing of MDF files up to version 4.2. 
 
-- **MDF lib** is a C++ static library.
-- **MDF lib test** is a C++ unit tests application for mdflib.
-- **MDF library** is a C++ shared library, and it contains .NET (C++/CLI) Assembly(need to be built with msvc>=19.36).
-- **MDF library example** is a C++ application that use MDF library as dll/so.
-- **MDF library test net** is a C# unit tests application that use the .NET Assembly of MDF library.
+- **MDF Lib** is a C++ static library.
+- **MDF Lib Test** is a C++ unit tests application for mdflib.
+- **MDF Library (CMAKE)** is a C++ shared library, and it contains .NET (C++/CLI) Assembly(need to be built with msvc>=19.36).
+- **MDF Library (MSVC only)** is C++/CLI assembly DLL. It uses MSVC (vcxproj) build.  
+- **MDF Library example** is a C++ application that use MDF library as dll/so.
+- **MDF Library test net** is a C# unit tests application that use the .NET Assembly of MDF library.
 - **MDF Viewer**. Simple GUI application that list the contents of an MDF file.
-- **MDF gRPC Server**. Microservice for reading and writing of MDF files. On request.
-- **MDF Python Library**. Basic reading and writing for Python friends. On request or use the ASAMMDF library.
+- **MDF to CSV** is a CLI application that convert an MDF file to one or more CSV files.
+- **MDF gRPC Server**. Microservice for reading and writing of MDF files. Under investigation.
+- **MDF Python Library**. Basic reading and writing for Python friends. Under development. The AsamMDF Python library can also be used. 
 
-The library and its applications, compiles/runs on Windows, Linux and Mac operating system.
+
+The library and its applications, compiles/runs on Windows and Linux operating system. Note that the macOS also may 
+work but the compilers in macOS currently have some issues with the C++ 17 support i.e. need some trick to compile.
+
+## Documentation
+
+[HTML documentation](https://ihedvall.github.io/mdflib/)
 
 ## Installation
 
@@ -23,7 +31,8 @@ The library and its applications, compiles/runs on Windows, Linux and Mac operat
 
 ## Building
 
-The project uses CMAKE for building. But mdflibrary_test_net is a Visual Studio build.
+The project uses CMAKE for building except for the MDF C++/CLI assembly that uses the Visual Studio vcxproj build 
+approach.
 
 The following third-party libraries are used and needs to be downloaded and pre-built.
 

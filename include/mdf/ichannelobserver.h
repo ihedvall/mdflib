@@ -26,7 +26,7 @@ namespace mdf {
 class IChannelObserver : public ISampleObserver {
  protected:
    const IChannel& channel_; ///< Reference to the channel (CN) block.
-   bool read_vlsd_data_ = true;
+   bool read_vlsd_data_ = true; ///< Defines if the VLSD bytes should be read.
 
   std::vector<uint64_t> offset_list_; ///< Only used for VLSD channels.
   std::vector<bool> valid_list_; ///< List of valid samples.
@@ -73,7 +73,20 @@ class IChannelObserver : public ISampleObserver {
 
   [[nodiscard]] bool IsArray() const; ///< True if this channel is an array channel.
 
+  /** \brief Property interface that defines if the VLSD raw data should be read
+   * or not.
+   *
+   * Reading VLSD raw data may fail if there is no room for the bytes in the
+   * primary memory. Normally is this property normally set to true but if set
+   * to false, only the offset into the VLSD block is read. This call should
+   * be followed buy one or more call to the MdfWriter::ReadVlsdData() function.
+   * By this, only partial samples can be read in and thus saving primary
+   * memory.
+   * @param read_vlsd_data Set to false if VLSD bytes shouldn't be read.
+   */
   void ReadVlsdData(bool read_vlsd_data);
+
+  /** \brief Returns the read VLSD bytes property. */
   [[nodiscard]] bool ReadVlsdData() const { return read_vlsd_data_; }
 
   /** \brief If this is an array channel, this function returns the array size.
@@ -89,6 +102,7 @@ class IChannelObserver : public ISampleObserver {
    * @tparam V Type of value
    * @param sample Sample number (0..).
    * @param value The channel value.
+   * @param array_index Optional array index if the channel is an array.
    * @return True if value is valid.
    */
   template <typename V>
@@ -100,6 +114,7 @@ class IChannelObserver : public ISampleObserver {
    * @tparam V Type of return value
    * @param sample Sample number (0..).
    * @param value The return value.
+   * @param array_index Optional array index if the channel is an array.
    * @return True if the value is valid.
    */
   template <typename V>
@@ -115,10 +130,19 @@ class IChannelObserver : public ISampleObserver {
    */
   [[nodiscard]] std::string EngValueToString(uint64_t sample) const;
 
+  /** \brief Returns the sample to VLSD offset list.
+   *
+   * This VLSD offset list is only needed when setting the ReadVLSDData()
+   * property to false. By only reading the offset list, the VLSD bytes can be
+   * read later as sample by sample or as a range of VSLD bytes. THis read
+   * saves primary memory and is much faster if only some samples are needed.
+   * @return
+   */
   [[nodiscard]] const std::vector<uint64_t>& GetOffsetList() const {
      return offset_list_;
   }
 
+  /** \brief Returns the sample to valid list.  */
   [[nodiscard]] const std::vector<bool>& GetValidList() const {
     return valid_list_;
   }

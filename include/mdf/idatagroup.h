@@ -120,14 +120,14 @@ class IDataGroup : public IBlock {
 
   /**
  * \brief Checks if this data group subscribes on a specific channel.
- * @param channel_index Channel index of the channel group
+ * @param channel Reference to the channel.
  * @return True if the observer list subscribe on this channel.
  */
   [[nodiscard]] bool IsSubscribingOnChannel(const IChannel& channel) const;
 
   /**
  * \brief Checks if this data group subscribes on a specific channels VLSD raw data.
- * @param channel_index Channel index of the channel group
+ * @param channel Reference to the channel.
  * @return True if the observer list subscribe on this channels VLSD raw data  .
  */
   [[nodiscard]] bool IsSubscribingOnChannelVlsd(const IChannel& channel) const;

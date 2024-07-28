@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['channelobserverlist_0',['ChannelObserverList',['../namespacemdf.html#abfb69c65cc7804403fc688da91817835',1,'mdf']]],
-  ['channelobserverptr_1',['ChannelObserverPtr',['../namespacemdf.html#a3b404abf8489be4a7617648cd4d1baae',1,'mdf']]]
+  ['channelobserverlist_0',['ChannelObserverList',['../namespacemdf.html#a704962c842a2b4ae11010c7fcb26b0de',1,'mdf']]],
+  ['channelobserverptr_1',['ChannelObserverPtr',['../namespacemdf.html#a5964a13a2ccb66953e040af87d62e2da',1,'mdf']]]
 ];

@@ -34,7 +34,7 @@ endif()
 
 project(
   mdflib
-  VERSION 2.1
+  VERSION 2.2
   DESCRIPTION "Interface against MDF 3/4 files"
   LANGUAGES CXX)
   

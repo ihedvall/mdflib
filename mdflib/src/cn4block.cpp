@@ -287,9 +287,26 @@ bool Cn4Block::IsUnitValid() const {
 }
 
 std::string Cn4Block::Unit() const {
+
   if (!unit_) {
-    return {};
+    switch (Sync()) {
+      case ChannelSyncType::Time:
+        return "s";
+
+      case ChannelSyncType::Angle:
+        return "rad";
+
+      case ChannelSyncType::Distance:
+        return "m";
+
+      default:
+        break;
+    }
+
+    // Return the CC block unit if it exists.
+    return cc_block_ ? cc_block_->Unit() : std::string();
   }
+
   if (unit_->IsTxtBlock()) {
     return unit_->Text();
   }

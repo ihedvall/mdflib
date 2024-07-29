@@ -33,11 +33,6 @@ SampleReductionListView::SampleReductionListView(ISampleReduction &sr_block,
     }
 
     std::string unit = channel->Unit();
-    const auto* channel_conversion = channel->ChannelConversion();
-    if (channel_conversion != nullptr && !channel_conversion->Unit().empty()) {
-      unit = channel_conversion->Unit();
-    }
-
     {
       std::ostringstream label;
       label << channel->Name() << "-Mean";

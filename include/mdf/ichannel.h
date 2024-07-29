@@ -142,12 +142,22 @@ class IChannel : public IBlock  {
    *
    * The function sets the unit string for the channel. If the channel data
    * type is a MIME sample or a stream, the unit is a mime content type string.
+   *
+   * Note that this unit belongs to the value after scaling (CC) i.e.
+   * engineering value.
    */
   virtual void Unit(const std::string &unit) = 0;
 
   /** \brief Returns the unit string or the MIME content type string.
    *
+   * The unit describes the engineering/scaled value not the channel value
+   * itself. This might be considered as a design flaw as the CC block also
+   * have a unit.
    *
+   * This function returns the channels unit first and if it doesn't exist,
+   * returns the CC blocks unit.
+   *
+   * For MIME streams this unit is actually the type of stream content.
    * @return Unit or MIME content string.
    */
   [[nodiscard]] virtual std::string Unit() const = 0; ///< Returns the unit

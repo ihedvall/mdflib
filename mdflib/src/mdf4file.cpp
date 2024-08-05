@@ -7,6 +7,7 @@
 #include "mdf/mdflogstream.h"
 #include "cn4block.h"
 #include "sr4block.h"
+#include "ca4block.h"
 
 namespace mdf::detail {
 
@@ -57,6 +58,9 @@ void Mdf4File::ReadEverythingButData(std::FILE *file) {
     hd_block_->ReadMeasurementInfo(file);
     hd_block_->ReadEverythingButData(file);
   }
+  // Now when all blocks are read in, it is time to read
+  // in all referenced block. This is mainly done for the channel array blocks.
+  FindAllReferences(file);
 }
 
 bool Mdf4File::IsMdf4() const { return true; }
@@ -244,6 +248,42 @@ IDataGroup *Mdf4File::FindParentDataGroup(const IChannel &channel) const {
     });
 
   return itr != dg_list.cend() ? itr->get() : nullptr;
+}
+
+void Mdf4File::FindAllReferences(std::FILE *file) {
+  // Find all channel arrays
+  if (!hd_block_) {
+    return;
+  }
+  for (auto& dg4 : hd_block_->Dg4()) {
+    if (!dg4) {
+      continue;
+    }
+    for (auto& cg4 : dg4->Cg4()) {
+      if (!cg4) {
+        continue;
+      }
+      for (auto& cn4 : cg4->Cn4()) {
+        if (!cn4) {
+          continue;
+        }
+        for (auto& block : cn4->Cx4()) {
+          if (!block) {
+            continue;
+          }
+
+          try {
+            auto* ca4 = dynamic_cast<Ca4Block*> (block.get());
+            if (ca4 != nullptr) {
+              ca4->FindAllReferences(file);
+            }
+          } catch (const std::exception& ) {
+          }
+
+        }
+      }
+    }
+  }
 }
 
 }  // namespace mdf::detail

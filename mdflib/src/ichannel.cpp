@@ -9,6 +9,7 @@
 #include "littlebuffer.h"
 #include "dbchelper.h"
 #include "mdf/ichannelgroup.h"
+#include "mdf/mdflogstream.h"
 
 namespace mdf {
 
@@ -242,213 +243,278 @@ bool IChannel::GetCanOpenTime(const std::vector<uint8_t> &record_buffer,
   return true;
 }
 
-void IChannel::SetValid(bool) {
+void IChannel::SetValid(bool, uint64_t) {
   // Only MDF 4 have this functionality;
 }
-bool IChannel::GetValid(const std::vector<uint8_t> &) const {
+bool IChannel::GetValid(const std::vector<uint8_t> &, uint64_t index) const {
   return true; // Only MDF 4 have this functionality;
 }
 
-void IChannel::SetUnsignedValueLe(uint64_t value, bool valid) {
+void IChannel::SetUnsignedValueLe(uint64_t value, bool valid,
+                                  uint64_t array_index) {
   auto &buffer = SampleBuffer();
   if (buffer.empty()) {
+    MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
 
-  const size_t bytes = BitCount() / 8;
-  const auto max_bytes = bytes + ByteOffset();
+  const size_t bytes = DataBytes();
+  const auto max_bytes = ByteOffset() +
+                         (bytes * (array_index + 1));
   if (max_bytes > buffer.size()) {
-    SetValid(false);
+    SetValid(false, array_index);
     return;
   }
 
-  SetValid(valid);
+  SetValid(valid,array_index);
+  const uint64_t byte_offset = ByteOffset() + (bytes * array_index);
   switch (bytes) {
     case 1: {
       const LittleBuffer data(static_cast<uint8_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 2: {
       const LittleBuffer data(static_cast<uint16_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 4: {
       const LittleBuffer data(static_cast<uint32_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 8: {
       const LittleBuffer data(value);
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     default:
-      SetValid(false);
+      SetValid(false, array_index);
       break;
   }
 }
 
-void IChannel::SetUnsignedValueBe(uint64_t value, bool valid) {
-  SetValid(valid);
+void IChannel::SetUnsignedValueBe(uint64_t value, bool valid, uint64_t array_index) {
   auto &buffer = SampleBuffer();
-  const size_t bytes = BitCount() / 8;
+  if (buffer.empty()) {
+    MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
+    return; // Invalid use of function
+  }
+  const size_t bytes = DataBytes();
+  const auto max_bytes = ByteOffset() +
+                         (bytes * array_index);
+  if (max_bytes > buffer.size()) {
+    SetValid(false, array_index);
+    return;
+  }
+  SetValid(valid, array_index);
+  const uint64_t byte_offset = ByteOffset() + (bytes * array_index);
   switch (bytes) {
     case 1: {
       const BigBuffer data(static_cast<uint8_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 2: {
       const BigBuffer data(static_cast<uint16_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 4: {
       const BigBuffer data(static_cast<uint32_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 8: {
       const BigBuffer data(value);
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
+
     default:
-      SetValid(false);
+      SetValid(false, array_index);
       break;
   }
 }
 
-void IChannel::SetSignedValueLe(int64_t value, bool valid) {
-  SetValid(valid);
+void IChannel::SetSignedValueLe(int64_t value, bool valid,
+                                uint64_t array_index) {
   auto &buffer = SampleBuffer();
-  const size_t bytes = BitCount() / 8;
+  if (buffer.empty()) {
+    MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
+    return; // Invalid use of function
+  }
+  const size_t bytes = DataBytes();
+  const auto max_bytes = ByteOffset() +
+                         (bytes * (array_index + 1));
+  if (max_bytes > buffer.size()) {
+    SetValid(false, array_index);
+    return;
+  }
+  SetValid(valid, array_index);
+  const uint64_t byte_offset = ByteOffset() + (bytes * array_index);
+
   switch (bytes) {
     case 1: {
       const LittleBuffer data(static_cast<int8_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 2: {
       const LittleBuffer data(static_cast<int16_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 4: {
       const LittleBuffer data(static_cast<int32_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 8: {
       const LittleBuffer data(value);
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     default:
-      SetValid(false);
+      SetValid(false, array_index);
       break;
   }
 }
 
-void IChannel::SetSignedValueBe(int64_t value, bool valid) {
-  SetValid(valid);
+void IChannel::SetSignedValueBe(int64_t value, bool valid,
+                                uint64_t array_index) {
   auto &buffer = SampleBuffer();
-  const size_t bytes = BitCount() / 8;
+  if (buffer.empty()) {
+    MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
+    return; // Invalid use of function
+  }
+  const size_t bytes = DataBytes();
+  const auto max_bytes = ByteOffset() +
+                         (bytes * (array_index + 1));
+  if (max_bytes > buffer.size()) {
+    SetValid(false, array_index);
+    return;
+  }
+  SetValid(valid, array_index);
+  const uint64_t byte_offset = ByteOffset() + (bytes * array_index);
   switch (bytes) {
     case 1: {
       const BigBuffer data(static_cast<int8_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 2: {
       const BigBuffer data(static_cast<int16_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 4: {
       const BigBuffer data(static_cast<int32_t>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 8: {
       const BigBuffer data(value);
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
+
     default:
-      SetValid(false);
+      SetValid(false, array_index);
       break;
   }
 }
 
-void IChannel::SetFloatValueLe(double value, bool valid) {
-  SetValid(valid);
+void IChannel::SetFloatValueLe(double value, bool valid, uint64_t array_index) {
   auto &buffer = SampleBuffer();
-  const size_t bytes = BitCount() / 8;
+  if (buffer.empty()) {
+    MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
+    return; // Invalid use of function
+  }
+  const size_t bytes = DataBytes();
+  const auto max_bytes = ByteOffset() +
+                         (bytes * (array_index + 1));
+  if (max_bytes > buffer.size()) {
+    SetValid(false, array_index);
+    return;
+  }
+  SetValid(valid, array_index);
+
+  const uint64_t byte_offset = ByteOffset() + (bytes * array_index);
   switch (bytes) {
     case 4: {
       const LittleBuffer data(static_cast<float>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 8: {
       const LittleBuffer data(value);
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     default:
-      SetValid(false);
+      SetValid(false, array_index);
       break;
   }
 }
 
-void IChannel::SetFloatValueBe(double value, bool valid) {
-  SetValid(valid);
+void IChannel::SetFloatValueBe(double value, bool valid, uint64_t array_index) {
   auto &buffer = SampleBuffer();
-  const size_t bytes = BitCount() / 8;
+  if (buffer.empty()) {
+    MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
+    return; // Invalid use of function
+  }
+  const size_t bytes = DataBytes();
+  const auto max_bytes = ByteOffset() +
+                         (bytes * (array_index + 1));
+  if (max_bytes > buffer.size()) {
+    SetValid(false, array_index);
+    return;
+  }
+  SetValid(valid, array_index);
+  const uint64_t byte_offset = ByteOffset() + (bytes * array_index);
   switch (bytes) {
     case 4: {
       const BigBuffer data(static_cast<float>(value));
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     case 8: {
       const BigBuffer data(value);
-      memcpy(buffer.data() + ByteOffset(), data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data(), bytes);
       break;
     }
 
     default:
-      SetValid(false);
+      SetValid(false, array_index);
       break;
   }
 }
 
 void IChannel::SetTextValue(const std::string &value, bool valid) {
-  SetValid(valid);
+  SetValid(valid,0);
   auto &buffer = SampleBuffer();
   const size_t bytes = BitCount() / 8;
   if (bytes == 0) {
-    SetValid(false);
+    SetValid(false,0);
     return;
   }
   // The string shall be null terminated
@@ -461,11 +527,11 @@ void IChannel::SetTextValue(const std::string &value, bool valid) {
 }
 
 void IChannel::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
-  SetValid(valid);
+  SetValid(valid,0);
   auto &buffer = SampleBuffer();
   const size_t bytes = BitCount() / 8;
   if (bytes == 0) {
-    SetValid(false);
+    SetValid(false, 0);
     return;
   }
   // The string shall be null terminated
@@ -548,7 +614,7 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
       break;
   }
   if (valid) {
-    valid = GetValid(record_buffer);
+    valid = GetValid(record_buffer, array_index);
   }
   return valid;
 }
@@ -641,36 +707,37 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
       break;
   }
   if (valid) {
-    valid = GetValid(record_buffer);
+    valid = GetValid(record_buffer, array_index);
   }
   return valid;
 }
 
 template <>
-void IChannel::SetChannelValue(const std::string &value, bool valid) {
+void IChannel::SetChannelValue(const std::string &value, bool valid,
+                               uint64_t array_index) {
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
-      SetUnsignedValueLe(std::stoull(value), valid);
+      SetUnsignedValueLe(std::stoull(value), valid, array_index);
       break;
 
     case ChannelDataType::UnsignedIntegerBe:
-      SetUnsignedValueBe(std::stoull(value), valid);
+      SetUnsignedValueBe(std::stoull(value), valid, array_index);
       break;
 
     case ChannelDataType::SignedIntegerLe:
-      SetSignedValueLe(std::stoll(value), valid);
+      SetSignedValueLe(std::stoll(value), valid, array_index);
       break;
 
     case ChannelDataType::SignedIntegerBe:
-      SetSignedValueBe(std::stoll(value), valid);
+      SetSignedValueBe(std::stoll(value), valid, array_index);
       break;
 
     case ChannelDataType::FloatLe:
-      SetFloatValueLe(std::stod(value), valid);
+      SetFloatValueLe(std::stod(value), valid, array_index);
       break;
 
     case ChannelDataType::FloatBe:
-      SetFloatValueBe(std::stod(value), valid);
+      SetFloatValueBe(std::stod(value), valid, array_index);
       break;
 
     case ChannelDataType::StringUTF8:
@@ -693,13 +760,14 @@ void IChannel::SetChannelValue(const std::string &value, bool valid) {
     case ChannelDataType::CanOpenTime:
     default:
         // Cannot find any good text to date/time
-      SetValid(false);
+      SetValid(false, array_index);
       break;
   }
 }
 
 template <>
-void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid) {
+void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid,
+                               uint64_t array_index) {
   switch (DataType()) {
     case ChannelDataType::StringUTF8:
     case ChannelDataType::StringAscii:
@@ -716,7 +784,7 @@ void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid) {
       if (value.size() == DataBytes()) {
         SetByteArray(value, valid);
       } else {
-        SetValid(false);
+        SetValid(false, array_index);
       }
       break;
 
@@ -728,7 +796,7 @@ void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid) {
     case ChannelDataType::FloatBe:
     default:
       // Conversion to byte array is suspicious
-      SetValid(false);
+      SetValid(false, array_index);
       break;
   }
 }

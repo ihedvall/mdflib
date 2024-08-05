@@ -799,7 +799,7 @@ bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
 
 void Cn4Block::SetTextValue(const std::string &value, bool valid) {
   if (Type() == ChannelType::VariableLength) {
-    SetValid(valid);
+    SetValid(valid,0);
     // String stored in signal data. Index should be stored in the record
     // and the string in a temporary data block (data_list_). This block is
     // later stored into an SD/DZ block.
@@ -816,9 +816,9 @@ void Cn4Block::SetTextValue(const std::string &value, bool valid) {
     }
     // Store the index in the record
     if (bit_count_ == 0) {
-      SetValid(false);
+      SetValid(false,0);
     } else {
-      SetUnsignedValueLe(index, true);
+      SetUnsignedValueLe(index, true,0);
     }
   } else {
     // Fixed length handle by interface class
@@ -827,7 +827,7 @@ void Cn4Block::SetTextValue(const std::string &value, bool valid) {
 }
 
 void Cn4Block::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
-  SetValid(valid);
+  SetValid(valid,0);
   if (Type() == ChannelType::VariableLength) {
     // String stored in signal data. Index should be stored in the record
     // and the string in a temporary data block (data_list_). This block is
@@ -845,9 +845,9 @@ void Cn4Block::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
     }
     // Store the index in the record
     if (bit_count_ == 0) {
-      SetValid(false);
+      SetValid(false,0);
     } else {
-      SetUnsignedValueLe(index, true);
+      SetUnsignedValueLe(index, true,0);
     }
   } else {
     // Fixed length handle by interface class
@@ -1138,13 +1138,21 @@ void Cn4Block::PrepareForWriting(size_t offset) {
       }
       break;
   }
+  auto* array = ChannelArray();
+  auto* ca4 = array != nullptr ?
+                               dynamic_cast<Ca4Block*>(array) : nullptr;
+  if (ca4 != nullptr) {
+    ca4->PrepareForWriting();
+  }
 }
 
-void Cn4Block::SetValid(bool valid) {
-  if (Flags() & CnFlag::InvalidValid && cg_block_ != nullptr) {
+void Cn4Block::SetValid(bool valid, uint64_t array_index) {
+  if ((Flags() & CnFlag::InvalidValid) != 0 && cg_block_ != nullptr) {
     auto& buffer = SampleBuffer();
-    const auto byte_offset = cg_block_->NofDataBytes() + (invalid_bit_pos_ / 8);
-    const auto bit_offset = invalid_bit_pos_ % 8;
+    const uint32_t invalid_pos = invalid_bit_pos_ +
+                                 static_cast<uint32_t>(array_index);
+    const uint32_t byte_offset = cg_block_->NofDataBytes() + (invalid_pos / 8);
+    const uint32_t bit_offset = invalid_pos % 8;
     const uint8_t mask = 0x01 << bit_offset;
     if (byte_offset < buffer.size()) {
       if (valid) {
@@ -1156,14 +1164,16 @@ void Cn4Block::SetValid(bool valid) {
   }
 }
 
-bool Cn4Block::GetValid(const std::vector<uint8_t> &record_buffer) const {
+bool Cn4Block::GetValid(const std::vector<uint8_t> &record_buffer,
+                        uint64_t array_index) const {
   bool valid = true;
   if (Flags() & CnFlag::InvalidValid && cg_block_ != nullptr) {
-    const auto byte_offset = cg_block_->NofDataBytes() + (invalid_bit_pos_ / 8);
-    const auto bit_offset = invalid_bit_pos_ % 8;
+    const auto invalid_pos = invalid_bit_pos_ + array_index;
+    const auto byte_offset = cg_block_->NofDataBytes() + (invalid_pos / 8);
+    const auto bit_offset = invalid_pos % 8;
     const uint8_t mask = 0x01 << bit_offset;
     if (byte_offset < record_buffer.size()) {
-      valid = (record_buffer[byte_offset] & ~mask) == 0;
+      valid = (record_buffer[byte_offset] & mask) == 0;
     }
   }
   return valid;
@@ -1275,6 +1285,7 @@ IChannelArray *Cn4Block::ChannelArray() const {
 IChannelArray *Cn4Block::CreateChannelArray() {
   if (const auto* channel_array = ChannelArray(); channel_array == nullptr) {
     auto temp = std::make_unique<Ca4Block>();
+    temp->SetParentChannel(this);
     cx_list_.emplace_back(std::move(temp));
   }
   return ChannelArray();

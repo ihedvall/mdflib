@@ -64,5 +64,6 @@ class Mdf4File : public MdfFile {
 
   bool finalized_done_ = false;
   bool FinalizeFile(std::FILE* file);
+  void FindAllReferences(std::FILE* file);
 };
 }  // namespace mdf::detail

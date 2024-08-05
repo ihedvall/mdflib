@@ -359,7 +359,8 @@ class IChannel : public IBlock  {
    * @param valid True if the value is valid.
    */
   template <typename T>
-  void SetChannelValue(const T &value, bool valid = true);
+  void SetChannelValue(const T &value, bool valid = true,
+                       uint64_t array_index = 0);
 
   /** \brief Internally used function mainly for fetching VLSD index values.
    *
@@ -504,23 +505,24 @@ class IChannel : public IBlock  {
   [[nodiscard]] virtual std::vector<uint8_t> &SampleBuffer() const = 0;
 
   /** \brief Support function that sets the valid flag. */
-  virtual void SetValid(bool valid);
+  virtual void SetValid(bool valid, uint64_t array_index);
 
   /** \brief Support function that return true if the valid bit is set.*/
-  virtual bool GetValid(const std::vector<uint8_t> &record_buffer) const;
+  virtual bool GetValid(const std::vector<uint8_t> &record_buffer,
+                        uint64_t array_index) const;
 
   /** \brief Support function that sets unsigned little endian values */
-  void SetUnsignedValueLe(uint64_t value, bool valid);
+  void SetUnsignedValueLe(uint64_t value, bool valid, uint64_t array_index);
   /** \brief Support function that sets unsigned big endian values */
-  void SetUnsignedValueBe(uint64_t value, bool valid);
+  void SetUnsignedValueBe(uint64_t value, bool valid, uint64_t array_index);
   /** \brief Support function that sets signed little endian values */
-  void SetSignedValueLe(int64_t value, bool valid);
+  void SetSignedValueLe(int64_t value, bool valid, uint64_t array_index);
   /** \brief Support function that sets signed big endian values */
-  void SetSignedValueBe(int64_t value, bool valid);
+  void SetSignedValueBe(int64_t value, bool valid, uint64_t array_index);
   /** \brief Support function that sets float little endian values */
-  void SetFloatValueLe(double value, bool valid);
+  void SetFloatValueLe(double value, bool valid, uint64_t array_index);
   /** \brief Support function that sets float big endian values */
-  void SetFloatValueBe(double value, bool valid);
+  void SetFloatValueBe(double value, bool valid, uint64_t array_index);
   /** \brief Support function that sets text values */
   virtual void SetTextValue(const std::string &value, bool valid);
   /** \brief Support function that sets array values */
@@ -597,7 +599,7 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
       break;
   }
   if (valid) {
-     valid = GetValid(record_buffer);
+     valid = GetValid(record_buffer, array_index);
   }
   return valid;
 }
@@ -613,30 +615,31 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
                                std::string &dest, uint64_t array_index) const;
 
 template <typename T>
-void IChannel::SetChannelValue(const T &value, bool valid) {
+void IChannel::SetChannelValue(const T &value, bool valid,
+                               uint64_t array_index ) {
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerLe:
-      SetUnsignedValueLe(static_cast<uint64_t>(value), valid);
+      SetUnsignedValueLe(static_cast<uint64_t>(value), valid, array_index);
       break;
 
     case ChannelDataType::UnsignedIntegerBe:
-      SetUnsignedValueBe(static_cast<uint64_t>(value), valid);
+      SetUnsignedValueBe(static_cast<uint64_t>(value), valid, array_index);
       break;
 
     case ChannelDataType::SignedIntegerLe:
-      SetSignedValueLe(static_cast<int64_t>(value), valid);
+      SetSignedValueLe(static_cast<int64_t>(value), valid, array_index);
       break;
 
     case ChannelDataType::SignedIntegerBe:
-      SetSignedValueBe(static_cast<int64_t>(value), valid);
+      SetSignedValueBe(static_cast<int64_t>(value), valid, array_index);
       break;
 
     case ChannelDataType::FloatLe:
-      SetFloatValueLe(static_cast<double>(value), valid);
+      SetFloatValueLe(static_cast<double>(value), valid, array_index);
       break;
 
     case ChannelDataType::FloatBe:
-      SetFloatValueBe(static_cast<double>(value), valid);
+      SetFloatValueBe(static_cast<double>(value), valid, array_index);
       break;
 
     case ChannelDataType::StringUTF8:
@@ -658,7 +661,7 @@ void IChannel::SetChannelValue(const T &value, bool valid) {
             MdfHelper::NsToCanOpenDateArray(static_cast<uint64_t>(value));
         SetByteArray(date_array, valid);
       } else {
-        SetValid(false);
+        SetValid(false, array_index);
       }
       break;
 
@@ -668,22 +671,24 @@ void IChannel::SetChannelValue(const T &value, bool valid) {
             MdfHelper::NsToCanOpenTimeArray(static_cast<uint64_t>(value));
         SetByteArray(time_array, valid);
       } else {
-        SetValid(false);
+        SetValid(false, array_index);
       }
       break;
 
 
     default:
-      SetValid(false);
+      SetValid(false, array_index);
       break;
   }
 };
 
 /** \brief Support function that sets a string value to a record buffer. */
 template <>
-void IChannel::SetChannelValue(const std::string &value, bool valid);
+void IChannel::SetChannelValue(const std::string &value, bool valid,
+                               uint64_t array_index);
 
 /** \brief Support function that sets a string value to a record buffer. */
 template <>
-void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid);
+void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid,
+                               uint64_t array_index);
 }  // namespace mdf

@@ -82,7 +82,7 @@ TEST(CreateFileList, TestBasicFunction) {
   }
 }
 
-TEST(CreateFileList, TestCssLog) {
+TEST(CreateFileList, TestCsvLog) {
   auto& arguments = ProgramArgument::Instance();
   arguments.Clear();
 

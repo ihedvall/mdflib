@@ -28,7 +28,9 @@ add_executable(test_mdf
         src/util/stringutil.cpp src/util/stringutil.h
         src/util/timestamp.cpp src/util/timestamp.h
         src/testhelper.cpp
-        src/testchannel.cpp)
+        src/testchannel.cpp
+        src/testchannelarray.cpp
+        src/testchannelarray.h)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 

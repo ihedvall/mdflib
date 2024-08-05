@@ -1123,6 +1123,8 @@ void ChildFrame::RedrawListView() {
         if (prop.Link() > 0) {
           property_view_->SetItem(index, 1, wxString::FromUTF8(prop.Value()));
           property_view_->SetItem(index, 2, wxString::FromUTF8(prop.Description()));
+        } else if (!prop.Description().empty()) {
+          property_view_->SetItem(index, 2, wxString::FromUTF8(prop.Description()));
         }
       }
       break;

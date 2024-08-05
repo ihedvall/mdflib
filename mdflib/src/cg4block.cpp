@@ -3,17 +3,13 @@
  * SPDX-License-Identifier: MIT
  */
 #include "cg4block.h"
-
-
-
 #include <algorithm>
 
 #include <codecvt>
 #include <climits>
 #include "cn4block.h"
 #include "sr4block.h"
-
-
+#include "mdf/mdflogstream.h"
 
 namespace {
 
@@ -465,12 +461,24 @@ void Cg4Block::PrepareForWriting() {
       continue;
     }
     channel->PrepareForWriting(byte_offset);
-    nof_data_bytes_ += static_cast<uint32_t>(channel->DataBytes());
-    byte_offset += channel->DataBytes();
+    const auto value_size = static_cast<uint32_t>(channel->DataBytes());
+    const auto* array = channel->ChannelArray();
+    if (array != nullptr) {
+      nof_data_bytes_ += static_cast<uint32_t>(value_size * array->NofArrayValues());
+      byte_offset += static_cast<uint32_t>(value_size * array->NofArrayValues());
+    } else {
+      // Not an array
+      nof_data_bytes_ += static_cast<uint32_t>(value_size);
+      byte_offset += static_cast<uint32_t>(value_size);
+    }
 
     if (channel->Flags() & CnFlag::InvalidValid) {
       channel->SetInvalidOffset(invalid_bit_offset);
-      ++invalid_bit_offset;
+      if (array != nullptr) {
+        invalid_bit_offset += array->NofArrayValues();
+      } else {
+        ++invalid_bit_offset;
+      }
     }
   }
 
@@ -484,7 +492,7 @@ void Cg4Block::PrepareForWriting() {
 
   if (const auto total_size = nof_invalid_bytes_ + nof_data_bytes_;
       total_size > 0) {
-    sample_buffer_.resize(total_size);
+    sample_buffer_.resize(total_size,0);
   } else {
     sample_buffer_.clear();
   }
@@ -522,7 +530,12 @@ void Cg4Block::WriteSample(FILE *file, uint8_t record_id_size,
     }
 
   }
-  fwrite(buffer.data(), 1, buffer.size(), file);
+  const size_t bytes = fwrite(buffer.data(), 1,
+                              buffer.size(), file);
+  if (bytes != buffer.size()) {
+    MDF_ERROR() << "Failed to write a sample data. Written : "
+                << bytes << "(" << buffer.size() << ")";
+  }
   IncrementSample();            // Increment internal sample counter
   NofSamples(Sample());
 }
@@ -609,9 +622,11 @@ uint64_t Cg4Block::WriteVlsdSample(FILE *file, uint8_t record_id_size,
   }
   const auto length = static_cast<uint32_t>(buffer.size());
   const LittleBuffer buff(length);
-  const auto length_count = fwrite(buff.data(), 1, sizeof(length), file);
+  const auto length_count = fwrite(buff.data(),
+                                   1, sizeof(length), file);
   // total_count += length_count;
-  const auto buffer_count = fwrite(buffer.data(), 1, buffer.size(), file);
+  const auto buffer_count = fwrite(buffer.data(),
+                                   1, buffer.size(), file);
   total_count += buffer_count;
   IncrementSample();            // Increment internal sample counter
   NofSamples(Sample());

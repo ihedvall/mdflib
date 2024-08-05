@@ -7,6 +7,8 @@
 #include "mdfblock.h"
 namespace mdf::detail {
 
+class Cn4Block;
+
 class Ca4Block : public MdfBlock, public IChannelArray {
  public:
   using Cx4List = std::vector<std::unique_ptr<MdfBlock>>;
@@ -29,23 +31,44 @@ class Ca4Block : public MdfBlock, public IChannelArray {
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
 
-  [[nodiscard]] uint16_t Dimensions() const override; ///< Number of dimensions
-  void DimensionSize(uint16_t dimension, uint64_t dimension_size ) override; ///< Size for a dimension
-  [[nodiscard]] uint64_t DimensionSize(uint16_t dimension) const override; ///< Size for a dimension
+  [[nodiscard]] size_t Dimensions() const override; ///< Number of dimensions
 
-  [[nodiscard]] uint64_t AxisValues() const override; ///< Number of axis
-  void AxisValue(uint64_t index, double value ) override; ///< Setting an axis value
-  [[nodiscard]] double AxisValue(uint64_t index) const override; ///< Getting an axis value
+  void Shape(const std::vector<uint64_t>& dim_sizes) override;
+  [[nodiscard]] const std::vector<uint64_t>& Shape() const override;
 
-  [[nodiscard]] uint64_t CycleCounts() const override; ///< Number of cycle counts
-  void CycleCountOffset(uint64_t cycle_count, uint64_t offset ) override; ///< Setting an offset value
-  [[nodiscard]] uint64_t CycleCountOffset(uint64_t cycle_count) const override; ///< Getting an axis value
+  [[nodiscard]] uint64_t DimensionSize(size_t dimension) const override; ///< Size for a dimension
+
+  /** Returns the summation of the dimension sizes. */
+  [[nodiscard]] size_t SumOfArray() const override;
+
+  /** Returns the product of the dimension sizes. */
+  [[nodiscard]] size_t ProductOfArray() const override;
+
+  /** \brief Returns a list of axis values.
+   *
+   * @return List of axis values.
+   */
+  [[nodiscard]] const std::vector<double>& AxisValues() const override;
+
+  /** \brief Returns a list of axis values.
+   *
+   * @return List of axis values.
+   */
+  [[nodiscard]] std::vector<double>& AxisValues() override;
+
+  [[nodiscard]] const std::vector<uint64_t>& CycleCounts() const override;
+  [[nodiscard]] std::vector<uint64_t>& CycleCounts() override;
 
   [[nodiscard]] MdfBlock *Find(int64_t index) const override;
   [[nodiscard]] const Cx4List& Cx4() const { return composition_list_; }
 
   size_t Read(std::FILE* file) override;
+  void FindAllReferences(std::FILE* file);
 
+  size_t Write(std::FILE* file) override;
+
+  void SetParentChannel(const Cn4Block* parent);
+  void PrepareForWriting();
  private:
   uint8_t type_ = 0;
   uint8_t storage_ = 0;
@@ -53,6 +76,7 @@ class Ca4Block : public MdfBlock, public IChannelArray {
   uint32_t flags_ = 0;
   int32_t byte_offset_base_ = 0;
   uint32_t invalid_bit_pos_base_ = 0;
+  const Cn4Block* parent_channel_ = nullptr;
 
   /** \brief Array of Array or composition _list */
   Cx4List composition_list_;
@@ -62,9 +86,16 @@ class Ca4Block : public MdfBlock, public IChannelArray {
   // Axis values
   std::vector<double> axis_value_list_;
   std::vector<uint64_t> cycle_count_list_;
-  [[nodiscard]] uint64_t NumberOfAxisValues() const;
 
-  void CreateLinkLists() override;
+  [[nodiscard]] CaTripleReference ReadReference(size_t index) const;
+
+  void WriteReference(std::FILE* file,
+                      const CaTripleReference& ref, size_t start_index);
+  size_t WriteReferences(std::FILE* file,
+                       const std::vector<CaTripleReference>& list,
+                       size_t max_fill,
+                       size_t start_index);
+
 
 
 

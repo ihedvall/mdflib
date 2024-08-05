@@ -100,7 +100,6 @@ size_t Dg4Block::Read(std::FILE* file) {
   ReadMdComment(file, kIndexMd);
   ReadBlockList(file, kIndexData);
 
-
   return bytes;
 }
 

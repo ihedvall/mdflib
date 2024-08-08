@@ -3,7 +3,7 @@
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_DEBUG_POSTFIX d)
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ${BUILD_SHARED_LIBS})
 
 add_library(mdf
         src/mdfblock.cpp src/mdfblock.h
@@ -100,6 +100,8 @@ add_library(mdf
         src/mdfconverter.cpp
         src/mdfconverter.h
 )
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})
 
 if(VCPKG)
   find_package(ZLIB REQUIRED)

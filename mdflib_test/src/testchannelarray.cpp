@@ -8,6 +8,9 @@
 #include "ca4block.h"
 
 #include <filesystem>
+#include <xtensor/xarray.hpp>
+#include <xtensor/xadapt.hpp>
+#include <xtensor/xio.hpp>
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
@@ -19,7 +22,6 @@
 #include "mdf/mdfreader.h"
 #include "mdf/ifilehistory.h"
 #include "mdf/idatagroup.h"
-#include "mdf/ichannelgroup.h"
 #include "mdf/ichannel.h"
 
 using namespace std::this_thread;
@@ -33,6 +35,8 @@ namespace {
 
 std::string kTestRootDir; ///< Test root directory
 std::string kTestDir; ///<  <Test Root Dir>/mdf/array";
+constexpr std::string_view kFixedAxisFile =
+    "E:/test_dir/mdf/mdf4_2/Arrays/Simple/Vector_ArrayWithFixedAxes.MF4";
 bool kSkipTest = false;
 
 /**
@@ -41,7 +45,7 @@ bool kSkipTest = false;
  * @param severity Severity code
  * @param text Log text
  */
-void LogFunc(const MdfLocation& location, mdf::MdfLogSeverity severity,
+void LogFunc(const MdfLocation& , mdf::MdfLogSeverity severity,
              const std::string& text) {
   const auto &log_config = LogConfig::Instance();
   LogMessage message;
@@ -56,8 +60,8 @@ void LogFunc(const MdfLocation& location, mdf::MdfLogSeverity severity,
  * @param severity Severity code
  * @param text Log text
  */
-void NoLog(const MdfLocation& location, mdf::MdfLogSeverity severity,
-           const std::string& text) {
+void NoLog(const MdfLocation& , mdf::MdfLogSeverity ,
+           const std::string& ) {
 }
 
 }  // namespace
@@ -303,13 +307,13 @@ TEST_F(TestChannelArray, Mdf4WriteCA) {
         if (cn4->Type() == ChannelType::Master) {
           master_channel = true;
         }
-        const auto* array = cn4->ChannelArray();
-        if (array != nullptr) {
-          EXPECT_GT(array->Index(), 0);
-          EXPECT_EQ(array->Type(), ArrayType::Array);
-          ASSERT_EQ(array->Dimensions(), 2);
-          ASSERT_EQ(array->SumOfArray(), 3 + 4);
-          ASSERT_EQ(array->ProductOfArray(), 3 * 4);
+        const auto* ca4 = cn4->ChannelArray();
+        if (ca4 != nullptr) {
+          EXPECT_GT(ca4->Index(), 0);
+          EXPECT_EQ(ca4->Type(), ArrayType::Array);
+          ASSERT_EQ(ca4->Dimensions(), 2);
+          ASSERT_EQ(ca4->SumOfArray(), 3 + 4);
+          ASSERT_EQ(ca4->ProductOfArray(), 3 * 4);
         }
       }
       EXPECT_TRUE(master_channel);
@@ -323,23 +327,248 @@ TEST_F(TestChannelArray, Mdf4WriteCA) {
       for (const auto& observer : observer_list) {
         ASSERT_TRUE(observer);
         const auto* array1 = observer->Channel().ChannelArray();
-        if (array1 != nullptr) {
+        if (array1 == nullptr) {
+          continue;
+        }
+
+        for (uint64_t sample = 0; sample < observer->NofSamples(); ++sample) {
+          for (uint64_t index = 0; index < array1->NofArrayValues(); ++index) {
+            uint64_t value = 0;
+            const bool valid = observer->GetChannelValue(sample, value, index);
+            EXPECT_EQ(valid, (index % 2) == 0) << "Sample/Index: "
+                                               << sample << "/" << index;
+            EXPECT_EQ(value, index) << "Sample/Index: " << sample
+                << "/" << index
+                << ", Value: " << value << "(" << index << ")";
+          }
+        }
+      }
+    }
+  }
+}
+
+TEST_F(TestChannelArray, TestArrayInsertAndRead) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("array.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* header = writer->Header();
+  ASSERT_TRUE(header != nullptr);
+
+  auto* history = header->CreateFileHistory();
+  ASSERT_TRUE(history != nullptr);
+  history->Description("Created");
+  history->ToolName("MdfChannelArray Unit Test");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+  ASSERT_TRUE(data_group != nullptr);
+
+  // Test CG4 block
+  auto* channel_group = data_group->CreateChannelGroup();
+  ASSERT_TRUE(channel_group != nullptr);
+  channel_group->Name("Group1");
+
+  // Add master
+  auto* master = channel_group->CreateChannel();
+  ASSERT_TRUE(master != nullptr);
+
+  // Add time master channel
+  master->Name("Time");
+  master->Unit("km/h");
+  master->Type(ChannelType::Master);
+  master->Sync(ChannelSyncType::Time);
+  master->DataType(ChannelDataType::FloatLe);
+  master->DataBytes(8);
+
+  // Add channel
+  auto* channel = channel_group->CreateChannel();
+  ASSERT_TRUE(channel != nullptr);
+
+  channel->Name("Array Channel");
+  channel->DisplayName("Test channel");
+  channel->Description("Unit test of CA block");
+  channel->Unit("km/h");
+  channel->Flags(CnFlag::InvalidValid);
+  channel->Type(ChannelType::FixedLength);
+  channel->Sync(ChannelSyncType::None);
+  channel->DataType(ChannelDataType::FloatLe);
+  channel->DataBytes(8);
+
+  // Add Channel Array
+  auto* array = channel->CreateChannelArray();
+  ASSERT_TRUE(array != nullptr);
+
+  array->Type(ArrayType::Array);
+  array->Shape({3,4});
+  const uint64_t nof_array_values = array->NofArrayValues();
+
+  // Create some dummy samples
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+
+  std::vector<double> values(nof_array_values);
+  for (uint64_t index = 0; index < nof_array_values; ++index) {
+    values[index] = static_cast<double>(index);
+  }
+
+  for (size_t sample = 0; sample < 10; ++sample) {
+    channel->SetChannelValues(values);
+    writer->SaveSample(*channel_group,tick_time);
+    tick_time += 1'000'000'000; // 1 second tick
+  }
+  writer->StopMeasurement(tick_time);
+
+  writer->FinalizeMeasurement();
+
+  EXPECT_GT(header->Index(), 0);
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+
+  const auto* file1 = reader.GetFile();
+  ASSERT_TRUE(file1 != nullptr);
+
+  const auto* header1 = file1->Header();
+  ASSERT_TRUE(header1 != nullptr);
+
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+  for (auto* dg4 : dg_list) {
+    ASSERT_TRUE(dg4 != nullptr);
+
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+
+    for (auto* cg4 : cg_list) {
+      ASSERT_TRUE(cg4 != nullptr);
+      EXPECT_EQ(cg4->NofSamples(),10);
+      EXPECT_EQ(cg4->RecordId(),0);
+
+      const auto cn_list = cg4->Channels();
+      EXPECT_EQ(cn_list.size(),2);
+
+      bool master_channel = false;
+      for (auto* cn4 : cn_list) {
+        ASSERT_TRUE(cn4 != nullptr);
+        EXPECT_GT(cn4->Index(),0);
+        if (cn4->Type() == ChannelType::Master) {
+          master_channel = true;
+        }
+        const auto* ca4 = cn4->ChannelArray();
+        if (ca4 != nullptr) {
+          EXPECT_GT(ca4->Index(), 0);
+          EXPECT_EQ(ca4->Type(), ArrayType::Array);
+          ASSERT_EQ(ca4->Dimensions(), 2);
+          ASSERT_EQ(ca4->SumOfArray(), 3 + 4);
+          ASSERT_EQ(ca4->ProductOfArray(), 3 * 4);
+        }
+      }
+      EXPECT_TRUE(master_channel);
+
+      // Set up subscription and read in data
+      ChannelObserverList  observer_list;
+      CreateChannelObserverForChannelGroup(*dg4, *cg4,
+                                           observer_list);
+      EXPECT_TRUE(reader.ReadData(*dg4));
+
+      for (const auto& observer : observer_list) {
+        ASSERT_TRUE(observer);
+        if (!observer->IsArray()) {
+          const auto nof_samples = observer->NofSamples();
+          std::vector<double> channel_values;
+          observer->GetChannelSamples(channel_values);
+          EXPECT_EQ(channel_values.size(),nof_samples);
+
+          std::vector<double> eng_values;
+          observer->GetEngSamples(eng_values);
+          EXPECT_EQ(eng_values.size(),nof_samples);
+        } else {
+          const auto array_size = observer->ArraySize();
+          std::vector<uint64_t> value_array;
           for (uint64_t sample = 0; sample < observer->NofSamples(); ++sample) {
-            for (uint64_t index = 0; index < array1->NofArrayValues(); ++index) {
-              uint64_t value = 0;
-              const bool valid = observer->GetChannelValue(sample, value, index);
-              EXPECT_EQ(valid, (index % 2) == 0) << "Sample/Index: "
-                                                 << sample << "/" << index;
-              EXPECT_EQ(value, index) << "Sample/Index: " << sample
-                  << "/" << index
-                  << ", Value: " << value << "(" << index << ")";
+            observer->GetEngValues(sample, value_array);
+            EXPECT_EQ(value_array.size(), array_size);
+            uint64_t expected = 0;
+            for (const uint64_t value : value_array) {
+              EXPECT_EQ(value, expected)
+                  << "Sample: " << sample << ", Value: " << value << "("
+                  << expected << ")";
+              ++expected;
             }
           }
         }
       }
     }
-
   }
+}
+
+TEST_F(TestChannelArray, TestXTensor) {
+  const std::string mdf_file(kFixedAxisFile);
+  try {
+    if (!exists(mdf_file)) {
+      GTEST_SKIP() << "Skip test. File doesn't exist" << std::endl;
+    }
+  } catch (const std::exception& err) {
+    GTEST_SKIP() << "Skipping test. Error: " << err.what() << std::endl;
+  }
+
+  MdfReader reader(mdf_file);
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+
+  const auto* file = reader.GetFile();
+  ASSERT_TRUE(file != nullptr);
+
+  const auto* header = file->Header();
+  ASSERT_TRUE(header != nullptr);
+
+  const auto dg_list = header->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+  for (auto* dg4 : dg_list) {
+    ASSERT_TRUE(dg4 != nullptr);
+
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 1);
+
+    for (auto* cg4 : cg_list) {
+      ASSERT_TRUE(cg4 != nullptr);
+      // Set up subscription and read in data
+      ChannelObserverList  observer_list;
+      CreateChannelObserverForChannelGroup(*dg4, *cg4,
+                                             observer_list);
+      EXPECT_TRUE(reader.ReadData(*dg4));
+
+      for (const auto& observer : observer_list) {
+        ASSERT_TRUE(observer);
+        if (!observer->IsArray()) {
+          continue;
+        }
+        const auto array_size = observer->ArraySize();
+        EXPECT_EQ(array_size, 6*8);
+        std::vector<size_t> shape = observer->Shape();
+        EXPECT_EQ(shape.size(), 2);
+        std::vector<double> value_array;
+        for (uint64_t sample = 0; sample < observer->NofSamples(); ++sample) {
+            observer->GetEngValues(sample, value_array);
+            EXPECT_EQ(value_array.size(),array_size);
+            const xt::xarray<double> array = xt::adapt(value_array,shape);
+            std::cout << "Array:" << std::endl
+                      << array << std::endl << std::endl;
+          }
+        }
+      }
+    }
 
 
 }

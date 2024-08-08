@@ -350,10 +350,13 @@ class IChannel : public IBlock  {
   bool GetChannelValue(const std::vector<uint8_t> &record_buffer,
                        T &dest, uint64_t array_index = 0) const;
 
-  /** \brief Fills a record buffer with a channel value.
+  /** \brief Sets a channel value.
    *
-   * Internally used function that fills a sample record buffer with a channel
-   * value.
+   * The function is used when writing MDF files. The function
+   * take an unscaled channel value and insert it into the channel
+   * groups record buffer. This record buffer is later saved
+   * to the MDF file by calling the IChannelGroup::SaveSample()
+   * function.
    * @tparam T Type of value.
    * @param value The value to transfer.
    * @param valid True if the value is valid.
@@ -361,6 +364,18 @@ class IChannel : public IBlock  {
   template <typename T>
   void SetChannelValue(const T &value, bool valid = true,
                        uint64_t array_index = 0);
+
+  /** \brief Sets channel array values.
+   *
+   * The function shall be used to simplify setting channel array
+   * values. The function assumes that all values are valid. If
+   * values may be invalid, the SetChannelValue() function should be used.
+   *
+   * @tparam T Type of values
+   * @param values 1-Dimensional list of array values.
+   */
+  template<typename T>
+  void SetChannelValues(const std::vector<T>& value_array);
 
   /** \brief Internally used function mainly for fetching VLSD index values.
    *
@@ -689,6 +704,21 @@ void IChannel::SetChannelValue(const std::string &value, bool valid,
 
 /** \brief Support function that sets a string value to a record buffer. */
 template <>
-void IChannel::SetChannelValue(const std::vector<uint8_t> &value, bool valid,
+void IChannel::SetChannelValue(const std::vector<uint8_t> &values, bool valid,
                                uint64_t array_index);
+
+template <typename T>
+void IChannel::SetChannelValues(const std::vector<T>& values) {
+  const auto* array = ChannelArray();
+  const auto array_size = array != nullptr ?
+                                           array->NofArrayValues() : 1;
+  uint64_t index = 0;
+  for (const T& value : values) {
+    if (index < array_size) {
+      SetChannelValue(value, true, index);
+    }
+    ++index;
+  }
+}
+
 }  // namespace mdf

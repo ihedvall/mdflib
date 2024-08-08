@@ -32,6 +32,8 @@ if(MDF_BUILD_TEST AND VCPKG)
   list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
 endif()
 
+
+
 project(
   mdflib
   VERSION 2.2
@@ -47,7 +49,9 @@ if(MDF_BUILD_SHARED_LIB)
   add_subdirectory(mdflibrary)
 endif()
 
+
 if(MDF_BUILD_TEST)
+  include("script/xtensor.cmake")
   include("script/googletest.cmake")
   enable_testing()
   add_subdirectory(mdflib_test)

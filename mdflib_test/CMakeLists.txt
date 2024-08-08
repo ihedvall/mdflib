@@ -30,10 +30,12 @@ add_executable(test_mdf
         src/testhelper.cpp
         src/testchannel.cpp
         src/testchannelarray.cpp
-        src/testchannelarray.h)
+        src/testchannelarray.h
+        src/testxtensor.cpp)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
-
+target_include_directories(test_mdf PRIVATE ${XTENSOR_INCLUDE_DIRS})
+target_link_libraries(test_mdf PRIVATE xtensor)
 if(VCPKG)
   find_package(Boost)
   target_link_libraries(test_mdf PRIVATE Boost::boost)

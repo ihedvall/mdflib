@@ -20,6 +20,7 @@ add_executable(test_mdf2csv
         ../src/logtoconsole.h
         testcreatefiles.cpp)
 
+
 target_include_directories(test_mdf2csv PRIVATE ../src)
 target_include_directories(test_mdf2csv PRIVATE ../../include)
 target_link_libraries(test_mdf2csv PRIVATE mdf)

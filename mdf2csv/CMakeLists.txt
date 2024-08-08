@@ -23,6 +23,8 @@ add_executable(mdf2csv
         src/logtoconsole.cpp
         src/logtoconsole.h)
 
+target_include_directories(mdf2csv PRIVATE ${XTENSOR_INCLUDE_DIRS})
+
 if(MSVC)
     target_compile_definitions(mdf2csv PRIVATE
             _WIN32_WINNT=0x0A00
@@ -34,6 +36,7 @@ elseif(MINGW)
 endif()
 
 target_link_libraries(mdf2csv PRIVATE mdf)
+
 
 if(VCPKG)
     find_package(expat CONFIG REQUIRED)

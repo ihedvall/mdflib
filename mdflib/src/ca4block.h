@@ -33,8 +33,8 @@ class Ca4Block : public MdfBlock, public IChannelArray {
 
   [[nodiscard]] size_t Dimensions() const override; ///< Number of dimensions
 
-  void Shape(const std::vector<uint64_t>& dim_sizes) override;
-  [[nodiscard]] const std::vector<uint64_t>& Shape() const override;
+  void Shape(const std::vector<size_t>& dim_sizes) override;
+  [[nodiscard]] const std::vector<size_t>& Shape() const override;
 
   [[nodiscard]] uint64_t DimensionSize(size_t dimension) const override; ///< Size for a dimension
 

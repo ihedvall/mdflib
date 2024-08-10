@@ -142,7 +142,7 @@ TEST_F(TestChannelArray, TestProperties) {
   EXPECT_EQ(array.Flags(), CaFlag::ComparisonQuantity);
 
   EXPECT_EQ(array.Dimensions(), 0);
-  const std::vector<uint64_t> shape = {1,2,3};
+  const std::vector<size_t> shape = {1,2,3};
   array.Shape(shape);
   EXPECT_EQ(array.Dimensions(), 3);
   const auto& shape1 = array.Shape();

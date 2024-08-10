@@ -25,19 +25,19 @@ TEST(XTensor, FirstExample) {
 }
 
 TEST(XTensor, SecondExample) {
-  std::vector<uint64_t> shape1 = {2,3};
+  std::vector<size_t> shape1 = {2,3};
   xt::xarray<uint64_t> arr(shape1);
   std::cout << "Shape1: " << std::endl << arr << std::endl << std::endl;
 
-  std::vector<uint64_t> shape2 = {3,3};
+  std::vector<size_t> shape2 = {3,3};
   arr.resize(shape2);
   std::cout << "Shape2: " << std::endl << arr << std::endl << std::endl;
 
-  std::vector<uint64_t> shape1D = {9};
+  std::vector<size_t> shape1D = {9};
   xt::xarray<double> values = {1.0, 2.0, 3.0,4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
   std::cout << "Value 1D: " << std::endl << values << std::endl << std::endl;
 
-  std::vector<uint64_t> shape2D = {3,3};
+  std::vector<size_t> shape2D = {3,3};
   values.reshape(shape2D );
   std::cout << "Value 2D: " << std::endl << values << std::endl << std::endl;
 

@@ -91,7 +91,7 @@ void IChannelObserver::ReadVlsdData(bool read_vlsd_data) {
   }
 }
 
-std::vector<size_t> IChannelObserver::Shape() const {
+std::vector<uint64_t> IChannelObserver::Shape() const {
   const IChannelArray* array = Channel().ChannelArray();
   if (array != nullptr) {
     return array->Shape();

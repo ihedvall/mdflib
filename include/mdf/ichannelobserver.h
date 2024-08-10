@@ -79,7 +79,7 @@ class IChannelObserver : public ISampleObserver {
    *
    * @return Shape vector that describes an array dimension.
    */
-  [[nodiscard]] std::vector<size_t> Shape() const;
+  [[nodiscard]] std::vector<uint64_t> Shape() const;
 
   /** \brief Property interface that defines if the VLSD raw data should be read
    * or not.

@@ -142,7 +142,7 @@ TEST_F(TestChannelArray, TestProperties) {
   EXPECT_EQ(array.Flags(), CaFlag::ComparisonQuantity);
 
   EXPECT_EQ(array.Dimensions(), 0);
-  const std::vector<size_t> shape = {1,2,3};
+  const std::vector<uint64_t> shape = {1,2,3};
   array.Shape(shape);
   EXPECT_EQ(array.Dimensions(), 3);
   const auto& shape1 = array.Shape();
@@ -556,7 +556,7 @@ TEST_F(TestChannelArray, TestXTensor) {
         }
         const auto array_size = observer->ArraySize();
         EXPECT_EQ(array_size, 6*8);
-        std::vector<size_t> shape = observer->Shape();
+        std::vector<uint64_t> shape = observer->Shape();
         EXPECT_EQ(shape.size(), 2);
         std::vector<double> value_array;
         for (uint64_t sample = 0; sample < observer->NofSamples(); ++sample) {

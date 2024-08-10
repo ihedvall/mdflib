@@ -614,12 +614,12 @@ size_t Ca4Block::Dimensions() const {
   return dimensions_;
 }
 
-void Ca4Block::Shape(const std::vector<size_t>& dim_sizes) {
+void Ca4Block::Shape(const std::vector<uint64_t>& dim_sizes) {
   dim_size_list_ = dim_sizes;
   dimensions_ = static_cast<uint16_t>(dim_size_list_.size());
 }
 
-const std::vector<size_t>& Ca4Block::Shape() const {
+const std::vector<uint64_t>& Ca4Block::Shape() const {
   return dim_size_list_;
 }
 

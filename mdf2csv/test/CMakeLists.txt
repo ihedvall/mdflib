@@ -26,9 +26,11 @@ target_include_directories(test_mdf2csv PRIVATE ../../include)
 target_link_libraries(test_mdf2csv PRIVATE mdf)
 
 if(VCPKG)
-    target_link_libraries(test_mdf2csv PRIVATE Boost::boost)
-    target_link_libraries(test_mdf2csv PRIVATE GTest::gtest GTest::gtest_main
-            GTest::gmock GTest::gmock_main)
+    find_package(Boost)
+    target_link_libraries(test_mdf PRIVATE Boost::boost)
+
+    target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
+                                        GTest::gmock GTest::gmock_main)
 else()
     include("../../script/boost.cmake")
     target_include_directories(test_mdf2csv PRIVATE ${Boost_INCLUDE_DIRS})

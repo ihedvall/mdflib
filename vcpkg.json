@@ -10,8 +10,7 @@
     "mdf2csv": {
       "description": "Build mdf to csv converter",
       "dependencies": [
-        "boost-process",
-        "boost-locale"
+        "boost-program-options"
       ]
     },
     "mdfviewer": {

@@ -34,7 +34,7 @@ if(VCPKG)
                                         GTest::gmock GTest::gmock_main)
 else()
     include("../../script/boost.cmake")
-    include("../script/googletest.cmake")
+    include("../../script/googletest.cmake")
     target_include_directories(test_mdf2csv PRIVATE ${Boost_INCLUDE_DIRS})
     target_link_libraries(test_mdf2csv PRIVATE ${Boost_LIBRARIES})
 

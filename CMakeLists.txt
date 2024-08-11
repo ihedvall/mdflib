@@ -23,7 +23,7 @@ option(MDF_BUILD_PYTHON "Build Python module" OFF)
 if(MDF_BUILD_TOOL AND VCPKG)
 # Boost & wxWidgets need /MT for static linking
   # string(REPLACE "-static" "" VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
-    list(APPEND VCPKG_MANIFEST_FEATURES "mdf2csv")
+  list(APPEND VCPKG_MANIFEST_FEATURES "mdf2csv")
   list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
 endif()
 

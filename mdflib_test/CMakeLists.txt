@@ -38,6 +38,7 @@ if(VCPKG)
   find_package(boost_endian REQUIRED CONFIG)
   target_link_libraries(test_mdf PRIVATE Boost::endian)
 
+  find_package(GTest CONFIG REQUIRED)
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
                                         GTest::gmock GTest::gmock_main)
 else()

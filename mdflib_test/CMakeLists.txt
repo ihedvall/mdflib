@@ -36,7 +36,7 @@ add_executable(test_mdf
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 if(VCPKG)
   find_package(boost_endian REQUIRED CONFIG)
-  target_link_libraries(main PRIVATE Boost::endian)
+  target_link_libraries(test_mdf PRIVATE Boost::endian)
 
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
                                         GTest::gmock GTest::gmock_main)

@@ -46,7 +46,7 @@ if(VCPKG)
     target_link_libraries(mdf2csv PRIVATE ZLIB::ZLIB)
 
     find_package(boost_program_options REQUIRED CONFIG)
-    target_link_libraries(main PRIVATE Boost::program_options)
+    target_link_libraries(mdf2csv PRIVATE Boost::program_options)
 else()
     include("../script/zlib.cmake")
     include("../script/expat.cmake")

@@ -60,10 +60,10 @@ if(VCPKG)
   target_link_libraries(mdfview PRIVATE ZLIB::ZLIB)
 
   find_package(boost_filesystem REQUIRED CONFIG)
-  target_link_libraries(main PRIVATE Boost::filesystem)
+  target_link_libraries(mdfview PRIVATE Boost::filesystem)
 
   find_package(boost_locale REQUIRED CONFIG)
-  target_link_libraries(main PRIVATE Boost::locale)
+  target_link_libraries(mdfview PRIVATE Boost::locale)
 
   find_package(wxWidgets CONFIG REQUIRED)
   target_link_libraries(mdfview PRIVATE wx::core wx::base)

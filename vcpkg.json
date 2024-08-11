@@ -24,7 +24,9 @@
     "mdflibtest": {
       "description": "Build mdf tests",
       "dependencies": [
-        "boost-endian"
+        "boost-endian",
+        "xtensor",
+        "gtest"
       ]
     }
   }

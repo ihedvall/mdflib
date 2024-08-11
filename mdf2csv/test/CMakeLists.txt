@@ -26,8 +26,8 @@ target_include_directories(test_mdf2csv PRIVATE ../../include)
 target_link_libraries(test_mdf2csv PRIVATE mdf)
 
 if(VCPKG)
-    find_package(Boost)
-    target_link_libraries(test_mdf2csv PRIVATE Boost::boost)
+    find_package(boost_program_options REQUIRED CONFIG)
+    target_link_libraries(main PRIVATE Boost::program_options)
 
     target_link_libraries(test_mdf2csv PRIVATE GTest::gtest GTest::gtest_main
                                         GTest::gmock GTest::gmock_main)

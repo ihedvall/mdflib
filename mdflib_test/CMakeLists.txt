@@ -34,18 +34,19 @@ add_executable(test_mdf
         src/testxtensor.cpp)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
-target_include_directories(test_mdf PRIVATE ${XTENSOR_INCLUDE_DIRS})
-target_link_libraries(test_mdf PRIVATE xtensor)
 if(VCPKG)
-  find_package(Boost)
-  target_link_libraries(test_mdf PRIVATE Boost::boost)
+  find_package(boost_endian REQUIRED CONFIG)
+  target_link_libraries(main PRIVATE Boost::endian)
 
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
                                         GTest::gmock GTest::gmock_main)
 else()
   include("../script/boost.cmake")
+  target_include_directories(test_mdf PRIVATE ${XTENSOR_INCLUDE_DIRS})
   target_include_directories(test_mdf PRIVATE ${Boost_INCLUDE_DIRS})
+
   target_link_libraries(test_mdf PRIVATE ${Boost_LIBRARIES})
+  target_link_libraries(test_mdf PRIVATE xtensor)
 
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main)
 endif()

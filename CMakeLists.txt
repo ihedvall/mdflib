@@ -52,8 +52,6 @@ endif()
 
 
 if(MDF_BUILD_TEST)
-  include("script/xtensor.cmake")
-  include("script/googletest.cmake")
   enable_testing()
   add_subdirectory(mdflib_test)
 endif()

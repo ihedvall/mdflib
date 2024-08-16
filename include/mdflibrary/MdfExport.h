@@ -165,6 +165,37 @@ constexpr uint32_t EventSignal = 0x2000;         ///< Event signal.
 constexpr uint32_t VlsdDataStream = 0x4000;      ///< VLSD data stream channel.
 }  // namespace CnFlag
 
+/** \brief Type of array.
+ *
+ */
+enum class ArrayType : uint8_t {
+  Array = 0, ///< Simple array without attributes
+  ScalingAxis = 1, ///< Scaling axis.
+  LookUp = 2, ///< Lookup array.
+  IntervalAxis = 3, ///< Interval axis.
+  ClassificationResult = 4 ///< Classification result.
+};
+
+/** \brief Type of storage. */
+enum class ArrayStorage : uint8_t {
+  CnTemplate = 0, ///< Channel template.
+  CgTemplate = 1, ///< Channel group template.
+  DgTemplate = 2  ///< Data group template.
+};
+
+/** \brief Channel array (CA) block flags. */
+namespace CaFlag {
+constexpr uint32_t DynamicSize = 0x0001; ///< Dynamic size
+constexpr uint32_t InputQuantity = 0x0002; ///< Input quantity.
+constexpr uint32_t OutputQuantity = 0x0004; ///< Output quantity.
+constexpr uint32_t ComparisonQuantity = 0x0008; ///< Comparison quantity.
+constexpr uint32_t Axis = 0x0010; ///< Axis
+constexpr uint32_t FixedAxis = 0x0020; ///< Fixed axis.
+constexpr uint32_t InverseLayout = 0x0040; ///< Inverse layout.
+constexpr uint32_t LeftOpenInterval = 0x0080; ///< Left-over interval.
+constexpr uint32_t StandardAxis = 0x0100; ///< Standard axis.
+}  // namespace CaFlag
+
 /** \brief Type of conversion formula
  *
  * The type together with the Parameter() function defines
@@ -594,21 +625,23 @@ EXPORTFEATUREFUNC(void, SetBitOffset, uint16_t bits);
 EXPORTFEATUREFUNC(const mdf::IMetaData*, GetMetaData);
 EXPORTFEATUREFUNC(const mdf::ISourceInformation*, GetSourceInformation);
 EXPORTFEATUREFUNC(const mdf::IChannelConversion*, GetChannelConversion);
+EXPORTFEATUREFUNC(const mdf::IChannelArray*, GetChannelArray);
 EXPORTFEATUREFUNC(size_t, GetChannelCompositions, mdf::IChannel* pChannels[]);
 EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData);
 EXPORTFEATUREFUNC(mdf::ISourceInformation*, CreateSourceInformation);
 EXPORTFEATUREFUNC(mdf::IChannelConversion*, CreateChannelConversion);
+EXPORTFEATUREFUNC(mdf::IChannelArray*, CreateChannelArray);
 EXPORTFEATUREFUNC(mdf::IChannel*, CreateChannelComposition);
 EXPORTFEATUREFUNC(void, SetChannelValueAsSigned, const int64_t value,
-                  bool valid = true);
+                  bool valid = true, uint64_t array_index = 0);
 EXPORTFEATUREFUNC(void, SetChannelValueAsUnSigned, const uint64_t value,
-                  bool valid = true);
+                  bool valid = true, uint64_t array_index = 0);
 EXPORTFEATUREFUNC(void, SetChannelValueAsFloat, const double value,
-                  bool valid = true);
+                  bool valid = true, uint64_t array_index = 0);
 EXPORTFEATUREFUNC(void, SetChannelValueAsString, const char* value,
-                  bool valid = true);
+                  bool valid = true, uint64_t array_index = 0);
 EXPORTFEATUREFUNC(void, SetChannelValueAsArray, const uint8_t* value,
-                  size_t size, bool valid = true);
+                  size_t size, bool valid = true, uint64_t array_index = 0);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 

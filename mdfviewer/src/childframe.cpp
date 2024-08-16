@@ -1323,7 +1323,7 @@ void ChildFrame::RedrawAttachmentView() {
     std::u8string name;
     std::u8string path;
     try {
-      std::filesystem::path fullname = std::filesystem::u8path(attachment->FileName());
+      std::filesystem::path fullname = std::filesystem::path(reinterpret_cast<const char8_t*>(attachment->FileName().c_str()));
       name = fullname.filename().u8string();
       path = fullname.parent_path().u8string();
     } catch (const std::exception& ) {

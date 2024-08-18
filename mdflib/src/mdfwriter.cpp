@@ -194,7 +194,7 @@ void MdfWriter::SaveSample(const IChannelGroup& group, uint64_t time) {
   const auto itr_master = master_channels_.find(group.RecordId());
   const auto* master =
       itr_master == master_channels_.cend() ? nullptr : itr_master->second;
-  if (master != nullptr) {
+  if (master != nullptr && master->CalculateMasterTime()) {
     auto rel_ns = static_cast<int64_t>(sample.timestamp);
     rel_ns -= static_cast<int64_t>(start_time_);
     const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
@@ -212,7 +212,7 @@ void MdfWriter::SaveCanMessage(const IChannelGroup& group, uint64_t time,
   const auto itr_master = master_channels_.find(group.RecordId());
   const auto* master =  itr_master == master_channels_.cend() ?
                                     nullptr : itr_master->second;
-  if (master != nullptr) {
+  if (master != nullptr && master->CalculateMasterTime()) {
     auto rel_ns = static_cast<int64_t>(sample.timestamp);
     rel_ns -= static_cast<int64_t>(start_time_);
     const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
@@ -279,14 +279,14 @@ void MdfWriter::RecalculateTimeMaster() {
     if (itr_ch == master_channels_.end()) {
       continue;
     }
+    const auto* master = itr_ch->second;
+    if (master == nullptr || !master->CalculateMasterTime() ) {
+      continue;
+    }
     auto rel_ns = static_cast<int64_t>(sample.timestamp);
     rel_ns -= static_cast<int64_t>(start_time_);
     const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
 
-    const auto* master = itr_ch->second;
-    if (master == nullptr) {
-      continue;
-    }
     master->SetTimestamp(rel_s, sample.record_buffer);
   }
 }

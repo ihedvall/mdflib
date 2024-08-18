@@ -5,7 +5,6 @@
 /** \file
  * This file define the DG range support class.
  */
-#pragma once
 
 #include "dgrange.h"
 #include "mdf/ichannelgroup.h"

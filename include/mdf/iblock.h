@@ -34,7 +34,7 @@ class IBlock {
   /** \brief Returns the block type.
    *
    * The block type is 2 character string for example 'AT' and 'DT'. In MDF 4,
-   * the block type is actual 4 character but this function removes
+   * the block type is actually 4 characters but this function removes
    * the two first characters.
    * @return Block type (2 characters length).
    */

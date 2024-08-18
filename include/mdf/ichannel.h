@@ -375,7 +375,7 @@ class IChannel : public IBlock  {
    * @param values 1-Dimensional list of array values.
    */
   template<typename T>
-  void SetChannelValues(const std::vector<T>& value_array);
+  void SetChannelValues(const std::vector<T>& values);
 
   /** \brief Internally used function mainly for fetching VLSD index values.
    *
@@ -492,6 +492,29 @@ class IChannel : public IBlock  {
     value = std::to_string(sample);
     return true;
   }
+
+  /** \brief Defines if the master channel time should be calculated or not.
+   *
+   * If the channel is a master channel and the channel sync type is time,
+   * this option defines if its channel value should be calculated from
+   * the MdfWriter sample queue absolute time. Not used for reader applications.
+   *
+   * Default is the option set to true i.e. the channel value will be
+   * calculated from the absolute time in the writers sample queue. If
+   * it set to false, the user is responsible to set the channels value.
+   * @param calculate_master If set tp false, the user must set the channel value.
+   */
+  void CalculateMasterTime(bool calculate_master) {
+    calculate_master_time_ = calculate_master;
+  }
+
+  /** \brief Defines if the master channel time is calculated or user defined.
+   *
+   * @return True means that the master channel is calculated.
+   */
+  [[nodiscard]] bool CalculateMasterTime() const {
+    return calculate_master_time_;
+  }
  protected:
 
 
@@ -543,9 +566,11 @@ class IChannel : public IBlock  {
   /** \brief Support function that sets array values */
   virtual void SetByteArray(const std::vector<uint8_t> &value, bool valid);
 
+
  private:
 
   mutable uint64_t vlsd_record_id_ = 0; ///< Used to fix the VLSD CG block.
+  bool calculate_master_time_ = true; ///< If true, the master time channel will be calculated.
 };
 
 template <typename T>
@@ -689,7 +714,6 @@ void IChannel::SetChannelValue(const T &value, bool valid,
         SetValid(false, array_index);
       }
       break;
-
 
     default:
       SetValid(false, array_index);

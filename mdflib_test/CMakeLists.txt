@@ -31,7 +31,8 @@ add_executable(test_mdf
         src/testchannel.cpp
         src/testchannelarray.cpp
         src/testchannelarray.h
-        src/testxtensor.cpp)
+        src/testxtensor.cpp
+        src/testqueue.cpp)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 target_include_directories(test_mdf PRIVATE ${XTENSOR_INCLUDE_DIRS})

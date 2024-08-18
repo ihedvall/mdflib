@@ -5,7 +5,7 @@
 #include <string>
 
 #include "bigbuffer.h"
-#include "half.hpp"
+// #include "half.hpp"
 #include "littlebuffer.h"
 #include "dbchelper.h"
 #include "mdf/ichannelgroup.h"
@@ -860,6 +860,76 @@ void IChannel::SetTimestamp(double timestamp,
   const size_t bytes = BitCount() / 8;
 
   switch (DataType()) {
+    case ChannelDataType::UnsignedIntegerBe:
+      if (timestamp < 0) {
+        timestamp = 0;
+      }
+      if (bytes == 1) {
+        const BigBuffer data(static_cast<uint8_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 2) {
+          const BigBuffer data(static_cast<uint16_t>(timestamp));
+          memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 4) {
+          const BigBuffer data(static_cast<uint32_t>(timestamp));
+          memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 8) {
+        const BigBuffer data(static_cast<uint64_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      }
+      break;
+
+    case ChannelDataType::UnsignedIntegerLe:
+      if (timestamp < 0) {
+        timestamp = 0;
+      }
+      if (bytes == 1) {
+        const LittleBuffer data(static_cast<uint8_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 2) {
+        const LittleBuffer data(static_cast<uint16_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 4) {
+        const LittleBuffer data(static_cast<uint32_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 8) {
+        const LittleBuffer data(static_cast<uint64_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      }
+      break;
+
+    case ChannelDataType::SignedIntegerBe:
+      if (bytes == 1) {
+        const BigBuffer data(static_cast<int8_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 2) {
+        const BigBuffer data(static_cast<int16_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 4) {
+        const BigBuffer data(static_cast<int32_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 8) {
+        const BigBuffer data(static_cast<int64_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      }
+      break;
+
+    case ChannelDataType::SignedIntegerLe:
+      if (bytes == 1) {
+        const LittleBuffer data(static_cast<int8_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 2) {
+        const LittleBuffer data(static_cast<int16_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 4) {
+        const LittleBuffer data(static_cast<int32_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes == 8) {
+        const LittleBuffer data(static_cast<int64_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      }
+      break;
+
     case ChannelDataType::FloatLe:
       if (bytes == 4) {
         const LittleBuffer data(static_cast<float>(timestamp));

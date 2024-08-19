@@ -124,11 +124,12 @@ double IMetaData::FloatProperty(const std::string& tag) const {
 
 void IMetaData::CommonProperty(const ETag& e_tag) {
   auto xml = CreateXmlFile();
+
   xml->ParseString(XmlSnippet());
   auto& root_node = xml->RootName(xml->RootName());
   auto& common = root_node.AddUniqueNode("common_properties");
   InsertETag(e_tag, common);
-  XmlSnippet(xml->WriteString());
+  XmlSnippet(xml->WriteString(true));
 }
 
 ETag IMetaData::CommonProperty(const std::string& name) const {
@@ -157,7 +158,7 @@ void IMetaData::CommonProperties(const std::vector<ETag>& tag_list) {
   for (const auto& tag : tag_list) {
     InsertETag(tag, common);
   }
-  XmlSnippet(xml->WriteString());
+  XmlSnippet(xml->WriteString(true));
 }
 
 std::vector<ETag> IMetaData::Properties() const {

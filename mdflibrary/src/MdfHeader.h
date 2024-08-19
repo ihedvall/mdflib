@@ -32,7 +32,7 @@ public:
   property bool IsStartAngleUsed { bool get(); }
   property double StartAngle { double get(); void set(double angle); }
   property bool IsStartDistanceUsed { bool get(); }
-  property double StartDistance { double get(); void set(double distance); }  
+  property double StartDistance { double get(); void set(double distance); }
   property MdfMetaData^ MetaData { MdfMetaData^ get(); }
   property array<MdfAttachment^>^ Attachments { array<MdfAttachment^>^ get(); }
   property array<MdfFileHistory^>^ FileHistories { array<MdfFileHistory^>^ get(); }
@@ -44,6 +44,7 @@ public:
   MdfFileHistory^ CreateFileHistory();
   MdfEvent^ CreateEvent();
   MdfDataGroup^ CreateDataGroup();
+  MdfMetaData^ CreateMetaData();
   
 private:
   MdfHeader() {};

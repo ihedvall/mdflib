@@ -16,7 +16,7 @@ add_executable(test_mdf
         src/testread.cpp src/testread.h
         src/testwrite.cpp src/testwrite.h
         src/testmdffile.cpp
-        src/testmetadata.cpp
+        src/testmetadata.cpp src/testmetadata.h
         src/testzlib.cpp src/testzlib.h
         src/util/ilogger.cpp src/util/ilogger.h
         src/util/logconfig.cpp src/util/logconfig.h
@@ -31,7 +31,8 @@ add_executable(test_mdf
         src/testchannel.cpp
         src/testchannelarray.cpp
         src/testchannelarray.h
-        src/testxtensor.cpp)
+        src/testxtensor.cpp
+        src/testqueue.cpp )
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 if(VCPKG)

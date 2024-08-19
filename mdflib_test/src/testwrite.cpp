@@ -164,11 +164,11 @@ TEST_F(TestWrite, Mdf3WriteHD) {
     auto* dg3 = writer->CreateDataGroup();
     ASSERT_TRUE(dg3 != nullptr);
     for (size_t cg_index = 0; cg_index < 2; ++cg_index) {
-      auto* cg3 = writer->CreateChannelGroup(dg3);
+      auto* cg3 = mdf::MdfWriter::CreateChannelGroup(dg3);
       ASSERT_TRUE(cg3 != nullptr);
       cg3->Description("CG description");
       for (size_t cn_index = 0; cn_index < 3; ++cn_index) {
-        auto* cn3 = writer->CreateChannel(cg3);
+        auto* cn3 = mdf::MdfWriter::CreateChannel(cg3);
         ASSERT_TRUE(cn3 != nullptr);
         std::ostringstream name;
         name << "Channel" << cn_index;
@@ -206,9 +206,9 @@ TEST_F(TestWrite, Mdf3WriteTest1) {
   header->Subject("PXY");
 
   auto* dg3 = writer->CreateDataGroup();
-  auto* cg3 = writer->CreateChannelGroup(dg3);
+  auto* cg3 = mdf::MdfWriter::CreateChannelGroup(dg3);
   for (size_t cn_index = 0; cn_index < 3; ++cn_index) {
-    auto* cn3 = writer->CreateChannel(cg3);
+    auto* cn3 = mdf::MdfWriter::CreateChannel(cg3);
     ASSERT_TRUE(cn3 != nullptr);
     std::ostringstream name;
     name << "Channel_" << cn_index + 1;
@@ -255,9 +255,9 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
   header->Subject("PXY");
 
   auto* dg3 = writer->CreateDataGroup();
-  auto* cg3 = writer->CreateChannelGroup(dg3);
+  auto* cg3 = mdf::MdfWriter::CreateChannelGroup(dg3);
   {
-    auto* master = writer->CreateChannel(cg3);
+    auto* master = mdf::MdfWriter::CreateChannel(cg3);
     master->Name("Time");
     master->Description("Time channel");
     master->Type(ChannelType::Master);
@@ -266,7 +266,7 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
     master->Unit("s");
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto* channel = mdf::MdfWriter::CreateChannel(cg3);
     channel->Name("UnsignedLe");
     channel->Description("uint32_t");
     channel->Type(ChannelType::FixedLength);
@@ -274,7 +274,7 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
     channel->DataBytes(sizeof(uint32_t));
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto* channel = mdf::MdfWriter::CreateChannel(cg3);
     channel->Name("UnsignedBe");
     channel->Description("uint16_t");
     channel->Type(ChannelType::FixedLength);
@@ -283,7 +283,7 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
   }
 
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto* channel = mdf::MdfWriter::CreateChannel(cg3);
     channel->Name("SignedLe");
     channel->Description("int32_t");
     channel->Type(ChannelType::FixedLength);
@@ -291,7 +291,7 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
     channel->DataBytes(sizeof(int32_t));
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto* channel = mdf::MdfWriter::CreateChannel(cg3);
     channel->Name("SignedBe");
     channel->Description("int8_t");
     channel->Type(ChannelType::FixedLength);
@@ -300,7 +300,7 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
   }
 
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto* channel = mdf::MdfWriter::CreateChannel(cg3);
     channel->Name("FloatLe");
     channel->Description("float");
     channel->Type(ChannelType::FixedLength);
@@ -308,7 +308,7 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
     channel->DataBytes(sizeof(float));
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto* channel = mdf::MdfWriter::CreateChannel(cg3);
     channel->Name("FloatBe");
     channel->Description("double");
     channel->Type(ChannelType::FixedLength);
@@ -317,7 +317,7 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
   }
 
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto* channel = mdf::MdfWriter::CreateChannel(cg3);
     channel->Name("String");
     channel->Description("string");
     channel->Type(ChannelType::FixedLength);
@@ -325,7 +325,7 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
     channel->DataBytes(10);
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto* channel = mdf::MdfWriter::CreateChannel(cg3);
     channel->Name("Array");
     channel->Description("vector");
     channel->Type(ChannelType::FixedLength);
@@ -333,7 +333,7 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
     channel->DataBytes(5);
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto* channel = mdf::MdfWriter::CreateChannel(cg3);
     channel->Name("Date");
     channel->Description("CANopen Date");
     channel->Type(ChannelType::FixedLength);
@@ -341,7 +341,7 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
     // channel->DataBytes(7);
   }
   {
-    auto* channel = writer->CreateChannel(cg3);
+    auto* channel = mdf::MdfWriter::CreateChannel(cg3);
     channel->Name("Time");
     channel->Description("CANopen Time");
     channel->Type(ChannelType::FixedLength);
@@ -2012,6 +2012,7 @@ TEST_F(TestWrite, Mdf4Multi) {
     for (auto* cg4 : cg_list) {
       CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
     }
+
     reader.ReadData(*dg4);
   }
   reader.Close();
@@ -2033,11 +2034,13 @@ TEST_F(TestWrite, Mdf4Master) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
+
   path mdf_file(kTestDir);
   mdf_file.append("master.mf4");
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
   writer->Init(mdf_file.string());
+
   auto* header = writer->Header();
   auto* history = header->CreateFileHistory();
   history->Description("Test data types");
@@ -2047,15 +2050,16 @@ TEST_F(TestWrite, Mdf4Master) {
   history->UserName("Ingemar Hedvall");
 
   auto* data_group = header->CreateDataGroup();
-  auto* group1 = data_group->CreateChannelGroup();
-  group1->Name("Intel");
 
-  auto* master = group1->CreateChannel();
-  master->Name("Time");
-  master->Type(ChannelType::Master);
-  master->Sync(ChannelSyncType::Time);
-  master->DataType(ChannelDataType::FloatLe);
-  master->DataBytes(4);
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("FloatMaster");
+
+  auto* master1 = group1->CreateChannel();
+  master1->Name("Time");
+  master1->Type(ChannelType::Master);
+  master1->Sync(ChannelSyncType::Time);
+  master1->DataType(ChannelDataType::FloatLe);
+  master1->DataBytes(4);
 
   auto* ch1 = group1->CreateChannel();
   ch1->Name("Intel32");
@@ -2064,37 +2068,113 @@ TEST_F(TestWrite, Mdf4Master) {
   ch1->DataType(ChannelDataType::FloatLe);
   ch1->DataBytes(4);
 
-  auto* ch2 = group1->CreateChannel();
-  ch2->Name("Intel64");
+  auto* group2 = data_group->CreateChannelGroup();
+  group1->Name("DoubleMaster");
+
+  auto* master2 = group2->CreateChannel();
+  master2->Name("Time");
+  master2->Type(ChannelType::Master);
+  master2->Sync(ChannelSyncType::Time);
+  master2->DataType(ChannelDataType::FloatBe);
+  master1->DataBytes(8);
+
+  auto* ch2 = group2->CreateChannel();
+  ch2->Name("Intel32");
   ch2->Type(ChannelType::FixedLength);
   ch2->Sync(ChannelSyncType::None);
   ch2->DataType(ChannelDataType::FloatLe);
-  ch2->DataBytes(8);
+  ch2->DataBytes(4);
 
-  writer->PreTrigTime(1.0);
-  writer->InitMeasurement();
+  auto* group3 = data_group->CreateChannelGroup();
+  group3->Name("Signed32Master");
 
+  auto* master3 = group3->CreateChannel();
+  master3->Name("Time");
+  master3->Unit("s");
+  master3->Type(ChannelType::Master);
+  master3->Sync(ChannelSyncType::Time);
+  master3->DataType(ChannelDataType::SignedIntegerLe);
+  master3->DataBytes(4);
+
+  auto cc3 = master3->CreateChannelConversion();
+  cc3->Name("NsToS");
+  cc3->Description("Nanoseconds to seconds conversion");
+  cc3->Unit("s");
+  cc3->Type(ConversionType::Linear);
+  cc3->Parameter(0,0.0);
+  cc3->Parameter(1, 1E-9);
+
+  auto* ch3 = group3->CreateChannel();
+  ch3->Name("Intel32");
+  ch3->Type(ChannelType::FixedLength);
+  ch3->Sync(ChannelSyncType::None);
+  ch3->DataType(ChannelDataType::FloatLe);
+  ch3->DataBytes(4);
+
+  auto* group4 = data_group->CreateChannelGroup();
+  group4->Name("Signed64Master");
+
+  auto* master4 = group4->CreateChannel();
+  master4->Name("Time");
+  master4->Unit("s");
+  master4->Type(ChannelType::Master);
+  master4->Sync(ChannelSyncType::Time);
+  master4->DataType(ChannelDataType::SignedIntegerLe);
+  master4->DataBytes(8);
+
+  auto cc4 = master4->CreateChannelConversion();
+  cc4->Name("NsToS");
+  cc4->Description("Nanoseconds to seconds conversion");
+  cc4->Unit("s");
+  cc4->Type(ConversionType::Linear);
+  cc4->Parameter(0,0.0);
+  cc4->Parameter(1, 1E-9);
+
+  auto* ch4 = group4->CreateChannel();
+  ch4->Name("Intel32");
+  ch4->Type(ChannelType::FixedLength);
+  ch4->Sync(ChannelSyncType::None);
+  ch4->DataType(ChannelDataType::FloatLe);
+  ch4->DataBytes(4);
+
+  writer->PreTrigTime(1.0); // Store one seconds samples before start
+  writer->InitMeasurement(); // Start the internal cache
   auto tick_time = TimeStampToNs();
 
-  for (size_t sample = 0; sample < 1000; ++sample) {
-    auto value = static_cast<double>(sample) + 0.23;
+  // Fill cache with 1 second data
+  uint64_t sample = 0;
+  for (; sample < 1000; ++sample) {
+    const auto value = static_cast<uint32_t>(sample);
     ch1->SetChannelValue(value);
     ch2->SetChannelValue(value);
+    ch3->SetChannelValue(value);
+    ch4->SetChannelValue(value);
     writer->SaveSample(*group1, tick_time);
-    tick_time += 1'000'000;
+    writer->SaveSample(*group2, tick_time);
+    writer->SaveSample(*group3, tick_time);
+    writer->SaveSample(*group4, tick_time);
+    tick_time += 1'000'000; // Stepping 1ms
   }
 
   writer->StartMeasurement(tick_time);
 
-  for (size_t sample = 0; sample < 1000; ++sample) {
-    auto value = static_cast<double>(sample) + 0.23;
+  // Fill with 1 seconds samples after start.
+  for (; sample < 2000; ++sample) {
+    const auto value = static_cast<uint32_t>(sample);
     ch1->SetChannelValue(value);
     ch2->SetChannelValue(value);
+    ch3->SetChannelValue(value);
+    ch4->SetChannelValue(value);
     writer->SaveSample(*group1, tick_time);
+    writer->SaveSample(*group2, tick_time);
+    writer->SaveSample(*group3, tick_time);
+    writer->SaveSample(*group4, tick_time);
     tick_time += 1'000'000;
   }
   writer->StopMeasurement(tick_time);
   writer->FinalizeMeasurement();
+
+  MDF_TRACE() << "Written MDF File: " <<  writer->Name();
 
   MdfReader reader(mdf_file.string());
   ChannelObserverList observer_list;
@@ -2108,16 +2188,34 @@ TEST_F(TestWrite, Mdf4Master) {
 
   for (auto* dg4 : dg_list) {
     const auto cg_list = dg4->ChannelGroups();
-    EXPECT_EQ(cg_list.size(), 1);
+    EXPECT_EQ(cg_list.size(), 4);
     for (auto* cg4 : cg_list) {
       CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
     }
+    ASSERT_EQ(observer_list.size(), 8) << "Observer List Size: " << observer_list.size();
     reader.ReadData(*dg4);
   }
   reader.Close();
 
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
+    const auto nof_samples = observer->NofSamples();
+    EXPECT_EQ(nof_samples, 2000);
+    if (observer->IsMaster()) {
+      // Check that the times are stepping forward
+      double previous = 0.0;
+      for (sample = 0 ; sample < nof_samples; ++sample) {
+        double time = 0.0;
+        observer->GetEngValue(sample, time, 0);
+        if (sample > 0) {
+          EXPECT_GT(time, previous) << "Time/Previous: " << time << "/" << previous;
+        }
+        if (sample < 1000) {
+          EXPECT_LE(time, 0.0) << "Time/Sample: " << time << "/" << sample;
+        }
+        previous = time;
+      }
+    }
   }
 }
 
@@ -2276,7 +2374,7 @@ TEST_F(TestWrite, Mdf4CanSdStorage ) {
   writer->StartMeasurement(tick_time);
   size_t sample;
   for (sample = 0; sample < 10; ++sample) {
-      // Assigna some dummy data
+      // Assigned some dummy data
     auto value = static_cast<double>(sample) + 0.23;
     std::vector<uint8_t> data;
     data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
@@ -2799,7 +2897,7 @@ TEST_F(TestWrite, Mdf4SampleObserver ) {
     GTEST_SKIP();
   }
   path mdf_file(kTestDir);
-  mdf_file.append("sampleobserver.mf4");
+  mdf_file.append("sample_observer.mf4");
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
   writer->Init(mdf_file.string());

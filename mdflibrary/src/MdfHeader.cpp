@@ -210,6 +210,12 @@ MdfDataGroup^ MdfHeader::CreateDataGroup() {
   return gcnew MdfDataGroup(temp);   
 }
 
+MdfMetaData^ MdfHeader::CreateMetaData() {
+  auto* temp = header_ != nullptr ? header_->CreateMetaData() : nullptr;
+  return  temp != nullptr ?
+    gcnew MdfMetaData(temp) : nullptr; 
+}
+
 bool MdfHeader::IsStartAngleUsed::get() {
   return header_ != nullptr ? header_->StartAngle().has_value() : false;
 }

@@ -3,6 +3,10 @@
 * SPDX-License-Identifier: MIT
  */
 
+/** \file
+ * This file define the DG range support class.
+ */
+
 #include "dgrange.h"
 #include "mdf/ichannelgroup.h"
 

@@ -1,6 +1,10 @@
 using System;
-
+using System.IO;
+using System.Net;
+using Windows.Devices.Display.Core;
+using Microsoft.VisualBasic.FileIO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using WinRT;
 
 namespace mdflibrary_test;
 using MdfLibrary;
@@ -16,6 +20,8 @@ public class MdfLibraryTest
 
     private const string TestFile4 = @"中文.mf4";
     private const string TestFile5 = @"test5.mf4";
+    private static string _testDirectory = "";
+    private static bool _skipTest = false;
     
     [ClassInitialize]
     public static void ClassInit(TestContext testContext) 
@@ -23,9 +29,18 @@ public class MdfLibraryTest
         Console.WriteLine("Unit tests started.");
         MdfLibrary.Instance.LogEvent += (MdfLogSeverity severity, string function, string message) =>
         {
-
             Console.WriteLine("{0} {1} {2}", severity, function, message);
         };
+
+        // Set up test directory to %TEMP%/test/mdflibrary
+        _testDirectory = Path.Combine(Path.GetTempPath(), "test", "mdflibrary");
+        if (Directory.Exists(_testDirectory))
+        {
+            Directory.Delete(_testDirectory, true);
+        }
+        Directory.CreateDirectory(_testDirectory);
+        _skipTest = !Directory.Exists(_testDirectory);      
+        Console.WriteLine("Unit tests started. Test Dir: " + _testDirectory);
     }
 
 
@@ -50,6 +65,10 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestStatic()
     {
+        if (!File.Exists(TestFile1))
+        {
+            Assert.Inconclusive("File doesn't exists.");
+        }
         var instance = MdfLibrary.Instance;
         Assert.IsNotNull(instance);
 
@@ -102,6 +121,10 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestNormalRead()
     {
+        if (!File.Exists(TestFile1))
+        {
+            Assert.Inconclusive("File doesn't exists.");
+        }
         var reader = new MdfReader(TestFile1);
         Assert.IsNotNull(reader);
 
@@ -118,6 +141,10 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestReader()
     {
+        if (!File.Exists(TestFile1))
+        {
+            Assert.Inconclusive("File doesn't exists.");
+        }
         var reader1 = new MdfReader(TestFile1);
         Assert.IsNotNull(reader1);
         reader1.Index = 666;
@@ -151,6 +178,10 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestFile()
     {
+        if (!File.Exists(TestFile1))
+        {
+            Assert.Inconclusive("File doesn't exists.");
+        }
         var reader = new MdfReader(TestFile1);
         Assert.IsTrue(reader.ReadEverythingButData());
         reader.Close();
@@ -191,6 +222,10 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestHeader()
     {
+        if (!File.Exists(TestFile1))
+        {
+            Assert.Inconclusive("File doesn't exists.");
+        }
         var reader = new MdfReader(TestFile1);
         Assert.IsTrue(reader.ReadEverythingButData());
         reader.Close();
@@ -241,6 +276,10 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestHistory()
     {
+        if (!File.Exists(TestFile1))
+        {
+            Assert.Inconclusive("File doesn't exists.");
+        }
         var reader = new MdfReader(TestFile1);
         Assert.IsTrue(reader.ReadEverythingButData());
         reader.Close();
@@ -264,47 +303,110 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestMetaData()
     {
-        var reader = new MdfReader(TestFile1);
-        Assert.IsTrue(reader.ReadEverythingButData());
-        reader.Close();
-
-        var header = reader.Header;
-        var meta = header.MetaData;
-        Assert.IsNotNull(meta);
-
-        Console.WriteLine("TX: {0}", meta.get_PropertyAsString("TX"));
-        Console.WriteLine("Time Source: {0}", meta.get_PropertyAsString("time_source"));
-
-        var props = meta.Properties;
-        Assert.IsNotNull(props);
-        foreach (var prop in props)
+        if (_skipTest)
         {
-            Console.WriteLine(
-                "Name: {0}, Value: {1}",
-                prop.Name,
-                prop.ValueAsString);
+            Assert.Inconclusive("Test directory doesn't exist");
         }
-
-        var commons = meta.CommonProperties;
-        Assert.IsNotNull(commons);
-        foreach (var tag in commons)
+        var testFile = Path.Combine(_testDirectory, "meta_data.mf4");
         {
-            Console.WriteLine(
-                "Name: {0}, Desc: {1}, Unit: {2}, Ref: {3}, Type: {4}, Lang: {5}, R/O: {6}, Value: {7}",
-                tag.Name,
-                tag.Description,
-                tag.Unit,
-                tag.UnitRef,
-                tag.Type,
-                tag.Language,
-                tag.ReadOnly,
-                tag.ValueAsString);
+            var writer = new MdfWriter(MdfWriterType.Mdf4Basic);
+            Assert.IsTrue(writer.Init(testFile));
+
+            var header = writer.Header;
+            header.Description = "Test meta data";
+            header.Author = "Ingemar Hedvall";
+            
+            var metaData = header.CreateMetaData();
+            Assert.IsNotNull(metaData, "Failed to create meta data object.");
+
+            var engineCode = new MdfETag();
+            engineCode.Name = "EngineCode";
+            engineCode.DataType = ETagDataType.StringType;
+            metaData.AddCommonProperty(engineCode);
+
+            var history = header.CreateFileHistory();
+            Assert.IsNotNull(history);
+            history.Description = "File history.";
+            history.ToolName = "MdfLibrary Assembly";
+            history.ToolVendor = "GitHub:ihedvall/mdflib";
+            history.ToolVersion = "2.2";
+
+            var dataGroup = header.CreateDataGroup();
+            Assert.IsNotNull(dataGroup);
+
+            var channelGroup = dataGroup.CreateChannelGroup();
+            Assert.IsNotNull(channelGroup);
+            channelGroup.Name = "Test Group";
+
+            var master = channelGroup.CreateChannel();
+            Assert.IsNotNull(master);
+            master.Name = "Time";
+            master.Type = ChannelType.Master;
+            master.Sync = ChannelSyncType.Time;
+            master.DataType = ChannelDataType.FloatBe;
+            master.DataBytes = 8;
+
+            writer.InitMeasurement();
+            var tickTime = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000;
+            writer.StartMeasurement(tickTime);
+            for (ulong sample = 0; sample < 100; ++sample)
+            {
+                writer.SaveSample(channelGroup, tickTime);
+                tickTime += 1000000;
+            }
+            writer.StopMeasurement(tickTime);
+            writer.FinalizeMeasurement();
+        }
+        {
+            var reader = new MdfReader(testFile);
+            Assert.IsTrue(reader.IsOk);
+            Assert.IsTrue(reader.ReadEverythingButData());
+            reader.Close();
+
+            var header = reader.Header;
+            var meta = header.MetaData;
+            Assert.IsNotNull(meta);
+
+            Console.WriteLine(meta.XmlSnippet);
+
+            Console.WriteLine("TX: {0}", meta.get_PropertyAsString("TX"));
+            Console.WriteLine("Time Source: {0}", meta.get_PropertyAsString("time_source"));
+
+            var props = meta.Properties;
+            Assert.IsNotNull(props);
+            foreach (var prop in props)
+            {
+                Console.WriteLine(
+                    "Name: {0}, Value: {1}",
+                    prop.Name,
+                    prop.ValueAsString);
+            }
+
+            var commons = meta.CommonProperties;
+            Assert.IsNotNull(commons);
+            foreach (var tag in commons)
+            {
+                Console.WriteLine(
+                    "Name: {0}, Desc: {1}, Unit: {2}, Ref: {3}, Type: {4}, Lang: {5}, R/O: {6}, Value: {7}",
+                    tag.Name,
+                    tag.Description,
+                    tag.Unit,
+                    tag.UnitRef,
+                    tag.Type,
+                    tag.Language,
+                    tag.ReadOnly,
+                    tag.ValueAsString);
+            }
         }
     }
 
     [TestMethod]
     public void TestDataGroup()
     {
+        if (!File.Exists(TestFile1))
+        {
+            Assert.Inconclusive("File doesn't exists.");
+        }
         var reader = new MdfReader(TestFile1);
         Assert.IsTrue(reader.ReadEverythingButData());
         reader.Close();
@@ -330,6 +432,10 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestChannelGroup()
     {
+        if (!File.Exists(TestFile1))
+        {
+            Assert.Inconclusive("File doesn't exists.");
+        }
         var reader = new MdfReader(TestFile1);
         Assert.IsTrue(reader.ReadEverythingButData());
         reader.Close();
@@ -356,6 +462,10 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestChannel()
     {
+        if (!File.Exists(TestFile1))
+        {
+            Assert.Inconclusive("File doesn't exists.");
+        }
         var reader = new MdfReader(TestFile1);
         Assert.IsTrue(reader.ReadEverythingButData());
         reader.Close();
@@ -400,6 +510,10 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestSourceInformation()
     {
+        if (!File.Exists(TestFile2))
+        {
+            Assert.Inconclusive("File doesn't exists.");
+        }
         var reader = new MdfReader(TestFile2);
         Assert.IsTrue(reader.ReadEverythingButData());
         reader.Close();
@@ -425,7 +539,7 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestChannelConversion()
     {        
-        const string testFile = "channel_conversion.mf4";
+        var testFile = Path.Combine(_testDirectory, "channel_conversion.mf4");
         if (File.Exists(testFile))
         {
             File.Delete(testFile);
@@ -796,7 +910,7 @@ public class MdfLibraryTest
         Attachment.FileType = "text/plain";*/
 
         writer.InitMeasurement();
-        ulong ns1970 = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000); // ns 
+        var ns1970 = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000); // ns 
         writer.StartMeasurement(ns1970);
         // Write the data
         for (int i = 0; i < 50; i++)
@@ -834,6 +948,10 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestReader2()
     {
+        if (!File.Exists(TestFile4))
+        {
+            Assert.Inconclusive("File doesn't exist.");
+        }
         var Reader = new MdfReader(TestFile4);
         Reader.ReadEverythingButData();
         var lVersion = Reader.File.MainVersion;

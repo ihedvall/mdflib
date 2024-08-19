@@ -2374,7 +2374,7 @@ TEST_F(TestWrite, Mdf4CanSdStorage ) {
   writer->StartMeasurement(tick_time);
   size_t sample;
   for (sample = 0; sample < 10; ++sample) {
-      // Assigna some dummy data
+      // Assigned some dummy data
     auto value = static_cast<double>(sample) + 0.23;
     std::vector<uint8_t> data;
     data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
@@ -2897,7 +2897,7 @@ TEST_F(TestWrite, Mdf4SampleObserver ) {
     GTEST_SKIP();
   }
   path mdf_file(kTestDir);
-  mdf_file.append("sampleobserver.mf4");
+  mdf_file.append("sample_observer.mf4");
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
   writer->Init(mdf_file.string());

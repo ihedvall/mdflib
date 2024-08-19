@@ -2,13 +2,13 @@
 * Copyright 2024 Ingemar Hedvall
 * SPDX-License-Identifier: MIT
  */
+
 /** \file
  * This file define the DG range support class.
  */
 
 #include "dgrange.h"
 #include "mdf/ichannelgroup.h"
-
 
 namespace mdf {
 DgRange::DgRange(const IDataGroup& data_group, size_t min_sample,

@@ -509,6 +509,9 @@ EXPORTFEATUREFUNC(const mdf::ISourceInformation*, GetSourceInformation) {
 EXPORTFEATUREFUNC(const mdf::IChannelConversion*, GetChannelConversion) {
   return channel->ChannelConversion();
 }
+EXPORTFEATUREFUNC(const mdf::IChannelArray*, GetChannelArray) {
+  return channel->ChannelArray();
+}
 EXPORTFEATUREFUNC(size_t, GetChannelCompositions, mdf::IChannel* pChannels[]) {
   if (pChannels == nullptr) return channel->ChannelCompositions().size();
   auto channels = channel->ChannelCompositions();
@@ -521,6 +524,9 @@ EXPORTFEATUREFUNC(mdf::ISourceInformation*, CreateSourceInformation) {
 EXPORTFEATUREFUNC(mdf::IChannelConversion*, CreateChannelConversion) {
   return channel->CreateChannelConversion();
 }
+EXPORTFEATUREFUNC(mdf::IChannelArray*, CreateChannelArray) {
+  return channel->CreateChannelArray();
+}
 EXPORTFEATUREFUNC(mdf::IChannel*, CreateChannelComposition) {
   return channel->CreateChannelComposition();
 }
@@ -528,25 +534,83 @@ EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData) {
   return channel->CreateMetaData();
 }
 EXPORTFEATUREFUNC(void, SetChannelValueAsSigned, const int64_t value,
-                  bool valid) {
-  channel->SetChannelValue(value, valid);
+                  bool valid, uint64_t array_index) {
+  channel->SetChannelValue(value, valid, array_index);
 }
 EXPORTFEATUREFUNC(void, SetChannelValueAsUnSigned, const uint64_t value,
-                  bool valid) {
-  channel->SetChannelValue(value, valid);
+                  bool valid, uint64_t array_index) {
+  channel->SetChannelValue(value, valid, array_index);
 }
 EXPORTFEATUREFUNC(void, SetChannelValueAsFloat, const double value,
-                  bool valid) {
-  channel->SetChannelValue(value, valid);
+                  bool valid, uint64_t array_index) {
+  channel->SetChannelValue(value, valid, array_index);
 }
 EXPORTFEATUREFUNC(void, SetChannelValueAsString, const char* value,
-                  bool valid) {
-  channel->SetChannelValue(std::string(value), valid);
+                  bool valid, uint64_t array_index) {
+  channel->SetChannelValue(std::string(value), valid, array_index);
 }
 EXPORTFEATUREFUNC(void, SetChannelValueAsArray, const uint8_t* value,
-                  size_t size, bool valid) {
-  channel->SetChannelValue(std::vector<uint8_t>(value, value + size), valid);
+                  size_t size, bool valid, uint64_t array_index) {
+  channel->SetChannelValue(std::vector<uint8_t>(value, value + size), valid, array_index);
 }
+#undef EXPORTFEATUREFUNC
+#pragma endregion
+
+#pragma region MdfChannelArray
+#define EXPORTFEATUREFUNC(ReturnType, FuncName, ...)                       \
+  EXPORT(ReturnType, MdfChannelArray, FuncName, mdf::IChannelArray* array, \
+         ##__VA_ARGS__)
+EXPORTFEATUREFUNC(int64_t, GetIndex) { return array->Index(); }
+EXPORTFEATUREFUNC(ArrayType, GetType) { return array->Type(); }
+EXPORTFEATUREFUNC(void, SetType, ArrayType type) { array->Type(type); }
+EXPORTFEATUREFUNC(ArrayStorage, GetStorage) { return array->Storage(); }
+EXPORTFEATUREFUNC(void, SetStorage, ArrayStorage storage) {
+  array->Storage(storage);
+}
+EXPORTFEATUREFUNC(uint32_t, GetFlags) { return array->Flags(); }
+EXPORTFEATUREFUNC(void, SetFlags, uint32_t flags) { array->Flags(flags); }
+EXPORTFEATUREFUNC(size_t, GetDimensions) { return array->Dimensions(); }
+EXPORTFEATUREFUNC(size_t, GetShape, uint64_t pShape[]) {
+  if (pShape == nullptr) return array->Shape().size();
+  auto shape = array->Shape();
+  for (size_t i = 0; i < shape.size(); i++) pShape[i] = shape[i];
+  return shape.size();
+}
+EXPORTFEATUREFUNC(void, SetShape, uint64_t pShape[], size_t count) {
+  std::vector<uint64_t> shape(count);
+  for (size_t i = 0; i < count; i++) shape[i] = pShape[i];
+  array->Shape(shape);
+}
+EXPORTFEATUREFUNC(uint64_t, GetDimensionSize, size_t dimension) { return array->DimensionSize(dimension); }
+  // /** \brief Returns the fixed axis value list for reading only. */
+  // [[nodiscard]] virtual const std::vector<double>&  AxisValues() const = 0;
+
+  // /** \brief Returns the fixed axis value list for write. */
+  // [[nodiscard]] virtual std::vector<double>&  AxisValues() = 0;
+
+  // /** \brief Returns a list of cycle counts. */
+  // [[nodiscard]] virtual const std::vector<uint64_t>& CycleCounts() const = 0;
+
+  // /** \brief Returns a list of cycle counts. */
+  // [[nodiscard]] virtual std::vector<uint64_t>& CycleCounts() = 0;
+EXPORTFEATUREFUNC(size_t, GetAxisValues, double pAxisValues[]) {
+  if (pAxisValues == nullptr) return array->AxisValues().size();
+  const auto axis_values = array->AxisValues();
+  for (size_t i = 0; i < axis_values.size(); i++) pAxisValues[i] = axis_values[i];
+  return axis_values.size();
+}
+EXPORTFEATUREFUNC(size_t, GetCycleCounts, uint64_t pCycleCounts[]) {
+  if (pCycleCounts == nullptr) return array->CycleCounts().size();
+  const auto cycle_counts = array->CycleCounts();
+  for (size_t i = 0; i < cycle_counts.size(); i++) pCycleCounts[i] = cycle_counts[i];
+  return cycle_counts.size();
+}
+EXPORTFEATUREFUNC(uint64_t, GetNofArrayValues) { return array->NofArrayValues(); }
+EXPORTFEATUREFUNC(size_t, GetDimensionAsString, char* dimension) {
+  if (dimension) strcpy(dimension, array->DimensionAsString().c_str());
+  return array->DimensionAsString().size();
+}
+EXPORTFEATUREFUNC(void, ResizeArrays) { return array->ResizeArrays(); }
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 
@@ -1061,7 +1125,7 @@ EXPORTFEATUREFUNC(void, AddCommonProperty, mdf::ETag* tag) {
 #undef EXPORTFEATUREFUNC
 #pragma endregion
 
-#pragma region mdf::CanMessage
+#pragma region CanMessage
 EXPORT(mdf::CanMessage*, CanMessage, Init) { return new mdf::CanMessage; }
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, CanMessage, FuncName, mdf::CanMessage* can, ##__VA_ARGS__)

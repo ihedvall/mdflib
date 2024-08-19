@@ -10,7 +10,7 @@
     workflow_dispatch:
   
   env:
-    vcpkgCommitId: da4b78d35084ec4e9808aa02017028da03b8d2ab
+    vcpkgCommitId: e590c2b30c08caf1dd8d612ec602a003f9784b7d
   
   
   jobs:

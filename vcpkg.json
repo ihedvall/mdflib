@@ -7,6 +7,12 @@
     "expat"
   ],
   "features": {
+    "mdf2csv": {
+      "description": "Build mdf to csv converter",
+      "dependencies": [
+        "boost-program-options"
+      ]
+    },
     "mdfviewer": {
       "description": "Build mdf viewer",
       "dependencies": [
@@ -18,7 +24,9 @@
     "mdflibtest": {
       "description": "Build mdf tests",
       "dependencies": [
-        "boost-endian"
+        "boost-endian",
+        "xtensor",
+        "gtest"
       ]
     }
   }

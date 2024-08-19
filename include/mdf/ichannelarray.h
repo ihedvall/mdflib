@@ -90,13 +90,13 @@ class IChannelArray : public IBlock {
    * The function sets the number of dimensions and each dimension size.
    * @param dim_sizes Array of dimension sizes.
    */
-  virtual void Shape(const std::vector<size_t>& dim_sizes) = 0;
+  virtual void Shape(const std::vector<uint64_t>& dim_sizes) = 0;
 
   /** \brief Returns the dimension and each dimension size.
    *
    * @return Array of dimension sizes.
    */
-  [[nodiscard]] virtual const std::vector<size_t>& Shape() const = 0;
+  [[nodiscard]] virtual const std::vector<uint64_t>& Shape() const = 0;
 
   /** \brief Returns a dimension size. */
   [[nodiscard]] virtual uint64_t DimensionSize(size_t dimension) const = 0;

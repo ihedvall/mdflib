@@ -293,8 +293,14 @@ void ChildFrame::RedrawMdf4Blocks(const mdf::detail::Mdf4File *file) {
 }
 
 void ChildFrame::Update() {
-  RedrawTreeList();
-  RedrawListView();
+  static bool recursive_lock = false;
+  wxDocMDIChildFrame::Update();
+  if (!recursive_lock) {
+    recursive_lock = true;
+    RedrawTreeList();
+    RedrawListView();
+    recursive_lock = false;
+  }
 }
 
 void ChildFrame::RedrawHistory(const detail::Hd4Block &hd, const wxTreeItemId &root) {

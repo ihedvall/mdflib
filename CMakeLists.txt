@@ -3,7 +3,7 @@
 include(CMakePrintHelpers)
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0074 NEW)
-cmake_policy(SET CMP0144 NEW)
+#cmake_policy(SET CMP0144 NEW)
 if("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
   set(VCPKG OFF)
 else()

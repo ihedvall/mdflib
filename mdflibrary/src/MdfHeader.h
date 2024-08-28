@@ -44,6 +44,10 @@ public:
   MdfFileHistory^ CreateFileHistory();
   MdfEvent^ CreateEvent();
   MdfDataGroup^ CreateDataGroup();
+
+  void SetStartTimeLocal(uint64_t time);
+  void SetStartTimeWithZone(uint64_t time, int16_t tz_offset_min, int16_t dst_offset_min);
+  void SetStartTimeUtc(uint64_t time);
   
 private:
   MdfHeader() {};

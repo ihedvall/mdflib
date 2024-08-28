@@ -70,6 +70,14 @@ class Hd4Block : public MdfBlock, public IHeader {
   [[nodiscard]] int64_t RecorderIndex() const override;
 
   void StartTime(uint64_t ns_since_1970) override;
+  
+  void SetStartTimeLocal(uint64_t timestamp_ns) override;
+  
+  void SetStartTimeUtc(uint64_t timestamp_ns) override;
+  
+  void SetStartTimeWithZone(uint64_t timestamp_ns, int16_t tz_offset_min,
+                            int16_t dst_offset_min) override;
+
   [[nodiscard]] uint64_t StartTime() const override;
 
   [[nodiscard]] IMetaData *CreateMetaData() override;

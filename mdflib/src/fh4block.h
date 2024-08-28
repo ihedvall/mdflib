@@ -16,6 +16,10 @@ class Fh4Block : public MdfBlock, public IFileHistory {
     return MdfBlock::BlockType();
   }
   void Time(uint64_t ns_since_1970) override;
+  void SetStartTimeLocal(uint64_t timestamp_ns) override;
+  void SetStartTimeUtc(uint64_t timestamp_ns) override;
+  void SetStartTimeWithZone(uint64_t timestamp_ns, int16_t tz_offset_min,
+                            int16_t dst_offset_min) override;
   [[nodiscard]] uint64_t Time() const override;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;

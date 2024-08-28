@@ -84,6 +84,25 @@ void MdfFileHistory::UserName::set(String^ user) {
   }      
 }
 
+void MdfFileHistory::SetStartTimeLocal(const uint64_t time) {
+  if (history_ != nullptr) {
+    history_->SetStartTimeLocal(time);
+  }
+}
+
+void MdfFileHistory::SetStartTimeWithZone(const uint64_t time, const int16_t tz_offset_min,
+                                          const int16_t dst_offset_min) {
+  if (history_ != nullptr) {
+    history_->SetStartTimeWithZone(time, tz_offset_min, dst_offset_min);
+  }
+}
+
+void MdfFileHistory::SetStartTimeUtc(const uint64_t time) {
+  if (history_ != nullptr) {
+    history_->SetStartTimeUtc(time);
+  }
+}
+
 MdfFileHistory::MdfFileHistory(mdf::IFileHistory* history)
   : history_(history) {
 }

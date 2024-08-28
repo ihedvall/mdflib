@@ -24,6 +24,11 @@ class Mdf4Timestamp : public MdfBlock {
   [[nodiscard]] uint64_t NsSince1970() const;
   void NsSince1970(uint64_t utc);
 
+  void TimestampWithZone(uint64_t utc, int16_t tz_offset_min,
+                               int16_t dst_offset_min);
+
+  void LocalTime(uint64_t utc);
+
  private:
   uint64_t time_ = MdfHelper::NowNs();  ///< Time in nanoseconds since 1970 also
                                         ///< known as UNIX time

@@ -31,7 +31,7 @@ int strnicmp(const char *__s1, const char *__s2, size_t __n) {
 void strerror(int __errnum, char *__buf, size_t __buflen) {
 #if (_WIN32)
   strerror_s(__buf, __buflen, __errnum);
-#elif (__APPLE__)
+#elif (__APPLE__ || __FreeBSD__)
   int err = strerror_r(__errnum, __buf, __buflen);
   if (err == 0)
   {

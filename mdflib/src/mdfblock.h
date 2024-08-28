@@ -258,8 +258,7 @@ std::size_t MdfBlock::WriteNumber(std::FILE *file, const T &source) const {
     }
   } else {
     const LittleBuffer buff(source);
-    auto buf = buff.data();
-    auto count = std::fwrite(buf, 1, sizeof(T), file);
+    auto count = std::fwrite(buff.data(), 1, sizeof(T), file);
     if (count != sizeof(T)) {
       throw std::runtime_error("Invalid number of bytes written");
     }

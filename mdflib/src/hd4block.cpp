@@ -327,6 +327,20 @@ void Hd4Block::StartTime(uint64_t ns_since_1970) {
   timestamp_.NsSince1970(ns_since_1970);
 }
 
+void Hd4Block::SetStartTimeLocal(uint64_t timestamp_ns) {
+  timestamp_.LocalTime(timestamp_ns);
+}
+
+void Hd4Block::SetStartTimeUtc(uint64_t timestamp_ns) {
+  StartTime(timestamp_ns);
+}
+
+void Hd4Block::SetStartTimeWithZone(uint64_t timestamp_ns,
+                                    int16_t tz_offset_min,
+                                    int16_t dst_offset_min) {
+  timestamp_.TimestampWithZone(timestamp_ns, tz_offset_min, dst_offset_min);
+}
+
 uint64_t Hd4Block::StartTime() const { return timestamp_.NsSince1970(); }
 
 IMetaData* Hd4Block::CreateMetaData() {

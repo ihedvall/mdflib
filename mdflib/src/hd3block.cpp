@@ -280,6 +280,31 @@ uint64_t Hd3Block::StartTime() const {
   return local_timestamp_ - (MdfHelper::TimeZoneOffset() * 1'000'000'000LL);
 }
 
+void Hd3Block::SetStartTimeLocal(uint64_t ns_since_1970) {
+  StartTime(ns_since_1970);
+}
+
+void Hd3Block::SetStartTimeUtc(uint64_t timestamp_ns) {
+  date_ = MdfHelper::NanoTimestampToDDMMYYYY(timestamp_ns);
+  time_ = MdfHelper::NanoTimestampToHHMMSS(timestamp_ns);
+  local_timestamp_ = MdfHelper::NanoSecToLocal(timestamp_ns);
+  dst_offset_ = 0;
+  time_quality_ = 0;
+  timer_id_ = "Local PC Reference Time";
+}
+void Hd3Block::SetStartTimeWithZone(uint64_t timestamp_ns,
+                                    int16_t tz_offset_min,
+                                    int16_t dst_offset_min) {
+  date_ = MdfHelper::NanoTimestampToTimezoneDDMMYYYY(
+      timestamp_ns, tz_offset_min, dst_offset_min);
+  time_ = MdfHelper::NanoTimestampToTimezoneHHMMSS(timestamp_ns, tz_offset_min,
+                                                   dst_offset_min);
+  local_timestamp_ = MdfHelper::NanoSecToLocal(timestamp_ns);
+  dst_offset_ = static_cast<int16_t>(tz_offset_min / 60);
+  time_quality_ = 0;
+  timer_id_ = "Local PC Reference Time";
+}
+
 IDataGroup *Hd3Block::CreateDataGroup() {
   auto dg3 = std::make_unique<Dg3Block>();
   dg3->Init(*this);

@@ -68,4 +68,18 @@ void Fh4Block::Time(uint64_t ns_since_1970) {
 
 uint64_t Fh4Block::Time() const { return timestamp_.NsSince1970(); }
 
+void Fh4Block::SetStartTimeLocal(uint64_t timestamp_ns) {
+  timestamp_.LocalTime(timestamp_ns);
+}
+
+void Fh4Block::SetStartTimeUtc(uint64_t timestamp_ns) {
+  timestamp_.NsSince1970(timestamp_ns);
+}
+
+void Fh4Block::SetStartTimeWithZone(uint64_t timestamp_ns,
+                                    int16_t tz_offset_min,
+                                    int16_t dst_offset_min) {
+  timestamp_.TimestampWithZone(timestamp_ns, tz_offset_min, dst_offset_min);
+}
+
 }  // namespace mdf::detail

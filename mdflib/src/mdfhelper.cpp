@@ -180,6 +180,43 @@ std::string MdfHelper::NanoSecToHHMMSS(uint64_t ns_since_1970) {
   return s.str();
 }
 
+std::string MdfHelper::NanoTimestampToHHMMSS(uint64_t timestamp_ns) {
+  auto utc_time = static_cast<time_t>(timestamp_ns / 1'000'000'000ULL);
+  struct tm *bt = gmtime(&utc_time);
+  std::ostringstream text;
+  text << std::put_time(bt, "%H:%M:%S");
+  return text.str();
+}
+std::string MdfHelper::NanoTimestampToDDMMYYYY(uint64_t timestamp_ns) {
+  auto utc_time = static_cast<time_t>(timestamp_ns / 1'000'000'000ULL);
+  struct tm *bt = gmtime(&utc_time);
+  std::ostringstream text;
+  text << std::put_time(bt, "%d:%m:%Y");
+  return text.str();
+}
+std::string MdfHelper::NanoTimestampToTimezoneHHMMSS(uint64_t timestamp_ns,
+                                                   int16_t tz_offset_min,
+                                                   int16_t dst_offset_min) {
+  auto target_time = static_cast<time_t>(timestamp_ns / 1'000'000'000ULL);
+  int offset = (tz_offset_min + dst_offset_min) * 60;
+  target_time += offset;
+  struct tm *bt = gmtime(&target_time);
+        std::ostringstream text;
+        text << std::put_time(bt, "%H:%M:%S");
+        return text.str();
+}
+std::string MdfHelper::NanoTimestampToTimezoneDDMMYYYY(uint64_t timestamp_ns,
+                                                     int16_t tz_offset_min,
+                                                     int16_t dst_offset_min) {
+  auto target_time = static_cast<time_t>(timestamp_ns / 1'000'000'000ULL);
+  int offset = (tz_offset_min + dst_offset_min) * 60;
+  target_time += offset;
+  struct tm *bt = gmtime(&target_time);
+  std::ostringstream text;
+  text << std::put_time(bt, "%d:%m:%Y");
+  return text.str();
+}
+
 void MdfHelper::Trim(std::string &text) {
   LTrim(text);
   RTrim(text);

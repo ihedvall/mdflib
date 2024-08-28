@@ -78,4 +78,20 @@ void Mdf4Timestamp::NsSince1970(uint64_t utc) {
   dst_offset_ = 0;
   flags_ = 0;
 }
+
+void Mdf4Timestamp::TimestampWithZone(uint64_t utc, int16_t tz_offset_min,
+                                      int16_t dst_offset_min) {
+  time_ = utc;
+  tz_offset_ = tz_offset_min;
+  dst_offset_ = dst_offset_min;
+  flags_ = 2;
+}
+
+void Mdf4Timestamp::LocalTime(uint64_t utc) {
+  time_ = utc;
+  tz_offset_ = 0;
+  dst_offset_ = 0;
+  flags_ = 1;
+}
+
 }  // namespace mdf::detail

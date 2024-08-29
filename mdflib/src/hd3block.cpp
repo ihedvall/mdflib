@@ -68,14 +68,14 @@ void Hd3Block::GetBlockProperty(BlockPropertyList &dest) const {
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
   dest.emplace_back("Number of DG Blocks", std::to_string(nof_dg_blocks_));
-  dest.emplace_back("Date", date_);
-  dest.emplace_back("Time", time_);
+  dest.emplace_back("Date", timestamp_.date_);
+  dest.emplace_back("Time", timestamp_.time_);
   dest.emplace_back("Author", author_);
   dest.emplace_back("Project", project_);
   dest.emplace_back("Organization", organisation_);
-  dest.emplace_back("Time Stamp [ns]", std::to_string(local_timestamp_));
-  dest.emplace_back("UTC Time Offset [h]", std::to_string(dst_offset_));
-  switch (time_quality_) {
+  dest.emplace_back("Time Stamp [ns]", std::to_string(timestamp_.local_timestamp_));
+  dest.emplace_back("UTC Time Offset [h]", std::to_string(timestamp_.dst_offset_));
+  switch (timestamp_.time_quality_) {
     case 0:
       dest.emplace_back("Time Source", "PC Time");
       break;
@@ -88,7 +88,7 @@ void Hd3Block::GetBlockProperty(BlockPropertyList &dest) const {
       dest.emplace_back("Time Source", "NTP/PTP");
       break;
   }
-  dest.emplace_back("Timer ID", timer_id_);
+  dest.emplace_back("Timer ID", timestamp_.timer_id_);
   dest.emplace_back("Comment", comment_);
 }
 
@@ -102,10 +102,10 @@ size_t Hd3Block::Read(std::FILE *file) {
         bytes += ReadNumber(file, nof_dg_blocks_);
         break;
       case 4:
-        bytes += ReadStr(file, date_, 10);
+        bytes += ReadStr(file, timestamp_.date_, 10);
         break;
       case 5:
-        bytes += ReadStr(file, time_, 8);
+        bytes += ReadStr(file, timestamp_.time_, 8);
         break;
       case 6:
         bytes += ReadStr(file, author_, 32);
@@ -120,16 +120,16 @@ size_t Hd3Block::Read(std::FILE *file) {
         bytes += ReadStr(file, subject_, 32);
         break;
       case 10:
-        bytes += ReadNumber(file, local_timestamp_);
+        bytes += ReadNumber(file, timestamp_.local_timestamp_);
         break;
       case 11:
-        bytes += ReadNumber(file, dst_offset_);
+        bytes += ReadNumber(file, timestamp_.dst_offset_);
         break;
       case 12:
-        bytes += ReadNumber(file, time_quality_);
+        bytes += ReadNumber(file, timestamp_.time_quality_);
         break;
       case 13:
-        bytes += ReadStr(file, timer_id_, 32);
+        bytes += ReadStr(file, timestamp_.timer_id_, 32);
         break;
       default:
         std::string temp;
@@ -160,18 +160,17 @@ size_t Hd3Block::Write(std::FILE *file) {
   auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
 
   nof_dg_blocks_ = static_cast<uint16_t>(dg_list_.size());
-
   bytes += WriteNumber(file, nof_dg_blocks_);
-  bytes += WriteStr(file, date_, 10);
-  bytes += WriteStr(file, time_, 8);
+  bytes += WriteStr(file, timestamp_.date_, 10);
+  bytes += WriteStr(file, timestamp_.time_, 8);
   bytes += WriteStr(file, author_, 32);
   bytes += WriteStr(file, organisation_, 32);
   bytes += WriteStr(file, project_, 32);
   bytes += WriteStr(file, subject_, 32);
-  bytes += WriteNumber(file, local_timestamp_);
-  bytes += WriteNumber(file, dst_offset_);
-  bytes += WriteNumber(file, time_quality_);
-  bytes += WriteStr(file, timer_id_, 32);
+  bytes += WriteNumber(file, timestamp_.local_timestamp_);
+  bytes += WriteNumber(file, timestamp_.dst_offset_);
+  bytes += WriteNumber(file, timestamp_.time_quality_);
+  bytes += WriteStr(file, timestamp_.timer_id_, 32);
 
   if (!update) {
     UpdateBlockSize(file, bytes);
@@ -268,41 +267,15 @@ void Hd3Block::Description(const std::string &description) {
 std::string Hd3Block::Description() const { return comment_; }
 
 void Hd3Block::StartTime(uint64_t ns_since_1970) {
-  date_ = MdfHelper::NanoSecToDDMMYYYY(ns_since_1970);
-  time_ = MdfHelper::NanoSecToHHMMSS(ns_since_1970);
-  local_timestamp_ = MdfHelper::NanoSecToLocal(ns_since_1970);
-  dst_offset_ = static_cast<int16_t>(MdfHelper::TimeZoneOffset() / 3600);
-  time_quality_ = 0;
-  timer_id_ = "Local PC Reference Time";
+  timestamp_.SetTime(ns_since_1970);
 }
 
 uint64_t Hd3Block::StartTime() const {
-  return local_timestamp_ - (MdfHelper::TimeZoneOffset() * 1'000'000'000LL);
+  return timestamp_.utc_timestamp_;
 }
 
-void Hd3Block::SetStartTimeLocal(uint64_t ns_since_1970) {
-  StartTime(ns_since_1970);
-}
-
-void Hd3Block::SetStartTimeUtc(uint64_t timestamp_ns) {
-  date_ = MdfHelper::NanoTimestampToDDMMYYYY(timestamp_ns);
-  time_ = MdfHelper::NanoTimestampToHHMMSS(timestamp_ns);
-  local_timestamp_ = MdfHelper::NanoSecToLocal(timestamp_ns);
-  dst_offset_ = 0;
-  time_quality_ = 0;
-  timer_id_ = "Local PC Reference Time";
-}
-void Hd3Block::SetStartTimeWithZone(uint64_t timestamp_ns,
-                                    int16_t tz_offset_min,
-                                    int16_t dst_offset_min) {
-  date_ = MdfHelper::NanoTimestampToTimezoneDDMMYYYY(
-      timestamp_ns, tz_offset_min, dst_offset_min);
-  time_ = MdfHelper::NanoTimestampToTimezoneHHMMSS(timestamp_ns, tz_offset_min,
-                                                   dst_offset_min);
-  local_timestamp_ = MdfHelper::NanoSecToLocal(timestamp_ns);
-  dst_offset_ = static_cast<int16_t>(tz_offset_min / 60);
-  time_quality_ = 0;
-  timer_id_ = "Local PC Reference Time";
+void Hd3Block::StartTime(ITimestamp &timestamp) {
+  timestamp_.SetTime(timestamp);
 }
 
 IDataGroup *Hd3Block::CreateDataGroup() {

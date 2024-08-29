@@ -21,6 +21,8 @@ class MdfHelper {
    * @return local time = system time + time zone offset
    */
   static uint64_t NanoSecToLocal(uint64_t ns_since_1970);
+  
+  static uint64_t NanoSecToTimezone(uint64_t ns_since_1970, int16_t tz_offset_min, int16_t dst_offset_min);
 
   /** \brief return the time zone offset in seconds.
    *
@@ -134,7 +136,7 @@ class MdfHelper {
  * @param [in] timestamp_ns Nanoseconds since 1970 UTC.
  * @return UTC time format 'HH:MM:SS'.
    */
-  static std::string NanoTimestampToHHMMSS(uint64_t timestamp_ns);
+  static std::string NanoSecUtcToHHMMSS(uint64_t timestamp_ns);
   
   /** \brief Converts ns since 1970 UTC to UTC date in 'DD/MM/YYYY' format.
  *
@@ -145,7 +147,7 @@ class MdfHelper {
  * @param [in] timestamp_ns Nanoseconds since 1970 UTC.
  * @return UTC date format 'DD/MM/YYYY'.
    */
-  static std::string NanoTimestampToDDMMYYYY(uint64_t timestamp_ns);
+  static std::string NanoSecUtcToDDMMYYYY(uint64_t timestamp_ns);
   
   /** \brief Converts ns since 1970 UTC to a time string in 'HH:MM:SS' format in a specified timezone.
  *
@@ -160,7 +162,7 @@ class MdfHelper {
  * @param [in] dst_offset_min Daylight saving time (DST) offset in minutes.
  * @return Time format 'HH:MM:SS' adjusted for the specified timezone and DST offset.
    */
-  static std::string NanoTimestampToTimezoneHHMMSS(uint64_t timestamp_ns, int16_t tz_offset_min, int16_t dst_offset_min);
+  static std::string NanoSecTzToHHMMSS(uint64_t timestamp_ns, int16_t tz_offset_min, int16_t dst_offset_min);
   
   /** \brief Converts ns since 1970 UTC to a date string in 'DD/MM/YYYY' format in a specified timezone.
  *
@@ -175,7 +177,7 @@ class MdfHelper {
  * @param [in] dst_offset_min Daylight saving time (DST) offset in minutes.
  * @return Date format 'DD/MM/YYYY' adjusted for the specified timezone and DST offset.
    */
-  static std::string NanoTimestampToTimezoneDDMMYYYY(uint64_t timestamp_ns, int16_t tz_offset_min, int16_t dst_offset_min);
+  static std::string NanoSecTzToDDMMYYYY(uint64_t timestamp_ns, int16_t tz_offset_min, int16_t dst_offset_min);
 
   /** \brief Remove white space from string.
    *

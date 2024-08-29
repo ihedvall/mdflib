@@ -309,9 +309,10 @@ void MdfWriter::StartMeasurement(uint64_t start_time) {
     return;
   }
 
-  if (const auto dg_list = header->DataGroups();
-                 dg_list.size() == 1) {
-    header->StartTime(start_time);
+  if (header->StartTime() == 0) {
+    if (const auto dg_list = header->DataGroups(); dg_list.size() == 1) {
+      header->StartTime(start_time);
+    }
   }
 
   sample_event_.notify_one();

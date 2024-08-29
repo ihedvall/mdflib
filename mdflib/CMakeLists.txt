@@ -99,6 +99,12 @@ add_library(mdf
         src/cgrange.h
         src/mdfconverter.cpp
         src/mdfconverter.h
+        src/timestamp.cpp
+        src/imdftimestamp.h
+        src/timestamp.cpp
+        src/timestamp.h
+        src/mdf3timestamp.cpp
+        src/mdf3timestamp.h
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})

@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include "mdf/iblock.h"
+#include "itimestamp.h"
 
 namespace mdf {
 
@@ -152,32 +153,13 @@ class IHeader : public IBlock {
    */
   virtual void StartTime(uint64_t ns_since_1970) = 0;
 
-  /** \brief Sets the local start time.
+  /** \brief Sets the absolute measurement time for the file.
    *
-   * Sets the absolute start time for the measurement file based on local time.
-   * @param timestamp_ns Nanoseconds since 1970.
+   * Sets the absolute start time for the measurement file using an ITimestamp
+   * object.
+   * @param timestamp An ITimestamp object representing the start time.
    */
-  virtual void SetStartTimeLocal(uint64_t timestamp_ns) = 0;
-
-  /** \brief Sets the UTC start time.
-   *
-   * Sets the absolute start time for the measurement file based on Coordinated
-   * Universal Time (UTC).
-   * @param timestamp_ns Nanoseconds since 1970.
-   */
-  virtual void SetStartTimeUtc(uint64_t timestamp_ns) = 0;
-
-  /** \brief Sets the start time with a timezone offset.
-   *
-   * Sets the absolute start time for the measurement file with specific
-   * timezone and daylight saving time offsets.
-   * @param timestamp_ns Nanoseconds since 1970.
-   * @param tz_offset_min Timezone offset in minutes.
-   * @param dst_offset_min Daylight saving time offset in minutes.
-   */
-  virtual void SetStartTimeWithZone(uint64_t timestamp_ns,
-                                    int16_t tz_offset_min,
-                                    int16_t dst_offset_min) = 0;
+  virtual void StartTime(ITimestamp& timestamp) = 0;
 
   /** \brief Returns the absolute measurement time for the file.
    *

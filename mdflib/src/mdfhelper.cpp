@@ -40,6 +40,13 @@ uint64_t MdfHelper::NanoSecToLocal(uint64_t ns_since_1970) {
   return ns_since_1970 + (utc_offset * 1'000'000'000);
 }
 
+uint64_t MdfHelper::NanoSecToTimezone(uint64_t ns_since_1970,
+                                      int16_t tz_offset_min,
+                                      int16_t dst_offset_min) {
+  const auto offset = (tz_offset_min + dst_offset_min) * 60;
+  return ns_since_1970 + (offset * 1'000'000'000);
+}
+
 int64_t MdfHelper::TimeZoneOffset() {
   const auto system_time = std::time(nullptr);
   struct tm *utc = gmtime(&system_time);
@@ -180,34 +187,34 @@ std::string MdfHelper::NanoSecToHHMMSS(uint64_t ns_since_1970) {
   return s.str();
 }
 
-std::string MdfHelper::NanoTimestampToHHMMSS(uint64_t timestamp_ns) {
+std::string MdfHelper::NanoSecUtcToHHMMSS(uint64_t timestamp_ns) {
   auto utc_time = static_cast<time_t>(timestamp_ns / 1'000'000'000ULL);
   struct tm *bt = gmtime(&utc_time);
   std::ostringstream text;
   text << std::put_time(bt, "%H:%M:%S");
   return text.str();
 }
-std::string MdfHelper::NanoTimestampToDDMMYYYY(uint64_t timestamp_ns) {
+std::string MdfHelper::NanoSecUtcToDDMMYYYY(uint64_t timestamp_ns) {
   auto utc_time = static_cast<time_t>(timestamp_ns / 1'000'000'000ULL);
   struct tm *bt = gmtime(&utc_time);
   std::ostringstream text;
   text << std::put_time(bt, "%d:%m:%Y");
   return text.str();
 }
-std::string MdfHelper::NanoTimestampToTimezoneHHMMSS(uint64_t timestamp_ns,
-                                                   int16_t tz_offset_min,
-                                                   int16_t dst_offset_min) {
+std::string MdfHelper::NanoSecTzToHHMMSS(uint64_t timestamp_ns,
+                                         int16_t tz_offset_min,
+                                         int16_t dst_offset_min) {
   auto target_time = static_cast<time_t>(timestamp_ns / 1'000'000'000ULL);
   int offset = (tz_offset_min + dst_offset_min) * 60;
   target_time += offset;
   struct tm *bt = gmtime(&target_time);
-        std::ostringstream text;
-        text << std::put_time(bt, "%H:%M:%S");
-        return text.str();
+  std::ostringstream text;
+  text << std::put_time(bt, "%H:%M:%S");
+  return text.str();
 }
-std::string MdfHelper::NanoTimestampToTimezoneDDMMYYYY(uint64_t timestamp_ns,
-                                                     int16_t tz_offset_min,
-                                                     int16_t dst_offset_min) {
+std::string MdfHelper::NanoSecTzToDDMMYYYY(uint64_t timestamp_ns,
+                                           int16_t tz_offset_min,
+                                           int16_t dst_offset_min) {
   auto target_time = static_cast<time_t>(timestamp_ns / 1'000'000'000ULL);
   int offset = (tz_offset_min + dst_offset_min) * 60;
   target_time += offset;

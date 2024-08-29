@@ -5,26 +5,11 @@
 #include "mdf4timestamp.h"
 
 #include <chrono>
-namespace {
-
-std::string TimestampToString(uint64_t time) {
-  auto ns = time % 1'000'000'000;
-  auto ms = ns / 1'000'000;
-  auto sec = time / 1'000'000'000;  // Convert to time_t seconds since 1970
-  time_t t = static_cast<time_t>(sec);
-  const struct tm *bt = gmtime(&t);
-  std::ostringstream date_time;
-  date_time << std::put_time(bt, "%Y-%m-%d %H:%M:%S") << '.'
-            << std::setfill('0') << std::setw(3) << ms;
-  return date_time.str();
-}
-
-}  // namespace
 
 namespace mdf::detail {
 
 void Mdf4Timestamp::GetBlockProperty(BlockPropertyList &dest) const {
-  dest.emplace_back("ISO Time", TimestampToString(time_));
+  dest.emplace_back("ISO Time", GetTimeString());
   dest.emplace_back("TZ Offset [min]", std::to_string(tz_offset_));
   dest.emplace_back("DST Offset [min]", std::to_string(dst_offset_));
 
@@ -57,41 +42,64 @@ size_t Mdf4Timestamp::Write(std::FILE *file) {
   return bytes;
 }
 
-uint64_t Mdf4Timestamp::NsSince1970() const {
-  if (flags_ & TimestampFlag::kLocalTimestamp) {
-    // Do not know how to convert but use PC local time
-    const uint64_t ns = time_ % 1'000'000'000;
-    const auto local_time = static_cast<time_t>(time_ / 1'000'000'000);
-    auto temp = *std::gmtime(&local_time);
-    temp.tm_isdst = -1;
-    const auto utc = std::mktime(&temp);
-    uint64_t time = utc;
-    time *= 1'000'000'000;
-    time += ns;
-    return time;
+void Mdf4Timestamp::SetTime(uint64_t time) {
+  time_ = time;
+  tz_offset_ = 0;
+  dst_offset_ = 0;
+  flags_ = TimestampFlag::kUtcTimestamp;
+}
+void Mdf4Timestamp::SetTime(ITimestamp &timestamp) {
+  if (dynamic_cast<UtcTimeStamp *>(&timestamp)) {
+    flags_ = TimestampFlag::kUtcTimestamp;
+  } else if (dynamic_cast<LocalTimeStamp *>(&timestamp)) {
+    flags_ = TimestampFlag::kLocalTimestamp;
+  } else if (dynamic_cast<TimezoneTimeStamp *>(&timestamp)) {
+    flags_ = TimestampFlag::kTimeOffsetValid;
+  } else {
+    throw std::runtime_error("Unknown timestamp type");
   }
-  return time_;
-}
-void Mdf4Timestamp::NsSince1970(uint64_t utc) {
-  time_ = utc;
-  tz_offset_ = 0;
-  dst_offset_ = 0;
-  flags_ = 0;
+  time_ = timestamp.GetTime();
+  tz_offset_ = timestamp.GetTimezone();
+  dst_offset_ = timestamp.GetDst();
 }
 
-void Mdf4Timestamp::TimestampWithZone(uint64_t utc, int16_t tz_offset_min,
-                                      int16_t dst_offset_min) {
-  time_ = utc;
-  tz_offset_ = tz_offset_min;
-  dst_offset_ = dst_offset_min;
-  flags_ = 2;
-}
+Mdf4Timestamp::Mdf4Timestamp()
+    : time_(0), tz_offset_(0), dst_offset_(0), flags_(0) {}
 
-void Mdf4Timestamp::LocalTime(uint64_t utc) {
-  time_ = utc;
-  tz_offset_ = 0;
-  dst_offset_ = 0;
-  flags_ = 1;
+std::string Mdf4Timestamp::GetTimeString() const {
+  using namespace std::chrono;
+  nanoseconds ns(time_);
+  system_clock::time_point tp(duration_cast<system_clock::duration>(ns));
+  minutes tz_offset(tz_offset_);
+  minutes dst_offset(dst_offset_);
+  tp += tz_offset + dst_offset;
+
+  std::time_t time_t_tp = system_clock::to_time_t(tp);
+  std::tm *tm_tp = std::gmtime(&time_t_tp);
+
+  std::ostringstream date_time;
+  date_time << std::put_time(tm_tp, "%Y-%m-%d %H:%M:%S");
+  date_time << " + " << time_ % 1000'000'000 << " ns";
+
+  if (flags_ & TimestampFlag::kUtcTimestamp) {
+    date_time << " [UTC]";
+  } else if (flags_ & TimestampFlag::kTimeOffsetValid) {
+    date_time << "[GMT";
+    if (tz_offset_ >= 0) {
+      date_time << "+" << tz_offset_ / 60;
+    }
+    date_time << ", ";
+    if (dst_offset_ > 0) {
+      date_time << "DST+" << dst_offset_ / 60 << "h]";
+    } else {
+      date_time << "no DST]";
+    }
+  } else if (flags_ & TimestampFlag::kLocalTimestamp) {
+    date_time << " [Local]";
+  }
+
+  return date_time.str();
 }
+uint64_t Mdf4Timestamp::GetTime() const { return time_; }
 
 }  // namespace mdf::detail

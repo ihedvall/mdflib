@@ -6,7 +6,7 @@ namespace mdf {
 /**
  * \brief Interface for MDF timestamp handling.
  */
-class IMdfTimeStamp {
+class IMdfTimestamp {
  public:
   /**
    * \brief Set the time in nanoseconds.

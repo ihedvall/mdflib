@@ -216,24 +216,19 @@ MdfMetaData^ MdfHeader::CreateMetaData() {
     gcnew MdfMetaData(temp) : nullptr; 
 }
 
-void MdfHeader::SetStartTimeLocal(const uint64_t time) {
+void MdfHeader::SetStartTime(IMdfTimeStamp^ timestamp) {
   if (header_ != nullptr) {
-    header_->SetStartTimeLocal(time);
-  }
+    const auto time = timestamp->GetTimestamp();
+    header_->StartTime(*time);
+  }  
 }
 
-void MdfHeader::SetStartTimeWithZone(const uint64_t time,
-                                     const int16_t tz_offset_min,
-                                     const int16_t dst_offset_min) {
-  if (header_ != nullptr) {
-    header_->SetStartTimeWithZone(time, tz_offset_min, dst_offset_min);
+MdfFileTimestamp^ MdfHeader::GetStartTime() {
+  if (header_ == nullptr) {
+    return nullptr;
   }
-}
-
-void MdfHeader::SetStartTimeUtc(const uint64_t time) {
-  if (header_ != nullptr) {
-    header_->SetStartTimeUtc(time);
-  }
+  const auto time = header_->StartTimestamp();
+  return gcnew MdfFileTimestamp(time->GetTimeNs(), time->GetTzOffsetMin(), time->GetDstOffsetMin());
 }
 
 bool MdfHeader::IsStartAngleUsed::get() {

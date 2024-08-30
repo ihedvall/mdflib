@@ -5,7 +5,7 @@
 
 namespace mdf::detail {
 
-class Mdf3Timestamp : public IMdfTimeStamp, public MdfBlock {
+class Mdf3Timestamp : public IMdfTimestamp, public MdfBlock {
  public:
   void GetBlockProperty(detail::BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;

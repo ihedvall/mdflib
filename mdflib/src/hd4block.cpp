@@ -516,7 +516,7 @@ bool Hd4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
                                                               update_vlsd);
 }
 
-const mdf::IMdfTimeStamp* Hd4Block::StartTimestamp() const {
+const mdf::IMdfTimestamp* Hd4Block::StartTimestamp() const {
   return &timestamp_;
 }
 

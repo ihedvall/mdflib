@@ -19,6 +19,7 @@ class Fh4Block : public MdfBlock, public IFileHistory {
   void Time(ITimestamp& timestamp) override;
   
   [[nodiscard]] uint64_t Time() const override;
+  [[nodiscard]] const mdf::IMdfTimestamp * StartTimestamp() const override;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
   [[nodiscard]] IMetaData* CreateMetaData() override;

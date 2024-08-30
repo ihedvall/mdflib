@@ -66,4 +66,6 @@ uint64_t Fh4Block::Time() const { return timestamp_.GetTimeNs(); }
 
 void Fh4Block::Time(ITimestamp &timestamp) { timestamp_.SetTime(timestamp); }
 
+const mdf::IMdfTimestamp *Fh4Block::StartTimestamp() const { return &timestamp_; }
+
 }  // namespace mdf::detail

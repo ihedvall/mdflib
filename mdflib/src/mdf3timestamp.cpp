@@ -23,12 +23,12 @@ void Mdf3Timestamp::SetTime(uint64_t time) {
 }
 
 void Mdf3Timestamp::SetTime(mdf::ITimestamp& timestamp) {
-  if (dynamic_cast<UtcTimeStamp*>(&timestamp)) {
+  if (dynamic_cast<UtcTimestamp*>(&timestamp)) {
     SetTime(timestamp.GetTimeNs());
     return;
   }
 
-  if (auto local_time = dynamic_cast<LocalTimeStamp*>(&timestamp)) {
+  if (auto local_time = dynamic_cast<LocalTimestamp*>(&timestamp)) {
     date_ = MdfHelper::NanoSecUtcToDDMMYYYY(local_time->GetTimeNs());
     time_ = MdfHelper::NanoSecUtcToHHMMSS(local_time->GetTimeNs());
     local_timestamp_ = timestamp.GetTimeNs() - MdfHelper::DstOffsetNs();
@@ -39,7 +39,7 @@ void Mdf3Timestamp::SetTime(mdf::ITimestamp& timestamp) {
     return;
   }
 
-  if (auto tz = dynamic_cast<TimezoneTimeStamp*>(&timestamp)) {
+  if (auto tz = dynamic_cast<TimezoneTimestamp*>(&timestamp)) {
     date_ = MdfHelper::NanoSecTzToDDMMYYYY(
         timestamp.GetTimeNs(), tz->GetTimezoneMin(), tz->GetDstMin());
     time_ = MdfHelper::NanoSecTzToHHMMSS(timestamp.GetTimeNs(),

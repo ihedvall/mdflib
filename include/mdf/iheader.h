@@ -172,11 +172,11 @@ class IHeader : public IBlock {
   /** \brief Returns the start timestamp of the measurement.
    *
    * This function returns the start timestamp of the measurement as a pointer
-   * to an IMdfTimeStamp object.
-   * @return Pointer to an IMdfTimeStamp object representing the start
+   * to an IMdfTimestamp object.
+   * @return Pointer to an IMdfTimestamp object representing the start
    * timestamp.
    */
-  [[nodiscard]] virtual const mdf::IMdfTimeStamp* StartTimestamp() const = 0;
+  [[nodiscard]] virtual const mdf::IMdfTimestamp* StartTimestamp() const = 0;
 
   /** \brief Returns meta data information object.
    *

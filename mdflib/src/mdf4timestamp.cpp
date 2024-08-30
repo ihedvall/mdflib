@@ -50,15 +50,15 @@ void Mdf4Timestamp::SetTime(uint64_t time) {
 }
 void Mdf4Timestamp::SetTime(ITimestamp &timestamp) {
   time_ = timestamp.GetTimeNs();
-  if (dynamic_cast<UtcTimeStamp *>(&timestamp)) {
+  if (dynamic_cast<UtcTimestamp *>(&timestamp)) {
     flags_ = TimestampFlag::kUtcTimestamp;
     tz_offset_ = 0;
     dst_offset_ = 0;
-  } else if (dynamic_cast<LocalTimeStamp *>(&timestamp)) {
+  } else if (dynamic_cast<LocalTimestamp *>(&timestamp)) {
     flags_ = TimestampFlag::kLocalTimestamp;
     tz_offset_ = 0;
     dst_offset_ = 0;
-  } else if (dynamic_cast<TimezoneTimeStamp *>(&timestamp)) {
+  } else if (dynamic_cast<TimezoneTimestamp *>(&timestamp)) {
     flags_ = TimestampFlag::kTimeOffsetValid;
     tz_offset_ = timestamp.GetTimezoneMin();
     dst_offset_ = timestamp.GetDstMin();

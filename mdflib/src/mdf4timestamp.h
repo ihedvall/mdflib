@@ -18,7 +18,7 @@ constexpr uint8_t kLocalTimestamp = 0x01;
 constexpr uint8_t kTimeOffsetValid = 0x02;
 }  // namespace TimestampFlag
 
-class Mdf4Timestamp : public IMdfTimeStamp, public detail::MdfBlock {
+class Mdf4Timestamp : public IMdfTimestamp, public detail::MdfBlock {
  public:
   Mdf4Timestamp();
   void GetBlockProperty(detail::BlockPropertyList &dest) const override;

@@ -73,7 +73,7 @@ class Hd4Block : public MdfBlock, public IHeader {
   void StartTime(ITimestamp &timestamp) override;
 
   [[nodiscard]] uint64_t StartTime() const override;
-  [[nodiscard]] const mdf::IMdfTimeStamp* StartTimestamp() const override;
+  [[nodiscard]] const mdf::IMdfTimestamp * StartTimestamp() const override;
 
   [[nodiscard]] IMetaData *CreateMetaData() override;
   [[nodiscard]] IMetaData *MetaData() const override;

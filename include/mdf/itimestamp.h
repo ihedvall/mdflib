@@ -45,13 +45,13 @@ class ITimestamp {
 /**
  * \brief Class representing a UTC timestamp.
  */
-class UtcTimeStamp : public ITimestamp {
+class UtcTimestamp : public ITimestamp {
  public:
   /**
    * \brief Constructor for UtcTimeStamp.
    * \param utc_timestamp The UTC timestamp in nanoseconds.
    */
-  explicit UtcTimeStamp(uint64_t utc_timestamp);
+  explicit UtcTimestamp(uint64_t utc_timestamp);
 
   [[nodiscard]] uint64_t GetTimeNs() const override;
   [[nodiscard]] int16_t GetTimezoneMin() const override;
@@ -65,14 +65,14 @@ class UtcTimeStamp : public ITimestamp {
 /**
  * \brief Class representing a local timestamp, with timezone and DST offset.
  */
-class LocalTimeStamp : public ITimestamp {
+class LocalTimestamp : public ITimestamp {
  public:
   /**
    * \brief Constructor for LocalTimeStamp.
    * \param local_timestamp The local timestamp in nanoseconds, with timezone
    * and DST offset.
    */
-  explicit LocalTimeStamp(uint64_t local_timestamp);
+  explicit LocalTimestamp(uint64_t local_timestamp);
   [[nodiscard]] uint64_t GetTimeNs() const override;
   [[nodiscard]] int16_t GetTimezoneMin() const override;
   [[nodiscard]] int16_t GetDstMin() const override;
@@ -88,7 +88,7 @@ class LocalTimeStamp : public ITimestamp {
 /**
  * \brief Class representing a timestamp with timezone information.
  */
-class TimezoneTimeStamp : public ITimestamp {
+class TimezoneTimestamp : public ITimestamp {
  public:
   /**
    * \brief Constructor for TimezoneTimeStamp.
@@ -96,7 +96,7 @@ class TimezoneTimeStamp : public ITimestamp {
    * \param timezone_offset_min The timezone offset in minutes.
    * \param dst_offset_min The daylight saving time offset in minutes.
    */
-  TimezoneTimeStamp(uint64_t utc_timestamp, int16_t timezone_offset_min,
+  TimezoneTimestamp(uint64_t utc_timestamp, int16_t timezone_offset_min,
                     int16_t dst_offset_min);
   [[nodiscard]] uint64_t GetTimeNs() const override;
   [[nodiscard]] int16_t GetTimezoneMin() const override;

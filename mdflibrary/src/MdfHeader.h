@@ -11,6 +11,7 @@
 #include "MdfFileHistory.h"
 #include "MdfEvent.h"
 #include "MdfDataGroup.h"
+#include "MdfFileTimestamp.h"
 
 using namespace System;
 
@@ -45,11 +46,9 @@ public:
   MdfEvent^ CreateEvent();
   MdfDataGroup^ CreateDataGroup();
   MdfMetaData^ CreateMetaData();
+  void SetStartTime(IMdfTimeStamp^ timestamp);
+  MdfFileTimestamp^ GetStartTime();
 
-  void SetStartTimeLocal(uint64_t time);
-  void SetStartTimeWithZone(uint64_t time, int16_t tz_offset_min, int16_t dst_offset_min);
-  void SetStartTimeUtc(uint64_t time);
-  
 private:
   MdfHeader() {};
 internal:

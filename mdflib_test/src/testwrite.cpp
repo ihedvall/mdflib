@@ -3257,14 +3257,14 @@ TEST_F(TestWrite, Mdf3TimeStamp) {
   // local time
   path local_path(kTestDir);
   local_path.append("mf3_local.mf3");
-  LocalTimeStamp local_timestamp(local_time);
+  LocalTimestamp local_timestamp(local_time);
   CreateMdfWithTime(local_path.string(), MdfWriterType::Mdf3Basic, local_timestamp);
   TestMdf3Time(local_path.string(), local_time);
 
   // utc time
   path utc_path(kTestDir);
   utc_path.append("mf3_utc.mf3");
-  UtcTimeStamp utc_time(start_time);
+  UtcTimestamp utc_time(start_time);
   CreateMdfWithTime(utc_path.string(), MdfWriterType::Mdf3Basic, utc_time);
   TestMdf3Time(utc_path.string(), local_time);
 
@@ -3275,7 +3275,7 @@ TEST_F(TestWrite, Mdf3TimeStamp) {
                                              timeunits::kNanosecondsPerMinute);
   path tz_path(kTestDir);
   tz_path.append("mf3_tz.mf3");
-  TimezoneTimeStamp timezone_timestamp(start_time, tz_offset_min,
+  TimezoneTimestamp timezone_timestamp(start_time, tz_offset_min,
                                        dst_offset_min);
   CreateMdfWithTime(tz_path.string(), MdfWriterType::Mdf3Basic, local_timestamp);
   TestMdf3Time(tz_path.string(), local_time);
@@ -3287,7 +3287,7 @@ TEST_F(TestWrite, Mdf4TimeStamp) {
   // local time
   path local_path(kTestDir);
   local_path.append("mf4_local.mf4");
-  LocalTimeStamp local_timestamp(start_time);
+  LocalTimestamp local_timestamp(start_time);
   CreateMdfWithTime(local_path.string(), MdfWriterType::Mdf4Basic,
                     local_timestamp);
   TestMdf4Time(local_path.string(), start_time, 0, 0);
@@ -3295,7 +3295,7 @@ TEST_F(TestWrite, Mdf4TimeStamp) {
   // utc time
   path utc_path(kTestDir);
   utc_path.append("mf4_utc.mf4");
-  UtcTimeStamp utc_time(start_time);
+  UtcTimestamp utc_time(start_time);
   CreateMdfWithTime(utc_path.string(), MdfWriterType::Mdf4Basic, utc_time);
   MdfReader utc_reader(utc_path.string());
   TestMdf4Time(utc_path.string(), start_time, 0, 0);
@@ -3308,7 +3308,7 @@ TEST_F(TestWrite, Mdf4TimeStamp) {
                                              timeunits::kNanosecondsPerMinute);
   path tz_path(kTestDir);
   tz_path.append("mf4_tz.mf4");
-  TimezoneTimeStamp timezone_timestamp(start_time, tz_offset_min,
+  TimezoneTimestamp timezone_timestamp(start_time, tz_offset_min,
                                        dst_offset_min);
   CreateMdfWithTime(tz_path.string(), MdfWriterType::Mdf4Basic,
                     timezone_timestamp);

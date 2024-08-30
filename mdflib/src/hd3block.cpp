@@ -301,7 +301,7 @@ void Hd3Block::AddDg3(std::unique_ptr<Dg3Block> &dg3) {
   dg_list_.push_back(std::move(dg3));
 }
 
-const mdf::IMdfTimeStamp *Hd3Block::StartTimestamp() const { 
+const mdf::IMdfTimestamp *Hd3Block::StartTimestamp() const { 
   return &timestamp_;
 }
 

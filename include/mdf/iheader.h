@@ -14,6 +14,7 @@
 #include <vector>
 #include "mdf/iblock.h"
 #include "itimestamp.h"
+#include "imdftimestamp.h"
 
 namespace mdf {
 
@@ -167,6 +168,15 @@ class IHeader : public IBlock {
    * @return Nanoseconds since 1970.
    */
   [[nodiscard]] virtual uint64_t StartTime() const = 0;
+
+  /** \brief Returns the start timestamp of the measurement.
+   *
+   * This function returns the start timestamp of the measurement as a pointer
+   * to an IMdfTimeStamp object.
+   * @return Pointer to an IMdfTimeStamp object representing the start
+   * timestamp.
+   */
+  [[nodiscard]] virtual const mdf::IMdfTimeStamp* StartTimestamp() const = 0;
 
   /** \brief Returns meta data information object.
    *

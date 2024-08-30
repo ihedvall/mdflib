@@ -8,7 +8,7 @@
 
 namespace mdf::detail {
 
-void Mdf4Timestamp::GetBlockProperty(BlockPropertyList &dest) const {
+void Mdf4Timestamp::GetBlockProperty(detail::BlockPropertyList &dest) const {
   dest.emplace_back("ISO Time", GetTimeString());
   dest.emplace_back("TZ Offset [min]", std::to_string(tz_offset_));
   dest.emplace_back("DST Offset [min]", std::to_string(dst_offset_));
@@ -21,7 +21,7 @@ void Mdf4Timestamp::GetBlockProperty(BlockPropertyList &dest) const {
 }
 
 size_t Mdf4Timestamp::Read(std::FILE *file) {
-  file_position_ = GetFilePosition(file);
+  file_position_ = detail::GetFilePosition(file);
   size_t bytes = ReadNumber(file, time_);
   bytes += ReadNumber(file, tz_offset_);
   bytes += ReadNumber(file, dst_offset_);
@@ -31,9 +31,9 @@ size_t Mdf4Timestamp::Read(std::FILE *file) {
 
 size_t Mdf4Timestamp::Write(std::FILE *file) {
   if (file_position_ <= 0) {
-    file_position_ = GetFilePosition(file);
+    file_position_ = detail::GetFilePosition(file);
   } else {
-    SetFilePosition(file, file_position_);
+    detail::SetFilePosition(file, file_position_);
   }
   auto bytes = WriteNumber(file, time_);
   bytes += WriteNumber(file, tz_offset_);
@@ -104,6 +104,8 @@ std::string Mdf4Timestamp::GetTimeString() const {
 
   return date_time.str();
 }
-uint64_t Mdf4Timestamp::GetTime() const { return time_; }
+uint64_t Mdf4Timestamp::GetTimeNs() const { return time_; }
+uint16_t Mdf4Timestamp::GetTzOffsetMin() const { return tz_offset_; }
+uint16_t Mdf4Timestamp::GetDstOffsetMin() const { return dst_offset_; }
 
 }  // namespace mdf::detail

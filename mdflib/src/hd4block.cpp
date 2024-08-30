@@ -331,7 +331,7 @@ void Hd4Block::StartTime(ITimestamp& timestamp) {
   timestamp_.SetTime(timestamp);
 }
 
-uint64_t Hd4Block::StartTime() const { return timestamp_.GetTime(); }
+uint64_t Hd4Block::StartTime() const { return timestamp_.GetTimeNs(); }
 
 IMetaData* Hd4Block::CreateMetaData() {
   return MdfBlock::CreateMetaData();
@@ -514,6 +514,10 @@ bool Hd4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
   auto* last_dg = dg_list_.back().get();
   return last_dg != nullptr && last_dg->UpdateCgAndVlsdBlocks(file,update_cg,
                                                               update_vlsd);
+}
+
+const mdf::IMdfTimeStamp* Hd4Block::StartTimestamp() const {
+  return &timestamp_;
 }
 
 }  // namespace mdf::detail

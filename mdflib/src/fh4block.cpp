@@ -62,7 +62,7 @@ void Fh4Block::Time(uint64_t ns_since_1970) {
   timestamp_.SetTime(ns_since_1970);
 }
 
-uint64_t Fh4Block::Time() const { return timestamp_.GetTime(); }
+uint64_t Fh4Block::Time() const { return timestamp_.GetTimeNs(); }
 
 void Fh4Block::Time(ITimestamp &timestamp) { timestamp_.SetTime(timestamp); }
 

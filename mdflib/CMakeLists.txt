@@ -100,7 +100,7 @@ add_library(mdf
         src/mdfconverter.cpp
         src/mdfconverter.h
         src/timestamp.cpp
-        src/imdftimestamp.h
+        ../include/mdf/imdftimestamp.h
         src/timestamp.cpp
         src/mdf3timestamp.cpp
         src/mdf3timestamp.h

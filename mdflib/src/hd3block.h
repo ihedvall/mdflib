@@ -45,6 +45,7 @@ class Hd3Block : public MdfBlock, public IHeader {
   void StartTime(ITimestamp& timestamp) override;
   
   [[nodiscard]] uint64_t StartTime() const override;
+  [[nodiscard]] const mdf::IMdfTimeStamp* StartTimestamp() const override;
 
   [[nodiscard]] IDataGroup *CreateDataGroup() override;
   [[nodiscard]] std::vector<IDataGroup *> DataGroups() const override;

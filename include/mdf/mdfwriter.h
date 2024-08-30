@@ -209,6 +209,9 @@ class MdfWriter {
   virtual void StartMeasurement(ITimestamp &start_time);
   /** \brief Stops the measurement. */
   virtual void StopMeasurement(uint64_t stop_time);
+  /** \brief Stops the measurement. */
+  virtual void StopMeasurement(ITimestamp &start_time);
+  
   /** \brief Stop the sample queue and write all unwritten blocks to
    * the file.*/
   virtual bool FinalizeMeasurement();

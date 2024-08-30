@@ -74,7 +74,7 @@ void Hd3Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Project", project_);
   dest.emplace_back("Organization", organisation_);
   dest.emplace_back("Time Stamp [ns]", std::to_string(timestamp_.local_timestamp_));
-  dest.emplace_back("UTC Time Offset [h]", std::to_string(timestamp_.dst_offset_));
+  dest.emplace_back("UTC Time Offset [h]", std::to_string(timestamp_.utc_offset_));
   switch (timestamp_.time_quality_) {
     case 0:
       dest.emplace_back("Time Source", "PC Time");
@@ -123,7 +123,7 @@ size_t Hd3Block::Read(std::FILE *file) {
         bytes += ReadNumber(file, timestamp_.local_timestamp_);
         break;
       case 11:
-        bytes += ReadNumber(file, timestamp_.dst_offset_);
+        bytes += ReadNumber(file, timestamp_.utc_offset_);
         break;
       case 12:
         bytes += ReadNumber(file, timestamp_.time_quality_);
@@ -168,7 +168,7 @@ size_t Hd3Block::Write(std::FILE *file) {
   bytes += WriteStr(file, project_, 32);
   bytes += WriteStr(file, subject_, 32);
   bytes += WriteNumber(file, timestamp_.local_timestamp_);
-  bytes += WriteNumber(file, timestamp_.dst_offset_);
+  bytes += WriteNumber(file, timestamp_.utc_offset_);
   bytes += WriteNumber(file, timestamp_.time_quality_);
   bytes += WriteStr(file, timestamp_.timer_id_, 32);
 
@@ -271,7 +271,7 @@ void Hd3Block::StartTime(uint64_t ns_since_1970) {
 }
 
 uint64_t Hd3Block::StartTime() const {
-  return timestamp_.utc_timestamp_;
+  return timestamp_.local_timestamp_;
 }
 
 void Hd3Block::StartTime(ITimestamp &timestamp) {
@@ -299,6 +299,10 @@ std::vector<IDataGroup *> Hd3Block::DataGroups() const {
 void Hd3Block::AddDg3(std::unique_ptr<Dg3Block> &dg3) {
   dg3->Init(*this);
   dg_list_.push_back(std::move(dg3));
+}
+
+const mdf::IMdfTimeStamp *Hd3Block::StartTimestamp() const { 
+  return &timestamp_;
 }
 
 }  // end namespace mdf::detail

@@ -5,7 +5,7 @@
 #pragma once
 #include <cstdio>
 
-#include "imdftimestamp.h"
+#include "mdf/imdftimestamp.h"
 #include "mdf/itimestamp.h"
 #include "mdf/mdfhelper.h"
 #include "mdfblock.h"
@@ -18,18 +18,20 @@ constexpr uint8_t kLocalTimestamp = 0x01;
 constexpr uint8_t kTimeOffsetValid = 0x02;
 }  // namespace TimestampFlag
 
-class Mdf4Timestamp : public IMdfTimeStamp {
+class Mdf4Timestamp : public IMdfTimeStamp, public detail::MdfBlock {
  public:
   Mdf4Timestamp();
-  void GetBlockProperty(BlockPropertyList &dest) const override;
+  void GetBlockProperty(detail::BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;
 
   void SetTime(uint64_t time) override;
   void SetTime(ITimestamp &timestamp) override;
-  
+
   [[nodiscard]] std::string GetTimeString() const;
-  [[nodiscard]] uint64_t GetTime() const override;
+  [[nodiscard]] uint64_t GetTimeNs() const override;
+  [[nodiscard]] uint16_t GetTzOffsetMin() const override;
+  [[nodiscard]] uint16_t GetDstOffsetMin() const override;
 
  private:
   uint64_t time_;

@@ -351,6 +351,10 @@ void MdfWriter::StopMeasurement(uint64_t stop_time) {
   sample_event_.notify_one();
 }
 
+void MdfWriter::StopMeasurement(ITimestamp& start_time) {
+  StopMeasurement(start_time.GetUtcTimeNs());
+}
+
 bool MdfWriter::FinalizeMeasurement() {
   StopWorkThread();
 

@@ -49,18 +49,22 @@ void Mdf4Timestamp::SetTime(uint64_t time) {
   flags_ = TimestampFlag::kUtcTimestamp;
 }
 void Mdf4Timestamp::SetTime(ITimestamp &timestamp) {
+  time_ = timestamp.GetTimeNs();
   if (dynamic_cast<UtcTimeStamp *>(&timestamp)) {
     flags_ = TimestampFlag::kUtcTimestamp;
+    tz_offset_ = 0;
+    dst_offset_ = 0;
   } else if (dynamic_cast<LocalTimeStamp *>(&timestamp)) {
     flags_ = TimestampFlag::kLocalTimestamp;
+    tz_offset_ = 0;
+    dst_offset_ = 0;
   } else if (dynamic_cast<TimezoneTimeStamp *>(&timestamp)) {
     flags_ = TimestampFlag::kTimeOffsetValid;
+    tz_offset_ = timestamp.GetTimezoneMin();
+    dst_offset_ = timestamp.GetDstMin();
   } else {
     throw std::runtime_error("Unknown timestamp type");
   }
-  time_ = timestamp.GetTime();
-  tz_offset_ = timestamp.GetTimezone();
-  dst_offset_ = timestamp.GetDst();
 }
 
 Mdf4Timestamp::Mdf4Timestamp()

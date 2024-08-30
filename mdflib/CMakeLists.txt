@@ -102,7 +102,6 @@ add_library(mdf
         src/timestamp.cpp
         src/imdftimestamp.h
         src/timestamp.cpp
-        src/timestamp.h
         src/mdf3timestamp.cpp
         src/mdf3timestamp.h
 )

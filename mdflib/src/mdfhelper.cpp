@@ -6,13 +6,13 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <codecvt>
 #include <cstring>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
-#include <chrono>
 
 #include "littlebuffer.h"
 
@@ -38,13 +38,6 @@ namespace mdf {
 uint64_t MdfHelper::NanoSecToLocal(uint64_t ns_since_1970) {
   const auto utc_offset = TimeZoneOffset();
   return ns_since_1970 + (utc_offset * 1'000'000'000);
-}
-
-uint64_t MdfHelper::NanoSecToTimezone(uint64_t ns_since_1970,
-                                      int16_t tz_offset_min,
-                                      int16_t dst_offset_min) {
-  const auto offset = (tz_offset_min + dst_offset_min) * 60;
-  return ns_since_1970 + (offset * 1'000'000'000);
 }
 
 int64_t MdfHelper::TimeZoneOffset() {
@@ -99,7 +92,7 @@ std::vector<uint8_t> MdfHelper::NsToCanOpenTimeArray(uint64_t ns_since_1970) {
   std::vector<uint8_t> time_array(6, 0);
 
   // Calculate second to 1984-01-01
-  struct tm bt {};
+  struct tm bt{};
   bt.tm_year = 84;
   bt.tm_mon = 0;
   bt.tm_mday = 1;
@@ -125,7 +118,7 @@ uint64_t MdfHelper::CanOpenTimeArrayToNs(const std::vector<uint8_t> &buffer) {
   const LittleBuffer<uint32_t> ms(buffer, 0);    // Milliseconds since midnight
   const LittleBuffer<uint16_t> days(buffer, 4);  // Days since 1984-01-01
 
-  struct tm time {};
+  struct tm time{};
   time.tm_mday = 1;   // 1..31
   time.tm_mon = 0;    // Note 0..11
   time.tm_year = 84;  // Years since 1900
@@ -152,7 +145,7 @@ uint64_t MdfHelper::CanOpenDateArrayToNs(const std::vector<uint8_t> &buffer) {
 
   uint64_t dest = static_cast<uint64_t>(ms_min.value()) * 1'000'000;
 
-  struct tm time {};
+  struct tm time{};
   time.tm_sec = 0;
   time.tm_min = min;
   time.tm_hour = hour;
@@ -325,7 +318,7 @@ std::string MdfHelper::Latin1ToUtf8(const std::string &latin1) {
 std::string MdfHelper::Utf16ToUtf8(const std::wstring &utf16) {
   std::u16string u16str(utf16.begin(), utf16.end());
   std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-  return  convert.to_bytes(u16str);
+  return convert.to_bytes(u16str);
 }
 
 std::wstring MdfHelper::Utf8ToUtf16(const std::string &utf8) {
@@ -345,6 +338,29 @@ std::vector<uint8_t> MdfHelper::TextToByteArray(const std::string &text) {
     byte_array[index] = static_cast<const uint8_t>(text[index]);
   }
   return byte_array;
+}
+
+int64_t MdfHelper::GmtOffsetNs() {
+  using namespace std::chrono;
+  auto now = system_clock::now();
+  auto now_time_t = system_clock::to_time_t(now);
+  std::tm local_tm = *std::localtime(&now_time_t);
+  std::tm utc_tm = *std::gmtime(&now_time_t);
+  int64_t local_time_seconds = mktime(&local_tm);
+  int64_t utc_time_seconds = mktime(&utc_tm);
+  int64_t gmt_offset_seconds = local_time_seconds - utc_time_seconds;
+  return gmt_offset_seconds * 1'000'000'000;
+}
+
+int64_t MdfHelper::DstOffsetNs() {
+  using namespace std::chrono;
+  auto now = system_clock::now();
+  auto now_time_t = system_clock::to_time_t(now);
+  std::tm local_tm = *std::localtime(&now_time_t);
+  // DST is usually 1 hour (3600 seconds), but it can be different, maybe we
+  // should use a better method to calculate it in the future
+  int dst_offset_seconds = local_tm.tm_isdst > 0 ? 3600 : 0;
+  return static_cast<int64_t>(dst_offset_seconds) * 1'000'000'000;
 }
 
 }  // namespace mdf

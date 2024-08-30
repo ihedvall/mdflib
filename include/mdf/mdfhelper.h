@@ -16,13 +16,11 @@ class MdfHelper {
  public:
   /** \brief Adds the time zone offset to the time stamp.
    *
-   * Adds the time zone offset to the UTC nanoseconds since 1970.
+   * Adds the time zone offset and dst to the UTC nanoseconds since 1970.
    * @param [in] ns_since_1970 Nano-seconds since 1970
    * @return local time = system time + time zone offset
    */
   static uint64_t NanoSecToLocal(uint64_t ns_since_1970);
-  
-  static uint64_t NanoSecToTimezone(uint64_t ns_since_1970, int16_t tz_offset_min, int16_t dst_offset_min);
 
   /** \brief return the time zone offset in seconds.
    *
@@ -30,6 +28,23 @@ class MdfHelper {
    * @return Time offset in seconds
    */
   static int64_t TimeZoneOffset();
+
+  /**
+   * \brief Returns the GMT offset in nanoseconds.
+   *
+   * This function returns the current GMT offset in nanoseconds.
+   * @return GMT offset in nanoseconds.
+   */
+  static int64_t GmtOffsetNs();
+
+  /**
+   * \brief Returns the daylight saving time (DST) offset in nanoseconds.
+   *
+   * This function returns the current daylight saving time (DST) offset in
+   * nanoseconds.
+   * @return DST offset in nanoseconds.
+   */
+  static int64_t DstOffsetNs();
 
   /** \brief Converts a nanosecond since 1970 to a local ISO date and time
    * string.

@@ -12,44 +12,47 @@ size_t mdf::detail::Mdf3Timestamp::Read(std::FILE* file) { return 0; }
 size_t mdf::detail::Mdf3Timestamp::Write(std::FILE* file) {
   return MdfBlock::Write(file);
 }
+
 void mdf::detail::Mdf3Timestamp::SetTime(uint64_t time) {
   date_ = MdfHelper::NanoSecToDDMMYYYY(time);
   time_ = MdfHelper::NanoSecToHHMMSS(time);
-  local_timestamp_ = MdfHelper::NanoSecToLocal(time);
-  utc_timestamp_ =
-      local_timestamp_ - (MdfHelper::TimeZoneOffset() * 1'000'000'000LL);
-  dst_offset_ = static_cast<int16_t>(MdfHelper::TimeZoneOffset() / 3600);
+  local_timestamp_ = time + MdfHelper::GmtOffsetNs();
+  utc_timestamp_ = time;
+  dst_offset_ = static_cast<int16_t>(MdfHelper::DstOffsetNs() /
+                                     timeunits::kNanosecondsPerHour);
   time_quality_ = 0;
   timer_id_ = "Local PC Reference Time";
 }
 
 void mdf::detail::Mdf3Timestamp::SetTime(mdf::ITimestamp& timestamp) {
   if (dynamic_cast<UtcTimeStamp*>(&timestamp)) {
-    SetTime(timestamp.GetTime());
+    SetTime(timestamp.GetTimeNs());
+    return;
   }
 
-  if (dynamic_cast<LocalTimeStamp*>(&timestamp)) {
-    date_ = MdfHelper::NanoSecUtcToDDMMYYYY(timestamp.GetTime());
-    time_ = MdfHelper::NanoSecUtcToHHMMSS(timestamp.GetTime());
-    local_timestamp_ = timestamp.GetTime();
-    utc_timestamp_ =
-        local_timestamp_ - (MdfHelper::TimeZoneOffset() * 1'000'000'000LL);
-    dst_offset_ = static_cast<int16_t>(MdfHelper::TimeZoneOffset() / 3600);
+  if (auto local_time = dynamic_cast<LocalTimeStamp*>(&timestamp)) {
+    date_ = MdfHelper::NanoSecUtcToDDMMYYYY(local_time->GetTimeNs());
+    time_ = MdfHelper::NanoSecUtcToHHMMSS(local_time->GetTimeNs());
+    local_timestamp_ = timestamp.GetTimeNs() - MdfHelper::DstOffsetNs();
+    utc_timestamp_ = local_time->GetUtcTimeNs();
+    dst_offset_ = static_cast<int16_t>(local_time->GetDstMin() / 60);
     time_quality_ = 0;
     timer_id_ = "Local PC Reference Time";
+    return;
   }
 
   if (auto tz = dynamic_cast<TimezoneTimeStamp*>(&timestamp)) {
-    date_ = MdfHelper::NanoSecTzToDDMMYYYY(timestamp.GetTime(),
-                                           tz->GetTimezone(), tz->GetDst());
-    time_ = MdfHelper::NanoSecTzToHHMMSS(timestamp.GetTime(), tz->GetTimezone(),
-                                         tz->GetDst());
-    local_timestamp_ = MdfHelper::NanoSecToTimezone(
-        timestamp.GetTime(), tz->GetTimezone(), tz->GetDst());
-    utc_timestamp_ = tz->GetTime();
-    dst_offset_ = static_cast<int16_t>(timestamp.GetDst() / 60);
+    date_ = MdfHelper::NanoSecTzToDDMMYYYY(
+        timestamp.GetTimeNs(), tz->GetTimezoneMin(), tz->GetDstMin());
+    time_ = MdfHelper::NanoSecTzToHHMMSS(timestamp.GetTimeNs(),
+                                         tz->GetTimezoneMin(), tz->GetDstMin());
+    local_timestamp_ = timestamp.GetTimeNs() +
+                       tz->GetTimezoneMin() * timeunits::kNanosecondsPerMinute;
+    utc_timestamp_ = tz->GetTimeNs();
+    dst_offset_ = static_cast<int16_t>(timestamp.GetDstMin() / 60);
     time_quality_ = 0;
     timer_id_ = "Local PC Reference Time";
+    return;
   }
 }
 

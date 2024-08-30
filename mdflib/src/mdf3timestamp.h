@@ -1,6 +1,8 @@
 #pragma once
 
 #include "mdf/imdftimestamp.h"
+#include "mdfblock.h"
+
 namespace mdf::detail {
 
 class Mdf3Timestamp : public IMdfTimeStamp, public MdfBlock {

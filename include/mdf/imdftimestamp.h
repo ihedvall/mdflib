@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mdf/itimestamp.h"
-#include "mdfblock.h"
 
 namespace mdf {
 /**

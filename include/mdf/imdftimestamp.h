@@ -3,6 +3,19 @@
 #include "mdf/itimestamp.h"
 
 namespace mdf {
+
+namespace timetype
+{
+enum MdfTimestampType {
+ kUtcTime, /**< Represents the UTC time. */
+ kLocalTime, /**< Represents the local time. */
+ kLocalTimeTz, /**< Represents the local time with timezone offset. */
+ kTimezoneTime /**< Represents the time with timezone offset. */
+};
+}
+
+class ITimestamp;
+
 /**
  * \brief Interface for MDF timestamp handling.
  */
@@ -33,5 +46,10 @@ class IMdfTimestamp {
    * \return The daylight saving time offset in minutes.
    */
   [[nodiscard]] virtual uint16_t GetDstOffsetMin() const = 0;
+  /**
+   * \brief Get the type of MDF timestamp.
+   * \return The MDF timestamp type.
+   */
+  [[nodiscard]] virtual timetype::MdfTimestampType GetTimeType() const = 0;
 };
-}  // namespace mdf::detail
+}  // namespace mdf

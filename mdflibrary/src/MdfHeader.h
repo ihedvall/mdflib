@@ -47,7 +47,7 @@ public:
   MdfDataGroup^ CreateDataGroup();
   MdfMetaData^ CreateMetaData();
   void SetStartTime(IMdfTimeStamp^ timestamp);
-  MdfFileTimestamp^ GetStartTime();
+  IMdfFileTimestamp^ GetStartTime();
 
 private:
   MdfHeader() {};

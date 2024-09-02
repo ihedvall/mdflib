@@ -223,12 +223,12 @@ void MdfHeader::SetStartTime(IMdfTimeStamp^ timestamp) {
   }  
 }
 
-MdfFileTimestamp^ MdfHeader::GetStartTime() {
+IMdfFileTimestamp^ MdfHeader::GetStartTime() {
   if (header_ == nullptr) {
     return nullptr;
   }
   const auto time = header_->StartTimestamp();
-  return gcnew MdfFileTimestamp(time->GetTimeNs(), time->GetTzOffsetMin(), time->GetDstOffsetMin());
+  return GetMdfFileTimestampByIMdfTimestamp(time);
 }
 
 bool MdfHeader::IsStartAngleUsed::get() {

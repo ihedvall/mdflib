@@ -49,7 +49,6 @@ void Mdf3Timestamp::SetTime(mdf::ITimestamp& timestamp) {
     utc_offset_ = static_cast<int16_t>(timestamp.GetTimezoneMin() / 60);
     time_quality_ = 0;
     timer_id_ = "Local PC Reference Time";
-    return;
   }
 }
 
@@ -60,4 +59,7 @@ uint16_t Mdf3Timestamp::GetDstOffsetMin() const {
   return 0;
 }
 
+timetype::MdfTimestampType Mdf3Timestamp::GetTimeType() const {
+  return timetype::kLocalTimeTz;
+}
 }  // namespace mdf::detail

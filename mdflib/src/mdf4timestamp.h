@@ -32,6 +32,7 @@ class Mdf4Timestamp : public IMdfTimestamp, public detail::MdfBlock {
   [[nodiscard]] uint64_t GetTimeNs() const override;
   [[nodiscard]] uint16_t GetTzOffsetMin() const override;
   [[nodiscard]] uint16_t GetDstOffsetMin() const override;
+  [[nodiscard]] timetype::MdfTimestampType GetTimeType() const override;
 
  private:
   uint64_t time_;

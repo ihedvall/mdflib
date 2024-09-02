@@ -16,6 +16,7 @@ class Mdf3Timestamp : public IMdfTimestamp, public MdfBlock {
   [[nodiscard]] uint64_t GetTimeNs() const override;
   [[nodiscard]] uint16_t GetTzOffsetMin() const override;
   [[nodiscard]] uint16_t GetDstOffsetMin() const override;
+  [[nodiscard]] timetype::MdfTimestampType GetTimeType() const override;
 
   std::string date_ = "01:01:1970";
   std::string time_ = "00:00:00";

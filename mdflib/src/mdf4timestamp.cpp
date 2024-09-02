@@ -108,4 +108,13 @@ uint64_t Mdf4Timestamp::GetTimeNs() const { return time_; }
 uint16_t Mdf4Timestamp::GetTzOffsetMin() const { return tz_offset_; }
 uint16_t Mdf4Timestamp::GetDstOffsetMin() const { return dst_offset_; }
 
+timetype::MdfTimestampType Mdf4Timestamp::GetTimeType() const {
+  if (flags_ & TimestampFlag::kTimeOffsetValid) {
+    return timetype::kTimezoneTime;
+  }
+  if (flags_ & TimestampFlag::kLocalTimestamp) {
+    return timetype::kLocalTime;
+  }
+  return timetype::kUtcTime;
+}
 }  // namespace mdf::detail

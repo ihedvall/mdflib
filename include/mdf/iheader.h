@@ -176,7 +176,7 @@ class IHeader : public IBlock {
    * @return Pointer to an IMdfTimestamp object representing the start
    * timestamp.
    */
-  [[nodiscard]] virtual const mdf::IMdfTimestamp* StartTimestamp() const = 0;
+  [[nodiscard]] virtual const IMdfTimestamp* StartTimestamp() const = 0;
 
   /** \brief Returns meta data information object.
    *

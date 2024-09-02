@@ -91,14 +91,13 @@ void MdfFileHistory::SetStartTime(IMdfTimeStamp^ timestamp) {
   }
 }
 
-MdfFileTimestamp^ MdfFileHistory::GetStartTime() {
+IMdfFileTimestamp^ MdfFileHistory::GetStartTime() {
   if (history_ == nullptr) { return nullptr; }
   const auto* time = history_->StartTimestamp();
   if (time == nullptr) {
     return nullptr;
   }
-  return gcnew MdfFileTimestamp(time->GetTimeNs(), time->GetTzOffsetMin(),
-                                time->GetDstOffsetMin());
+  return GetMdfFileTimestampByIMdfTimestamp(time);
 }
 
 MdfFileHistory::MdfFileHistory(mdf::IFileHistory* history)

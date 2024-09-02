@@ -1140,6 +1140,7 @@ public class MdfLibraryTest
     public void TestMdf3TimeFlag()
     {
         var now = DateTime.Now;
+        var localNanoTime = MdfHelper.GetLocalNanoTimestamp(now);
         {
             const string utcFilename = "mf3_utc_time.mf3";
             File.Delete(utcFilename);
@@ -1154,9 +1155,10 @@ public class MdfLibraryTest
             var reader = new MdfReader(utcFilename);
             Assert.IsTrue(reader.ReadHeader());
             var readerHeader = reader.Header;
-            Assert.AreEqual(readerHeader.StartTime, MdfHelper.GetLocalNanoTimestamp(now));
+            Assert.AreEqual(readerHeader.StartTime, localNanoTime);
             var fileStartTime = readerHeader.GetStartTime();
-            Assert.AreEqual(fileStartTime.TimeNs, MdfHelper.GetLocalNanoTimestamp(now));
+            Assert.AreEqual(fileStartTime.TimeNs, localNanoTime);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
         }
         {
             const string localFilename = "mf3_local_time.mf3";
@@ -1171,9 +1173,10 @@ public class MdfLibraryTest
             var reader = new MdfReader(localFilename);
             Assert.IsTrue(reader.ReadHeader());
             var readerHeader = reader.Header;
-            Assert.AreEqual(readerHeader.StartTime, MdfHelper.GetLocalNanoTimestamp(now));
+            Assert.AreEqual(readerHeader.StartTime, localNanoTime);
             var fileStartTime = readerHeader.GetStartTime();
-            Assert.AreEqual(fileStartTime.TimeNs, MdfHelper.GetLocalNanoTimestamp(now));
+            Assert.AreEqual(fileStartTime.TimeNs, localNanoTime);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
         }
         {
             const string tzFilename = "mf3_tz_time.mf3";
@@ -1190,9 +1193,10 @@ public class MdfLibraryTest
             var reader = new MdfReader(tzFilename);
             Assert.IsTrue(reader.ReadHeader());
             var readerHeader = reader.Header;
-            Assert.AreEqual(readerHeader.StartTime, MdfHelper.GetLocalNanoTimestamp(now));
+            Assert.AreEqual(readerHeader.StartTime, localNanoTime);
             var fileStartTime = readerHeader.GetStartTime();
-            Assert.AreEqual(fileStartTime.TimeNs, MdfHelper.GetLocalNanoTimestamp(now));
+            Assert.AreEqual(fileStartTime.TimeNs, localNanoTime);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
         }
     }
     
@@ -1200,6 +1204,7 @@ public class MdfLibraryTest
     public void TestMdf4TimeFlag()
     {
         var now = DateTime.Now;
+        var localNanoTime = MdfHelper.GetLocalNanoTimestamp(now);
         {
             const string utcFilename = "mf4_utc_time.mf4";
             File.Delete(utcFilename);
@@ -1218,6 +1223,7 @@ public class MdfLibraryTest
             Assert.AreEqual(fileStartTime.TimeNs, MdfHelper.GetUnixNanoTimestamp(now));
             Assert.AreEqual(fileStartTime.TimezoneMin, 0);
             Assert.AreEqual(fileStartTime.DstMin, 0);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
         }
         {
             const string localFilename = "mf4_local_time.mf4";
@@ -1232,11 +1238,12 @@ public class MdfLibraryTest
             var reader = new MdfReader(localFilename);
             Assert.IsTrue(reader.ReadHeader());
             var readerHeader = reader.Header;
-            Assert.AreEqual(readerHeader.StartTime, MdfHelper.GetLocalNanoTimestamp(now));
+            Assert.AreEqual(readerHeader.StartTime, localNanoTime);
             var fileStartTime = readerHeader.GetStartTime();
-            Assert.AreEqual(fileStartTime.TimeNs, MdfHelper.GetLocalNanoTimestamp(now));
+            Assert.AreEqual(fileStartTime.TimeNs, localNanoTime);
             Assert.AreEqual(fileStartTime.TimezoneMin, 0);
             Assert.AreEqual(fileStartTime.DstMin, 0);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
         }
         {
             const string tzFilename = "mf4_tz_time.mf4";
@@ -1258,6 +1265,7 @@ public class MdfLibraryTest
             Assert.AreEqual(fileStartTime.TimeNs, MdfHelper.GetUnixNanoTimestamp(now));
             Assert.AreEqual(fileStartTime.TimezoneMin, tzMin);
             Assert.AreEqual(fileStartTime.DstMin, dstMin);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
         }
     }
 }

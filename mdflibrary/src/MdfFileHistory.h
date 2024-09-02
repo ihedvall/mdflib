@@ -10,15 +10,14 @@
 #include "MdfFileTimestamp.h"
 
 using namespace System;
-namespace MdfLibrary {
-interface class IMdfTimeStamp;
-ref class MdfFileTimestamp;
 
+namespace MdfLibrary {
 public ref class MdfFileHistory {
 public:
-  property int64_t Index { int64_t get();}
+  property int64_t Index { int64_t get(); }
   property uint64_t Time { uint64_t get(); void set(uint64_t time); }
-  property MdfMetaData^ MetaData {
+  property MdfMetaData^ MetaData
+  {
     MdfMetaData^ get();
   }
   property String^ Description { String^ get(); void set(String^ desc); }
@@ -28,12 +27,14 @@ public:
   property String^ UserName { String^ get(); void set(String^ user); }
 
   void SetStartTime(IMdfTimeStamp^ timestamp);
-  MdfFileTimestamp^ GetStartTime();
+  IMdfFileTimestamp^ GetStartTime();
 
 private:
-  MdfFileHistory() {}
+  MdfFileHistory() {
+  }
+
 internal:
-  mdf::IFileHistory *history_ = nullptr;
-  MdfFileHistory(mdf::IFileHistory *history);
+  mdf::IFileHistory* history_ = nullptr;
+  MdfFileHistory(mdf::IFileHistory* history);
 };
 }

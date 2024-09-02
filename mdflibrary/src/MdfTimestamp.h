@@ -10,10 +10,10 @@ public interface class IMdfTimeStamp {
 };
 
 
-public
-    ref class MdfUtcTimestamp : public IMdfTimeStamp {
+public ref class MdfUtcTimestamp : public IMdfTimeStamp {
 public:
   explicit MdfUtcTimestamp(uint64_t utc_timestamp);
+  explicit MdfUtcTimestamp(System::DateTime time);
   virtual std::unique_ptr<mdf::ITimestamp> GetTimestamp();
 
 private:
@@ -21,10 +21,10 @@ private:
 };
 
 
-public
-    ref class MdfLocalTimestamp : public IMdfTimeStamp {
+public ref class MdfLocalTimestamp : public IMdfTimeStamp {
 public:
   explicit MdfLocalTimestamp(uint64_t local_timestamp);
+  explicit MdfLocalTimestamp(System::DateTime time);
   virtual std::unique_ptr<mdf::ITimestamp> GetTimestamp();
 
 private:
@@ -32,10 +32,12 @@ private:
 };
 
 
-public
-    ref class MdfTimezoneTimestamp : public IMdfTimeStamp {
+public ref class MdfTimezoneTimestamp : public IMdfTimeStamp {
 public:
   explicit MdfTimezoneTimestamp(uint64_t utc_timestamp,
+                                int16_t timezone_offset_min,
+                                int16_t dst_offset_min);
+  explicit MdfTimezoneTimestamp(System::DateTime time,
                                 int16_t timezone_offset_min,
                                 int16_t dst_offset_min);
   virtual std::unique_ptr<mdf::ITimestamp> GetTimestamp();

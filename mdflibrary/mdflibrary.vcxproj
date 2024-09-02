@@ -165,6 +165,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\MdfNetHelper.h" />
     <ClInclude Include="src\MdfTimestamp.h" />
     <ClInclude Include="src\MdfFileTimestamp.h" />
     <ClInclude Include="src\CanMessage.h" />
@@ -188,6 +189,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\MdfFileTimestamp.cpp" />
+    <ClCompile Include="src\MdfNetHelper.cpp" />
     <ClCompile Include="src\MdfTimestamp.cpp" />
     <ClCompile Include="src\AssemblyInfo.cpp" />
     <ClCompile Include="src\CanMessage.cpp" />

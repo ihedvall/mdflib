@@ -36,6 +36,9 @@ if (MDF_BUILD_SHARED_LIB_NET)
             src/MdfSourceInformation.cpp src/MdfSourceInformation.h
             src/Mdfwriter.cpp src/Mdfwriter.h
             src/CanMessage.cpp src/CanMessage.h
+            src/MdfNetHelper.cpp src/MdfNetHelper.h
+            src/MdfTimestamp.cpp src/MdfTimestamp.h
+            src/MdfFileTimestamp.cpp src/MdfFileTimestamp.h
             )
   set_target_properties(mdflibrary PROPERTIES COMMON_LANGUAGE_RUNTIME "")
 else()

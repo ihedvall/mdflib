@@ -1135,4 +1135,137 @@ public class MdfLibraryTest
                     }*/
         }
     }
+
+    [TestMethod]
+    public void TestMdf3TimeFlag()
+    {
+        var now = DateTime.Now;
+        var localNanoTime = MdfHelper.GetLocalNanoTimestamp(now);
+        {
+            const string utcFilename = "mf3_utc_time.mf3";
+            File.Delete(utcFilename);
+            var writer = new MdfWriter(MdfWriterType.Mdf3Basic);
+            writer.Init(utcFilename);
+
+            var header = writer.Header;
+            header.SetStartTime(new MdfUtcTimestamp(now));
+            writer.InitMeasurement();
+            writer.FinalizeMeasurement();
+
+            var reader = new MdfReader(utcFilename);
+            Assert.IsTrue(reader.ReadHeader());
+            var readerHeader = reader.Header;
+            Assert.AreEqual(readerHeader.StartTime, localNanoTime);
+            var fileStartTime = readerHeader.GetStartTime();
+            Assert.AreEqual(fileStartTime.TimeNs, localNanoTime);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
+        }
+        {
+            const string localFilename = "mf3_local_time.mf3";
+            File.Delete(localFilename);
+            var writer = new MdfWriter(MdfWriterType.Mdf3Basic);
+            writer.Init(localFilename);
+            var header = writer.Header;
+            header.SetStartTime(new MdfLocalTimestamp(now));
+            writer.InitMeasurement();
+            writer.FinalizeMeasurement();
+            
+            var reader = new MdfReader(localFilename);
+            Assert.IsTrue(reader.ReadHeader());
+            var readerHeader = reader.Header;
+            Assert.AreEqual(readerHeader.StartTime, localNanoTime);
+            var fileStartTime = readerHeader.GetStartTime();
+            Assert.AreEqual(fileStartTime.TimeNs, localNanoTime);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
+        }
+        {
+            const string tzFilename = "mf3_tz_time.mf3";
+            File.Delete(tzFilename);
+            var writer = new MdfWriter(MdfWriterType.Mdf3Basic);
+            writer.Init(tzFilename);
+            var header = writer.Header;
+            var dstMin = now.IsDaylightSavingTime() ? (short)60 : (short)0;
+            var tzMin = (short)TimeZoneInfo.Local.GetUtcOffset(now).TotalMinutes;
+            header.SetStartTime(new MdfTimezoneTimestamp(now, tzMin, dstMin));
+            writer.InitMeasurement();
+            writer.FinalizeMeasurement();
+            
+            var reader = new MdfReader(tzFilename);
+            Assert.IsTrue(reader.ReadHeader());
+            var readerHeader = reader.Header;
+            Assert.AreEqual(readerHeader.StartTime, localNanoTime);
+            var fileStartTime = readerHeader.GetStartTime();
+            Assert.AreEqual(fileStartTime.TimeNs, localNanoTime);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
+        }
+    }
+    
+    [TestMethod]
+    public void TestMdf4TimeFlag()
+    {
+        var now = DateTime.Now;
+        var localNanoTime = MdfHelper.GetLocalNanoTimestamp(now);
+        {
+            const string utcFilename = "mf4_utc_time.mf4";
+            File.Delete(utcFilename);
+            var writer = new MdfWriter(MdfWriterType.Mdf4Basic);
+            writer.Init(utcFilename);
+            var header = writer.Header;
+            header.SetStartTime(new MdfUtcTimestamp(now));
+            writer.InitMeasurement();
+            writer.FinalizeMeasurement();
+            
+            var reader = new MdfReader(utcFilename);
+            Assert.IsTrue(reader.ReadHeader());
+            var readerHeader = reader.Header;
+            Assert.AreEqual(readerHeader.GetStartTime().TimeNs, MdfHelper.GetUnixNanoTimestamp(now));
+            var fileStartTime = readerHeader.GetStartTime();
+            Assert.AreEqual(fileStartTime.TimeNs, MdfHelper.GetUnixNanoTimestamp(now));
+            Assert.AreEqual(fileStartTime.TimezoneMin, 0);
+            Assert.AreEqual(fileStartTime.DstMin, 0);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
+        }
+        {
+            const string localFilename = "mf4_local_time.mf4";
+            File.Delete(localFilename);
+            var writer = new MdfWriter(MdfWriterType.Mdf4Basic);
+            writer.Init(localFilename);
+            var header = writer.Header;
+            header.SetStartTime(new MdfLocalTimestamp(now));
+            writer.InitMeasurement();
+            writer.FinalizeMeasurement();
+            
+            var reader = new MdfReader(localFilename);
+            Assert.IsTrue(reader.ReadHeader());
+            var readerHeader = reader.Header;
+            Assert.AreEqual(readerHeader.StartTime, localNanoTime);
+            var fileStartTime = readerHeader.GetStartTime();
+            Assert.AreEqual(fileStartTime.TimeNs, localNanoTime);
+            Assert.AreEqual(fileStartTime.TimezoneMin, 0);
+            Assert.AreEqual(fileStartTime.DstMin, 0);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
+        }
+        {
+            const string tzFilename = "mf4_tz_time.mf4";
+            File.Delete(tzFilename);
+            var writer = new MdfWriter(MdfWriterType.Mdf4Basic);
+            writer.Init(tzFilename);
+            var header = writer.Header;
+            var dstMin = now.IsDaylightSavingTime() ? (short)60 : (short)0;
+            var tzMin = (short)TimeZoneInfo.Local.GetUtcOffset(now).TotalMinutes;
+            header.SetStartTime(new MdfTimezoneTimestamp(now, tzMin, dstMin));
+            writer.InitMeasurement();
+            writer.FinalizeMeasurement();
+            
+            var reader = new MdfReader(tzFilename);
+            Assert.IsTrue(reader.ReadHeader());
+            var readerHeader = reader.Header;
+            Assert.AreEqual(readerHeader.StartTime, MdfHelper.GetUnixNanoTimestamp(now));
+            var fileStartTime = reader.Header.GetStartTime();
+            Assert.AreEqual(fileStartTime.TimeNs, MdfHelper.GetUnixNanoTimestamp(now));
+            Assert.AreEqual(fileStartTime.TimezoneMin, tzMin);
+            Assert.AreEqual(fileStartTime.DstMin, dstMin);
+            Assert.AreEqual(fileStartTime.Time.ToLocalTime(), now);
+        }
+    }
 }

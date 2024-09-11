@@ -11,8 +11,10 @@
 #include <cstdint>
 #include <string>
 
-#include "mdf/imetadata.h"
+#include "imdftimestamp.h"
+#include "itimestamp.h"
 #include "mdf/iblock.h"
+#include "mdf/imetadata.h"
 
 namespace mdf {
 
@@ -33,12 +35,30 @@ class IFileHistory : public IBlock {
    */
   virtual void Time(uint64_t ns_since_1970) = 0;
 
+  /**
+   * \brief Sets the time using an ITimestamp object.
+   *
+   * This function sets the time for the history block using an ITimestamp
+   * object.
+   * @param timestamp An ITimestamp object representing the time.
+   */
+  virtual void Time(ITimestamp& timestamp) = 0;
+
   /** \brief Returns the time for the history block.
    *
    * Sets the time the history block was created.
    * @return Nanoseconds since 1970.
    */
   [[nodiscard]] virtual uint64_t Time() const = 0;
+  
+  /** \brief Returns the start timestamp of the measurement.
+   *
+   * This function returns the start timestamp of the measurement as a pointer
+   * to an IMdfTimestamp object.
+   * @return Pointer to an IMdfTimestamp object representing the start
+   * timestamp.
+   */
+  [[nodiscard]] virtual const mdf::IMdfTimestamp* StartTimestamp() const = 0;
 
   /** \brief Returns an interface against a MD4 block
    *

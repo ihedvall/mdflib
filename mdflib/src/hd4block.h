@@ -70,7 +70,10 @@ class Hd4Block : public MdfBlock, public IHeader {
   [[nodiscard]] int64_t RecorderIndex() const override;
 
   void StartTime(uint64_t ns_since_1970) override;
+  void StartTime(ITimestamp &timestamp) override;
+
   [[nodiscard]] uint64_t StartTime() const override;
+  [[nodiscard]] const mdf::IMdfTimestamp * StartTimestamp() const override;
 
   [[nodiscard]] IMetaData *CreateMetaData() override;
   [[nodiscard]] IMetaData *MetaData() const override;
@@ -119,9 +122,10 @@ class Hd4Block : public MdfBlock, public IHeader {
       const override;
   IDataGroup *CreateDataGroup() override;
 
-  bool UpdateDtBlocks(std::FILE* file);
-  bool UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg, bool update_vlsd);
-  bool UpdateVlsdBlocks(std::FILE* file);
+  bool UpdateDtBlocks(std::FILE *file);
+  bool UpdateCgAndVlsdBlocks(std::FILE *file, bool update_cg, bool update_vlsd);
+  bool UpdateVlsdBlocks(std::FILE *file);
+
  private:
   Mdf4Timestamp timestamp_;
 

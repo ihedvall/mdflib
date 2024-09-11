@@ -32,7 +32,7 @@ add_executable(test_mdf
         src/testchannelarray.cpp
         src/testchannelarray.h
         src/testxtensor.cpp
-        src/testqueue.cpp )
+        src/testqueue.cpp)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 if(VCPKG)

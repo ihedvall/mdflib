@@ -164,7 +164,10 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemDefinitionGroup>
-<ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\MdfNetHelper.h" />
+    <ClInclude Include="src\MdfTimestamp.h" />
+    <ClInclude Include="src\MdfFileTimestamp.h" />
     <ClInclude Include="src\CanMessage.h" />
     <ClInclude Include="src\MdfAttachment.h" />
     <ClInclude Include="src\MdfChannel.h" />
@@ -185,6 +188,9 @@
     <ClInclude Include="src\MdfWriter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\MdfFileTimestamp.cpp" />
+    <ClCompile Include="src\MdfNetHelper.cpp" />
+    <ClCompile Include="src\MdfTimestamp.cpp" />
     <ClCompile Include="src\AssemblyInfo.cpp" />
     <ClCompile Include="src\CanMessage.cpp" />
     <ClCompile Include="src\MdfAttachment.cpp" />
@@ -210,7 +216,7 @@
       <Project>{4ea4c08d-2555-493b-b3b6-0e26381d0a09}</Project>
     </ProjectReference>
   </ItemGroup>
-    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

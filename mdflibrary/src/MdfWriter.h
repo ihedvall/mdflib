@@ -128,7 +128,10 @@ public ref class MdfWriter {
   void SaveCanMessage(MdfChannelGroup^ group, uint64_t time,
     const CanMessage^ message);
   void StartMeasurement(uint64_t start_time);
+  void StartMeasurement(DateTime start_time);
+  void StartMeasurement(IMdfTimeStamp^ start_time);
   void StopMeasurement(uint64_t stop_time);
+  void StopMeasurement(DateTime stop_time);
   bool FinalizeMeasurement();
 
  protected:

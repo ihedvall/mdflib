@@ -84,6 +84,22 @@ void MdfFileHistory::UserName::set(String^ user) {
   }      
 }
 
+void MdfFileHistory::SetStartTime(IMdfTimeStamp^ timestamp) {
+  if (history_ != nullptr) {
+    const auto time = timestamp->GetTimestamp();
+    history_->Time(*time);
+  }
+}
+
+IMdfFileTimestamp^ MdfFileHistory::GetStartTime() {
+  if (history_ == nullptr) { return nullptr; }
+  const auto* time = history_->StartTimestamp();
+  if (time == nullptr) {
+    return nullptr;
+  }
+  return GetMdfFileTimestampByIMdfTimestamp(time);
+}
+
 MdfFileHistory::MdfFileHistory(mdf::IFileHistory* history)
   : history_(history) {
 }

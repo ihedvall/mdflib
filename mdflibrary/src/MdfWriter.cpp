@@ -4,6 +4,7 @@
  */
 
 #include "MdfWriter.h"
+#include "MdfNetHelper.h"
 #include "mdflibrary.h"
 
 namespace MdfLibrary {
@@ -135,9 +136,27 @@ void MdfWriter::StartMeasurement(uint64_t start_time) {
   }
 }
 
+void MdfWriter::StartMeasurement(DateTime start_time) {
+  if (writer_ != nullptr) {
+    writer_->StartMeasurement(MdfNetHelper::GetUnixNanoTimestamp(start_time));
+  }
+}
+
+void MdfWriter::StartMeasurement(IMdfTimeStamp^ start_time) {
+  if (writer_ != nullptr && start_time != nullptr) {
+    writer_->StartMeasurement(*start_time->GetTimestamp());
+  }
+}
+
 void MdfWriter::StopMeasurement(uint64_t stop_time) {
   if (writer_ != nullptr) {
     writer_->StopMeasurement(stop_time);
+  }
+}
+
+void MdfWriter::StopMeasurement(DateTime stop_time) {
+  if (writer_ != nullptr) {
+    writer_->StopMeasurement(MdfNetHelper::GetUnixNanoTimestamp(stop_time));
   }
 }
 

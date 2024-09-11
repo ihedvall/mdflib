@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 #include "mdf/iblock.h"
+#include "itimestamp.h"
+#include "imdftimestamp.h"
 
 namespace mdf {
 
@@ -152,12 +154,29 @@ class IHeader : public IBlock {
    */
   virtual void StartTime(uint64_t ns_since_1970) = 0;
 
+  /** \brief Sets the absolute measurement time for the file.
+   *
+   * Sets the absolute start time for the measurement file using an ITimestamp
+   * object.
+   * @param timestamp An ITimestamp object representing the start time.
+   */
+  virtual void StartTime(ITimestamp& timestamp) = 0;
+
   /** \brief Returns the absolute measurement time for the file.
    *
    * Returns the absolute start time for the measurement file.
    * @return Nanoseconds since 1970.
    */
   [[nodiscard]] virtual uint64_t StartTime() const = 0;
+
+  /** \brief Returns the start timestamp of the measurement.
+   *
+   * This function returns the start timestamp of the measurement as a pointer
+   * to an IMdfTimestamp object.
+   * @return Pointer to an IMdfTimestamp object representing the start
+   * timestamp.
+   */
+  [[nodiscard]] virtual const IMdfTimestamp* StartTimestamp() const = 0;
 
   /** \brief Returns meta data information object.
    *

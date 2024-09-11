@@ -3210,4 +3210,109 @@ TEST_F(TestWrite, MdfConverter) {
   }
 }
 
+void CreateMdfWithTime(const std::string& filepath, MdfWriterType writerType,
+                       ITimestamp& timestamp) {
+  auto writer = MdfFactory::CreateMdfWriter(writerType);
+  writer->Init(filepath);
+  auto* header = writer->Header();
+  ASSERT_TRUE(header != nullptr);
+  header->StartTime(timestamp);
+  writer->InitMeasurement();
+  writer->StartMeasurement(timestamp);
+  writer->StopMeasurement(timestamp);
+  writer->FinalizeMeasurement();
+}
+
+void TestMdf3Time(const std::string& filepath, uint64_t time) {
+  MdfReader reader(filepath);
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadHeader());
+  const auto* file1 = reader.GetFile();
+  ASSERT_TRUE(file1 != nullptr);
+  const auto* header1 = file1->Header();
+  ASSERT_TRUE(header1 != nullptr);
+  
+  EXPECT_EQ(header1->StartTime(), time);
+}
+
+void TestMdf4Time(const std::string& filepath, uint64_t time,
+                  uint16_t tz_offset_min, uint16_t dst_offset_min) {
+  MdfReader reader(filepath);
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadHeader());
+  const auto* file = reader.GetFile();
+  const auto* header = file->Header();
+  ASSERT_TRUE(header != nullptr);
+  const auto* local_ts = header->StartTimestamp();
+  EXPECT_EQ(local_ts->GetTimeNs(), time);
+  EXPECT_EQ(local_ts->GetDstOffsetMin(), dst_offset_min);
+  EXPECT_EQ(local_ts->GetTzOffsetMin(), tz_offset_min);
+}
+
+TEST_F(TestWrite, Mdf3TimeStamp) {
+  
+  const auto start_time = TimeStampToNs();
+  const auto local_time = start_time + MdfHelper::TimeZoneOffset() *
+                                           timeunits::kNanosecondsPerSecond;
+  // local time
+  path local_path(kTestDir);
+  local_path.append("mf3_local.mf3");
+  LocalTimestamp local_timestamp(local_time);
+  CreateMdfWithTime(local_path.string(), MdfWriterType::Mdf3Basic, local_timestamp);
+  TestMdf3Time(local_path.string(), local_time);
+
+  // utc time
+  path utc_path(kTestDir);
+  utc_path.append("mf3_utc.mf3");
+  UtcTimestamp utc_time(start_time);
+  CreateMdfWithTime(utc_path.string(), MdfWriterType::Mdf3Basic, utc_time);
+  TestMdf3Time(utc_path.string(), local_time);
+
+  // timezone time
+  auto tz_offset_min = static_cast<int16_t>(MdfHelper::GmtOffsetNs() /
+                                            timeunits::kNanosecondsPerMinute);
+  auto dst_offset_min = static_cast<int16_t>(MdfHelper::DstOffsetNs() /
+                                             timeunits::kNanosecondsPerMinute);
+  path tz_path(kTestDir);
+  tz_path.append("mf3_tz.mf3");
+  TimezoneTimestamp timezone_timestamp(start_time, tz_offset_min,
+                                       dst_offset_min);
+  CreateMdfWithTime(tz_path.string(), MdfWriterType::Mdf3Basic, local_timestamp);
+  TestMdf3Time(tz_path.string(), local_time);
+}
+
+TEST_F(TestWrite, Mdf4TimeStamp) {
+  const auto start_time = TimeStampToNs();
+
+  // local time
+  path local_path(kTestDir);
+  local_path.append("mf4_local.mf4");
+  LocalTimestamp local_timestamp(start_time);
+  CreateMdfWithTime(local_path.string(), MdfWriterType::Mdf4Basic,
+                    local_timestamp);
+  TestMdf4Time(local_path.string(), start_time, 0, 0);
+
+  // utc time
+  path utc_path(kTestDir);
+  utc_path.append("mf4_utc.mf4");
+  UtcTimestamp utc_time(start_time);
+  CreateMdfWithTime(utc_path.string(), MdfWriterType::Mdf4Basic, utc_time);
+  MdfReader utc_reader(utc_path.string());
+  TestMdf4Time(utc_path.string(), start_time, 0, 0);
+  
+
+  // timezone time
+  auto tz_offset_min = static_cast<int16_t>(MdfHelper::GmtOffsetNs() /
+                                            timeunits::kNanosecondsPerMinute);
+  auto dst_offset_min = static_cast<int16_t>(MdfHelper::DstOffsetNs() /
+                                             timeunits::kNanosecondsPerMinute);
+  path tz_path(kTestDir);
+  tz_path.append("mf4_tz.mf4");
+  TimezoneTimestamp timezone_timestamp(start_time, tz_offset_min,
+                                       dst_offset_min);
+  CreateMdfWithTime(tz_path.string(), MdfWriterType::Mdf4Basic,
+                    timezone_timestamp);
+  TestMdf4Time(tz_path.string(), start_time, tz_offset_min, dst_offset_min);
+}
+
 }  // end namespace mdf::test

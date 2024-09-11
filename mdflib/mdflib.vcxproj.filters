@@ -282,6 +282,12 @@
     <ClCompile Include="src\mdfconverter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\mdf3timestamp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\timestamp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\at4block.h">
@@ -556,6 +562,9 @@
     </ClInclude>
     <ClInclude Include="src\mdfconverter.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mdf3timestamp.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

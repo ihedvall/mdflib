@@ -243,6 +243,7 @@
     <ClCompile Include="src\littlebuffer.cpp" />
     <ClCompile Include="src\md4block.cpp" />
     <ClCompile Include="src\mdf3file.cpp" />
+    <ClCompile Include="src\mdf3timestamp.cpp" />
     <ClCompile Include="src\mdf3writer.cpp" />
     <ClCompile Include="src\mdf4file.cpp" />
     <ClCompile Include="src\mdf4timestamp.cpp" />
@@ -266,6 +267,7 @@
     <ClCompile Include="src\si4block.cpp" />
     <ClCompile Include="src\sr3block.cpp" />
     <ClCompile Include="src\sr4block.cpp" />
+    <ClCompile Include="src\timestamp.cpp" />
     <ClCompile Include="src\tr3block.cpp" />
     <ClCompile Include="src\tx3block.cpp" />
     <ClCompile Include="src\tx4block.cpp" />
@@ -343,6 +345,7 @@
     <ClInclude Include="src\littlebuffer.h" />
     <ClInclude Include="src\md4block.h" />
     <ClInclude Include="src\mdf3file.h" />
+    <ClInclude Include="src\mdf3timestamp.h" />
     <ClInclude Include="src\mdf3writer.h" />
     <ClInclude Include="src\mdf4file.h" />
     <ClInclude Include="src\mdf4timestamp.h" />

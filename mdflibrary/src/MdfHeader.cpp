@@ -216,6 +216,21 @@ MdfMetaData^ MdfHeader::CreateMetaData() {
     gcnew MdfMetaData(temp) : nullptr; 
 }
 
+void MdfHeader::SetStartTime(IMdfTimeStamp^ timestamp) {
+  if (header_ != nullptr) {
+    const auto time = timestamp->GetTimestamp();
+    header_->StartTime(*time);
+  }  
+}
+
+IMdfFileTimestamp^ MdfHeader::GetStartTime() {
+  if (header_ == nullptr) {
+    return nullptr;
+  }
+  const auto time = header_->StartTimestamp();
+  return GetMdfFileTimestampByIMdfTimestamp(time);
+}
+
 bool MdfHeader::IsStartAngleUsed::get() {
   return header_ != nullptr ? header_->StartAngle().has_value() : false;
 }

@@ -1,44 +1,30 @@
-/*
- * Copyright 2021 Ingemar Hedvall
- * SPDX-License-Identifier: MIT
- */
 #pragma once
-#include <cstdio>
 
 #include "mdf/imdftimestamp.h"
-#include "mdf/itimestamp.h"
-#include "mdf/mdfhelper.h"
 #include "mdfblock.h"
 
 namespace mdf::detail {
 
-namespace TimestampFlag {
-constexpr uint8_t kUtcTimestamp = 0x00;
-constexpr uint8_t kLocalTimestamp = 0x01;
-constexpr uint8_t kTimeOffsetValid = 0x02;
-}  // namespace TimestampFlag
-
-class Mdf4Timestamp : public IMdfTimestamp, public detail::MdfBlock {
+class Mdf3Timestamp : public IMdfTimestamp, public MdfBlock {
  public:
-  Mdf4Timestamp();
   void GetBlockProperty(detail::BlockPropertyList &dest) const override;
   size_t Read(std::FILE *file) override;
   size_t Write(std::FILE *file) override;
 
   void SetTime(uint64_t time) override;
   void SetTime(ITimestamp &timestamp) override;
-
-  [[nodiscard]] std::string GetTimeString() const;
   [[nodiscard]] uint64_t GetTimeNs() const override;
   [[nodiscard]] uint16_t GetTzOffsetMin() const override;
   [[nodiscard]] uint16_t GetDstOffsetMin() const override;
   [[nodiscard]] timetype::MdfTimestampType GetTimeType() const override;
 
- private:
-  uint64_t time_;
-  int16_t tz_offset_;
-  int16_t dst_offset_;
-  uint8_t flags_;
+  std::string date_ = "01:01:1970";
+  std::string time_ = "00:00:00";
+  uint64_t local_timestamp_ =
+      0;  ///< Nanosecond since 1 Jan 1970 with DST (local time)
+  int16_t utc_offset_ = 0;     ///< UTC offset in hours
+  uint16_t time_quality_ = 0;  ///< Default local PC time
+  std::string timer_id_ = "Local PC Reference Time";
 };
 
-}  // Namespace mdf::detail
+}  // namespace mdf::detail

@@ -52,20 +52,20 @@ size_t Fh4Block::Write(std::FILE *file) {
   return bytes;
 }
 
-IMetaData *Fh4Block::CreateMetaData() {
-  return MdfBlock::CreateMetaData();
-}
+IMetaData *Fh4Block::CreateMetaData() { return MdfBlock::CreateMetaData(); }
 
-IMetaData *Fh4Block::MetaData() const {
-  return MdfBlock::MetaData();
-}
+IMetaData *Fh4Block::MetaData() const { return MdfBlock::MetaData(); }
 
 int64_t Fh4Block::Index() const { return FilePosition(); }
 
 void Fh4Block::Time(uint64_t ns_since_1970) {
-  timestamp_.NsSince1970(ns_since_1970);
+  timestamp_.SetTime(ns_since_1970);
 }
 
-uint64_t Fh4Block::Time() const { return timestamp_.NsSince1970(); }
+uint64_t Fh4Block::Time() const { return timestamp_.GetTimeNs(); }
+
+void Fh4Block::Time(ITimestamp &timestamp) { timestamp_.SetTime(timestamp); }
+
+const mdf::IMdfTimestamp *Fh4Block::StartTimestamp() const { return &timestamp_; }
 
 }  // namespace mdf::detail

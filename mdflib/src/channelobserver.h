@@ -247,7 +247,7 @@ template <>
 bool ChannelObserver<std::vector<uint8_t>>::GetSampleText(
     uint64_t sample, std::string& value, uint64_t  array_index) const;
 
-// Little bit dirty trick but it's the specialized function below that
+// A little bit dirty trick, but it's the specialized function below that
 // normally used.
 template <class T>
 bool ChannelObserver<T>::GetSampleByteArray(uint64_t sample,

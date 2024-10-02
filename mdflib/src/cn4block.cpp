@@ -195,6 +195,7 @@ int64_t Cn4Block::DataLink() const { return Link(kIndexData); }
 
 std::vector<int64_t> Cn4Block::AtLinkList() const {
   std::vector<int64_t> link_list;
+  link_list.reserve(nof_attachments_);
   for (uint16_t ii = 0; ii < nof_attachments_; ++ii) {
     link_list.push_back(Link(kIndexAt + ii));
   }

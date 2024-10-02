@@ -24,8 +24,8 @@ DgRange::DgRange(const IDataGroup& data_group, size_t min_sample,
     const uint64_t record_id = channel_group->RecordId();
     bool used = data_group_.IsSubscribingOnRecord(record_id);
 
-    // Check if the min_sample > number of samples. Then is no meaning
-    // to read this CG group. If the group a VSLD group, it doesn't have
+    // Check if the min_sample > number of samples, then it is no meaning
+    // to read this CG group. If the group is a VSLD group, it doesn't have
     // any samples.
     if ( (channel_group->Flags() & CgFlag::VlsdChannel) == 0 &&
          min_sample_ > channel_group->NofSamples() ) {

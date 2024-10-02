@@ -134,7 +134,7 @@ bool MdfChannelObserver::GetEngValueAsArray(size_t sample,
   if (observer_ == nullptr ) {
     return false;
   }
-  // Note that engineering value cannot be byte arrays so I assume
+  // Note that engineering value cannot be byte arrays, so I assume
   // that it was the channel value that was requested.
   std::vector<uint8_t> temp;
   const auto valid = observer_->GetChannelValue(sample, temp);

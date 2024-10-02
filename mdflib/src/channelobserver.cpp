@@ -12,7 +12,7 @@ bool ChannelObserver<std::vector<uint8_t>>::GetSampleUnsigned(
   const auto* channel_array = channel_.ChannelArray();
   const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
   const auto sample_index = (sample * array_size) + array_index;
-  value = 0; // value_list is an byte array
+  value = 0; // value_list is a byte array
   return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
@@ -34,7 +34,7 @@ bool ChannelObserver<std::vector<uint8_t>>::GetSampleSigned(
   const auto* channel_array = channel_.ChannelArray();
   const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
   const auto sample_index = (sample * array_size) + array_index;
-  value = 0; // value_list is an byte array
+  value = 0; // value_list is a byte array
   return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 
@@ -55,7 +55,7 @@ bool ChannelObserver<std::vector<uint8_t>>::GetSampleFloat(
   const auto* channel_array = channel_.ChannelArray();
   const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
   const auto sample_index = (sample * array_size) + array_index;
-  value = 0.0; // value_list is an byte array
+  value = 0.0; // value_list is a byte array
   return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
 

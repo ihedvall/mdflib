@@ -63,7 +63,7 @@ size_t Dl4Block::Read(std::FILE *file) {
 size_t Dl4Block::Write(std::FILE *file) {
   const bool update = FilePosition() > 0;
   if (update) {
-    // The DL block properties cannot be changed but it
+    // The DL block properties cannot be changed, but it
     // is possible to append DL blocks
     WriteBlockList(file, kIndexData);
     return block_length_;

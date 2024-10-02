@@ -780,7 +780,7 @@ EXPORTFEATUREFUNC(bool, GetEngValueAsString, uint64_t sample, char* value,
 EXPORTFEATUREFUNC(bool, GetEngValueAsArray, uint64_t sample, uint8_t value[],
                   size_t& size) {
   // Ref `MdfChannelObserver::GetChannelValueAsArray`
-  // "Note that engineering value cannot be byte arrays so I assume"
+  // "Note that engineering value cannot be byte arrays, so I assume"
   // "that it was the observer value that was requested."
   return MdfChannelObserverGetChannelValueAsArray(observer, sample, value,
                                                   size);

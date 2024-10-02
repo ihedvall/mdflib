@@ -83,7 +83,7 @@ std::string IChannelObserver::EngValueToString(uint64_t sample) const {
 
 void IChannelObserver::ReadVlsdData(bool read_vlsd_data) {
   read_vlsd_data_ = read_vlsd_data;
-  // Need to setup the record id subscription list.
+  // Need to set up the record id subscription list.
   record_id_list_.clear();
   record_id_list_.insert(channel_.RecordId());
   if (channel_.VlsdRecordId() > 0 && read_vlsd_data_) {

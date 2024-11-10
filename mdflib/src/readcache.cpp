@@ -6,6 +6,8 @@
 #include "readcache.h"
 #include <iostream>
 
+#include "mdf/mdflogstream.h"
+
 namespace mdf::detail {
 
 ReadCache::ReadCache( MdfBlock* block, FILE* file)
@@ -16,9 +18,13 @@ ReadCache::ReadCache( MdfBlock* block, FILE* file)
   dg4_block_ = dynamic_cast<Dg4Block*>(block);
 
   if (dg4_block_ != nullptr) {
-    const auto cg_list = dg4_block_->ChannelGroups();
-    for (const auto* channel_group : cg_list) {
-      if (channel_group != nullptr && dg4_block_->IsSubscribingOnRecord(channel_group->RecordId())) {
+    const auto& cg_list = dg4_block_->Cg4();
+    for (const auto& channel_group : cg_list) {
+      if (!channel_group) {
+        continue;
+      }
+      available_cg_list_.emplace(channel_group->RecordId(), channel_group.get());
+      if (dg4_block_->IsSubscribingOnRecord(channel_group->RecordId())) {
         record_id_list_.insert(channel_group->RecordId());
       }
     }
@@ -30,8 +36,7 @@ ReadCache::ReadCache( MdfBlock* block, FILE* file)
     max_data_count_ = data_block_->DataSize();
   }
 
-  // Make at list of data blocks that simplify the stepping of data blocks,
-  // The block_index
+  // Make a list of data blocks that simplify the stepping of data blocks.
   if (data_list_ != nullptr)  {
     data_list_->GetDataBlockList(block_list_);
   } else if (data_block_ != nullptr) {
@@ -50,12 +55,17 @@ bool ReadCache::ParseRecord() {
   bool continue_reading = true;
   try {
     const auto record_id = ParseRecordId();
-    const auto *channel_group = dg4_block_->FindCgRecordId(record_id);
+    const auto itr_group = available_cg_list_.size() == 1 ?
+                available_cg_list_.begin() : available_cg_list_.find(record_id);
+    const auto* channel_group = itr_group == available_cg_list_.cend() ?
+               nullptr : itr_group->second;
+    // const auto *channel_group = dg4_block_->FindCgRecordId(record_id);
     if (channel_group == nullptr) {
       throw std::runtime_error("No channel group found.");
     }
     if (channel_group->Flags() & CgFlag::VlsdChannel) {
-      // This is normally used for string and the CG block only include one signal
+      // This is normally used for the string,
+      // and the CG block only includes one signal
       std::vector<uint8_t> temp(4, 0);
       GetArray(temp);
       const LittleBuffer<uint32_t> length(temp, 0);
@@ -74,7 +84,7 @@ bool ReadCache::ParseRecord() {
           continue_reading = dg4_block_->NotifySampleObservers(sample,
                                   channel_group->RecordId(), record);
           channel_group->IncrementSample();
-       };
+       }
       }
 
     } else {
@@ -98,7 +108,8 @@ bool ReadCache::ParseRecord() {
         }
       }
     }
-  } catch (const std::exception &) {
+  } catch (const std::exception &err) {
+    MDF_ERROR() << "Parse of record failed. Error: " << err.what();
     return false;
   }
 
@@ -126,7 +137,8 @@ bool ReadCache::ParseRangeRecord(DgRange& range) {
     const size_t next_sample = sample + 1;
 
     if (channel_group->Flags() & CgFlag::VlsdChannel) {
-      // This is normally used for string and the CG block only include one signal
+      // This is normally used for string,
+      // and the CG block only includes one signal
       std::vector<uint8_t> temp(4, 0);
       GetArray(temp);
       const LittleBuffer<uint32_t> length(temp, 0);
@@ -155,7 +167,7 @@ bool ReadCache::ParseRangeRecord(DgRange& range) {
           continue_reading = dg4_block_->NotifySampleObservers(sample,
                             record_id, record);
           channel_group->IncrementSample();
-        };
+        }
       }
     } else {
       const size_t record_size = channel_group->NofDataBytes()
@@ -253,7 +265,8 @@ bool ReadCache::ParseVlsdCgData() {
         throw std::runtime_error("No channel group found.");
       }
       if (channel_group->Flags() & CgFlag::VlsdChannel) {
-        // This is normally used for string and the CG block only include one signal
+        // This is normally used for string,
+        // and the CG block only includes one signal
         std::vector<uint8_t> temp(4, 0);
         GetArray(temp);
         const LittleBuffer<uint32_t> length(temp, 0);
@@ -297,7 +310,7 @@ bool ReadCache::GetNextByte(uint8_t &input) {
   }
   if ( file_index_ < data_size_) {
     if (file_buffer_.empty()) {
-      // Read direct from file
+      // Read direct from the file
       const auto nof_bytes = fread(&input,1,1,file_);
       if (nof_bytes != 1) {
         return false;
@@ -332,11 +345,11 @@ bool ReadCache::GetNextByte(uint8_t &input) {
     size_t temp_index = 0;
     current_block->CopyDataToBuffer(file_,file_buffer_, temp_index);
   } else {
-    // Read from file directly
+    // Read from the file directly
     SetFilePosition(file_, current_block->DataPosition());
-    file_buffer_.clear(); // Indicate that we read from file directly
+    file_buffer_.clear(); // Indicate that we read from the file directly
   }
-    // Read  in the data form file to
+    // Read in the data form file to
   if (file_index_ >= data_size_) {
     return false;
   }

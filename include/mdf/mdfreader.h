@@ -46,7 +46,20 @@ void CreateChannelObserverForChannelGroup(const IDataGroup& data_group,
                                           const IChannelGroup& group,
                                           ChannelObserverList& dest);
 
-
+/** \brief Creates channel observers for all channels within a data group.
+ *
+ * This function generates channel observers for all channels within the
+ * a data group. This function may a little but dangerous as it may allocate
+ * a lot of primary memory. An hint is to check how many bytes there are
+ * in the DG/DT blocks. If there is more than 1GByte, maybe you should do
+ * some partial read instead.
+ *
+ * Note that channel groups without samples or data, are skipped.
+ * @param data_group Reference to the data group.
+ * @param dest_list The subscriber list which is appended with channel observers.
+ */
+void CreateChannelObserverForDataGroup(const IDataGroup& data_group,
+                                          ChannelObserverList& dest_list);
 /** \class MdfReader mdfreader.h "mdf/mdfreader.h"
  * \brief Reader interface to an MDF file.
  *
@@ -83,6 +96,14 @@ class MdfReader {
   /// Checks if the file was read without errors.
   /// \return True if the file was read OK.
   [[nodiscard]] bool IsOk() const { return static_cast<bool>(instance_); }
+
+  /** \brief Return true if the file is marked as finalized
+   *
+   * This function returns true if the file is marked as finalized. This
+   * is done by checking the ID block.
+   * @return True if the file is marked as finalized.
+   */
+  [[nodiscard]] bool IsFinalized() const;
 
   /// Returns a pointer to the MDF file. This file holds references to the MDF
   /// blocks. \return Pointer to the MDF file object. Note it may return a null

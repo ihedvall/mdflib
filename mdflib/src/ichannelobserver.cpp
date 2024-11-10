@@ -27,10 +27,14 @@ IChannelObserver::IChannelObserver(const IDataGroup& data_group, const IChannel 
     channel_(channel) {
 
   // Subscribe on all channel groups
-  record_id_list_.clear();
+
   const auto cg_list = data_group.ChannelGroups();
+  // A channel observer only needs its own observer and its VLSD record ID.
+  // Note that the property that disable the reading of VLSD data is called
+  // after this constructor
+  record_id_list_.clear();
   record_id_list_.insert(channel_.RecordId());
-  if (channel_.VlsdRecordId() > 0 && read_vlsd_data_) {
+  if (channel_.VlsdRecordId() > 0) {
     record_id_list_.insert(channel_.VlsdRecordId());
   }
 

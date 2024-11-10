@@ -23,12 +23,10 @@ using namespace mdf;
 using namespace mdf::detail;
 using namespace util::log;
 using namespace std::chrono_literals;
-
+using namespace std::chrono;
 namespace {
 const std::string mdf_source_dir =
     "k:/test/mdf";  // Where all source MDF files exist
-const std::string log_root_dir = "o:/test";
-const std::string log_file = "mdfread.log";
 
 constexpr std::string_view  kLargeLocalSsdFile =
     "c:/temp/Zeekr_PR60126_BX1E_583_R08A04_dia_left_5kph_0.5m_NO_08_01_psd_1_2023_12_21_041519#CANape_log_056_TDA4GMSL.mf4";
@@ -41,13 +39,15 @@ constexpr std::string_view kLargeTime = "t";
 constexpr std::string_view kLargeFrameCounter = "FrameCounter_VC0";
 constexpr std::string_view kLargeFrameData = "VideoRawdata_VC0";
 constexpr std::string_view kBenchMarkFile = "K:/test/mdf/net/test.mf4";
+constexpr std::string_view kCssTestFile = "css_test";
+
 
 using MdfList = std::map<std::string, std::string, util::string::IgnoreCase>;
-MdfList mdf_list;
+MdfList kMdfList;
 
 std::string GetMdfFile(const std::string &name) {
-  auto itr = mdf_list.find(name);
-  return itr == mdf_list.cend() ? std::string() : itr->second;
+  auto itr = kMdfList.find(name);
+  return itr == kMdfList.cend() ? std::string() : itr->second;
 }
 
 double ConvertToMs(uint64_t diff) {
@@ -66,28 +66,27 @@ double ConvertToSec(uint64_t diff) {
 namespace mdf::test {
 
 void TestRead::SetUpTestSuite() {
+  // Set up the log file to log to console
   util::log::LogConfig &log_config = util::log::LogConfig::Instance();
-  log_config.RootDir(log_root_dir);
-  log_config.BaseName(log_file);
-  log_config.Type(util::log::LogType::LogToFile);
+  log_config.Type(util::log::LogType::LogToConsole);
   log_config.CreateDefaultLogger();
 
-  mdf_list.clear();
+  kMdfList.clear();
   try {
     for (const auto &entry : recursive_directory_iterator(mdf_source_dir)) {
       if (!entry.is_regular_file()) {
         continue;
       }
-      const auto &p = entry.path();
-
-      if (IsMdfFile(p.string())) {
-        LOG_INFO() << "Found MDF file. File: " << p.stem().string();
-        mdf_list.emplace(p.stem().string(), p.string());
+      const auto &fullname = entry.path();
+      const auto stem = fullname.stem().string();
+      if (kMdfList.find(stem) == kMdfList.cend() && IsMdfFile(fullname.string())) {
+        std::cout << "Found MDF file. File: " << stem << std::endl;
+        kMdfList.emplace(stem, fullname.string());
       }
     }
   } catch (const std::exception &error) {
-    LOG_ERROR() << "Failed to fetch the MDF test files. Error: "
-                << error.what();
+    std::cout << "Failed to fetch the MDF test files. Error: "
+                << error.what()  << std::endl;
   }
 }
 
@@ -96,37 +95,61 @@ void TestRead::TearDownTestSuite() {
   log_config.DeleteLogChain();
 }
 
-TEST_F(TestRead, MdfReader)  // NOLINT
+TEST_F(TestRead, Read)  // NOLINT
 {
-  for (const auto &itr : mdf_list) {
-    MdfReader oRead(itr.second);
-    EXPECT_TRUE(oRead.IsOk()) << itr.second;
-    EXPECT_TRUE(oRead.GetFile() != nullptr) << itr.second;
-    EXPECT_TRUE(oRead.ReadMeasurementInfo()) << itr.second;
+  if (kMdfList.empty()) {
+    GTEST_SKIP_("No MDF files found." );
+  }
+
+  for (const auto& [name, filename] : kMdfList) {
+    const auto start1 = steady_clock::now();
+
+    MdfReader oRead(filename);
+    EXPECT_TRUE(oRead.IsOk()) << name;
+    const auto* mdf_file = oRead.GetFile();
+
+    EXPECT_TRUE(mdf_file != nullptr) << name;
+    EXPECT_TRUE(oRead.ReadEverythingButData()) << name;
+
+    const auto stop1 = steady_clock::now();
+    const auto diff1 = duration_cast<milliseconds>(stop1 - start1);
+
+    auto* dg_group = oRead.GetDataGroup(0);
+    if (dg_group == nullptr) {
+      continue;
+    }
+    const auto start2 = steady_clock::now();
+    ISampleObserver observer(*dg_group);
+    oRead.ReadData(*dg_group);
+
+    const auto stop2 = steady_clock::now();
+    const auto diff2 = duration_cast<milliseconds>(stop2 - start2);
+    std::cout << "File: " << name << " (" << diff1.count()
+              << "/" << diff2.count() << " ms)" << std::endl;
   }
 }
 
 TEST_F(TestRead, MdfFile)  // NOLINT
 {
-  if (mdf_list.empty()) {
-    GTEST_SKIP();
+  if (kMdfList.empty()) {
+    GTEST_SKIP_("No MDF files found.");
   }
-  for (const auto &itr : mdf_list) {
-    MdfReader oRead(itr.second);
-    EXPECT_TRUE(oRead.ReadMeasurementInfo()) << itr.second;
-    const auto *f = oRead.GetFile();
-    EXPECT_TRUE(f != nullptr) << itr.second;
-    if (f->IsMdf4()) {
-      const auto *f4 = dynamic_cast<const Mdf4File *>(f);
-      EXPECT_TRUE(f4 != nullptr);
-      const auto &hd = f4->Hd();
-      const auto &dg_list = hd.Dg4();
-      LOG_INFO() << " File: " << itr.first
+  for (const auto &[name, filename] : kMdfList) {
+    MdfReader oRead(filename);
+    EXPECT_TRUE(oRead.ReadMeasurementInfo()) << name;
+    const auto *mdf_file = oRead.GetFile();
+    ASSERT_TRUE(mdf_file != nullptr) << name;
+    if (mdf_file->IsMdf4()) {
+      const auto *file4 = dynamic_cast<const Mdf4File *>(mdf_file);
+      ASSERT_TRUE(file4 != nullptr);
+      const auto &hd4 = file4->Hd();
+      const auto &dg_list = hd4.Dg4();
+      LOG_INFO() << " File: " << name
                  << ", Nof Measurement: " << dg_list.size();
-      EXPECT_FALSE(dg_list.empty()) << itr.second;
+      EXPECT_FALSE(dg_list.empty()) << name;
     } else {
-      const auto *f3 = dynamic_cast<const Mdf3File *>(f);
-      EXPECT_TRUE(f3 != nullptr);
+      const auto *file3 = dynamic_cast<const Mdf3File *>(mdf_file);
+      EXPECT_TRUE(file3 != nullptr);
     }
   }
 }
@@ -134,9 +157,9 @@ TEST_F(TestRead, MdfFile)  // NOLINT
 TEST_F(TestRead, IdBlock)  // NOLINT
 {
   const std::string file = GetMdfFile("Vector_CustomExtensions_CNcomment");
-  // Check that the file exist. If not skip the test
+  // Check that the file exists. If not, skip the test
   if (file.empty()) {
-    GTEST_SKIP();
+    GTEST_SKIP_("Comment file doesn't exist.");
   }
   MdfReader oRead(file);
   EXPECT_TRUE(oRead.IsOk()) << file;
@@ -153,13 +176,13 @@ TEST_F(TestRead, IdBlock)  // NOLINT
 
 TEST_F(TestRead, HeaderBlock)  // NOLINT
 {
-  if (mdf_list.empty()) {
+  if (kMdfList.empty()) {
     GTEST_SKIP();
   }
   int count = 0;
-  for (const auto &itr : mdf_list) {
-    MdfReader oRead(itr.second);
-    EXPECT_TRUE(oRead.ReadEverythingButData()) << itr.second;
+  for (const auto &[name, filename] : kMdfList) {
+    MdfReader oRead(filename);
+    EXPECT_TRUE(oRead.ReadEverythingButData()) << name;
 
     const auto *mdf_file = oRead.GetFile();
     if (!mdf_file->IsMdf4()) {
@@ -197,15 +220,15 @@ TEST_F(TestRead, Benchmark) {
 
   {
     MdfReader oRead(kBenchMarkFile.data());
-    const auto start = std::chrono::steady_clock::now();
+    const auto start = steady_clock::now();
     oRead.ReadMeasurementInfo();
-    const auto stop = std::chrono::steady_clock::now();
-    std::chrono::duration<double> diff = stop - start;
-    std::cout << "Read Measurement Info TrueNas: " << diff.count() * 1000
+    const auto stop = steady_clock::now();
+    std::chrono::duration<double> diff = duration_cast<milliseconds>(stop - start);
+    std::cout << "Read Measurement Info TrueNas: " << diff.count()
               << " ms" << std::endl;
   }
   {
-    const auto start = std::chrono::steady_clock::now();
+    const auto start = steady_clock::now();
     MdfReader oRead(kBenchMarkFile.data());
     oRead.ReadEverythingButData();
     const auto *file = oRead.GetFile();
@@ -230,9 +253,9 @@ TEST_F(TestRead, Benchmark) {
 
     }
 
-    const auto stop = std::chrono::steady_clock::now();
-    std::chrono::duration<double> diff = stop - start;
-    std::cout << "Everything + Conversion (TrueNas): " << diff.count() * 1000
+    const auto stop = steady_clock::now();
+    std::chrono::duration<double> diff = duration_cast<milliseconds>(stop - start);
+    std::cout << "Everything + Conversion (TrueNas): " << diff.count()
               << " ms" << std::endl;
   }
 }
@@ -313,7 +336,7 @@ TEST_F(TestRead, TestLargeFile) {
       std::cout << "BENCHMARK Large (" << storage_type << ") Storage ReadData(with VLSD data)" << std::endl;
 
       const auto start_open = MdfHelper::NowNs();
-      MdfReader oRead(test_file.data());
+      MdfReader oRead(test_file);
       const auto stop_open = MdfHelper::NowNs();
       std::cout << "Open File (ms): " << ConvertToMs(stop_open - start_open) << std::endl;
 
@@ -407,7 +430,7 @@ TEST_F(TestRead, TestExampleCrash) {
 
     // In this example, we read in all sample data and fetch all values.
     for (auto* dg4 : dg_list) {
-      // Subscribers holds the sample data for a channel.
+      // Subscribers hold the sample data for a channel.
       // You should normally only subscribe on some channels.
       // We need a list to hold them.
       ChannelObserverList subscriber_list;
@@ -423,7 +446,7 @@ TEST_F(TestRead, TestExampleCrash) {
       }
 
       // Now it is time to read in all samples
-      EXPECT_TRUE(reader.ReadData(*dg4)); // Read raw data from file
+      EXPECT_TRUE(reader.ReadData(*dg4)); // Read raw data from the file.
       std::string channel_value; // Channel value (no scaling)
       std::string eng_value; // Engineering value
       for (auto& obs : subscriber_list) {
@@ -438,9 +461,6 @@ TEST_F(TestRead, TestExampleCrash) {
         std::cout << std::endl;
       }
 
-      // Not needed in this example as we delete the subscribers,
-      // but it is good practise to remove samples data from memory
-      // when it is no longer needed.
       dg4->ClearData();
     }
     reader.Close(); // Close the file
@@ -517,4 +537,101 @@ TEST_F(TestRead, TestPartialRead) {
   data_observer.reset();
 }
 
+TEST_F(TestRead, TestNotFinalized) {
+  if (kMdfList.empty()) {
+    GTEST_SKIP_("No MDF files found.");
+  }
+
+  // Find all files that are not finalized.
+  MdfList test_list;
+  for (const auto& [name, filename] : kMdfList ) {
+    MdfReader reader(filename);
+    if (!reader.IsFinalized()) {
+      test_list.emplace(name, filename);
+    }
+  }
+  EXPECT_FALSE(test_list.empty());
+  for (const auto& [name1, filename1] : test_list) {
+    MdfReader reader(filename1);
+    EXPECT_TRUE(reader.ReadEverythingButData());
+    EXPECT_TRUE(reader.IsFinalized()) << name1;
+    std::cout << "Finalized File: " << name1 << std::endl;
+
+  }
+
+}
+
+TEST_F(TestRead, TestCssChannelObservers) {
+  const std::string& test_file = GetMdfFile(kCssTestFile.data());
+  const auto find_test_file = kMdfList.find(kCssTestFile.data());
+  if (find_test_file == kMdfList.cend()) {
+    GTEST_SKIP_("No CSS test file found.");
+  }
+
+  const auto start1 = steady_clock::now();
+
+  MdfReader reader(test_file);
+  ASSERT_TRUE(reader.IsOk());
+  reader.ReadEverythingButData();
+  const auto stop1 = steady_clock::now();
+  const auto diff1 = duration_cast<milliseconds>(stop1 - start1);
+
+  const auto* mdf_file = reader.GetFile();
+  ASSERT_TRUE(mdf_file != nullptr);
+  DataGroupList dg_list;
+  mdf_file->DataGroups(dg_list);
+  for (IDataGroup* data_group : dg_list) {
+    if (data_group == nullptr) {
+      continue;
+    }
+    ChannelObserverList observer_list;
+    CreateChannelObserverForDataGroup(*data_group, observer_list);
+    reader.ReadData(*data_group);
+    data_group->ClearData();
+  }
+  reader.Close();
+
+  const auto stop2 = steady_clock::now();
+  const auto diff2 = duration_cast<milliseconds>(stop2 - stop1);
+
+  std:: cout << "File: " << kCssTestFile << " (" << diff1.count()
+            << "/" << diff2.count() << " ms)" << std::endl;
+
+}
+
+TEST_F(TestRead, TestCssSampleObserver) {
+  const std::string& test_file = GetMdfFile(kCssTestFile.data());
+  const auto find_test_file = kMdfList.find(kCssTestFile.data());
+  if (find_test_file == kMdfList.cend()) {
+    GTEST_SKIP_("No CSS test file found.");
+  }
+
+  const auto start1 = steady_clock::now();
+
+  MdfReader reader(test_file);
+  ASSERT_TRUE(reader.IsOk());
+  reader.ReadEverythingButData();
+  const auto stop1 = steady_clock::now();
+  const auto diff1 = duration_cast<milliseconds>(stop1 - start1);
+
+  const auto* mdf_file = reader.GetFile();
+  ASSERT_TRUE(mdf_file != nullptr);
+  DataGroupList dg_list;
+  mdf_file->DataGroups(dg_list);
+  for (IDataGroup* data_group : dg_list) {
+    if (data_group == nullptr) {
+      continue;
+    }
+    ISampleObserver observer(*data_group);
+    reader.ReadData(*data_group);
+  }
+  reader.Close();
+
+  const auto stop2 = steady_clock::now();
+  const auto diff2 = duration_cast<milliseconds>(stop2 - stop1);
+
+  std:: cout << "File: " << kCssTestFile << " (" << diff1.count()
+            << "/" << diff2.count() << " ms)" << std::endl;
+
+}
 }  // namespace mdf::test

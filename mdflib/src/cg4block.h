@@ -75,8 +75,8 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   ISourceInformation* CreateSourceInformation() override;
   ISourceInformation* SourceInformation() const override;
 
-  size_t UpdateCycleCounter(std::FILE *file);
-  size_t UpdateVlsdSize(std::FILE *file);
+  void UpdateCycleCounter(uint64_t nof_samples);
+  void UpdateVlsdSize(uint64_t nof_data_bytes);
   size_t StepRecord(std::FILE *file) const;
 
   [[nodiscard]] IMetaData* CreateMetaData() override {

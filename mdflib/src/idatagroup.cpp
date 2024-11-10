@@ -5,6 +5,7 @@
 #include "mdf/idatagroup.h"
 
 #include <algorithm>
+#include <execution>
 
 #include "mdf/ichannel.h"
 #include "mdf/ichannelgroup.h"
@@ -33,14 +34,37 @@ void IDataGroup::DetachAllSampleObservers() const { observer_list_.clear(); }
 
 bool IDataGroup::NotifySampleObservers(size_t sample, uint64_t record_id,
     const std::vector<uint8_t> &record) const {
-  for (auto *observer : observer_list_) {
+  if (fast_observer_list_.empty()) {
+    return false; // No meaning to continue reading
+  }
+
+  if ( fast_observer_list_.size() == 1) {
+    for (ISampleObserver* observer : observer_list_) {
+      if (observer == nullptr) {
+        continue;
+      }
+      const bool continue_reading = observer->OnSample(sample, record_id, record);
+      if (!continue_reading) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  auto itr = fast_observer_list_.find(record_id);
+  if (itr == fast_observer_list_.end()) {
+    return true;
+  }
+  auto& observer_list = itr->second;
+  for (ISampleObserver* observer : observer_list ) {
     if (observer != nullptr) {
       const bool continue_reading = observer->OnSample(sample, record_id, record);
       if (!continue_reading) {
         return false;
       }
     }
-  }
+  };
+
   return true;
 }
 
@@ -149,5 +173,28 @@ bool IDataGroup::IsSubscribingOnChannelVlsd(const IChannel& channel) const {
      }
      return false;
    });
+}
+
+void IDataGroup::InitFastObserverList() {
+  fast_observer_list_.clear();
+  const auto cg_list = ChannelGroups();
+  for (const auto* channel_group : cg_list ) {
+    if (channel_group == nullptr) {
+      continue;
+    }
+    uint64_t record_id = channel_group->RecordId();
+    std::vector<ISampleObserver*> temp_list;
+    for (auto* observer : observer_list_) {
+      if (observer == nullptr) {
+        continue;
+      }
+      if (observer->IsRecordIdNeeded(record_id)) {
+        temp_list.emplace_back(observer);
+      }
+    }
+    if (!temp_list.empty()) {
+      fast_observer_list_.emplace(record_id, std::move(temp_list));
+    }
+  }
 }
 }  // namespace mdf

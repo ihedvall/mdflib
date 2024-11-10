@@ -515,6 +515,19 @@ class IChannel : public IBlock  {
   [[nodiscard]] bool CalculateMasterTime() const {
     return calculate_master_time_;
   }
+
+  /** \brief Sets the array size for the channel.
+   *
+   * This is an internal function that speed up the reads of values.
+   *
+   * @param array_size Size of the array.
+   */
+  void ArraySize(uint64_t array_size) { channel_array_size_ = array_size;}
+  /** \brief Returns 1 if no array and > 1 if it is an array.
+   *
+   * @return Returns 1 for normal channel and array size for array channels
+   */
+  [[nodiscard]] uint64_t ArraySize() const {return channel_array_size_;}
  protected:
 
 
@@ -571,6 +584,7 @@ class IChannel : public IBlock  {
 
   mutable uint64_t vlsd_record_id_ = 0; ///< Used to fix the VLSD CG block.
   bool calculate_master_time_ = true; ///< If true, the master time channel will be calculated.
+  uint64_t channel_array_size_ = 1; ///< Value set when reading configuration
 };
 
 template <typename T>

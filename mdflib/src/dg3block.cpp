@@ -178,6 +178,7 @@ void Dg3Block::ReadData(std::FILE *file) {
   if (file == nullptr) {
     throw std::invalid_argument("File pointer is null");
   }
+  InitFastObserverList();
   std::FILE *data_file = nullptr;
   size_t data_size = DataSize();
   SetFilePosition(file, Link(kIndexData));
@@ -198,6 +199,7 @@ void Dg3Block::ReadRangeData(std::FILE *file, DgRange& range) {
   if (file == nullptr) {
     throw std::invalid_argument("File pointer is null");
   }
+  InitFastObserverList();
   std::FILE *data_file = nullptr;
   size_t data_size = DataSize();
   SetFilePosition(file, Link(kIndexData));

@@ -45,6 +45,7 @@ class Mdf4File : public MdfFile {
                    uint16_t custom_flags) override;
   [[nodiscard]] bool IsFinalized(uint16_t& standard_flags,
                                  uint16_t& custom_flags) const override;
+  [[nodiscard]] bool IsFinalizedDone() const override;
 
   void ReadHeader(std::FILE* file) override;
   void ReadMeasurementInfo(std::FILE* file) override;

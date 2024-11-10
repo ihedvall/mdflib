@@ -6,7 +6,7 @@
 
 #include <stdexcept>
 #include <algorithm>
-#include <set>
+#include <map>
 
 #include "dl4block.h"
 #include "dt4block.h"
@@ -22,6 +22,12 @@ constexpr size_t kIndexCg = 1;
 constexpr size_t kIndexData = 2;
 constexpr size_t kIndexMd = 3;
 constexpr size_t kIndexNext = 0;
+
+struct CgCounter {
+  mdf::detail::Cg4Block* CgBlock = nullptr;
+  uint64_t NofSamples = 0;
+  uint64_t NofBytes = 0;
+};
 
 ///< Helper function that recursively copies all data bytes to a
 /// destination file.
@@ -123,11 +129,11 @@ size_t Dg4Block::Write(std::FILE* file) {
     bytes += WriteNumber(file, rec_id_size_);
     bytes += WriteBytes(file, 7);
     UpdateBlockSize(file, bytes);
-    // Need to update the signal data link for any chaannels referencing
-    // VLSD CG bloks.
+    // Need to update the signal data link for any channels referencing
+    // VLSD CG blocks.
     for (auto& cg4 : cg_list_) {
       if (cg4 && (cg4->Flags() & CgFlag::VlsdChannel) ) {
-        // The previous CG block have a channel which need to update its
+        // The previous CG block has a channel which needs to update its
         // signal data link.
         auto* other_cg4 = FindCgRecordId(cg4->RecordId() -1);
         auto* cn4 = other_cg4 != nullptr ?
@@ -159,7 +165,7 @@ void Dg4Block::ReadData(std::FILE* file) {
   if (block_list.empty()) {
     return;
   }
-
+  InitFastObserverList();
   // First scan through all CN blocks and set up any VLSD CG or MLSD channel
   // relations.
 
@@ -182,7 +188,7 @@ void Dg4Block::ReadData(std::FILE* file) {
       if (channel == nullptr) {
         continue;
       }
-      // Check if channel is in the subscription
+      // Check if the channel is in the subscription
       if (!IsSubscribingOnChannel(*channel) ) {
         continue;
       }
@@ -190,8 +196,9 @@ void Dg4Block::ReadData(std::FILE* file) {
       if (cn_block == nullptr) {
         continue;
       }
-      // Fetch the channels referenced data block. Note that some type of
-      // data blocks are own by this channel as SD block but some are only
+      // Fetch the channels referenced data block.
+      // Note that some types of
+      // data blocks are owned by this channel as a SD block, but some are only
       // references to block own by another block. Of interest is VLSD CG block
       // and MLSD channel.
       const auto data_link = cn_block->DataLink();
@@ -230,12 +237,13 @@ void Dg4Block::ReadData(std::FILE* file) {
 
 /*
   // Convert everything to a samples in a file single DT block can be read
-  // directly but remaining block types are streamed to a temporary file. The
-  // main reason is that linked data blocks,is not aligned to a record or even
+  // directly, but the remaining block types are streamed to a temporary file.
+  // The
+  // main reason is that linked data blocks are not aligned to a record or even
   // worse a channel value bytes. Converting everything to a simple DT block
   // solves that problem.
 
-  bool close_data_file = false; // If DT block do not close the data file.
+  bool close_data_file = false; // If a DT block does not close the data file.
   std::FILE* data_file = nullptr;
   size_t data_size = 0;
   if (block_list.size() == 1 && block_list[0] &&
@@ -295,6 +303,8 @@ void Dg4Block::ReadRangeData(std::FILE* file, DgRange& range) {
     return;
   }
 
+  InitFastObserverList();
+
   // First scan through all CN blocks and set up any VLSD CG or MLSD channel
   // relations.
   for (const auto& cg4 : cg_list_) {
@@ -307,7 +317,7 @@ void Dg4Block::ReadRangeData(std::FILE* file, DgRange& range) {
     if (!cg_used) {
       continue;
     }
-    // Fetch all data from sample reduction blocks (SR) but only if the
+    // Fetch all data from sample reduction blocks (SR), but only if the
     // channel group data is subscribed.
     for (const auto& sr4 : cg4->Sr4()) {
       if (!sr4) {
@@ -322,7 +332,7 @@ void Dg4Block::ReadRangeData(std::FILE* file, DgRange& range) {
       if (channel == nullptr) {
         continue;
       }
-      // Check if channel is in the subscription
+      // Check if the channel is in the subscription
       if (!IsSubscribingOnChannel(*channel) ) {
         continue;
       }
@@ -330,8 +340,8 @@ void Dg4Block::ReadRangeData(std::FILE* file, DgRange& range) {
       if (cn_block == nullptr) {
         continue;
       }
-      // Fetch the channels referenced data block. Note that some type of
-      // data blocks are own by this channel as SD block but some are only
+      // Fetch the channels referenced data block. Note that some types of
+      // data blocks are owned by this channel as an SD block, but some are only
       // references to block own by another block. Of interest is VLSD CG block
       // and MLSD channel.
       const auto data_link = cn_block->DataLink();
@@ -399,8 +409,8 @@ void  Dg4Block::ReadVlsdData(std::FILE* file,Cn4Block& channel,
     throw std::invalid_argument("File pointer is null");
   }
 
-  // Fetch the channels referenced data block. Note that some type of
-  // data blocks are own by this channel as SD block but some are only
+  // Fetch the channels referenced data block. Note that some types of
+  // data blocks are owned by this channel as an SD block, but some are only
   // references to block own by another block. Of interest is VLSD CG block
   // and MLSD channel.
 
@@ -408,6 +418,7 @@ void  Dg4Block::ReadVlsdData(std::FILE* file,Cn4Block& channel,
   if (data_link == 0) {
     return; // No data to read into the system
   }
+  InitFastObserverList();
   auto* block = Find(data_link);
   if (block == nullptr) {
     throw std::runtime_error(
@@ -599,7 +610,7 @@ void Dg4Block::RecordIdSize(uint8_t id_size) { rec_id_size_ = id_size; }
 
 uint8_t Dg4Block::RecordIdSize() const { return rec_id_size_; }
 
-bool Dg4Block::UpdateDtBlocks(std::FILE *file) {
+bool Dg4Block::FinalizeDtBlocks(std::FILE *file) {
   auto& block_list = DataBlockList();
   if (block_list.empty()) {
     // No data blocks to update
@@ -621,10 +632,10 @@ bool Dg4Block::UpdateDtBlocks(std::FILE *file) {
   return true;
 }
 
-// Update the unfinished payload data (DT) block. This function update the
+// Update the unfinished payload data (DT) block. This function updates the
 // channel group (CG) and a CG-VLSD channel group regarding cycle count
 // and offsets (VLSD)
-bool Dg4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
+bool Dg4Block::FinalizeCgAndVlsdBlocks(std::FILE* file, bool update_cg,
                                      bool update_vlsd) {
   auto& block_list = DataBlockList();
   if (block_list.empty()) {
@@ -644,24 +655,67 @@ bool Dg4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
     MDF_ERROR() << "Invalid DT block type-cast.";
     return false;
   }
-  mdf::detail::SetFilePosition(file, dt_block->DataPosition());
+    // Create a simple map that speeds up the counting.
+  std::map<uint64_t, CgCounter> counter_list;
+  for (const auto& cg4 : Cg4()) {
+    if (!cg4) {
+      continue;
+    }
+    CgCounter counter;
+    counter.CgBlock = cg4.get();
+    counter_list.emplace(cg4->RecordId(), counter);
+  }
+  if (counter_list.empty()) {
+    return true; // Nothing to update
+  }
+
+
+  SetFilePosition(file, dt_block->DataPosition());
   size_t count = 0;
   while (count < dt_block->DataSize()) {
     uint64_t record_id = 0;
     count += ReadRecordId(file,record_id);
-    const auto* cg_block = FindCgRecordId(record_id);
-    if (cg_block == nullptr) {
+    auto cg_find = counter_list.size() == 1 ?
+           counter_list.begin() : counter_list.find(record_id);
+    if (cg_find == counter_list.end()) {
       MDF_DEBUG() << "Failed to find the CG block. Record ID: " << record_id;
       break;
     }
-    auto* cg4 = const_cast<Cg4Block*>(cg_block);
-    const auto vlsd = (cg4->Flags() & CgFlag::VlsdChannel) != 0;
-    if (!vlsd && update_cg) {
-      count += cg4->UpdateCycleCounter(file); // Increment the cycle counter
-    } else if (vlsd && update_vlsd) {
-      count += cg4->UpdateVlsdSize(file); // Update size and offset
+    auto& counter = cg_find->second;
+    auto* cg_block = counter.CgBlock;
+    size_t count_bytes = 0;
+    if (cg_block == nullptr) {
+      MDF_ERROR() << "CG block pointer is null. Internal error.";
+      return false;
+    }
+    if ((cg_block->Flags() & CgFlag::VlsdChannel) != 0) {
+      // This is normally used for string,
+      // and the CG block only includes one signal
+      uint32_t length = 0;
+      count_bytes += ReadNumber(file, length);
+      //std::vector<uint8_t> record(length, 0);
+      if (length > 0) {
+        count_bytes += StepFilePosition(file, length);
+      }
     } else {
-      count += cg4->StepRecord(file); //
+      // Normal fixed length records
+      const size_t record_size = cg_block->NofDataBytes() + cg_block->NofInvalidBytes();
+      count_bytes += StepFilePosition(file, record_size);
+    }
+    ++counter.NofSamples;
+    counter.NofBytes += count_bytes;
+    count += count_bytes;
+  }
+  for (const auto& [record_id_1, counter1] : counter_list) {
+    Cg4Block* cg_block = counter1.CgBlock;
+    if (cg_block == nullptr) {
+      continue;
+    }
+    if (update_cg) {
+      cg_block->UpdateCycleCounter(counter1.NofSamples);
+    }
+    if (update_vlsd) {
+      cg_block->UpdateVlsdSize(counter1.NofBytes);
     }
   }
   return true;

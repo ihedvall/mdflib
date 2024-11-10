@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <set>
+#include <map>
 #include <functional>
 
 #include "dg4block.h"
@@ -29,9 +30,9 @@ class ReadCache {
     record_id_list_.insert(record_id);
   }
 
-  void SetOffsetFilter(const std::vector<uint64_t>& offset_list);
+ void SetOffsetFilter(const std::vector<uint64_t>& offset_list);
 
-  void SetCallback(const std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback );
+ void SetCallback(const std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback );
  private:
 
   FILE* file_;
@@ -49,6 +50,7 @@ class ReadCache {
   size_t block_index_ = 0;
   std::vector<DataBlock*> block_list_;
   std::set<uint64_t> record_id_list_;
+  std::map<uint64_t, const Cg4Block*> available_cg_list_;
 
   uint64_t offset_ = 0;
   std::set<uint64_t> offset_filter_;

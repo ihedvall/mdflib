@@ -30,12 +30,19 @@ namespace fs = std::filesystem;
 #endif
 
 using namespace std::chrono_literals;
+using namespace mdf::detail;
 
 namespace mdf {
 
 bool IsMdfFile(const std::string &filename) {
   FILE* file = nullptr;
-  Platform::fileopen(&file, filename.c_str(), "rb");
+
+  try {
+    Platform::fileopen(&file, filename.c_str(), "rb");
+  } catch (const std::exception&) {
+    return false;
+  }
+
   if (file == nullptr) {
     return false;
   }
@@ -205,6 +212,25 @@ void CreateChannelObserverForChannelGroup(const IDataGroup &data_group,
   }
 }
 
+void CreateChannelObserverForDataGroup(const IDataGroup &data_group,
+                                          ChannelObserverList &dest) {
+  const auto cg_list = data_group.ChannelGroups();
+  for (const IChannelGroup* group : cg_list) {
+    if (group == nullptr || group->NofSamples() == 0) {
+      continue;
+    }
+
+    const auto cn_list = group->Channels();
+    for (const auto *channel : cn_list) {
+      if (channel == nullptr) {
+        continue;
+      }
+      auto channel_observer = CreateChannelObserver(data_group, *group, *channel);
+      dest.emplace_back( std::move(channel_observer));
+
+    }
+  }
+}
 
 MdfReader::MdfReader(const std::string &filename) : filename_(filename) {
   // Need to create MDF3 of MDF4 file
@@ -281,7 +307,7 @@ bool MdfReader::ReadHeader() {
     MDF_ERROR() << "No instance created. File: " << filename_;
     return false;
   }
-  // If file is not open then open and close the file in this call
+  // If the file is not open, then open and close the file in this call
   bool shall_close = file_ == nullptr && Open();
   if (file_ == nullptr) {
     MDF_ERROR() << "File is not open. File: " << filename_;
@@ -547,6 +573,16 @@ bool MdfReader::ReadVlsdData(IDataGroup &data_group,
     Close();
   }
   return !error;
+}
+
+bool MdfReader::IsFinalized() const {
+  if (!instance_) {
+    return false;
+  }
+  uint16_t standard_flags = 0;
+  uint16_t custom_flags = 0;
+  const bool finalized = instance_->IsFinalized(standard_flags, custom_flags);
+  return finalized || instance_->IsFinalizedDone();
 }
 
 }  // namespace mdf

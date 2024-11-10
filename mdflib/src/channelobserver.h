@@ -70,8 +70,16 @@ class ChannelObserver : public IChannelObserver {
 
   bool OnSample(uint64_t sample, uint64_t record_id,
                 const std::vector<uint8_t>& record) override {
-    const auto* channel_array = channel_.ChannelArray();
-    auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+    bool parse_record = record_id == record_id_;
+    if (channel_.VlsdRecordId() > 0 &&  record_id == channel_.VlsdRecordId()) {
+      parse_record = true;
+    }
+    if (!parse_record) {
+      return true;
+    }
+
+    // const auto* channel_array = channel_.ChannelArray();
+    const auto array_size = channel_.ArraySize();
 
     T value{};
     bool valid;

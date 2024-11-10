@@ -9,7 +9,7 @@ if (NOT Boost_FOUND)
     set(Boost_DEBUG OFF)
 
     if (COMP_DIR)
-        set(BOOST_ROOT ${COMP_DIR}/boost/latest)
+        set(Boost_ROOT ${COMP_DIR}/boost/latest)
     endif()
 
     find_package(Boost REQUIRED COMPONENTS filesystem system locale program_options)

@@ -59,5 +59,6 @@ void MdfFile::FileName(const std::string& filename) {
     }
   }
 }
+bool MdfFile::IsFinalizedDone() const { return false; }
 
 }  // namespace mdf

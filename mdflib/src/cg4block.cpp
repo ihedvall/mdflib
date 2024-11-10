@@ -379,52 +379,20 @@ ISourceInformation *Cg4Block::SourceInformation() const {
   return si_block_ ? si_block_.get() : nullptr;
 }
 
-size_t Cg4Block::UpdateCycleCounter(std::FILE *file) {
-  size_t count = 0;
-  if (Flags() & CgFlag::VlsdChannel) {
-    // This is normally used for string and the CG block only include one signal
-    uint32_t length = 0;
-    count += ReadNumber(file, length);
-    std::vector<uint8_t> record(length, 0);
-    if (length > 0) {
-      count += StepFilePosition(file, length);
-    }
-    ++nof_samples_;
-  } else {
-    // Normal fixed length records
-    const size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
-    count += StepFilePosition(file, record_size);
-    ++nof_samples_;
-  }
-  return count;
+void Cg4Block::UpdateCycleCounter(uint64_t nof_samples) {
+  nof_samples_ += nof_samples;
 }
 
-size_t Cg4Block::UpdateVlsdSize(std::FILE *file) {
-
-  size_t count = 0;
+void Cg4Block::UpdateVlsdSize(uint64_t nof_data_bytes) {
   if (Flags() & CgFlag::VlsdChannel) {
     uint64_t vlsd_size = nof_invalid_bytes_;
     vlsd_size <<= 32;
     vlsd_size += nof_data_bytes_;
 
-    // This is normally used for string and the CG block only include one signal
-    uint32_t length = 0;
-    count += ReadNumber(file, length);
-    std::vector<uint8_t> record(length, 0);
-    if (length > 0) {
-      count += StepFilePosition(file, length);
-    }
-    vlsd_size += length;
+    vlsd_size += nof_data_bytes;
     nof_data_bytes_ = static_cast<uint32_t>(vlsd_size & 0xFFFFFFFF);
     nof_invalid_bytes_ = static_cast<uint32_t>(vlsd_size >> 32);
-    ++nof_samples_;
-  } else {
-    // Normal fixed length records
-    const size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
-    count += StepFilePosition(file, record_size);
-    ++nof_samples_;
   }
-  return count;
 }
 
 size_t Cg4Block::StepRecord(std::FILE *file) const {

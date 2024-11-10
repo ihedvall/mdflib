@@ -498,22 +498,22 @@ size_t Hd4Block::Write(std::FILE* file) {
   return bytes;
 }
 
-bool Hd4Block::UpdateDtBlocks(std::FILE *file) {
+bool Hd4Block::FinalizeDtBlocks(std::FILE *file) {
   if (dg_list_.empty()) {
     return true;
   }
-  auto* last_dg = dg_list_.back().get();
-  return last_dg != nullptr && last_dg->UpdateDtBlocks(file);
+  Dg4Block* last_dg = dg_list_.back().get();
+  return last_dg != nullptr && last_dg->FinalizeDtBlocks(file);
 }
 
-bool Hd4Block::UpdateCgAndVlsdBlocks(std::FILE* file, bool update_cg,
+bool Hd4Block::FinalizeCgAndVlsdBlocks(std::FILE* file, bool update_cg,
                                      bool update_vlsd) {
   if (dg_list_.empty()) {
     return true;
   }
   auto* last_dg = dg_list_.back().get();
-  return last_dg != nullptr && last_dg->UpdateCgAndVlsdBlocks(file,update_cg,
-                                                              update_vlsd);
+  return last_dg != nullptr &&
+         last_dg->FinalizeCgAndVlsdBlocks(file, update_cg, update_vlsd);
 }
 
 const IMdfTimestamp* Hd4Block::StartTimestamp() const {

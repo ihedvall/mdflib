@@ -10,6 +10,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <map>
 
 #include "mdf/iblock.h"
 
@@ -133,7 +134,15 @@ class IDataGroup : public IBlock {
   [[nodiscard]] bool IsSubscribingOnChannelVlsd(const IChannel& channel) const;
  protected:
   mutable std::vector<ISampleObserver*> observer_list_; ///< List of observers.
+
+  /** \brief The fast observer list is used internally when reading data.
+   *
+   */
+  std::map<uint64_t, std::vector<ISampleObserver*> > fast_observer_list_;
+
   ~IDataGroup() override = default; ///< Default destructor
+
+  void InitFastObserverList();
 
  private:
   mutable bool mark_as_read_ = false; ///< True if the data block has been read.

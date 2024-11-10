@@ -35,14 +35,7 @@ void Mdf4File::ReadHeader(std::FILE *file) {
     hd_block_->Read(file);
   }
 
-  uint16_t standard_flags = 0;
-  uint16_t custom_flags = 0;
-  if (!finalized_done_ && id_block_ &&
-      !id_block_->IsFinalized(standard_flags, custom_flags)) {
-    finalized_done_ = true;
-    // Try to finalize the last DG block.
-    const auto finalize = FinalizeFile(file);
-  }
+
 }
 
 void Mdf4File::ReadMeasurementInfo(std::FILE *file) {
@@ -59,8 +52,18 @@ void Mdf4File::ReadEverythingButData(std::FILE *file) {
     hd_block_->ReadEverythingButData(file);
   }
   // Now when all blocks are read in, it is time to read
-  // in all referenced block. This is mainly done for the channel array blocks.
+  // in all referenced blocks.
+  // This is mainly done for the channel array blocks.
   FindAllReferences(file);
+
+  // Check if file needs to be finalized
+  uint16_t standard_flags = 0;
+  uint16_t custom_flags = 0;
+  if (!finalized_done_ && id_block_ &&
+      !id_block_->IsFinalized(standard_flags, custom_flags)) {
+    // Try to finalize the last DG block.
+    finalized_done_ = FinalizeFile(file);
+  }
 }
 
 bool Mdf4File::IsMdf4() const { return true; }
@@ -196,6 +199,7 @@ bool Mdf4File::IsFinalized(uint16_t &standard_flags,
 }
 
 bool Mdf4File::FinalizeFile(std::FILE* file) {
+
   uint16_t standard_flags = 0;
   uint16_t custom_flags = 0;
   const auto finalized = IsFinalized(standard_flags, custom_flags);
@@ -205,7 +209,6 @@ bool Mdf4File::FinalizeFile(std::FILE* file) {
         << Name();
     return false;
   }
-  ReadEverythingButData(file);
 
   // 1. Update DL block
   // 2. Update DT  block
@@ -220,18 +223,29 @@ bool Mdf4File::FinalizeFile(std::FILE* file) {
   const bool update_vlsd_offset = (standard_flags & 0x40) != 0;
   bool updated = true;
   if (update_dl_blocks) {
+    MDF_ERROR() << "Finalizing DL block is not supported. File: " << Name();
     updated = false;
   }
-  if (update_dt_blocks && !hd_block_->UpdateDtBlocks(file)) {
-    updated = false;
+  if (update_dt_blocks) {
+    // Update the number of bytes in the DT block.
+    const bool update_dt = hd_block_->FinalizeDtBlocks(file);
+    if (!update_dt) {
+      MDF_ERROR() << "Fail to finalize last DT block. File: " << Name();
+      updated = false;
+    }
   }
   if (update_rd_blocks) {
+    MDF_ERROR() << "Finalizing RD block is not supported. File: " << Name();
     updated = false;
   }
-  if ((update_cg_blocks || update_vlsd_bytes || update_vlsd_offset ) &&
-      !hd_block_->UpdateCgAndVlsdBlocks(file, update_cg_blocks,
-                                update_vlsd_bytes || update_vlsd_offset)) {
-    updated = false;
+
+  if (update_cg_blocks || update_vlsd_bytes || update_vlsd_offset ) {
+    const bool update_nof_samples = hd_block_->FinalizeCgAndVlsdBlocks(
+        file, update_cg_blocks, update_vlsd_bytes || update_vlsd_offset);
+    if (!update_nof_samples) {
+      MDF_ERROR() << "Failed to update number of samples and VLSD block sizes. File: " << Name();
+      updated = false;
+    }
   }
   return updated;
 }
@@ -255,6 +269,8 @@ void Mdf4File::FindAllReferences(std::FILE *file) {
   if (!hd_block_) {
     return;
   }
+
+    // Find all channel array
   for (auto& dg4 : hd_block_->Dg4()) {
     if (!dg4) {
       continue;
@@ -284,6 +300,35 @@ void Mdf4File::FindAllReferences(std::FILE *file) {
       }
     }
   }
+
+  // Now set the size of channel array for all channels
+  for (auto& dg4_block : hd_block_->Dg4()) {
+    if (!dg4_block) {
+      continue;
+    }
+    for (auto &cg4_block : dg4_block->Cg4()) {
+      if (!cg4_block) {
+        continue;
+      }
+      auto channel_list = cg4_block->Channels();
+      for (IChannel* channel : channel_list) {
+        if (channel == nullptr) {
+          continue;
+        }
+        const auto* channel_array = channel->ChannelArray();
+        if (channel_array == nullptr) {
+          channel->ArraySize(1);
+        } else {
+          channel->ArraySize(channel_array->NofArrayValues());
+        }
+
+      }
+    }
+  }
+}
+
+bool Mdf4File::IsFinalizedDone() const {
+  return finalized_done_;
 }
 
 }  // namespace mdf::detail

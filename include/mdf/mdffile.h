@@ -216,6 +216,15 @@ class MdfFile {
   /** \brief Returns true if the file is finalized. */
   [[nodiscard]] virtual bool IsFinalized(uint16_t& standard_flags,
                                          uint16_t& custom_flags) const = 0;
+
+  /** Returns true if the finalize was done.
+   *
+   * The function may be used to check on not finalized file to
+   * verify that the file have been finalized.
+   * @return True if the finalization was successful.
+   */
+  [[nodiscard]] virtual bool IsFinalizedDone() const;
+
   /** \brief Returns a parent data group (DG) depending a channel. */
   [[nodiscard]] virtual IDataGroup* FindParentDataGroup(
       const IChannel &channel) const = 0;

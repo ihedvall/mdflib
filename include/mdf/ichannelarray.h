@@ -195,7 +195,7 @@ class IChannelArray : public IBlock {
    * function is mainly used internally to size
    * @return
    */
-  [[nodiscard]] virtual size_t SumOfArray() const = 0;
+  [[nodiscard]] virtual uint64_t SumOfArray() const = 0;
 
   /** \brief Calculates the product of array dimension sizes.
    *
@@ -203,7 +203,7 @@ class IChannelArray : public IBlock {
    * values in an array sample.
    * @return Number of array values in a sample.
    */
-  [[nodiscard]] virtual size_t ProductOfArray() const = 0;
+  [[nodiscard]] virtual uint64_t ProductOfArray() const = 0;
  protected:
   std::vector<int64_t> data_links_; ///< List of index to data blocks.
   std::vector<CaTripleReference> dynamic_size_list_; ///< Dynamic size list.

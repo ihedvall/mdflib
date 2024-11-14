@@ -10,6 +10,7 @@ var searchData=
   ['usb_7',['Usb',['../namespacemdf.html#a7d8062669e05a387de168820f98d4ff6a87f81c22ba3bba54848756f0adfaa586',1,'mdf']]],
   ['user_8',['User',['../namespacemdf.html#ad08d2620932a9dc94fded9d0aad6a564a8f9bfe9d1345237cb3b2b205864da075',1,'mdf']]],
   ['username_9',['UserName',['../classmdf_1_1_i_file_history.html#a6a40cce9d4617dfb8074b59b4864d894',1,'mdf::IFileHistory::UserName(const std::string &amp;user)'],['../classmdf_1_1_i_file_history.html#aa8705e037f371b6c121b45589cc0016e',1,'mdf::IFileHistory::UserName() const']]],
-  ['utf16toutf8_10',['Utf16ToUtf8',['../classmdf_1_1_mdf_helper.html#a6619fbbe8a58b58a53c64a804fa90d3d',1,'mdf::MdfHelper']]],
-  ['utf8toutf16_11',['Utf8ToUtf16',['../classmdf_1_1_mdf_helper.html#abb37a8dee20837d7e1d973d26f49a9a1',1,'mdf::MdfHelper']]]
+  ['utctimestamp_10',['UtcTimestamp',['../classmdf_1_1_utc_timestamp.html',1,'mdf::UtcTimestamp'],['../classmdf_1_1_utc_timestamp.html#a53c76498a6f7069a58304e1b4360ba8a',1,'mdf::UtcTimestamp::UtcTimestamp()']]],
+  ['utf16toutf8_11',['Utf16ToUtf8',['../classmdf_1_1_mdf_helper.html#a6619fbbe8a58b58a53c64a804fa90d3d',1,'mdf::MdfHelper']]],
+  ['utf8toutf16_12',['Utf8ToUtf16',['../classmdf_1_1_mdf_helper.html#abb37a8dee20837d7e1d973d26f49a9a1',1,'mdf::MdfHelper']]]
 ];

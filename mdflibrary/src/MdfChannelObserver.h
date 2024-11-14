@@ -16,24 +16,24 @@ public ref class MdfChannelObserver {
 public:
   virtual ~MdfChannelObserver();
 
-  property size_t NofSamples { size_t get(); }
+  property uint64_t NofSamples { uint64_t get(); }
   property String^ Name { String^ get(); }
   property String^ Unit { String^ get(); }
   property MdfChannel^ Channel { MdfChannel^ get(); }
 
   bool IsMaster();
   
-  bool GetChannelValueAsUnsigned(size_t sample, uint64_t% value);
-  bool GetChannelValueAsSigned(size_t sample, int64_t% value);
-  bool GetChannelValueAsFloat(size_t sample, double% value);  
-  bool GetChannelValueAsString(size_t sample, String^% value);    
-  bool GetChannelValueAsArray(size_t sample,  array<Byte>^% value);
+  bool GetChannelValueAsUnsigned(uint64_t sample, uint64_t% value);
+  bool GetChannelValueAsSigned(uint64_t sample, int64_t% value);
+  bool GetChannelValueAsFloat(uint64_t sample, double% value);  
+  bool GetChannelValueAsString(uint64_t sample, String^% value);    
+  bool GetChannelValueAsArray(uint64_t sample,  array<Byte>^% value);
 
-   bool GetEngValueAsUnsigned(size_t sample, uint64_t% value);
-   bool GetEngValueAsSigned(size_t sample, int64_t% value);
-   bool GetEngValueAsFloat(size_t sample, double% value);  
-   bool GetEngValueAsString(size_t sample, String^% value);    
-   bool GetEngValueAsArray(size_t sample,  array<Byte>^% value);
+   bool GetEngValueAsUnsigned(uint64_t sample, uint64_t% value);
+   bool GetEngValueAsSigned(uint64_t sample, int64_t% value);
+   bool GetEngValueAsFloat(uint64_t sample, double% value);  
+   bool GetEngValueAsString(uint64_t sample, String^% value);    
+   bool GetEngValueAsArray(uint64_t sample,  array<Byte>^% value);
   
 protected:
   !MdfChannelObserver();

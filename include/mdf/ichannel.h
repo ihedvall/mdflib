@@ -357,9 +357,13 @@ class IChannel : public IBlock  {
    * groups record buffer. This record buffer is later saved
    * to the MDF file by calling the IChannelGroup::SaveSample()
    * function.
+   *
+   * If the channel is a channel array, the array index argument
+   * needs to be set.
    * @tparam T Type of value.
    * @param value The value to transfer.
    * @param valid True if the value is valid.
+   * @param array_index Channel array index.
    */
   template <typename T>
   void SetChannelValue(const T &value, bool valid = true,

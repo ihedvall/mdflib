@@ -107,7 +107,7 @@ public class MdfLibraryTest
             Console.WriteLine("Channel: {0}, Master: {1}, Samples: {2} ",
                 channel.Name, channel.IsMaster(), channel.NofSamples);
             var value1 = "";
-            for (UInt64 sample = 20;
+            for (uint sample = 20;
                  sample < 30 && sample < channel.NofSamples;
                  ++sample)
             {
@@ -738,7 +738,7 @@ public class MdfLibraryTest
 
 
 
-            for (ulong sample = 0; sample < time.NofSamples; ++sample)
+            for (uint sample = 0; sample < time.NofSamples; ++sample)
             {               
                 double timeValue = 0;
                 var timeValid = time.GetEngValueAsFloat(sample, ref timeValue); 
@@ -1020,7 +1020,7 @@ public class MdfLibraryTest
                 Console.WriteLine("NofSamples." + channels.NofSamples);
 
                 var subscriber_list = new MdfChannelObserver[channels.Channels.Length];
-                ulong i = 0;
+                uint i = 0;
                 foreach (var channel in channels.Channels)
                 {
                     Console.WriteLine($" string pszDisplayName={channel.DisplayName};string pszAliasName = {channel.Name};string pszUnit ={channel.Unit};string pszComment = ");

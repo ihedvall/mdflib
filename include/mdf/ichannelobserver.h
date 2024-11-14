@@ -177,10 +177,11 @@ class IChannelObserver : public ISampleObserver {
    * scaled array values for a sample. Note that the valid flags are return
    * by the GetValidList
    *
-   * If used on non-array channels, it returns a vector of one values.
+   * If used on non-array channels, the value vector is of size 1.
    * @tparam V Type of value
    * @param sample Sample index.
-   * @return A vector of scaled values.
+   * @param values List of returning array scaled values.
+   * @return Returns a list of valid/invalid flags (boolean).
    */
   template<typename V>
   std::vector<bool> GetEngValues(uint64_t sample, std::vector<V>& values) const;

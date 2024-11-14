@@ -18,7 +18,7 @@ MdfChannelObserver::~MdfChannelObserver() {
 }
 
 
-size_t MdfChannelObserver::NofSamples::get() {
+uint64_t MdfChannelObserver::NofSamples::get() {
   return observer_ != nullptr ? observer_->NofSamples() : 0;
 }
 
@@ -41,7 +41,7 @@ bool MdfChannelObserver::IsMaster() {
   return observer_ != nullptr ? observer_->IsMaster() : false;
 }
 
-bool MdfChannelObserver::GetChannelValueAsUnsigned(size_t sample,
+bool MdfChannelObserver::GetChannelValueAsUnsigned(uint64_t sample,
   uint64_t% value) {
   uint64_t temp = 0;
   const auto valid  = observer_ != nullptr ?
@@ -50,7 +50,7 @@ bool MdfChannelObserver::GetChannelValueAsUnsigned(size_t sample,
   return valid;
 }
 
-bool MdfChannelObserver::GetChannelValueAsSigned(size_t sample,
+bool MdfChannelObserver::GetChannelValueAsSigned(uint64_t sample,
   int64_t% value) {
   int64_t temp = 0;
   const auto valid  = observer_ != nullptr ?
@@ -59,7 +59,7 @@ bool MdfChannelObserver::GetChannelValueAsSigned(size_t sample,
   return valid;
 }
 
-bool MdfChannelObserver::GetChannelValueAsFloat(size_t sample,
+bool MdfChannelObserver::GetChannelValueAsFloat(uint64_t sample,
   double% value) {
   double temp = 0;
   const auto valid  = observer_ != nullptr ?
@@ -68,7 +68,7 @@ bool MdfChannelObserver::GetChannelValueAsFloat(size_t sample,
   return valid;
 }
 
-bool MdfChannelObserver::GetChannelValueAsString(size_t sample,
+bool MdfChannelObserver::GetChannelValueAsString(uint64_t sample,
   String^% value) {
   if (observer_ == nullptr ) {
     return false;
@@ -79,7 +79,7 @@ bool MdfChannelObserver::GetChannelValueAsString(size_t sample,
   return valid;
 }
 
-bool MdfChannelObserver::GetChannelValueAsArray(size_t sample,
+bool MdfChannelObserver::GetChannelValueAsArray(uint64_t sample,
   array<Byte>^% value) {
   if (observer_ == nullptr ) {
     return false;
@@ -93,7 +93,7 @@ bool MdfChannelObserver::GetChannelValueAsArray(size_t sample,
   return valid;
 }
 
-bool MdfChannelObserver::GetEngValueAsUnsigned(size_t sample, uint64_t% value) {
+bool MdfChannelObserver::GetEngValueAsUnsigned(uint64_t sample, uint64_t% value) {
   uint64_t temp = 0;
   const auto valid  = observer_ != nullptr ?
     observer_->GetEngValue(sample, temp) : false;
@@ -101,7 +101,7 @@ bool MdfChannelObserver::GetEngValueAsUnsigned(size_t sample, uint64_t% value) {
   return valid;
 }
 
-bool MdfChannelObserver::GetEngValueAsSigned(size_t sample,
+bool MdfChannelObserver::GetEngValueAsSigned(uint64_t sample,
   int64_t% value) {
   int64_t temp = 0;
   const auto valid  = observer_ != nullptr ?
@@ -110,7 +110,7 @@ bool MdfChannelObserver::GetEngValueAsSigned(size_t sample,
   return valid;
 }
 
-bool MdfChannelObserver::GetEngValueAsFloat(size_t sample,
+bool MdfChannelObserver::GetEngValueAsFloat(uint64_t sample,
   double% value) {
   double temp = 0;
   const auto valid  = observer_ != nullptr ?
@@ -119,7 +119,7 @@ bool MdfChannelObserver::GetEngValueAsFloat(size_t sample,
   return valid;
 }
 
-bool MdfChannelObserver::GetEngValueAsString(size_t sample, String^% value) {
+bool MdfChannelObserver::GetEngValueAsString(uint64_t sample, String^% value) {
   if (observer_ == nullptr ) {
     return false;
   }
@@ -129,7 +129,7 @@ bool MdfChannelObserver::GetEngValueAsString(size_t sample, String^% value) {
   return valid;
 }
 
-bool MdfChannelObserver::GetEngValueAsArray(size_t sample,
+bool MdfChannelObserver::GetEngValueAsArray(uint64_t sample,
   array<Byte>^% value) {
   if (observer_ == nullptr ) {
     return false;

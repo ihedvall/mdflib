@@ -56,7 +56,7 @@ void Mdf4File::ReadEverythingButData(std::FILE *file) {
   // This is mainly done for the channel array blocks.
   FindAllReferences(file);
 
-  // Check if file needs to be finalized
+  // Check if the file needs to be finalized
   uint16_t standard_flags = 0;
   uint16_t custom_flags = 0;
   if (!finalized_done_ && id_block_ &&
@@ -246,6 +246,10 @@ bool Mdf4File::FinalizeFile(std::FILE* file) {
       MDF_ERROR() << "Failed to update number of samples and VLSD block sizes. File: " << Name();
       updated = false;
     }
+  }
+  if (update_sr_blocks) {
+    MDF_ERROR() << "Finalizing SR block is not supported. File: " << Name();
+    updated = false;
   }
   return updated;
 }

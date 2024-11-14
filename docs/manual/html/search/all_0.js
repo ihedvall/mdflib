@@ -11,7 +11,7 @@ var searchData=
   ['allvaluesinvalid_8',['AllValuesInvalid',['../namespacemdf_1_1_cn_flag.html#acf64527d27cd2ac92ba68e3a20d2dabb',1,'mdf::CnFlag']]],
   ['angle_9',['Angle',['../namespacemdf.html#a97db9dc7397318bc42aa8ba07f1880dfa45f4ce6c3306644b1efe333f4f8d6929',1,'mdf']]],
   ['array_10',['Array',['../namespacemdf.html#a2dd611c31211248ea4ad0b7363590d14a4410ec34d9e6c1a68100ca0ce033fb17',1,'mdf']]],
-  ['arraysize_11',['ArraySize',['../classmdf_1_1_i_channel_observer.html#ae5b6e85bdf1a75b68d1c84a49c56da60',1,'mdf::IChannelObserver']]],
+  ['arraysize_11',['ArraySize',['../classmdf_1_1_i_channel.html#a128de0bc7aa39d1b877481bb4216d410',1,'mdf::IChannel::ArraySize(uint64_t array_size)'],['../classmdf_1_1_i_channel.html#ac16500cdb878b302e69fdc68edd8aa49',1,'mdf::IChannel::ArraySize() const'],['../classmdf_1_1_i_channel_observer.html#ae5b6e85bdf1a75b68d1c84a49c56da60',1,'mdf::IChannelObserver::ArraySize()']]],
   ['arraystorage_12',['ArrayStorage',['../namespacemdf.html#a87715c0617a1132b24b6f0cbed80cbcf',1,'mdf']]],
   ['arraytype_13',['ArrayType',['../namespacemdf.html#a2dd611c31211248ea4ad0b7363590d14',1,'mdf']]],
   ['attachmentlist_14',['AttachmentList',['../classmdf_1_1_i_channel.html#a30b1815c3a1c78ff8318bbadabf97652',1,'mdf::IChannel::AttachmentList()'],['../namespacemdf.html#a9eaaeb3f7059cb785bf9b282915279dc',1,'mdf::AttachmentList']]],
@@ -22,8 +22,7 @@ var searchData=
   ['axis_19',['Axis',['../namespacemdf_1_1_ca_flag.html#afab4c801f82a479d10482b8e96135e33',1,'mdf::CaFlag']]],
   ['axis_5fconversion_5flist_5f_20',['axis_conversion_list_',['../classmdf_1_1_i_channel_array.html#afb095c25e76d9b49a86993bd0dab203d',1,'mdf::IChannelArray']]],
   ['axis_5flist_5f_21',['axis_list_',['../classmdf_1_1_i_channel_array.html#a58301e38357bb2054b5ca4d311619123',1,'mdf::IChannelArray']]],
-  ['axisconversionlist_22',['AxisConversionList',['../classmdf_1_1_i_channel_array.html#a8820097d01912970d29ab09adcbd3c47',1,'mdf::IChannelArray']]],
-  ['axislist_23',['AxisList',['../classmdf_1_1_i_channel_array.html#aac93a745e21bef7da392cc2ffaf3ebdc',1,'mdf::IChannelArray']]],
-  ['axisvalue_24',['AxisValue',['../classmdf_1_1_i_channel_array.html#ab7739e712667f8b413af1aa8e424cd3f',1,'mdf::IChannelArray::AxisValue(uint64_t index, double value)=0'],['../classmdf_1_1_i_channel_array.html#a88c9f9e201eabc7e7f5e46aa8d94a09d',1,'mdf::IChannelArray::AxisValue(uint64_t index) const =0']]],
-  ['axisvalues_25',['AxisValues',['../classmdf_1_1_i_channel_array.html#a6e4ec6c913a4080732cb638e6097aa55',1,'mdf::IChannelArray']]]
+  ['axisconversionlist_22',['AxisConversionList',['../classmdf_1_1_i_channel_array.html#a8820097d01912970d29ab09adcbd3c47',1,'mdf::IChannelArray::AxisConversionList() const'],['../classmdf_1_1_i_channel_array.html#acdac0f5bf567ceed6762fe68d8d56a19',1,'mdf::IChannelArray::AxisConversionList()']]],
+  ['axislist_23',['AxisList',['../classmdf_1_1_i_channel_array.html#aac93a745e21bef7da392cc2ffaf3ebdc',1,'mdf::IChannelArray::AxisList() const'],['../classmdf_1_1_i_channel_array.html#a9058d869e9cf5f58b362796e4fcce22d',1,'mdf::IChannelArray::AxisList()']]],
+  ['axisvalues_24',['AxisValues',['../classmdf_1_1_i_channel_array.html#acb69b31f9811450a3dac3a2457a0c358',1,'mdf::IChannelArray::AxisValues() const =0'],['../classmdf_1_1_i_channel_array.html#ae839c33230c82d7b3da2865f07ec3517',1,'mdf::IChannelArray::AxisValues()=0']]]
 ];

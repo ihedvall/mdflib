@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="48,287,54,235,68,169,95,100,114,68,138,40,160,26,162,31,142,44,118,71,99,103,73,171,59,236,54,288"/>
 <area shape="rect" id="Node000002" href="$classmdf_1_1_i_channel.html" title="Defines a MDF channel (CN) block." alt="" coords="171,55,273,80"/>
 <area shape="poly" id="edge2_Node000000_Node000002" title=" " alt="" coords="51,287,59,244,75,191,100,137,118,111,138,89,153,79,170,72,172,77,156,84,142,93,122,115,105,139,80,193,64,245,56,288"/>
-<area shape="rect" id="Node000003" href="$classmdf_1_1_i_channel_array.html" title="Channel array." alt="" coords="156,104,288,129"/>
+<area shape="rect" id="Node000003" href="$classmdf_1_1_i_channel_array.html" title="Defines an interface against an array (CA) block." alt="" coords="156,104,288,129"/>
 <area shape="poly" id="edge3_Node000000_Node000003" title=" " alt="" coords="54,287,65,253,82,213,107,173,138,139,157,127,160,132,142,143,111,176,87,216,70,255,59,288"/>
 <area shape="rect" id="Node000004" href="$classmdf_1_1_i_channel_conversion.html" title="Defines a channel conversion (CC) block." alt="" coords="140,153,304,179"/>
 <area shape="poly" id="edge4_Node000000_Node000004" title=" " alt="" coords="60,288,91,237,113,211,138,188,160,176,163,181,142,192,116,214,95,240,64,290"/>

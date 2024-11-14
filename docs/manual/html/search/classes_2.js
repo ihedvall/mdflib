@@ -12,8 +12,10 @@ var searchData=
   ['ievent_9',['IEvent',['../classmdf_1_1_i_event.html',1,'mdf']]],
   ['ifilehistory_10',['IFileHistory',['../classmdf_1_1_i_file_history.html',1,'mdf']]],
   ['iheader_11',['IHeader',['../classmdf_1_1_i_header.html',1,'mdf']]],
-  ['imetadata_12',['IMetaData',['../classmdf_1_1_i_meta_data.html',1,'mdf']]],
-  ['isampleobserver_13',['ISampleObserver',['../classmdf_1_1_i_sample_observer.html',1,'mdf']]],
-  ['isamplereduction_14',['ISampleReduction',['../classmdf_1_1_i_sample_reduction.html',1,'mdf']]],
-  ['isourceinformation_15',['ISourceInformation',['../classmdf_1_1_i_source_information.html',1,'mdf']]]
+  ['imdftimestamp_12',['IMdfTimestamp',['../classmdf_1_1_i_mdf_timestamp.html',1,'mdf']]],
+  ['imetadata_13',['IMetaData',['../classmdf_1_1_i_meta_data.html',1,'mdf']]],
+  ['isampleobserver_14',['ISampleObserver',['../classmdf_1_1_i_sample_observer.html',1,'mdf']]],
+  ['isamplereduction_15',['ISampleReduction',['../classmdf_1_1_i_sample_reduction.html',1,'mdf']]],
+  ['isourceinformation_16',['ISourceInformation',['../classmdf_1_1_i_source_information.html',1,'mdf']]],
+  ['itimestamp_17',['ITimestamp',['../classmdf_1_1_i_timestamp.html',1,'mdf']]]
 ];

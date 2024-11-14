@@ -201,7 +201,7 @@ size_t Cg4Block::Write(std::FILE *file) {
   WriteMdComment(file, kIndexMd);
   // ToDo: Remote master handling
 
-  auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
+  uint64_t bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
   if (update) {
     // Update number of samples
     if (nof_samples_position_ > 0) {

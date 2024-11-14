@@ -73,11 +73,11 @@ bool FileToBuffer(const std::string& filename, mdf::ByteArray& dest) {
     path fullname = u8path(filename);
     const auto size = file_size(fullname);
     if (size > 0) {
-      dest.resize(size, 0);
+      dest.resize(static_cast<size_t>(size), 0);
       std::FILE* file = nullptr;
       Platform::fileopen(&file, filename.c_str(), "rb");
       if (file != nullptr) {
-        const auto nof_bytes = fread(dest.data(), 1, size, file);
+        const auto nof_bytes = fread(dest.data(), 1, static_cast<size_t>(size), file);
         if (nof_bytes < size) {
           dest.resize(nof_bytes);
         }

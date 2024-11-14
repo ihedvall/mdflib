@@ -9,6 +9,6 @@ var searchData=
   ['channel_5fgroup_6',['channel_group',['../structmdf_1_1_element_link.html#ab4b9c96a5c89da4e2cc1031798a78e48',1,'mdf::ElementLink']]],
   ['channelgroup_7',['ChannelGroup',['../structmdf_1_1_ca_triple_reference.html#a311c812bca8a117a51d9e7e2354245a8',1,'mdf::CaTripleReference']]],
   ['column_8',['column',['../struct_mdf_location.html#ae97c1b832de00ad9fe119e64c4f9f8d1',1,'MdfLocation']]],
-  ['comparison_5fquantity_5flist_5f_9',['comparison_quantity_list_',['../classmdf_1_1_i_channel_array.html#aeeadba01d6370f4deb63e4572665daa2',1,'mdf::IChannelArray']]],
+  ['comparison_5fquantity_5f_9',['comparison_quantity_',['../classmdf_1_1_i_channel_array.html#a6e8d2e488023d2a8995558d74ecc1fa0',1,'mdf::IChannelArray']]],
   ['comparisonquantity_10',['ComparisonQuantity',['../namespacemdf_1_1_ca_flag.html#a202db5dd36a26235ad957508a2e50551',1,'mdf::CaFlag']]]
 ];

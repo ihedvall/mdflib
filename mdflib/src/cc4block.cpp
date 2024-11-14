@@ -273,7 +273,7 @@ size_t Cc4Block::Read(std::FILE* file) {  // NOLINT
 size_t Cc4Block::Write(std::FILE* file) {  // NOLINT
   const bool update = FilePosition() > 0;  // True if already written to file
   if (update) {
-    return block_length_;
+    return static_cast<size_t>(block_length_);
   }
 
   nof_references_ = static_cast<uint16_t>(ref_list_.size());

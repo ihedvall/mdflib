@@ -6,8 +6,9 @@
 !include FileFunc.nsh
 !define APP_BUILD_DIR "..\cmake-build-release" ; Path to executable and release library
 !define APP_BUILD_DIR_DEBUG "..\cmake-build-debug" ; Path to the MDF debug library
-!define NET_BUILD_DIR "..\x64" ; Path to .NET library
-Name "MDF Applications and Library 2.2"
+!define NET_BUILD_DIR "..\x64" ; Path to 64-bit .NET library
+!define NET32_BUILD_DIR ".." ; Path to 32-bit .NET library
+Name "MDF Applications and Library 2.3"
 OutFile "${APP_BUILD_DIR}\mdflib.exe"
 Unicode True
 
@@ -82,13 +83,13 @@ Section "Applications" APP
   WriteRegNone HKLM "${ARP}" "" 
   WriteRegStr HKLM "${ARP}" "InstallLocation" $INSTDIR
   WriteRegStr HKLM "${ARP}" "DisplayIcon" "$INSTDIR\img\mdflib.ico"
-  WriteRegStr HKLM "${ARP}" "DisplayName" "MDF Apps & Libs 2.2"
-  WriteRegStr HKLM "${ARP}" "DisplayVersion" "2.2.0"
+  WriteRegStr HKLM "${ARP}" "DisplayName" "MDF Apps & Libs 2.3"
+  WriteRegStr HKLM "${ARP}" "DisplayVersion" "2.3.0"
   WriteRegStr HKLM "${ARP}" "Publisher" "Ingemar Hedvall" 
   WriteRegDWORD HKLM "${ARP}" "NoModify" 1 
   WriteRegDWORD HKLM "${ARP}" "NoRepair" 1 
   WriteRegDWORD HKLM "${ARP}" "VersionMajor" 2
-  WriteRegDWORD HKLM "${ARP}" "VersionMinor" 2
+  WriteRegDWORD HKLM "${ARP}" "VersionMinor" 3
   WriteRegDWORD HKLM "${ARP}" "EstimatedSize" "$0"			 
   WriteRegStr HKLM "${ARP}"  "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
 				 
@@ -128,6 +129,11 @@ Section /o "MDF .NET Library" NET
   SetOutPath "$INSTDIR\net\Release"
   File "${NET_BUILD_DIR}\Release\mdflibrary.*"
   SetOutPath "$INSTDIR\net\Debug"
+  File "${NET_BUILD_DIR}\Debug\mdflibrary.*"
+  
+  SetOutPath "$INSTDIR\net32\Release"
+  File "${NET32_BUILD_DIR}\Release\mdflibrary.*"
+  SetOutPath "$INSTDIR\net32\Debug"
   File "${NET_BUILD_DIR}\Debug\mdflibrary.*"
   
   ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2

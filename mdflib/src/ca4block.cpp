@@ -281,11 +281,11 @@ size_t Ca4Block::Read(std::FILE *file) {
   for (uint64_t& dim_size : dim_size_list_ ) {
     bytes += ReadNumber(file, dim_size);
   }
-  const size_t sum_dim = SumOfArray();
-  const size_t prod_dim = ProductOfArray();
+  const auto sum_dim = SumOfArray();
+  const auto prod_dim = ProductOfArray();
   const auto max_bytes = BlockLength();
   if ((flags_ & CaFlag::FixedAxis) != 0) {
-    axis_value_list_.resize(sum_dim, 0.0);
+    axis_value_list_.resize(static_cast<size_t>(sum_dim), 0.0);
     for (double& axis_value : axis_value_list_) {
       bytes += ReadNumber(file, axis_value);
     }
@@ -294,7 +294,7 @@ size_t Ca4Block::Read(std::FILE *file) {
   switch (Storage()) {
     case ArrayStorage::CgTemplate:
     case ArrayStorage::DgTemplate: {
-      cycle_count_list_.resize(prod_dim, 0);
+      cycle_count_list_.resize(static_cast<size_t>(prod_dim), 0);
       for (uint64_t& cycle : cycle_count_list_) {
         if (bytes + 8 <= max_bytes) {
           bytes += ReadNumber(file, cycle);
@@ -339,10 +339,10 @@ size_t Ca4Block::Read(std::FILE *file) {
 }
 
 void Ca4Block::FindAllReferences(std::FILE* file) {
-  const size_t prod_dim = ProductOfArray();
+  const uint64_t prod_dim = ProductOfArray();
   size_t link_index = 1;
   if (Storage() == ArrayStorage::DgTemplate) {
-    data_links_.resize(prod_dim, 0);
+    data_links_.resize(static_cast<size_t>(prod_dim), 0);
     for (int64_t& position : data_links_) {
       position = Link(link_index);
       ++link_index;
@@ -406,7 +406,7 @@ void Ca4Block::FindAllReferences(std::FILE* file) {
 size_t Ca4Block::Write(std::FILE *file) {
   const bool update = FilePosition() > 0;  // True if already written to file
   if (update) {
-    return block_length_;
+    return static_cast<size_t>(block_length_);
   }
 
   block_type_ = "##CA";
@@ -577,8 +577,8 @@ uint32_t Ca4Block::Flags() const { return flags_; }
 
 Ca4Block::Ca4Block() { block_type_ = "##CA"; }
 
-size_t Ca4Block::SumOfArray() const {
-  size_t sum = 0;
+uint64_t Ca4Block::SumOfArray() const {
+  uint64_t sum = 0;
   std::for_each(dim_size_list_.cbegin(), dim_size_list_.cend(),
                 [&] (auto dimension) -> void {
                   sum += dimension;
@@ -586,7 +586,7 @@ size_t Ca4Block::SumOfArray() const {
   return sum;
 }
 
-size_t Ca4Block::ProductOfArray() const {
+uint64_t Ca4Block::ProductOfArray() const {
   uint64_t product = 1;
   std::for_each(dim_size_list_.cbegin(), dim_size_list_.cend(),
                 [&] (auto dimension) -> void {
@@ -633,10 +633,10 @@ const std::vector<double>& Ca4Block::AxisValues() const {
 }
 
 std::vector<double>& Ca4Block::AxisValues() {
-  const size_t sum_of_array = SumOfArray();
+  const uint64_t sum_of_array = SumOfArray();
   if ((Flags() & CaFlag::FixedAxis) != 0 && sum_of_array > 0 &&
       axis_value_list_.size() < sum_of_array) {
-    axis_value_list_.resize(sum_of_array,0.0);
+    axis_value_list_.resize(static_cast<size_t>(sum_of_array),0.0);
   }
   return axis_value_list_;
 }
@@ -649,9 +649,9 @@ std::vector<uint64_t>& Ca4Block::CycleCounts() {
   switch (Storage()) {
     case ArrayStorage::DgTemplate:
     case ArrayStorage::CgTemplate: {
-      const size_t prod_of_array = ProductOfArray();
+      const uint64_t prod_of_array = ProductOfArray();
       if ( cycle_count_list_.size() < prod_of_array) {
-        cycle_count_list_.resize(prod_of_array,0);
+        cycle_count_list_.resize(static_cast<size_t>(prod_of_array),0);
       }
       break;
     }

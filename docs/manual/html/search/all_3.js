@@ -10,7 +10,7 @@ var searchData=
   ['datagroups_7',['DataGroups',['../classmdf_1_1_i_header.html#a87fd766e39f5a9936eb7d0a458aff578',1,'mdf::IHeader::DataGroups()'],['../classmdf_1_1_mdf_file.html#a31346cce95fe6da6c7a8368753a6b88e',1,'mdf::MdfFile::DataGroups()']]],
   ['dataindex_8',['DataIndex',['../classmdf_1_1_can_message.html#adc0e85e5d4322585e7ac5931f1a3ccd2',1,'mdf::CanMessage::DataIndex(uint64_t index)'],['../classmdf_1_1_can_message.html#a8fa88d73f8f960b5211bfd511d5374b4',1,'mdf::CanMessage::DataIndex() const']]],
   ['datalength_9',['DataLength',['../classmdf_1_1_can_message.html#a9b3814d462b2a73070e46faad62a8270',1,'mdf::CanMessage::DataLength(size_t data_length)'],['../classmdf_1_1_can_message.html#aafba0fa2e12e2fb975aeab9b556817ff',1,'mdf::CanMessage::DataLength() const']]],
-  ['datalinks_10',['DataLinks',['../classmdf_1_1_i_channel_array.html#af4551cab1e07e4a366381e0aacc5217c',1,'mdf::IChannelArray']]],
+  ['datalinks_10',['DataLinks',['../classmdf_1_1_i_channel_array.html#af4551cab1e07e4a366381e0aacc5217c',1,'mdf::IChannelArray::DataLinks() const'],['../classmdf_1_1_i_channel_array.html#ad076583a6ea85271115084b2cd388b42',1,'mdf::IChannelArray::DataLinks()']]],
   ['datatype_11',['DataType',['../classmdf_1_1_e_tag.html#ae174b68ced4e0978dae02ff62c6404fb',1,'mdf::ETag::DataType(ETagDataType type)'],['../classmdf_1_1_e_tag.html#a2033c39e3f3c2abec4aa6f3009da84e2',1,'mdf::ETag::DataType() const'],['../classmdf_1_1_i_channel.html#acc9c9f876d464cdd131025cf55e0868f',1,'mdf::IChannel::DataType(ChannelDataType type)=0'],['../classmdf_1_1_i_channel.html#a931e9af5462ff48caa462d775d6ff830',1,'mdf::IChannel::DataType() const =0']]],
   ['dateconversion_12',['DateConversion',['../namespacemdf.html#aa69a00bf9910fb428ebe4a3d63e6ed89aa6cbaa53929e5a34410596639e1b1d85',1,'mdf']]],
   ['datetimetype_13',['DateTimeType',['../namespacemdf.html#aa4186b6847da714edb635652e9063081a7e33544c3dcc9880ed0a8146cfe1b7d0',1,'mdf']]],
@@ -26,8 +26,8 @@ var searchData=
   ['detachsampleobserver_23',['DetachSampleObserver',['../classmdf_1_1_i_data_group.html#aa2bc81637aa4a99e99006d6156d7f187',1,'mdf::IDataGroup']]],
   ['dgtemplate_24',['DgTemplate',['../namespacemdf.html#a87715c0617a1132b24b6f0cbed80cbcfa956064c9603b1c4d9deea2fa82f62571',1,'mdf']]],
   ['dimensionasstring_25',['DimensionAsString',['../classmdf_1_1_i_channel_array.html#a0cf43a61d1c1f121f4a8d7cc0b3672cb',1,'mdf::IChannelArray']]],
-  ['dimensions_26',['Dimensions',['../classmdf_1_1_i_channel_array.html#ab6663012e747ed564a699a491050369b',1,'mdf::IChannelArray']]],
-  ['dimensionsize_27',['DimensionSize',['../classmdf_1_1_i_channel_array.html#a91d3817687c61d3e08f55f6aff48caca',1,'mdf::IChannelArray::DimensionSize(uint16_t dimension, uint64_t dimension_size)=0'],['../classmdf_1_1_i_channel_array.html#acf1c1a51c37452e7a5440eba7433bdee',1,'mdf::IChannelArray::DimensionSize(uint16_t dimension) const =0']]],
+  ['dimensions_26',['Dimensions',['../classmdf_1_1_i_channel_array.html#a8e9e9091259cf0af0ce8743a794c37e8',1,'mdf::IChannelArray']]],
+  ['dimensionsize_27',['DimensionSize',['../classmdf_1_1_i_channel_array.html#ad6dc4c04bffd0d01f97e8d2f5a35d6c0',1,'mdf::IChannelArray']]],
   ['dir_28',['Dir',['../classmdf_1_1_can_message.html#aff8d54612205b76e0fda44f06e5b373b',1,'mdf::CanMessage::Dir(bool transmit)'],['../classmdf_1_1_can_message.html#a32f7f1a7788325c0883350b6990bf876',1,'mdf::CanMessage::Dir() const']]],
   ['discrete_29',['Discrete',['../namespacemdf_1_1_cn_flag.html#a27498280cbf0da30278e17e8297e8e59',1,'mdf::CnFlag']]],
   ['displayname_30',['DisplayName',['../classmdf_1_1_i_channel.html#af32c29ab60072244fab0ebaa132e3bf3',1,'mdf::IChannel::DisplayName(const std::string &amp;name)=0'],['../classmdf_1_1_i_channel.html#aa6f066ad1c8b25e6f24e38031ea6c50e',1,'mdf::IChannel::DisplayName() const =0']]],
@@ -36,7 +36,8 @@ var searchData=
   ['dlctolength_33',['DlcToLength',['../classmdf_1_1_can_message.html#a2d1a49776df0935e3c33ce21107cb3d5',1,'mdf::CanMessage']]],
   ['dominantbit_34',['DominantBit',['../isamplereduction_8h.html#a9d766fe64de86b5d634c5c6a680733ea',1,'mdf::SrFlag']]],
   ['doonsample_35',['DoOnSample',['../classmdf_1_1_i_sample_observer.html#a97f0554517ca72e503543eb2e0efc236',1,'mdf::ISampleObserver']]],
-  ['dynamic_5fsize_5flist_5f_36',['dynamic_size_list_',['../classmdf_1_1_i_channel_array.html#a43fb924cefd893132f2d355ff2042d44',1,'mdf::IChannelArray']]],
-  ['dynamicsize_37',['DynamicSize',['../namespacemdf_1_1_ca_flag.html#a704393860c75c14323750e907b6672cc',1,'mdf::CaFlag']]],
-  ['dynamicsizelist_38',['DynamicSizeList',['../classmdf_1_1_i_channel_array.html#ad3f9265d67564033fc88a8ce79bc9f1f',1,'mdf::IChannelArray']]]
+  ['dstoffsetns_36',['DstOffsetNs',['../classmdf_1_1_mdf_helper.html#a9dca21f3656e8b7dfc7795ad31a2138e',1,'mdf::MdfHelper']]],
+  ['dynamic_5fsize_5flist_5f_37',['dynamic_size_list_',['../classmdf_1_1_i_channel_array.html#a43fb924cefd893132f2d355ff2042d44',1,'mdf::IChannelArray']]],
+  ['dynamicsize_38',['DynamicSize',['../namespacemdf_1_1_ca_flag.html#a704393860c75c14323750e907b6672cc',1,'mdf::CaFlag']]],
+  ['dynamicsizelist_39',['DynamicSizeList',['../classmdf_1_1_i_channel_array.html#ad3f9265d67564033fc88a8ce79bc9f1f',1,'mdf::IChannelArray::DynamicSizeList() const'],['../classmdf_1_1_i_channel_array.html#afb28d6d2a154f67c4d0f8f49ac822d10',1,'mdf::IChannelArray::DynamicSizeList()']]]
 ];

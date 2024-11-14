@@ -31,5 +31,6 @@ var searchData=
   ['remotemaster_28',['RemoteMaster',['../namespacemdf_1_1_cg_flag.html#a9b1e4eaac22f46832b82da872fea62d8',1,'mdf::CgFlag']]],
   ['reset_29',['Reset',['../classmdf_1_1_can_message.html#ae980cb21e5e1da69fb45588c33a3a29c',1,'mdf::CanMessage']]],
   ['resetsamplecounter_30',['ResetSampleCounter',['../classmdf_1_1_i_channel_group.html#af4dedb9766f94b8c84ef8b2efaeb572c',1,'mdf::IChannelGroup']]],
-  ['rtr_31',['Rtr',['../classmdf_1_1_can_message.html#aa0d4e7abc5258f456b4a1576520d4cd6',1,'mdf::CanMessage::Rtr(bool rtr)'],['../classmdf_1_1_can_message.html#a1d5f97082bc8da0075882219a793e3f5',1,'mdf::CanMessage::Rtr() const']]]
+  ['resizearrays_31',['ResizeArrays',['../classmdf_1_1_i_channel_array.html#a66414df97e860febd74761aad80d6e21',1,'mdf::IChannelArray']]],
+  ['rtr_32',['Rtr',['../classmdf_1_1_can_message.html#aa0d4e7abc5258f456b4a1576520d4cd6',1,'mdf::CanMessage::Rtr(bool rtr)'],['../classmdf_1_1_can_message.html#a1d5f97082bc8da0075882219a793e3f5',1,'mdf::CanMessage::Rtr() const']]]
 ];

@@ -39,10 +39,10 @@ class Ca4Block : public MdfBlock, public IChannelArray {
   [[nodiscard]] uint64_t DimensionSize(size_t dimension) const override; ///< Size for a dimension
 
   /** Returns the summation of the dimension sizes. */
-  [[nodiscard]] size_t SumOfArray() const override;
+  [[nodiscard]] uint64_t SumOfArray() const override;
 
   /** Returns the product of the dimension sizes. */
-  [[nodiscard]] size_t ProductOfArray() const override;
+  [[nodiscard]] uint64_t ProductOfArray() const override;
 
   /** \brief Returns a list of axis values.
    *

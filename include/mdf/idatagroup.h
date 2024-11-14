@@ -142,6 +142,12 @@ class IDataGroup : public IBlock {
 
   ~IDataGroup() override = default; ///< Default destructor
 
+  /** \brief The function optimize the observer list before reading data.
+   *
+   * The function is called before reading any data in the file. The purpose is
+   * optimize the read speed of files with many sample. The function is used
+   * internally only.
+   */
   void InitFastObserverList();
 
  private:

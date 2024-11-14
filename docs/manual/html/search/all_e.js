@@ -14,8 +14,9 @@ var searchData=
   ['prepareforwriting_11',['PrepareForWriting',['../classmdf_1_1_mdf_writer.html#a42d796e6c4585807d2750ccbe6439fbe',1,'mdf::MdfWriter']]],
   ['pretrig_12',['PreTrig',['../classmdf_1_1_i_event.html#ad73ba718bdc60a1e677b62918e2bf729',1,'mdf::IEvent::PreTrig(double pre_trig)'],['../classmdf_1_1_i_event.html#abc0f2d9af406ea451f1eea65dd5f01e2',1,'mdf::IEvent::PreTrig() const']]],
   ['pretrigtime_13',['PreTrigTime',['../classmdf_1_1_mdf_writer.html#a6b6d60272eedb8817c7a480620ec5e02',1,'mdf::MdfWriter::PreTrigTime(double pre_trig_time)'],['../classmdf_1_1_mdf_writer.html#a2a4afa5ae8c5e296a9c86c1e9e35f9af',1,'mdf::MdfWriter::PreTrigTime() const']]],
-  ['programid_14',['ProgramId',['../classmdf_1_1_mdf_file.html#a07cb52f357737cf42166ac6c57f973f2',1,'mdf::MdfFile::ProgramId(const std::string &amp;program_id)=0'],['../classmdf_1_1_mdf_file.html#a4c6821d3884815cc5e349ce3d0dda44c',1,'mdf::MdfFile::ProgramId() const =0']]],
-  ['project_15',['Project',['../classmdf_1_1_i_header.html#a378359144bec03e5a1de476f83a4772a',1,'mdf::IHeader::Project(const std::string &amp;name)=0'],['../classmdf_1_1_i_header.html#a4d7fd76a9b58338e88c234b27c7e8691',1,'mdf::IHeader::Project() const =0']]],
-  ['project_16',['Building the project',['../index.html#autotoc_md2',1,'']]],
-  ['properties_17',['Properties',['../classmdf_1_1_i_meta_data.html#acc1967554b6478f7920d6648c67e0062',1,'mdf::IMetaData']]]
+  ['productofarray_14',['ProductOfArray',['../classmdf_1_1_i_channel_array.html#a3ab02aae0997867af7501fa889a79b01',1,'mdf::IChannelArray']]],
+  ['programid_15',['ProgramId',['../classmdf_1_1_mdf_file.html#a07cb52f357737cf42166ac6c57f973f2',1,'mdf::MdfFile::ProgramId(const std::string &amp;program_id)=0'],['../classmdf_1_1_mdf_file.html#a4c6821d3884815cc5e349ce3d0dda44c',1,'mdf::MdfFile::ProgramId() const =0']]],
+  ['project_16',['Project',['../classmdf_1_1_i_header.html#a378359144bec03e5a1de476f83a4772a',1,'mdf::IHeader::Project(const std::string &amp;name)=0'],['../classmdf_1_1_i_header.html#a4d7fd76a9b58338e88c234b27c7e8691',1,'mdf::IHeader::Project() const =0']]],
+  ['project_17',['Building the project',['../index.html#autotoc_md2',1,'']]],
+  ['properties_18',['Properties',['../classmdf_1_1_i_meta_data.html#acc1967554b6478f7920d6648c67e0062',1,'mdf::IMetaData']]]
 ];

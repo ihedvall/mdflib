@@ -108,11 +108,11 @@ class Hd4Block : public MdfBlock, public IHeader {
   [[nodiscard]] MdfBlock *Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList &dest) const override;
 
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
-  void ReadMeasurementInfo(std::FILE *file);
-  void ReadEverythingButData(std::FILE *file);
+  void ReadMeasurementInfo(std::streambuf& buffer);
+  void ReadEverythingButData(std::streambuf& buffer);
 
   [[nodiscard]] IEvent *CreateEvent() override;
   [[nodiscard]] std::vector<IEvent *> Events() const override;
@@ -122,9 +122,9 @@ class Hd4Block : public MdfBlock, public IHeader {
       const override;
   IDataGroup *CreateDataGroup() override;
 
-  bool FinalizeDtBlocks(std::FILE* file);
-  bool FinalizeCgAndVlsdBlocks(std::FILE* file, bool update_cg, bool update_vlsd);
-  bool UpdateVlsdBlocks(std::FILE* file);
+  bool FinalizeDtBlocks(std::streambuf& buffer);
+  bool FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg, bool update_vlsd);
+  bool UpdateVlsdBlocks(std::streambuf& buffer);
  private:
   Mdf4Timestamp timestamp_;
 

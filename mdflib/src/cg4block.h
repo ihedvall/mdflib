@@ -64,20 +64,20 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
 
   const Si4Block* Source() const { return si_block_.get(); }
 
-  size_t Read(std::FILE* file) override;
-  void ReadCnList(std::FILE* file);
-  void ReadSrList(std::FILE* file);
+  uint64_t Read(std::streambuf& buffer) override;
+  void ReadCnList(std::streambuf& buffer);
+  void ReadSrList(std::streambuf& buffer);
 
-  size_t ReadDataRecord(std::FILE* file, const IDataGroup& notifier) const;
+  uint64_t ReadDataRecord(std::streambuf& buffer, const IDataGroup& notifier) const;
   std::vector<uint8_t>& SampleBuffer() const { return sample_buffer_; }
-  size_t Write(std::FILE* file) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
   ISourceInformation* CreateSourceInformation() override;
   ISourceInformation* SourceInformation() const override;
 
   void UpdateCycleCounter(uint64_t nof_samples);
   void UpdateVlsdSize(uint64_t nof_data_bytes);
-  size_t StepRecord(std::FILE *file) const;
+  uint64_t StepRecord(std::streambuf& buffer) const;
 
   [[nodiscard]] IMetaData* CreateMetaData() override {
     return MdfBlock::CreateMetaData();
@@ -93,13 +93,15 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   uint32_t NofInvalidBytes() const {
     return nof_invalid_bytes_;
   }
-  void  WriteSample(FILE* file, uint8_t record_id_size,
-                   const std::vector<uint8_t>& buffer);
+  void  WriteSample(std::streambuf& buffer, uint8_t record_id_size,
+                   const std::vector<uint8_t>& source);
+
   void  WriteCompressedSample(std::vector<uint8_t>& dest,
                               uint8_t record_id_size,
                               const std::vector<uint8_t>& buffer);
-  [[nodiscard]] uint64_t WriteVlsdSample(FILE* file, uint8_t record_id_size,
-                                 const std::vector<uint8_t>& buffer);
+  [[nodiscard]] uint64_t WriteVlsdSample(std::streambuf& buffer, uint8_t record_id_size,
+                                 const std::vector<uint8_t>& source);
+
   [[nodiscard]] uint64_t WriteCompressedVlsdSample(std::vector<uint8_t>& dest,
                                                    uint8_t record_id_size,
                                          const std::vector<uint8_t>& buffer);

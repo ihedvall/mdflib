@@ -8,10 +8,12 @@
 namespace mdf::detail {
 class Tx3Block : public MdfBlock {
  public:
-  explicit Tx3Block(const std::string &text);
+  explicit Tx3Block(std::string text);
   Tx3Block() = default;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
+
   [[nodiscard]] std::string Text() const;
 
  private:

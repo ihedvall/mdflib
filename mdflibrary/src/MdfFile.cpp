@@ -15,7 +15,7 @@ array<MdfAttachment^>^ MdfFile::Attachments::get() {
   }
   array<MdfAttachment^>^ temp_list =
     gcnew array<MdfAttachment^>(static_cast<int>(list.size()));
-  for (int index = 0; index < list.size(); ++index) {
+  for (size_t index = 0; index < list.size(); ++index) {
     auto* temp = const_cast<mdf::IAttachment*>(list[index]);
     temp_list[static_cast<int>(index)] = gcnew MdfAttachment(temp);
   }
@@ -29,7 +29,7 @@ array<MdfDataGroup^>^ MdfFile::DataGroups::get() {
    }
    array<MdfDataGroup^>^ temp_list =
      gcnew array<MdfDataGroup^>(static_cast<int>(list.size()));
-   for (int index = 0; index < list.size(); ++index) {
+   for (size_t index = 0; index < list.size(); ++index) {
      auto* temp = const_cast<mdf::IDataGroup*>(list[index]);
      temp_list[static_cast<int>(index)] = gcnew MdfDataGroup(temp);
    }

@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
+#include <fstream>
 
 #include "dg3block.h"
 #include "mdfblock.h"
@@ -115,15 +116,15 @@ bool MdfWriter::Init(const std::string& filename) {
   if (mdf_file_) {
     mdf_file_->FileName(filename);
   }
-  std::FILE* file = nullptr;
+  std::filebuf file;
   try {
     if (fs::exists(filename_)) {
       // Read in existing file so we can append to it
 
-      detail::OpenMdfFile(file, filename_, "rb");
-      if (file != nullptr) {
+      detail::OpenMdfFile(file, filename_, std::ios_base::in | std::ios_base::binary);
+      if (!file.is_open()) {
         mdf_file_->ReadEverythingButData(file);
-        std::fclose(file);
+        file.close();
         write_state_ = WriteState::Finalize;  // Append to the file
         MDF_DEBUG() << "Reading existing file. File: " << filename_;
         init = true;
@@ -139,8 +140,8 @@ bool MdfWriter::Init(const std::string& filename) {
       init = true;
     }
   } catch (const std::exception& err) {
-    if (file != nullptr) {
-      fclose(file);
+    if (file.is_open()) {
+      file.close();
       write_state_ = WriteState::Finalize;
       MDF_ERROR() << "Failed to read the existing MDF file. Error: "
                   << err.what() << ", File: " << filename_;
@@ -168,17 +169,19 @@ bool MdfWriter::InitMeasurement() {
     return false;
   }
   // 1: Save ID, HD, DG, AT, CG and CN blocks to the file.
-  std::FILE* file = nullptr;
+  std::filebuf file;
   detail::OpenMdfFile(file, filename_,
-                      write_state_ == WriteState::Create ? "wb" : "r+b");
-  if (file == nullptr) {
+          write_state_ == WriteState::Create ?
+             std::ios_base::out | std::ios_base::binary | std::ios_base::trunc:
+             std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+  if (!file.is_open()) {
     MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
 
   const bool write = mdf_file_->Write(file);
   SetDataPosition(file);  // Set up data position to end of file
-  fclose(file);
+  file.close();
   start_time_ = 0;  // Zero indicate not started
   stop_time_ = 0;   // Zero indicate not stopped
   // Start the working thread that handles the samples
@@ -365,15 +368,16 @@ bool MdfWriter::FinalizeMeasurement() {
     return false;
   }
 
-  std::FILE* file = nullptr;
-  detail::OpenMdfFile(file, filename_, "r+b");
-  if (file == nullptr) {
+  std::filebuf file;
+  detail::OpenMdfFile(file, filename_,
+                 std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+  if (!file.is_open()) {
     MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
   const bool write = mdf_file_ && mdf_file_->Write(file);
   const bool signal_data = WriteSignalData(file);
-  fclose(file);
+  file.close();
   write_state_ = WriteState::Finalize;
   return write && signal_data;
 }
@@ -457,9 +461,10 @@ void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
   }
 
   lock.unlock();
-  std::FILE* file = nullptr;
-  Platform::fileopen(&file, filename_.c_str(), "r+b");
-  if (file == nullptr) {
+  std::filebuf file;
+  file.open(filename_,
+            std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+  if (!file.is_open()) {
     lock.lock();
     return;
   }
@@ -483,12 +488,13 @@ void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
 
     if (dg3->NofRecordId() > 0) {
       const auto id = static_cast<uint8_t>(sample.record_id);
-      fwrite(&id, 1, 1, file);
+      file.sputc(static_cast<char>(id));
     }
-    fwrite(sample.record_buffer.data(), 1, sample.record_buffer.size(), file);
+    file.sputn(reinterpret_cast<const char*>(sample.record_buffer.data()),
+               static_cast<std::streamsize>(sample.record_buffer.size()) );
     if (dg3->NofRecordId() > 1) {
       const auto id = static_cast<uint8_t>(sample.record_id);
-      fwrite(&id, 1, 1, file);
+      file.sputc(static_cast<char>(id));
     }
     IncrementNofSamples(sample.record_id);
     lock.lock();
@@ -502,7 +508,7 @@ void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
     }
   }
 
-  fclose(file);
+  file.close();
   lock.lock();
 }
 
@@ -532,10 +538,10 @@ IChannel* MdfWriter::CreateChannel(IChannelGroup* parent) {
   return parent == nullptr ? nullptr : parent->CreateChannel();
 }
 
-void MdfWriter::SetDataPosition(std::FILE*) {
+void MdfWriter::SetDataPosition(std::streambuf&) {
   // Only needed for MDF4 and uncompressed storage
 }
-bool MdfWriter::WriteSignalData(std::FILE* file) {
+bool MdfWriter::WriteSignalData(std::streambuf&) {
   // Only  supported by MDF4
   return true;
 }

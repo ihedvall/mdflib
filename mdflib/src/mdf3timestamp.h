@@ -8,8 +8,8 @@ namespace mdf::detail {
 class Mdf3Timestamp : public IMdfTimestamp, public MdfBlock {
  public:
   void GetBlockProperty(detail::BlockPropertyList &dest) const override;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
   void SetTime(uint64_t time) override;
   void SetTime(ITimestamp &timestamp) override;

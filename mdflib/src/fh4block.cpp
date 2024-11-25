@@ -8,7 +8,13 @@ constexpr size_t kIndexNext = 0;
 constexpr size_t kIndexMd = 1;
 }  // namespace
 namespace mdf::detail {
-Fh4Block::Fh4Block() { block_type_ = "##FH"; }
+
+Fh4Block::Fh4Block() {
+  block_type_ = "##FH";
+  UtcTimestamp now(MdfHelper::NowNs());
+  timestamp_.SetTime(now);
+}
+
 void Fh4Block::GetBlockProperty(BlockPropertyList &dest) const {
   MdfBlock::GetBlockProperty(dest);
 
@@ -26,15 +32,15 @@ void Fh4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Fh4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
+uint64_t Fh4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
   timestamp_.Init(*this);
-  bytes += timestamp_.Read(file);
-  ReadMdComment(file, kIndexMd);
+  bytes += timestamp_.Read(buffer);
+  ReadMdComment(buffer, kIndexMd);
   return bytes;
 }
 
-size_t Fh4Block::Write(std::FILE *file) {
+uint64_t Fh4Block::Write(std::streambuf& buffer) {
   const bool update =
       FilePosition() > 0;  // Write or update the values inside the block
   if (update) {
@@ -44,11 +50,11 @@ size_t Fh4Block::Write(std::FILE *file) {
   block_length_ = 24 + (2 * 8) + 8 + 2 + 2 + 1 + 3;
   link_list_.resize(2, 0);
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += timestamp_.Write(file);
-  bytes += WriteBytes(file, 3);
-  UpdateBlockSize(file, bytes);
-  WriteMdComment(file, kIndexMd);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += timestamp_.Write(buffer);
+  bytes += WriteBytes(buffer, 3);
+  UpdateBlockSize(buffer, bytes);
+  WriteMdComment(buffer, kIndexMd);
   return bytes;
 }
 

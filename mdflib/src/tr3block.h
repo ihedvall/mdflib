@@ -19,8 +19,8 @@ struct Tr3Event {
 class Tr3Block : public MdfBlock {
  public:
   [[nodiscard]] std::string Comment() const override;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
  private:
   uint16_t nof_events_ = 0;

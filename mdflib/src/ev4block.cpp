@@ -142,31 +142,32 @@ void Ev4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Ev4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, type_);
-  bytes += ReadNumber(file, sync_type_);
-  bytes += ReadNumber(file, range_type_);
-  bytes += ReadNumber(file, cause_);
-  bytes += ReadNumber(file, flags_);
+uint64_t Ev4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, type_);
+  bytes += ReadNumber(buffer, sync_type_);
+  bytes += ReadNumber(buffer, range_type_);
+  bytes += ReadNumber(buffer, cause_);
+  bytes += ReadNumber(buffer, flags_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 3);
-  bytes += ReadNumber(file, length_m_);
-  bytes += ReadNumber(file, length_n_);
-  bytes += ReadNumber(file, creator_index_);
-  bytes += ReadNumber(file, sync_base_value_);
-  bytes += ReadNumber(file, sync_factor_);
+  bytes += ReadByte(buffer, reserved, 3);
+  bytes += ReadNumber(buffer, length_m_);
+  bytes += ReadNumber(buffer, length_n_);
+  bytes += ReadNumber(buffer, creator_index_);
+  bytes += ReadNumber(buffer, sync_base_value_);
+  bytes += ReadNumber(buffer, sync_factor_);
 
-  name_ = ReadTx4(file, kIndexName);
+  name_ = ReadTx4(buffer, kIndexName);
   const size_t group_index = 5 + length_m_ + length_n_;
   if (group_index < link_list_.size()) {
-    group_name_ = ReadTx4(file, group_index);
+    group_name_ = ReadTx4(buffer, group_index);
   }
 
-  ReadMdComment(file, kIndexMd);
+  ReadMdComment(buffer, kIndexMd);
   return bytes;
 }
-size_t Ev4Block::Write(std::FILE *file) {
+
+uint64_t Ev4Block::Write(std::streambuf& buffer) {
   const bool update =
       FilePosition() > 0;  // Write or update the values inside the block
   if (update) {
@@ -199,25 +200,25 @@ size_t Ev4Block::Write(std::FILE *file) {
     const auto *block = attachment_list_[index_n];
     link_list_[index] = block != nullptr ? block->Index() : 0;
   }
-  WriteTx4(file, kIndexName, name_);
+  WriteTx4(buffer, kIndexName, name_);
   if (group) {
-    WriteTx4(file, link_list_.size() - 1, group_name_);
+    WriteTx4(buffer, link_list_.size() - 1, group_name_);
   }
-  WriteMdComment(file, kIndexMd);
+  WriteMdComment(buffer, kIndexMd);
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file, type_);
-  bytes += WriteNumber(file, sync_type_);
-  bytes += WriteNumber(file, range_type_);
-  bytes += WriteNumber(file, cause_);
-  bytes += WriteNumber(file, flags_);
-  bytes += WriteBytes(file, 3);
-  bytes += WriteNumber(file, length_m_);
-  bytes += WriteNumber(file, length_n_);
-  bytes += WriteNumber(file, creator_index_);
-  bytes += WriteNumber(file, sync_base_value_);
-  bytes += WriteNumber(file, sync_factor_);
-  UpdateBlockSize(file, bytes);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer, type_);
+  bytes += WriteNumber(buffer, sync_type_);
+  bytes += WriteNumber(buffer, range_type_);
+  bytes += WriteNumber(buffer, cause_);
+  bytes += WriteNumber(buffer, flags_);
+  bytes += WriteBytes(buffer, 3);
+  bytes += WriteNumber(buffer, length_m_);
+  bytes += WriteNumber(buffer, length_n_);
+  bytes += WriteNumber(buffer, creator_index_);
+  bytes += WriteNumber(buffer, sync_base_value_);
+  bytes += WriteNumber(buffer, sync_factor_);
+  UpdateBlockSize(buffer, bytes);
 
   return bytes;
 }

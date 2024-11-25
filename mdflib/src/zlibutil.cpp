@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <fstream>
 
 #include "platform.h"
 
@@ -26,11 +27,7 @@ constexpr size_t kZlibChunk = 16384;
 
 namespace mdf {
 
-bool Deflate(FILE* in, FILE* out) {
-  if (in == nullptr || out == nullptr) {
-    return false;
-  }
-
+bool Deflate(std::streambuf& in, std::streambuf& out) {
   z_stream s{};
   std::vector<uint8_t> buf_in(kZlibChunk, 0);
   std::vector<uint8_t> buf_out(kZlibChunk, 0);
@@ -43,13 +40,9 @@ bool Deflate(FILE* in, FILE* out) {
   /* compress until end of file */
   int flush;
   do {
-    s.avail_in = static_cast<uInt>(fread(buf_in.data(), 1, kZlibChunk, in));
-    if (ferror(in)) {
-      deflateEnd(&s);
-      return false;
-    }
-
-    flush = feof(in) ? Z_FINISH : Z_NO_FLUSH;
+    s.avail_in = static_cast<uInt>(in.sgetn(
+        reinterpret_cast<char*>(buf_in.data()), kZlibChunk ) );
+    flush = s.avail_in < kZlibChunk ? Z_FINISH : Z_NO_FLUSH;
     s.next_in = buf_in.data();
 
     /* run deflate() on input until output buffer not full, finish
@@ -62,7 +55,8 @@ bool Deflate(FILE* in, FILE* out) {
         return false;
       }
       const auto have = kZlibChunk - s.avail_out;
-      if (fwrite(buf_out.data(), 1, have, out) != have || ferror(out)) {
+      if (out.sputn( reinterpret_cast<char*>(buf_out.data()),
+                    static_cast<std::streamsize>(have) ) != have ) {
         deflateEnd(&s);
         return false;
       }
@@ -85,18 +79,21 @@ bool Deflate(FILE* in, FILE* out) {
 bool Deflate(const std::string& filename, ByteArray& buf_out) {
   try {
     fs::path name = fs::u8path(filename);
-    auto size = fs::file_size(name);
+    uint64_t size = fs::file_size(name);
 
-    std::FILE* file = nullptr;
-    Platform::fileopen(&file, filename.c_str(), "rb");
-    if (file == nullptr) {
+    std::filebuf file;
+    file.open(name.string(), std::ios_base::in | std::ios_base::binary);
+    if (!file.is_open()) {
       return false;
     }
-    ByteArray buf_in(size, 0);
-    const auto nof_bytes = fread(buf_in.data(), 1, size, file);
-    fclose(file);
+
+    ByteArray buf_in(static_cast<size_t>(size), 0);
+    const uint64_t nof_bytes = file.sgetn(
+        reinterpret_cast<char*>(buf_in.data()),
+        static_cast<std::streamsize>(size) );
+    file.close();
     if (nof_bytes < size) {
-      buf_in.resize(nof_bytes, 0);
+      buf_in.resize(static_cast<size_t>(nof_bytes), 0);
     }
     if (buf_out.size() < buf_in.size()) {
       buf_out.resize(buf_in.size(), 0);
@@ -140,10 +137,8 @@ bool Deflate(const ByteArray& buf_in, ByteArray& buf_out) {
   return ret == Z_STREAM_END;
 }
 
-bool Inflate(std::FILE* in, std::FILE* out) {
-  if (in == nullptr || out == nullptr) {
-    return false;
-  }
+bool Inflate(std::streambuf& in, std::streambuf& out) {
+
   // Inflate the input file to the output file
   z_stream o{};
   ByteArray buf_in(kZlibChunk, 0);
@@ -155,11 +150,9 @@ bool Inflate(std::FILE* in, std::FILE* out) {
 
   /* decompress until deflate stream ends or end of file */
   do {
-    o.avail_in = static_cast<uInt>(fread(buf_in.data(), 1, kZlibChunk, in));
-    if (ferror(in)) {
-      inflateEnd(&o);
-      return false;
-    }
+    o.avail_in = static_cast<uInt>(in.sgetn(
+        reinterpret_cast<char*>(buf_in.data()),
+          kZlibChunk) );
     if (o.avail_in == 0) {
       break;
     }
@@ -185,7 +178,9 @@ bool Inflate(std::FILE* in, std::FILE* out) {
           break;
       }
       const auto have = kZlibChunk - o.avail_out;
-      if (fwrite(buf_out.data(), 1, have, out) != have || ferror(out)) {
+      if (out.sputn(
+              reinterpret_cast<char*>(buf_out.data()),
+              static_cast<std::streamsize>(have) ) != have ) {
         inflateEnd(&o);
         return false;
       }
@@ -197,10 +192,7 @@ bool Inflate(std::FILE* in, std::FILE* out) {
   return ret == Z_STREAM_END;
 }
 
-bool Inflate(std::FILE* in, std::FILE* out, uint64_t nof_bytes) {
-  if (in == nullptr || out == nullptr) {
-    return false;
-  }
+bool Inflate(std::streambuf& in, std::streambuf& out, uint64_t nof_bytes) {
   // Inflate the input file to the output file
   z_stream o{};
   ByteArray buf_in(kZlibChunk, 0);
@@ -217,16 +209,15 @@ bool Inflate(std::FILE* in, std::FILE* out, uint64_t nof_bytes) {
       break;  // Ready
     }
 
-    size_t bytes_to_read = kZlibChunk;
+    uint64_t bytes_to_read = kZlibChunk;
     if (count + kZlibChunk > nof_bytes) {
       bytes_to_read = nof_bytes - count;
     }
 
-    o.avail_in = static_cast<uInt>(fread(buf_in.data(), 1, bytes_to_read, in));
-    if (ferror(in)) {
-      inflateEnd(&o);
-      return false;
-    }
+    o.avail_in = static_cast<uInt>(in.sgetn(
+        reinterpret_cast<char*>(buf_in.data()),
+        static_cast<std::streamsize>(bytes_to_read)));
+
     if (o.avail_in == 0) {
       break;
     }
@@ -253,7 +244,9 @@ bool Inflate(std::FILE* in, std::FILE* out, uint64_t nof_bytes) {
           break;
       }
       const auto have = kZlibChunk - o.avail_out;
-      if (fwrite(buf_out.data(), 1, have, out) != have || ferror(out)) {
+      if (out.sputn(
+              reinterpret_cast<char*>(buf_out.data()),
+              static_cast<std::streamsize>(have)) != have ) {
         inflateEnd(&o);
         return false;
       }
@@ -307,8 +300,8 @@ bool Inflate(const ByteArray& buf_in, ByteArray& buf_out) {
   return ret == Z_STREAM_END;
 }
 
-bool Inflate(const ByteArray& buf_in, std::FILE* to_file) {
-  if (buf_in.empty() || to_file == nullptr) {
+bool Inflate(const ByteArray& buf_in, std::streambuf& to_file) {
+  if (buf_in.empty()) {
     return false;
   }
 
@@ -342,7 +335,9 @@ bool Inflate(const ByteArray& buf_in, std::FILE* to_file) {
         break;
     }
     const auto have = kZlibChunk - o.avail_out;
-    if (fwrite(buf_out.data(), 1, have, to_file) != have || ferror(to_file)) {
+    if (to_file.sputn(
+            reinterpret_cast<char*>(buf_out.data()),
+            static_cast<std::streamsize>(have) ) != have) {
       inflateEnd(&o);
       return false;
     }

@@ -13,13 +13,13 @@ void Dv4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Data Size [byte]", std::to_string(DataSize()));
 }
 
-size_t Dv4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  data_position_ = GetFilePosition(file);
+uint64_t Dv4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  data_position_ = GetFilePosition(buffer);
   return bytes;
 }
 
-size_t Dv4Block::DataSize() const {
+uint64_t Dv4Block::DataSize() const {
   return block_length_ > 24 ? block_length_ - 24 : 0;
 }
 }  // namespace mdf::detail

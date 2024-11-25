@@ -143,7 +143,7 @@ class MdfFile {
    * read in any other information as measurement information.
    * @param file Pointer to an opened file.
    */
-  virtual void ReadHeader(std::FILE* file) = 0;
+  virtual void ReadHeader(std::streambuf& buffer) = 0;
 
   /** \brief Reads the measurement information about the file.
    *
@@ -154,7 +154,7 @@ class MdfFile {
    *
    * @param file Pointer to an opened file.
    */
-  virtual void ReadMeasurementInfo(std::FILE* file) = 0;
+  virtual void ReadMeasurementInfo(std::streambuf& buffer) = 0;
 
   /** \brief Reads in all expect raw data from the file.
    *
@@ -167,7 +167,7 @@ class MdfFile {
    * @param file Pointer to an opened file.
    */
   virtual void
-  ReadEverythingButData(std::FILE* file) = 0;
+  ReadEverythingButData(std::streambuf& buffer) = 0;
 
   /** \brief Saves all blocks onto the file.
    *
@@ -178,7 +178,7 @@ class MdfFile {
    * @param file Pointer to an open file.
    * @return True on success.
    */
-  virtual bool Write(std::FILE* file) = 0;
+  virtual bool Write(std::streambuf& buffer) = 0;
 
   /** \brief Display name of the file.
    *
@@ -211,7 +211,7 @@ class MdfFile {
   void FileName(const std::string& filename);
 
   /** \brief Sets the finalize state for the file. */
-  virtual void IsFinalized(bool finalized, std::FILE* file,
+  virtual void IsFinalized(bool finalized, std::streambuf& buffer,
                            uint16_t standard_flags, uint16_t custom_flags) = 0;
   /** \brief Returns true if the file is finalized. */
   [[nodiscard]] virtual bool IsFinalized(uint16_t& standard_flags,

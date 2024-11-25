@@ -41,31 +41,31 @@ void Dl4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Dl4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, flags_);
+uint64_t Dl4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, flags_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 3);
-  bytes += ReadNumber(file, nof_blocks_);
+  bytes += ReadByte(buffer, reserved, 3);
+  bytes += ReadNumber(buffer, nof_blocks_);
   if (flags_ & Dl4Flags::EqualLength) {
-    bytes += ReadNumber(file, equal_length_);
+    bytes += ReadNumber(buffer, equal_length_);
   } else {
     for (uint32_t ii = 0; ii < nof_blocks_; ++ii) {
       uint64_t offset = 0;
-      bytes += ReadNumber(file, offset);
+      bytes += ReadNumber(buffer, offset);
       offset_list_.push_back(offset);
     }
   }
-  ReadLinkList(file, kIndexData, nof_blocks_);
+  ReadLinkList(buffer, kIndexData, nof_blocks_);
   return bytes;
 }
 
-size_t Dl4Block::Write(std::FILE *file) {
+uint64_t Dl4Block::Write(std::streambuf& buffer) {
   const bool update = FilePosition() > 0;
   if (update) {
     // The DL block properties cannot be changed, but it
     // is possible to append DL blocks
-    WriteBlockList(file, kIndexData);
+    WriteBlockList(buffer, kIndexData);
     return block_length_;
   }
   const size_t nof = block_list_.size(); // Number of DZ/DT blocks
@@ -93,39 +93,39 @@ size_t Dl4Block::Write(std::FILE *file) {
     block_length_ += 8 * nof;
   }
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file,flags_);
-  bytes += WriteBytes(file, 3);
-  bytes += WriteNumber(file, static_cast<uint32_t>(nof));
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer,flags_);
+  bytes += WriteBytes(buffer, 3);
+  bytes += WriteNumber(buffer, static_cast<uint32_t>(nof));
   if (equal) {
-    bytes += WriteNumber(file, equal_length_);
+    bytes += WriteNumber(buffer, equal_length_);
   } else {
     for (size_t index = 0; index < nof; ++index) {
-      bytes += WriteNumber(file, Offset(index));
+      bytes += WriteNumber(buffer, Offset(index));
     }
   }
 
   if (time) {
     for (size_t index = 0; index < nof; ++index) {
-      bytes += WriteNumber(file, TimeValue(index));
+      bytes += WriteNumber(buffer, TimeValue(index));
     }
   }
 
   if (angle) {
     for (size_t index = 0; index < nof; ++index) {
-      bytes += WriteNumber(file, AngleValue(index));
+      bytes += WriteNumber(buffer, AngleValue(index));
     }
   }
 
   if (distance) {
     for (size_t index = 0; index < nof; ++index) {
-      bytes += WriteNumber(file, DistanceValue(index));
+      bytes += WriteNumber(buffer, DistanceValue(index));
     }
   }
 
-  UpdateBlockSize(file, bytes);
+  UpdateBlockSize(buffer, bytes);
 
-  WriteBlockList(file, kIndexData);
+  WriteBlockList(buffer, kIndexData);
   return bytes;
 }
 

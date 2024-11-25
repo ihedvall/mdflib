@@ -110,7 +110,7 @@ void DbcHelper::DoubleToRaw(bool little_endian, size_t start, size_t length,
       bit = 7;
       little_endian ? --byte : ++byte;
     }
-    if (byte >= (start + length) /8) {
+    if (byte >= static_cast<int>( (start + length) /8 ) ) {
       // Buffer overrun. Most likely invalid start bit
       break;
     }
@@ -144,7 +144,7 @@ void DbcHelper::FloatToRaw(bool little_endian, size_t start, size_t length,
       bit = 7;
       little_endian ? --byte : ++byte;
     }
-    if (byte >= (start + length) / 8) {
+    if (byte >= static_cast<int>((start + length) / 8)) {
       // Buffer overrun. Most likely invalid start bit
       break;
     }

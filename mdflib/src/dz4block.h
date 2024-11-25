@@ -24,17 +24,17 @@ class Dz4Block : public DataBlock {
   [[nodiscard]] uint32_t Parameter() const { return parameter_; }
 
 
-  [[nodiscard]] size_t DataSize() const override { return orig_data_length_; }
-  [[nodiscard]] size_t CompressedDataSize() const { return data_length_; }
+  [[nodiscard]] uint64_t DataSize() const override { return orig_data_length_; }
+  [[nodiscard]] uint64_t CompressedDataSize() const { return data_length_; }
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  size_t Read(std::FILE* file) override;
-  size_t Write(std::FILE* file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
-  size_t CopyDataToFile(std::FILE* from_file,
-                        std::FILE* to_file) const override;
-  size_t CopyDataToBuffer(std::FILE* from_file, std::vector<uint8_t>& buffer,
-                          size_t& buffer_index) const override;
+  uint64_t CopyDataToFile(std::streambuf& from_file,
+                        std::streambuf& to_file) const override;
+  uint64_t CopyDataToBuffer(std::streambuf& from_file, std::vector<uint8_t>& buffer,
+                          uint64_t& buffer_index) const override;
 
   bool Data(const std::vector<uint8_t>& uncompressed_data) override;
 

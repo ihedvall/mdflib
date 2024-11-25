@@ -57,8 +57,8 @@ class Cn3Block : public DataListBlock, public IChannel {
   [[nodiscard]] MdfBlock* Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
   void Init(const MdfBlock& id_block) override;
-  size_t Read(std::FILE* file) override;
-  size_t Write(std::FILE* file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
   void AddCc3(std::unique_ptr<Cc3Block>& cc3);
 

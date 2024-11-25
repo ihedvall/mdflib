@@ -5,6 +5,7 @@
 
 #include "mdf4writer.h"
 #include <ctime>
+#include <fstream>
 #include "mdf/mdflogstream.h"
 #include "mdf4file.h"
 #include "platform.h"
@@ -37,8 +38,8 @@ void Mdf4Writer::CreateMdfFile() {
   mdf_file_ = std::move(mdf4);
 }
 
-void Mdf4Writer::SetLastPosition(std::FILE* file) {
-  Platform::fseek64(file, 0, SEEK_END);
+void Mdf4Writer::SetLastPosition(std::streambuf& buffer) {
+  buffer.pubseekoff(0, std::ios_base::end);
 
   auto* header = Header();
   if (header == nullptr) {
@@ -57,10 +58,10 @@ void Mdf4Writer::SetLastPosition(std::FILE* file) {
     return;
   }
 
-  dg4->SetLastFilePosition(file);
-  auto position = GetFilePosition(file);
-  dg4->UpdateLink(file, 2, position);
-  dg4->SetLastFilePosition(file);
+  dg4->SetLastFilePosition(buffer);
+  auto position = GetFilePosition(buffer);
+  dg4->UpdateLink(buffer, 2, position);
+  dg4->SetLastFilePosition(buffer);
 }
 
 bool Mdf4Writer::PrepareForWriting() {
@@ -143,9 +144,9 @@ void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
   }
   lock.unlock();
 
-  std::FILE* file = nullptr;
-  Platform::fileopen(&file, filename_.c_str(), "r+b");
-  if (file == nullptr) {
+  std::filebuf file;
+  file.open(filename_, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+  if (!file.is_open()) {
     lock.lock();
     return;
   }
@@ -220,7 +221,7 @@ void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
   uint64_t block_length = 24 + (last_position - data_position);
   dt4->UpdateBlockSize(file, block_length);
   dg4->Write(file); // Flush out data
-  fclose(file);
+  file.close();
   lock.lock();
 
 }
@@ -285,9 +286,9 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
   // Open the file for writing
   lock.unlock();
 
-  std::FILE* file = nullptr;
-  Platform::fileopen(&file, filename_.c_str(), "r+b");
-  if (file == nullptr) {
+  std::filebuf file;
+  file.open(filename_, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+  if (!file.is_open()) {
     lock.lock();
     return;
   }
@@ -433,13 +434,13 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
 
 
   dg4->Write(file); // Flush out data
-  fclose(file);
+  file.close();
   lock.lock();
 
   hl4->ClearData(); // Remove temp data
 }
 
-void Mdf4Writer::SetDataPosition(std::FILE* file) {
+void Mdf4Writer::SetDataPosition(std::streambuf& buffer) {
   if (CompressData()) {
     return;
   }
@@ -465,8 +466,8 @@ void Mdf4Writer::SetDataPosition(std::FILE* file) {
   if (dt4 == nullptr) {
     return;
   }
-  SetLastPosition(file);
-  const auto data_position = GetFilePosition(file);
+  SetLastPosition(buffer);
+  const auto data_position = GetFilePosition(buffer);
   dt4->DataPosition(data_position);
 }
 
@@ -519,7 +520,7 @@ size_t Mdf4Writer::CalculateNofDzBlocks() {
       nof_bytes += id_size + 4 + sample.vlsd_buffer.size();
     }
   }
-  return (nof_bytes / 4'000'000) + 1;
+  return static_cast<size_t>((nof_bytes / 4'000'000) + 1);
 }
 
 bool Mdf4Writer::InitMeasurement() {
@@ -527,11 +528,7 @@ bool Mdf4Writer::InitMeasurement() {
   return MdfWriter::InitMeasurement();
 }
 
-bool Mdf4Writer::WriteSignalData(std::FILE* file) {
-  if (file == nullptr) {
-    MDF_ERROR() << "File is not opened. File: " << Name();
-    return false;
-  }
+bool Mdf4Writer::WriteSignalData(std::streambuf& buffer) {
 
   const auto *header = Header();
   if (header == nullptr) {
@@ -559,7 +556,7 @@ bool Mdf4Writer::WriteSignalData(std::FILE* file) {
       if (cn4 == nullptr) {
         continue;
       }
-      cn4->WriteSignalData(file, CompressData());
+      cn4->WriteSignalData(buffer, CompressData());
       cn4->ClearData();
     }
   }

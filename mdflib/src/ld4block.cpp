@@ -65,42 +65,42 @@ void Ld4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Ld4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, flags_);
-  bytes += ReadNumber(file, nof_blocks_);
+uint64_t Ld4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, flags_);
+  bytes += ReadNumber(buffer, nof_blocks_);
 
   if (flags_ & Ld4Flags::EqualSampleCount) {
-    bytes += ReadNumber(file, equal_sample_count_);
+    bytes += ReadNumber(buffer, equal_sample_count_);
   } else {
     for (uint32_t ii = 0; ii < nof_blocks_; ++ii) {
       uint64_t offset = 0;
-      bytes += ReadNumber(file, offset);
+      bytes += ReadNumber(buffer, offset);
       offset_list_.push_back(offset);
     }
   }
   if (flags_ & Ld4Flags::TimeValues) {
     for (uint32_t ii = 0; ii < nof_blocks_; ++ii) {
       int64_t value = 0;
-      bytes += ReadNumber(file, value);
+      bytes += ReadNumber(buffer, value);
       time_values_.push_back(value);
     }
   }
   if (flags_ & Ld4Flags::AngleValues) {
     for (uint32_t ii = 0; ii < nof_blocks_; ++ii) {
       int64_t value = 0;
-      bytes += ReadNumber(file, value);
+      bytes += ReadNumber(buffer, value);
       angle_values_.push_back(value);
     }
   }
   if (flags_ & Ld4Flags::DistanceValues) {
     for (uint32_t ii = 0; ii < nof_blocks_; ++ii) {
       int64_t value = 0;
-      bytes += ReadNumber(file, value);
+      bytes += ReadNumber(buffer, value);
       distance_values_.push_back(value);
     }
   }
-  ReadLinkList(file, kIndexData, nof_blocks_);
+  ReadLinkList(buffer, kIndexData, nof_blocks_);
   return bytes;
 }
 }  // namespace mdf::detail

@@ -5,22 +5,22 @@
 #include "ce3block.h"
 
 namespace mdf::detail {
-size_t Ce3Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader3(file);
-  bytes += ReadNumber(file, type_);
+uint64_t Ce3Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader3(buffer);
+  bytes += ReadNumber(buffer, type_);
   switch (type_) {
     case 2:
-      bytes += ReadNumber(file, nof_module_);
-      bytes += ReadNumber(file, address_);
-      bytes += ReadStr(file, description_, 80);
-      bytes += ReadStr(file, ecu_, 32);
+      bytes += ReadNumber(buffer, nof_module_);
+      bytes += ReadNumber(buffer, address_);
+      bytes += ReadStr(buffer, description_, 80);
+      bytes += ReadStr(buffer, ecu_, 32);
       break;
 
     case 19:
-      bytes += ReadNumber(file, message_id_);
-      bytes += ReadNumber(file, index_);
-      bytes += ReadStr(file, message_, 36);
-      bytes += ReadStr(file, sender_, 36);
+      bytes += ReadNumber(buffer, message_id_);
+      bytes += ReadNumber(buffer, index_);
+      bytes += ReadStr(buffer, message_, 36);
+      bytes += ReadStr(buffer, sender_, 36);
       break;
 
     default:

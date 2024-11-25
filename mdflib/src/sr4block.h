@@ -30,9 +30,9 @@ class Sr4Block : public DataListBlock, public ISampleReduction {
   [[nodiscard]] const IChannelGroup* ChannelGroup() const override;
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  size_t Read(std::FILE* file) override;
+  uint64_t Read(std::streambuf& buffer) override;
 
-  void ReadData(std::FILE* file) const;  ///< Reads in SR/Rx data
+  void ReadData(std::streambuf& buffer) const;  ///< Reads in SR/Rx data
   void ClearData() override;
 
  protected:
@@ -87,7 +87,7 @@ void Sr4Block::GetChannelValueT(const IChannel &channel,
 
   // Set up a temporary record buffer. It will be used as temporary
   // buffer. It solves the RD vs RV/RI blocks data storage.
-  std::vector<uint8_t> record_buffer(block_size, 0);
+  std::vector<uint8_t> record_buffer(static_cast<size_t>(block_size), 0);
 
   // Check if the data_list_ buffer is format as an RD block
   // or as RV/RI blocks. The main idea is to copy to the

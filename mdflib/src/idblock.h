@@ -10,8 +10,8 @@ class IdBlock : public MdfBlock {
  public:
   IdBlock();
   void GetBlockProperty(BlockPropertyList &dest) const override;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
   [[nodiscard]] std::string FileId() const;
   [[nodiscard]] std::string VersionString() const;
@@ -22,7 +22,7 @@ class IdBlock : public MdfBlock {
 
   [[nodiscard]] std::string ProgramId() const;
 
-  void IsFinalized(bool finalized, std::FILE *file, uint16_t standard_flags,
+  void IsFinalized(bool finalized, std::streambuf& buffer, uint16_t standard_flags,
                    uint16_t custom_flags);
   [[nodiscard]] bool IsFinalized(uint16_t &standard_flags,
                                  uint16_t &custom_flags) const;

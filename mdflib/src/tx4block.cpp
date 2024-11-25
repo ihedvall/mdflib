@@ -5,13 +5,15 @@
 #include "tx4block.h"
 
 #include <sstream>
+#include <cstdio>
+#include <utility>
 
 #include "mdf/mdfhelper.h"
 #include "platform.h"
 
 namespace mdf::detail {
 
-Tx4Block::Tx4Block(const std::string &text) : text_(text) {}
+Tx4Block::Tx4Block(std::string text) : text_(std::move(text)) {}
 
 std::string FixCommentToLine(const std::string &comment, size_t max) {
   std::ostringstream temp;
@@ -31,16 +33,16 @@ std::string FixCommentToLine(const std::string &comment, size_t max) {
 bool Tx4Block::IsTxtBlock() const {
   return Platform::strnicmp(block_type_.c_str(), "##TX", 4) == 0;
 }
-
+/*
 size_t Tx4Block::Read(std::FILE *file) {
-  auto bytes = ReadHeader4(file);
+  auto bytes = MdfBlock::ReadHeader4(file);
 
   std::ostringstream temp;
   char in = '\0';
   for (; bytes < block_size_; ++bytes) {
     auto nof = std::fread(&in, 1, 1, file);
     if (nof != 1) {
-      // Suppose end of file or something
+      // Suppose end of the file or something
       break;
     }
     if (in == '\0') {
@@ -67,7 +69,31 @@ size_t Tx4Block::Write(std::FILE *file) {
   auto bytes = MdfBlock::Write(file);
   bytes += WriteStr(file, text_, text_.size());
   bytes += WriteBytes(file, 1);
-  UpdateBlockSize(file, bytes);
+  MdfBlock::UpdateBlockSize(file, bytes);
+  return bytes;
+}
+ */
+
+uint64_t Tx4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadStr(buffer, text_, block_size_ - bytes - 1);
+  return bytes + 1;
+}
+
+uint64_t Tx4Block::Write(std::streambuf& buffer) {
+  const bool update = FilePosition() > 0;
+  if (update) {
+    return block_size_;
+  }
+  const bool is_xml = !text_.empty() && text_[0] == '<';
+  block_type_ = is_xml ? "##MD" : "##TX";
+  block_size_ = static_cast<uint16_t>(24 + text_.size() + 1);
+  link_list_.clear();
+
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteStr(buffer, text_, text_.size());
+  bytes += WriteBytes(buffer, 1);
+  UpdateBlockSize(buffer, bytes);
   return bytes;
 }
 

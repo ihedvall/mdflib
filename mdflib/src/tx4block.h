@@ -14,12 +14,12 @@ std::string FixCommentToLine(const std::string& comment, size_t max);
 class Tx4Block : public MdfBlock {
  public:
   Tx4Block() = default;
-  explicit Tx4Block(const std::string& text);
+  explicit Tx4Block(std::string  text);
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
   [[nodiscard]] bool IsTxtBlock() const;
-  size_t Read(std::FILE* file) override;
-  size_t Write(std::FILE* file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
   void Text(const std::string& text) {text_ = text;}
   [[nodiscard]] std::string Text() const;

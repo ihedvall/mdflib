@@ -187,71 +187,71 @@ void Cn3Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Byte Offset", std::to_string(byte_offset_));
 }
 
-size_t Cn3Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader3(file);
-  bytes += ReadLinks3(file, 5);
-  bytes += ReadNumber(file, channel_type_);
-  bytes += ReadStr(file, short_name_, 32);
-  bytes += ReadStr(file, description_, 128);
-  bytes += ReadNumber(file, start_offset_);
-  bytes += ReadNumber(file, nof_bits_);
-  bytes += ReadNumber(file, signal_type_);
-  bytes += ReadBool(file, range_valid_);
-  bytes += ReadNumber(file, min_);
-  bytes += ReadNumber(file, max_);
-  bytes += ReadNumber(file, sample_rate_);
+uint64_t Cn3Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader3(buffer);
+  bytes += ReadLinks3(buffer, 5);
+  bytes += ReadNumber(buffer, channel_type_);
+  bytes += ReadStr(buffer, short_name_, 32);
+  bytes += ReadStr(buffer, description_, 128);
+  bytes += ReadNumber(buffer, start_offset_);
+  bytes += ReadNumber(buffer, nof_bits_);
+  bytes += ReadNumber(buffer, signal_type_);
+  bytes += ReadBool(buffer, range_valid_);
+  bytes += ReadNumber(buffer, min_);
+  bytes += ReadNumber(buffer, max_);
+  bytes += ReadNumber(buffer, sample_rate_);
   // The for loop handle earlier version of the MDF file
   for (int ii = 0; bytes < block_size_; ++ii) {
     switch (ii) {
       case 1:
       case 0: {
         uint32_t link = 0;
-        bytes += ReadNumber(file, link);
+        bytes += ReadNumber(buffer, link);
         link_list_.emplace_back(link);
         break;
       }
 
       case 2:
-        bytes += ReadNumber(file, byte_offset_);
+        bytes += ReadNumber(buffer, byte_offset_);
         break;
 
       default: {
         uint8_t temp = 0;
-        bytes += ReadNumber(file, temp);
+        bytes += ReadNumber(buffer, temp);
         break;
       }
     }
   }
 
   if (Link(kIndexCc) > 0) {
-    SetFilePosition(file, Link(kIndexCc));
+    SetFilePosition(buffer, Link(kIndexCc));
     cc_block_ = std::make_unique<Cc3Block>();
     cc_block_->Init(*this);
-    cc_block_->Read(file);
+    cc_block_->Read(buffer);
   }
 
   if (Link(kIndexCe) > 0) {
-    SetFilePosition(file, Link(kIndexCe));
+    SetFilePosition(buffer, Link(kIndexCe));
     ce_block_ = std::make_unique<Ce3Block>();
     ce_block_->Init(*this);
-    ce_block_->Read(file);
+    ce_block_->Read(buffer);
   }
 
   if (Link(kIndexCd) > 0) {
-    SetFilePosition(file, Link(kIndexCd));
+    SetFilePosition(buffer, Link(kIndexCd));
     cd_block_ = std::make_unique<Cd3Block>();
     cd_block_->Init(*this);
-    cd_block_->Read(file);
+    cd_block_->Read(buffer);
   }
 
-  comment_ = ReadTx3(file, kIndexTx);
-  long_name_ = ReadTx3(file, kIndexTxLong);
-  display_name_ = ReadTx3(file, kIndexTxDisplay);
+  comment_ = ReadTx3(buffer, kIndexTx);
+  long_name_ = ReadTx3(buffer, kIndexTxLong);
+  display_name_ = ReadTx3(buffer, kIndexTxDisplay);
 
   return bytes;
 }
 
-size_t Cn3Block::Write(std::FILE *file) {
+uint64_t Cn3Block::Write(std::streambuf& buffer) {
   int64_t long_name_link = 0;
   int64_t display_name_link = 0;
 
@@ -266,55 +266,55 @@ size_t Cn3Block::Write(std::FILE *file) {
     if (!long_name_.empty()) {
       Tx3Block tx(long_name_);
       tx.Init(*this);
-      tx.Write(file);
+      tx.Write(buffer);
       long_name_link = tx.FilePosition();
     }
 
     if (!display_name_.empty()) {
       Tx3Block tx(display_name_);
       tx.Init(*this);
-      tx.Write(file);
+      tx.Write(buffer);
       display_name_link = tx.FilePosition();
     }
   }
 
-  size_t bytes = update ? block_size_ : MdfBlock::Write(file);
+  uint64_t bytes = update ? block_size_ : MdfBlock::Write(buffer);
   if (!update) {
-    bytes += WriteNumber(file, channel_type_);
-    bytes += WriteStr(file, short_name_, 32);
-    bytes += WriteStr(file, description_, 128);
-    bytes += WriteNumber(file, start_offset_);
-    bytes += WriteNumber(file, nof_bits_);
-    bytes += WriteNumber(file, signal_type_);
-    bytes += WriteBool(file, range_valid_);
-    bytes += WriteNumber(file, min_);
-    bytes += WriteNumber(file, max_);
-    bytes += WriteNumber(file, sample_rate_);
-    bytes += WriteNumber(file, static_cast<uint32_t>(long_name_link));
-    bytes += WriteNumber(file, static_cast<uint32_t>(display_name_link));
-    bytes += WriteNumber(file, byte_offset_);
+    bytes += WriteNumber(buffer, channel_type_);
+    bytes += WriteStr(buffer, short_name_, 32);
+    bytes += WriteStr(buffer, description_, 128);
+    bytes += WriteNumber(buffer, start_offset_);
+    bytes += WriteNumber(buffer, nof_bits_);
+    bytes += WriteNumber(buffer, signal_type_);
+    bytes += WriteBool(buffer, range_valid_);
+    bytes += WriteNumber(buffer, min_);
+    bytes += WriteNumber(buffer, max_);
+    bytes += WriteNumber(buffer, sample_rate_);
+    bytes += WriteNumber(buffer, static_cast<uint32_t>(long_name_link));
+    bytes += WriteNumber(buffer, static_cast<uint32_t>(display_name_link));
+    bytes += WriteNumber(buffer, byte_offset_);
   }
 
   if (cc_block_ && Link(kIndexCc) <= 0) {
-    cc_block_->Write(file);
-    UpdateLink(file, kIndexCc, cc_block_->FilePosition());
+    cc_block_->Write(buffer);
+    UpdateLink(buffer, kIndexCc, cc_block_->FilePosition());
   }
 
   if (ce_block_ && Link(kIndexCe) <= 0) {
-    ce_block_->Write(file);
-    UpdateLink(file, kIndexCe, ce_block_->FilePosition());
+    ce_block_->Write(buffer);
+    UpdateLink(buffer, kIndexCe, ce_block_->FilePosition());
   }
 
   if (cd_block_ && Link(kIndexCd) <= 0) {
-    cd_block_->Write(file);
-    UpdateLink(file, kIndexCd, cd_block_->FilePosition());
+    cd_block_->Write(buffer);
+    UpdateLink(buffer, kIndexCd, cd_block_->FilePosition());
   }
 
   if (!comment_.empty() && Link(kIndexTx) <= 0) {
     Tx3Block tx(comment_);
     tx.Init(*this);
-    tx.Write(file);
-    UpdateLink(file, kIndexTx, tx.FilePosition());
+    tx.Write(buffer);
+    UpdateLink(buffer, kIndexTx, tx.FilePosition());
   }
 
   return bytes;

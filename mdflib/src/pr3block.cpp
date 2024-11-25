@@ -7,41 +7,24 @@
 
 #include <cstdio>
 #include <sstream>
+#include <utility>
 namespace mdf::detail {
 
-Pr3Block::Pr3Block(const std::string &meta_data) : text_(meta_data) {}
+Pr3Block::Pr3Block(std::string meta_data) : text_(std::move(meta_data)) {}
 
-size_t Pr3Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader3(file);
-
-  std::ostringstream temp;
-  char in = '\0';
-  for (; bytes < block_size_; ++bytes) {
-    size_t nof = std::fread(&in, 1, 1, file);
-    if (nof != 1) {
-      // Suppose end of file or something
-      break;
-    }
-    if (in == '\0') {
-      // No more to read
-      break;
-    }
-    temp << in;
-  }
-  text_ = temp.str();
-
+uint64_t Pr3Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader3(buffer);
+  bytes += ReadStr(buffer, text_, block_size_ - bytes);
   return bytes;
 }
 
-size_t Pr3Block::Write(std::FILE *file) {
+uint64_t Pr3Block::Write(std::streambuf& buffer) {
   block_type_ = "PR";
   block_size_ = static_cast<uint16_t>((2 + 2) + text_.size());
   link_list_.clear();
 
-  auto bytes = MdfBlock::Write(file);
-  if (!text_.empty()) {
-    bytes += std::fwrite(text_.data(), 1, text_.size(), file);
-  }
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteStr(buffer, text_, text_.size());
   return bytes;
 }
 

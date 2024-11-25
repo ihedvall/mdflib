@@ -16,28 +16,28 @@ void Dt3Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Data Size [byte]", std::to_string(DataSize()));
 }
 
-size_t Dt3Block::Read(std::FILE *file) {
+uint64_t Dt3Block::Read(std::streambuf& buffer) {
   block_type_ = "DT";
-  file_position_ = GetFilePosition(file);
+  file_position_ = GetFilePosition(buffer);
   data_position_ = file_position_;
   return 0;
 }
 
-size_t Dt3Block::Write(std::FILE *file) {
+uint64_t Dt3Block::Write(std::streambuf& buffer) {
   const bool update = FilePosition() > 0;
   if (update) {
     return block_size_;
   }
-  SetLastFilePosition(file);
+  SetLastFilePosition(buffer);
   block_type_ = "DT";
-  file_position_ = GetFilePosition(file);
+  file_position_ = GetFilePosition(buffer);
   data_position_ = file_position_;
   // ToDo: Fix write of data
   return 0;
 }
 
-size_t Dt3Block::DataSize() const {
-  size_t bytes = 0;
+uint64_t Dt3Block::DataSize() const {
+  uint64_t bytes = 0;
   if (dg_block_ == nullptr) {
     return 0;
   }

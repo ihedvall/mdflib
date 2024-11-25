@@ -30,8 +30,8 @@ void Mdf3Writer::CreateMdfFile() {
   mdf_file_ = std::move(mdf3);
 }
 
-void Mdf3Writer::SetLastPosition(std::FILE *file) {
-  Platform::fseek64(file, 0, SEEK_END);
+void Mdf3Writer::SetLastPosition(std::streambuf& buffer) {
+  buffer.pubseekoff(0, std::ios_base::end);
 
   auto *header = Header();
   if (header == nullptr) {
@@ -50,10 +50,10 @@ void Mdf3Writer::SetLastPosition(std::FILE *file) {
     return;
   }
 
-  dg3->SetLastFilePosition(file);
-  auto position = detail::GetFilePosition(file);
-  dg3->UpdateLink(file, 3, position);
-  dg3->SetLastFilePosition(file);
+  dg3->SetLastFilePosition(buffer);
+  auto position = detail::GetFilePosition(buffer);
+  dg3->UpdateLink(buffer, 3, position);
+  dg3->SetLastFilePosition(buffer);
 }
 
 bool Mdf3Writer::PrepareForWriting() {

@@ -156,29 +156,29 @@ void Cg4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Cg4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, record_id_);
-  bytes += ReadNumber(file, nof_samples_);
-  bytes += ReadNumber(file, flags_);
-  bytes += ReadNumber(file, path_separator_);
+uint64_t Cg4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, record_id_);
+  bytes += ReadNumber(buffer, nof_samples_);
+  bytes += ReadNumber(buffer, flags_);
+  bytes += ReadNumber(buffer, path_separator_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 4);
-  bytes += ReadNumber(file, nof_data_bytes_);
-  bytes += ReadNumber(file, nof_invalid_bytes_);
+  bytes += ReadByte(buffer, reserved, 4);
+  bytes += ReadNumber(buffer, nof_data_bytes_);
+  bytes += ReadNumber(buffer, nof_invalid_bytes_);
 
-  acquisition_name_ = ReadTx4(file, kIndexName);
+  acquisition_name_ = ReadTx4(buffer, kIndexName);
   if (Link(kIndexSi) > 0) {
-    SetFilePosition(file, Link(kIndexSi));
+    SetFilePosition(buffer, Link(kIndexSi));
     si_block_ = std::make_unique<Si4Block>();
     si_block_->Init(*this);
-    si_block_->Read(file);
+    si_block_->Read(buffer);
   }
-  ReadMdComment(file, kIndexMd);
+  ReadMdComment(buffer, kIndexMd);
   return bytes;
 }
 
-size_t Cg4Block::Write(std::FILE *file) {
+uint64_t Cg4Block::Write(std::streambuf& buffer) {
   const bool update = FilePosition() > 0;  // True if already written to file
   const auto master = (flags_ & CgFlag::RemoteMaster) != 0;
   const auto vlsd = (flags_ & CgFlag::VlsdChannel) != 0;
@@ -192,52 +192,52 @@ size_t Cg4Block::Write(std::FILE *file) {
   }
 
 
-  WriteLink4List(file, cn_list_, kIndexCn,
+  WriteLink4List(buffer, cn_list_, kIndexCn,
                  UpdateOption::DoNotUpdateWrittenBlock);
-  WriteTx4(file, kIndexName, acquisition_name_);
-  WriteBlock4(file, si_block_, kIndexSi);
-  WriteLink4List(file, sr_list_, kIndexSr,
+  WriteTx4(buffer, kIndexName, acquisition_name_);
+  WriteBlock4(buffer, si_block_, kIndexSi);
+  WriteLink4List(buffer, sr_list_, kIndexSr,
                  UpdateOption::DoNotUpdateWrittenBlock);
-  WriteMdComment(file, kIndexMd);
+  WriteMdComment(buffer, kIndexMd);
   // ToDo: Remote master handling
 
-  uint64_t bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
+  uint64_t bytes = update ? MdfBlock::Update(buffer) : MdfBlock::Write(buffer);
   if (update) {
     // Update number of samples
     if (nof_samples_position_ > 0) {
-      SetFilePosition(file, nof_samples_position_);
-      WriteNumber(file, nof_samples_);
+      SetFilePosition(buffer, nof_samples_position_);
+      WriteNumber(buffer, nof_samples_);
     }
     // Update VLSD size (which is a 64-bit value, low 32-bit)
     if (nof_data_position_ > 0) {
-      SetFilePosition(file, nof_data_position_);
-      WriteNumber(file, nof_data_bytes_);
+      SetFilePosition(buffer, nof_data_position_);
+      WriteNumber(buffer, nof_data_bytes_);
     }
     // Update VLSD size (which is a 64-bit value, high 32-bit)
     if (nof_invalid_position_ > 0) {
-      SetFilePosition(file, nof_invalid_position_);
-      WriteNumber(file, nof_invalid_bytes_);
+      SetFilePosition(buffer, nof_invalid_position_);
+      WriteNumber(buffer, nof_invalid_bytes_);
     }
     bytes = block_length_;
   } else {
-    bytes += WriteNumber(file, record_id_);
-    nof_samples_position_ = GetFilePosition(file);
-    bytes += WriteNumber(file, nof_samples_);
-    bytes += WriteNumber(file, flags_);
-    bytes += WriteNumber(file, path_separator_);
-    bytes += WriteBytes(file, 4);
+    bytes += WriteNumber(buffer, record_id_);
+    nof_samples_position_ = GetFilePosition(buffer);
+    bytes += WriteNumber(buffer, nof_samples_);
+    bytes += WriteNumber(buffer, flags_);
+    bytes += WriteNumber(buffer, path_separator_);
+    bytes += WriteBytes(buffer, 4);
     // Save the nof data and invalid bytes in case of a VLSD group.
     // Number data bytes is the lower 32-bit and number invalid bytes is the
     // 32-bit higher value.
     if (vlsd) {
-      nof_data_position_ = GetFilePosition(file);
+      nof_data_position_ = GetFilePosition(buffer);
     }
-    bytes += WriteNumber(file, nof_data_bytes_);
+    bytes += WriteNumber(buffer, nof_data_bytes_);
     if (vlsd) {
-      nof_invalid_position_ = GetFilePosition(file);
+      nof_invalid_position_ = GetFilePosition(buffer);
     }
-    bytes += WriteNumber(file, nof_invalid_bytes_);
-    UpdateBlockSize(file, bytes);
+    bytes += WriteNumber(buffer, nof_invalid_bytes_);
+    UpdateBlockSize(buffer, bytes);
 
     // Must scan through the channels and detect if any MLSD channel exist
     // and update its signal index. First need to find the length channel
@@ -248,7 +248,7 @@ size_t Cg4Block::Write(std::FILE *file) {
       const auto block_position = data_length->Index();
       for (auto* channel : cn_list) {
         if (channel != nullptr && channel->Type() == ChannelType::MaxLength) {
-          dynamic_cast<Cn4Block*>(channel)->UpdateDataLink(file, block_position);
+          dynamic_cast<Cn4Block*>(channel)->UpdateDataLink(buffer, block_position);
         }
       }
     }
@@ -257,12 +257,12 @@ size_t Cg4Block::Write(std::FILE *file) {
   return bytes;
 }
 
-void Cg4Block::ReadCnList(std::FILE *file) {
-  ReadLink4List(file, cn_list_, kIndexCn);
+void Cg4Block::ReadCnList(std::streambuf& buffer) {
+  ReadLink4List(buffer, cn_list_, kIndexCn);
 }
 
-void Cg4Block::ReadSrList(std::FILE *file) {
-  ReadLink4List(file, sr_list_, kIndexSr);
+void Cg4Block::ReadSrList(std::streambuf& buffer) {
+  ReadLink4List(buffer, sr_list_, kIndexSr);
 }
 
 MdfBlock *Cg4Block::Find(int64_t index) const {
@@ -295,18 +295,20 @@ MdfBlock *Cg4Block::Find(int64_t index) const {
   return MdfBlock::Find(index);
 }
 
-size_t Cg4Block::ReadDataRecord(std::FILE *file,
+uint64_t Cg4Block::ReadDataRecord(std::streambuf& buffer,
                                 const IDataGroup &notifier) const {
-  size_t count = 0;
+  uint64_t count = 0;
   if (flags_ & CgFlag::VlsdChannel) {
     // This is normally used for string and the CG block only include one signal
     uint32_t length = 0;
-    count += ReadNumber(file, length);
+    count += ReadNumber(buffer, length);
     std::vector<uint8_t> record(length, 0);
     if (length > 0) {
-      count += std::fread(record.data(), 1, length, file);
+      count += buffer.sgetn(
+          reinterpret_cast<char*>(record.data()),
+           length);
     }
-    const size_t sample = Sample();
+    const uint64_t sample = Sample();
     if (sample < NofSamples()) {
       const bool continue_reading = notifier.NotifySampleObservers(sample,
                                                  RecordId(), record);
@@ -319,15 +321,16 @@ size_t Cg4Block::ReadDataRecord(std::FILE *file,
     // Normal fixed length records
     const size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
     std::vector<uint8_t> record(record_size, 0);
-    count = std::fread(record.data(), 1, record.size(), file);
-    const size_t sample = Sample();
+    count = buffer.sgetn(
+        reinterpret_cast<char*>(record.data()),
+        static_cast<std::streamsize>(record.size()) );
+    const uint64_t sample = Sample();
     if (sample < NofSamples()) {
       const bool continue_reading = notifier.NotifySampleObservers(sample, RecordId(), record);
       IncrementSample();
       if (!continue_reading) {
         return 0;
       }
-
     }
   }
   return count;
@@ -395,9 +398,9 @@ void Cg4Block::UpdateVlsdSize(uint64_t nof_data_bytes) {
   }
 }
 
-size_t Cg4Block::StepRecord(std::FILE *file) const {
+uint64_t Cg4Block::StepRecord(std::streambuf& buffer) const {
   const size_t record_size = nof_data_bytes_ + nof_invalid_bytes_;
-  return  StepFilePosition(file, record_size);
+  return  StepFilePosition(buffer, record_size);
 }
 
 IChannel *Cg4Block::CreateChannel() {
@@ -422,8 +425,8 @@ void Cg4Block::PrepareForWriting() {
   // Calculates number of data bytes. Note that some channels may
   // be a so-called array channel. Little bit complicated but the
   // referenced channel have a channel array (CA) block.
-  size_t byte_offset = 0;
-  size_t invalid_bit_offset = 0;
+  uint64_t byte_offset = 0;
+  uint64_t invalid_bit_offset = 0;
   for (const auto &channel : cn_list_) {
     if (!channel) {
       continue;
@@ -466,8 +469,8 @@ void Cg4Block::PrepareForWriting() {
   }
 }
 
-void Cg4Block::WriteSample(FILE *file, uint8_t record_id_size,
-                                   const std::vector<uint8_t> &buffer) {
+void Cg4Block::WriteSample(std::streambuf& buffer, uint8_t record_id_size,
+                                   const std::vector<uint8_t> &source) {
   switch (record_id_size) {
     case 0:
       // No Record ID to store
@@ -475,34 +478,35 @@ void Cg4Block::WriteSample(FILE *file, uint8_t record_id_size,
 
     case 1: {
       const auto id = static_cast<uint8_t>(RecordId());
-      WriteNumber(file, id);
+      WriteNumber(buffer, id);
       break;
     }
 
     case 2: {
       const auto id = static_cast<uint16_t>(RecordId());
-      WriteNumber(file, id);
+      WriteNumber(buffer, id);
       break;
     }
 
     case 4: {
       const auto id = static_cast<uint32_t>(RecordId());
-      WriteNumber(file, id);
+      WriteNumber(buffer, id);
       break;
     }
 
     default: {
       const auto id = RecordId();
-      WriteNumber(file, id);
+      WriteNumber(buffer, id);
       break;
     }
 
   }
-  const size_t bytes = fwrite(buffer.data(), 1,
-                              buffer.size(), file);
-  if (bytes != buffer.size()) {
+  const uint64_t bytes = buffer.sputn(
+      reinterpret_cast<const char*>(source.data()),
+      static_cast<std::streamsize>(source.size()));
+  if (bytes != source.size()) {
     MDF_ERROR() << "Failed to write a sample data. Written : "
-                << bytes << "(" << buffer.size() << ")";
+                << bytes << "(" << source.size() << ")";
   }
   IncrementSample();            // Increment internal sample counter
   NofSamples(Sample());
@@ -551,8 +555,8 @@ void Cg4Block::WriteCompressedSample(std::vector<uint8_t>& dest,
   NofSamples(Sample());
 }
 
-uint64_t Cg4Block::WriteVlsdSample(FILE *file, uint8_t record_id_size,
-                                   const std::vector<uint8_t> &buffer) {
+uint64_t Cg4Block::WriteVlsdSample(std::streambuf& buffer, uint8_t record_id_size,
+                                   const std::vector<uint8_t> &source) {
   const uint64_t vlsd_index = vlsd_index_; // Temporary store the old index
   uint64_t total_count = nof_invalid_bytes_;
   total_count <<= 32;
@@ -565,36 +569,38 @@ uint64_t Cg4Block::WriteVlsdSample(FILE *file, uint8_t record_id_size,
 
     case 1: {
       const auto id = static_cast<uint8_t>(RecordId());
-      WriteNumber(file, id);
+      WriteNumber(buffer, id);
       break;
     }
 
     case 2: {
       const auto id = static_cast<uint16_t>(RecordId());
-      WriteNumber(file, id);
+      WriteNumber(buffer, id);
       break;
     }
 
     case 4: {
       const auto id = static_cast<uint32_t>(RecordId());
-      WriteNumber(file, id);
+      WriteNumber(buffer, id);
       break;
     }
 
     default: {
       const auto id = RecordId();
-      WriteNumber(file, id);
+      WriteNumber(buffer, id);
       break;
     }
 
   }
-  const auto length = static_cast<uint32_t>(buffer.size());
+  const auto length = static_cast<uint32_t>(source.size());
   const LittleBuffer buff(length);
-  const auto length_count = fwrite(buff.data(),
-                                   1, sizeof(length), file);
+  const auto length_count = buffer.sputn(
+      reinterpret_cast<const char*>(buff.data()),
+              sizeof(length) );
   // total_count += length_count;
-  const auto buffer_count = fwrite(buffer.data(),
-                                   1, buffer.size(), file);
+  const auto buffer_count = buffer.sputn(
+          reinterpret_cast<const char*>(source.data()),
+          static_cast<std::streamsize>(source.size()) );
   total_count += buffer_count;
   IncrementSample();            // Increment internal sample counter
   NofSamples(Sample());

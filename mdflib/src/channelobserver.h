@@ -44,11 +44,11 @@ class ChannelObserver : public IChannelObserver {
     const auto* channel_array = channel_.ChannelArray();
     const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
 
-    valid_list_.resize(group_.NofSamples() * array_size, false);
-    value_list_.resize(group.NofSamples() * array_size, T{});
+    valid_list_.resize(static_cast<size_t>(group_.NofSamples() * array_size), false);
+    value_list_.resize(static_cast<size_t>(group.NofSamples() * array_size), T{});
 
     if (channel_.Type() == ChannelType::VariableLength) {
-      offset_list_.resize(group.NofSamples() * array_size, 0);
+      offset_list_.resize(static_cast<size_t>(group.NofSamples() * array_size), 0);
     }
     ChannelObserver::AttachObserver();
   }
@@ -89,7 +89,7 @@ class ChannelObserver : public IChannelObserver {
       case ChannelType::VirtualData:
         if (record_id_ == record_id) {
           for ( uint64_t array_index = 0; array_index < array_size; ++array_index) {
-            const auto sample_index = (sample * array_size) + array_index;
+            const auto sample_index = static_cast<size_t>((sample * array_size) + array_index);
             valid = channel_.GetVirtualSample(sample, value);
             if (sample_index < value_list_.size()) {
               value_list_[sample_index] = value;
@@ -175,7 +175,7 @@ bool ChannelObserver<T>::GetSampleUnsigned(uint64_t sample,
                                            uint64_t array_index) const {
   const auto* channel_array = channel_.ChannelArray();
   const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
-  const auto sample_index = (sample * array_size) + array_index;
+  const auto sample_index = static_cast<size_t>((sample * array_size) + array_index);
   value = sample_index < value_list_.size() ?
       static_cast<uint64_t>(value_list_[sample_index]) : static_cast<uint64_t>(T{});
   return sample_index < valid_list_.size() && valid_list_[sample_index];
@@ -198,7 +198,7 @@ bool ChannelObserver<T>::GetSampleSigned(uint64_t sample,
                                          uint64_t array_index) const {
   const auto* channel_array = channel_.ChannelArray();
   const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
-  const auto sample_index = (sample * array_size) + array_index;
+  const auto sample_index = static_cast<size_t>((sample * array_size) + array_index);
   value = sample_index < value_list_.size() ? static_cast<int64_t>(value_list_[sample_index]) : 0;
   return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
@@ -217,7 +217,7 @@ bool ChannelObserver<T>::GetSampleFloat(uint64_t sample, double& value,
                                         uint64_t array_index) const {
   const auto* channel_array = channel_.ChannelArray();
   const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
-  const auto sample_index = (sample * array_size) + array_index;
+  const auto sample_index = static_cast<size_t>( (sample * array_size) + array_index);
   value = sample_index < value_list_.size() ? static_cast<double>(value_list_[sample_index]) : 0;
   return sample_index < valid_list_.size() && valid_list_[sample_index];
 }
@@ -238,7 +238,7 @@ bool ChannelObserver<T>::GetSampleText(uint64_t sample,
                                        uint64_t array_index) const {
   const auto* channel_array = channel_.ChannelArray();
   const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
-  const auto sample_index = (sample * array_size) + array_index;
+  const auto sample_index = static_cast<size_t>( (sample * array_size) + array_index );
   try {
     std::ostringstream temp;
     if (sample_index < value_list_.size()) {
@@ -246,7 +246,7 @@ bool ChannelObserver<T>::GetSampleText(uint64_t sample,
     }
 
     value = temp.str();
-    return sample_index < valid_list_.size() && valid_list_[sample];
+    return sample_index < valid_list_.size() && valid_list_[sample_index];
   } catch (const std::exception& ) {}
   return false;
 }
@@ -261,7 +261,7 @@ template <class T>
 bool ChannelObserver<T>::GetSampleByteArray(uint64_t sample,
                                             std::vector<uint8_t>& value) const {
   value = {};
-  return sample < valid_list_.size() && valid_list_[sample];
+  return sample < valid_list_.size() && valid_list_[static_cast<size_t>(sample)];
 }
 
 // This specialized function is actually doing the work with byte arrays

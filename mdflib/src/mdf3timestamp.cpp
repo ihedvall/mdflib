@@ -8,9 +8,11 @@ void Mdf3Timestamp::GetBlockProperty(detail::BlockPropertyList& dest) const {
   MdfBlock::GetBlockProperty(dest);
 }
 
-size_t Mdf3Timestamp::Read(std::FILE* file) { return 0; }
+uint64_t Mdf3Timestamp::Read(std::streambuf& buffer) { return 0; }
 
-size_t Mdf3Timestamp::Write(std::FILE* file) { return MdfBlock::Write(file); }
+uint64_t Mdf3Timestamp::Write(std::streambuf& buffer) {
+  return MdfBlock::Write(buffer);
+}
 
 void Mdf3Timestamp::SetTime(uint64_t time) {
   date_ = MdfHelper::NanoSecToDDMMYYYY(time);

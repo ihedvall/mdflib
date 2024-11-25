@@ -42,22 +42,22 @@ void Hl4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Zip Type", MakeZipTypeString(type_));
 }
 
-size_t Hl4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, flags_);
-  bytes += ReadNumber(file, type_);
+uint64_t Hl4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, flags_);
+  bytes += ReadNumber(buffer, type_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 5);
-  ReadBlockList(file, kIndexNext);
+  bytes += ReadByte(buffer, reserved, 5);
+  ReadBlockList(buffer, kIndexNext);
   return bytes;
 }
 
-size_t Hl4Block::Write(std::FILE *file) {
+uint64_t Hl4Block::Write(std::streambuf& buffer) {
   const bool update =
       FilePosition() > 0;  // Write or update the values inside the block
   if (update) {
     // Note that the block_list is used for the dl_list
-    WriteLink4List(file, block_list_,kIndexNext,
+    WriteLink4List(buffer, block_list_,kIndexNext,
                UpdateOption::DoNotUpdateWrittenBlock); // Only save non-updated
     return block_length_;
   }
@@ -66,13 +66,13 @@ size_t Hl4Block::Write(std::FILE *file) {
   block_length_ = 24 + (1*8) + 2 + 1 + 5;
   link_list_.resize(1, 0);
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file,flags_);
-  bytes += WriteNumber(file,type_);
-  bytes += WriteBytes(file, 5);
-  UpdateBlockSize(file, bytes);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer,flags_);
+  bytes += WriteNumber(buffer,type_);
+  bytes += WriteBytes(buffer, 5);
+  UpdateBlockSize(buffer, bytes);
 
-  WriteLink4List(file, block_list_,kIndexNext,
+  WriteLink4List(buffer, block_list_,kIndexNext,
             UpdateOption::DoNotUpdateWrittenBlock); // Only save non-updated
   return bytes;
 }

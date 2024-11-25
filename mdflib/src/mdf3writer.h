@@ -19,7 +19,7 @@ class Mdf3Writer : public MdfWriter {
  protected:
   void CreateMdfFile() override;
   bool PrepareForWriting() override;
-  void SetLastPosition(std::FILE* file) override;
+  void SetLastPosition(std::streambuf& buffer) override;
 };
 
 }  // namespace mdf::detail

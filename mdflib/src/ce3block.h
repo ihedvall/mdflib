@@ -12,7 +12,7 @@
 namespace mdf::detail {
 class Ce3Block : public MdfBlock {
  public:
-  size_t Read(std::FILE *file) override;
+  uint64_t Read(std::streambuf& buffer) override;
 
  private:
   uint16_t type_ = 0;

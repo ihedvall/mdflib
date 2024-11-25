@@ -25,6 +25,7 @@
       "description": "Build mdf tests",
       "dependencies": [
         "boost-endian",
+        "boost-iostreams",
         "xtensor",
         "gtest"
       ]

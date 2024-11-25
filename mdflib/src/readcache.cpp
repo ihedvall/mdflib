@@ -10,8 +10,8 @@
 
 namespace mdf::detail {
 
-ReadCache::ReadCache( MdfBlock* block, FILE* file)
-: file_(file)
+ReadCache::ReadCache( MdfBlock* block, std::streambuf& buffer)
+: buffer_(buffer)
 {
   data_list_ = dynamic_cast<DataListBlock*>(block);
   data_block_ = dynamic_cast<DataBlock*>(block);
@@ -305,16 +305,10 @@ bool ReadCache::ParseVlsdCgData() {
 }
 
 bool ReadCache::GetNextByte(uint8_t &input) {
-  if (file_ == nullptr) {
-    return false;
-  }
   if ( file_index_ < data_size_) {
     if (file_buffer_.empty()) {
       // Read direct from the file
-      const auto nof_bytes = fread(&input,1,1,file_);
-      if (nof_bytes != 1) {
-        return false;
-      }
+     input = buffer_.sbumpc();
     } else {
       // Read from buffer in case of DZ block
       input = file_buffer_[file_index_];
@@ -338,15 +332,16 @@ bool ReadCache::GetNextByte(uint8_t &input) {
   if (current_block->BlockType() == "DZ") {
     // Need a temp buffer in between
     try {
-      file_buffer_.resize(data_size_);
+      file_buffer_.resize(static_cast<size_t>(data_size_) );
     } catch (const std::exception&) {
        return false;
     }
-    size_t temp_index = 0;
-    current_block->CopyDataToBuffer(file_,file_buffer_, temp_index);
+
+    uint64_t temp_index = 0;
+    current_block->CopyDataToBuffer(buffer_,file_buffer_, temp_index);
   } else {
     // Read from the file directly
-    SetFilePosition(file_, current_block->DataPosition());
+    SetFilePosition(buffer_, current_block->DataPosition());
     file_buffer_.clear(); // Indicate that we read from the file directly
   }
     // Read in the data form file to
@@ -354,10 +349,7 @@ bool ReadCache::GetNextByte(uint8_t &input) {
     return false;
   }
   if (file_buffer_.empty()) {
-    const auto reads = fread(&input, 1, 1, file_);
-    if (reads != 1) {
-      return false;
-    }
+    input = buffer_.sbumpc();
   } else {
     input = file_buffer_[file_index_];
   }
@@ -418,7 +410,9 @@ void ReadCache::GetArray(std::vector<uint8_t> &buffer) {
   const auto nof_bytes = buffer.size();
   if (file_index_ + nof_bytes <= data_size_) {
     if (file_buffer_.empty()) {
-      const auto bytes = fread(buffer.data(), 1, nof_bytes, file_);
+      const auto bytes = buffer_.sgetn(
+          reinterpret_cast<char*>(buffer.data()),
+          static_cast<std::streamsize>(nof_bytes));
       if (bytes != nof_bytes) {
         throw std::runtime_error("End of file detected.");
       }
@@ -440,7 +434,7 @@ void ReadCache::GetArray(std::vector<uint8_t> &buffer) {
 void ReadCache::SkipBytes(size_t nof_skip) {
   if (file_index_ + nof_skip <= data_size_) {
     if (file_buffer_.empty()) {
-      const auto bytes = StepFilePosition(file_, nof_skip);
+      const auto bytes = StepFilePosition(buffer_, nof_skip);
       if (bytes != nof_skip) {
         throw std::runtime_error("End of file detected.");
       }
@@ -457,12 +451,9 @@ void ReadCache::SkipBytes(size_t nof_skip) {
 }
 
 bool ReadCache::SkipByte() {
-  if (file_ == nullptr) {
-    return false;
-  }
   if ( file_index_ < data_size_) {
     if (file_buffer_.empty()) {
-      const auto nof_bytes = StepFilePosition(file_, 1);
+      const auto nof_bytes = StepFilePosition(buffer_, 1);
       if (nof_bytes != 1) {
         return false;
       }
@@ -485,20 +476,20 @@ bool ReadCache::SkipByte() {
   data_size_ = current_block->DataSize();
   if (current_block->BlockType() == "DZ") {
     try {
-      file_buffer_.resize(data_size_);
+      file_buffer_.resize(static_cast<size_t>(data_size_) );
     } catch (const std::exception&) {
       return false;
     }
   } else {
     file_buffer_.clear();
-    SetFilePosition(file_, current_block->DataPosition());
+    SetFilePosition(buffer_, current_block->DataPosition());
   }
 
   if (file_index_ >= data_size_) {
     return false;
   }
   if (file_buffer_.empty()) {
-    const auto reads = StepFilePosition(file_, 1);
+    const auto reads = StepFilePosition(buffer_, 1);
     if (reads != 1) {
       return false;
     }

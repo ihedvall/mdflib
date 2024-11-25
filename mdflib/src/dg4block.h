@@ -35,12 +35,12 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   void GetBlockProperty(BlockPropertyList& dest) const override;
   MdfBlock* Find(int64_t index) const override;
 
-  size_t Read(std::FILE* file) override;
-  void ReadCgList(std::FILE* file);
+  uint64_t Read(std::streambuf& buffer) override;
+  void ReadCgList(std::streambuf& buffer);
 
-  void ReadData(std::FILE* file);
-  void ReadRangeData(std::FILE* file, DgRange& range);
-  void ReadVlsdData(std::FILE* file,Cn4Block& channel,
+  void ReadData(std::streambuf& buffer);
+  void ReadRangeData(std::streambuf& buffer, DgRange& range);
+  void ReadVlsdData(std::streambuf& buffer,Cn4Block& channel,
                     const std::vector<uint64_t>& offset_list,
                     std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback);
 
@@ -50,11 +50,11 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   IMetaData* MetaData() const override;
   void RecordIdSize(uint8_t id_size) override;
   uint8_t RecordIdSize() const override;
-  size_t Write(std::FILE* file) override;
-  size_t DataSize() const override;
+  uint64_t Write(std::streambuf& buffer) override;
+  uint64_t DataSize() const override;
 
-  bool FinalizeDtBlocks(std::FILE *file);
-  bool FinalizeCgAndVlsdBlocks(std::FILE *file, bool update_cg, bool update_vlsd);
+  bool FinalizeDtBlocks(std::streambuf& buffer);
+  bool FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg, bool update_vlsd);
 
   [[nodiscard]] IChannelGroup *FindParentChannelGroup(
       const IChannel &channel) const override;
@@ -64,8 +64,8 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   /* 7 byte reserved */
   Cg4List cg_list_;
 
-  void ParseDataRecords(std::FILE* file, size_t nof_data_bytes);
-  size_t ReadRecordId(std::FILE* file, uint64_t& record_id) const;
+  void ParseDataRecords(std::streambuf& buffer, uint64_t nof_data_bytes);
+  uint64_t ReadRecordId(std::streambuf& buffer, uint64_t& record_id) const;
 
 };
 

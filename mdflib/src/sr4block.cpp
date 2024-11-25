@@ -107,43 +107,42 @@ void Sr4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Flags", MakeFlagString(flags_));
 }
 
-size_t Sr4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, nof_samples_);
-  bytes += ReadNumber(file, interval_);
-  bytes += ReadNumber(file, type_);
-  bytes += ReadNumber(file, flags_);
+uint64_t Sr4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, nof_samples_);
+  bytes += ReadNumber(buffer, interval_);
+  bytes += ReadNumber(buffer, type_);
+  bytes += ReadNumber(buffer, flags_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 6);
-  ReadBlockList(file, kIndexData);
+  bytes += ReadByte(buffer, reserved, 6);
+  ReadBlockList(buffer, kIndexData);
   return bytes;
 }
 
-void Sr4Block::ReadData(std::FILE *file) const {
-  const size_t count = DataSize();
+void Sr4Block::ReadData(std::streambuf& buffer) const {
+  const uint64_t count = DataSize();
   if (block_list_.empty() || count == 0) {
     data_list_.clear();
     return;
   }
   try {
-    data_list_.resize(count, 0);
+    data_list_.resize(static_cast<size_t>(count), 0);
   } catch (const std::exception& ) {
     // No room in memory for the block.
     data_list_.clear();
     return;
   }
-  size_t index = 0;
 
-
-  // The block list should only contain one block.
-  // A SD block is uncompressed data block
+    // The block list should only contain one block.
+    // A SD block is uncompressed data block
+  uint64_t index = 0;
   for (const auto &block : block_list_) {
     const auto *list = dynamic_cast<const DataListBlock *>(block.get());
     const auto *data = dynamic_cast<const DataBlock *>(block.get());
     if (list != nullptr) {
-      list->CopyDataToBuffer( file, data_list_, index);
+      list->CopyDataToBuffer( buffer, data_list_, index);
     } else if (block != nullptr) {
-      data->CopyDataToBuffer(file, data_list_, index);
+      data->CopyDataToBuffer(buffer, data_list_, index);
     }
   }
 }

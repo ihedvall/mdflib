@@ -22,39 +22,39 @@ Mdf4File::Mdf4File(std::unique_ptr<IdBlock> id_block)
 
 IHeader *Mdf4File::Header() const { return hd_block_.get(); }
 
-void Mdf4File::ReadHeader(std::FILE *file) {
+void Mdf4File::ReadHeader(std::streambuf& buffer) {
   if (!id_block_) {
     id_block_ = std::make_unique<IdBlock>();
-    SetFilePosition(file, 0);
-    id_block_->Read(file);
+    SetFilePosition(buffer, 0);
+    id_block_->Read(buffer);
   }
   if (!hd_block_) {
     hd_block_ = std::make_unique<Hd4Block>();
     hd_block_->Init(*id_block_);
-    SetFilePosition(file, 64);
-    hd_block_->Read(file);
+    SetFilePosition(buffer, 64);
+    hd_block_->Read(buffer);
   }
 
 
 }
 
-void Mdf4File::ReadMeasurementInfo(std::FILE *file) {
-  ReadHeader(file);
+void Mdf4File::ReadMeasurementInfo(std::streambuf& buffer) {
+  ReadHeader(buffer);
   if (hd_block_) {
-    hd_block_->ReadMeasurementInfo(file);
+    hd_block_->ReadMeasurementInfo(buffer);
   }
 }
 
-void Mdf4File::ReadEverythingButData(std::FILE *file) {
-  ReadHeader(file);
+void Mdf4File::ReadEverythingButData(std::streambuf& buffer) {
+  ReadHeader(buffer);
   if (hd_block_) {
-    hd_block_->ReadMeasurementInfo(file);
-    hd_block_->ReadEverythingButData(file);
+    hd_block_->ReadMeasurementInfo(buffer);
+    hd_block_->ReadEverythingButData(buffer);
   }
   // Now when all blocks are read in, it is time to read
   // in all referenced blocks.
   // This is mainly done for the channel array blocks.
-  FindAllReferences(file);
+  FindAllReferences(buffer);
 
   // Check if the file needs to be finalized
   uint16_t standard_flags = 0;
@@ -62,7 +62,7 @@ void Mdf4File::ReadEverythingButData(std::FILE *file) {
   if (!finalized_done_ && id_block_ &&
       !id_block_->IsFinalized(standard_flags, custom_flags)) {
     // Try to finalize the last DG block.
-    finalized_done_ = FinalizeFile(file);
+    finalized_done_ = FinalizeFile(buffer);
   }
 }
 
@@ -159,19 +159,16 @@ IDataGroup *Mdf4File::CreateDataGroup() {
   return dg;
 }
 
-bool Mdf4File::Write(std::FILE *file) {
-  if (file == nullptr) {
-    MDF_ERROR() << "File pointer is null. Invalid use of function.";
-    return false;
-  }
+bool Mdf4File::Write(std::streambuf& buffer) {
+
   if (!id_block_ || !hd_block_) {
     MDF_ERROR() << "No ID or HD block defined. Invalid use of function.";
     return false;
   }
 
   try {
-    id_block_->Write(file);
-    hd_block_->Write(file);
+    id_block_->Write(buffer);
+    hd_block_->Write(buffer);
   } catch (const std::exception &err) {
     MDF_ERROR() << "Failed to write the MDF4 file. Error: " << err.what();
     return false;
@@ -179,10 +176,10 @@ bool Mdf4File::Write(std::FILE *file) {
   return true;
 }
 
-void Mdf4File::IsFinalized(bool finalized, std::FILE *file,
+void Mdf4File::IsFinalized(bool finalized, std::streambuf& buffer,
                            uint16_t standard_flags, uint16_t custom_flags) {
   if (id_block_) {
-    id_block_->IsFinalized(finalized, file, standard_flags, custom_flags);
+    id_block_->IsFinalized(finalized, buffer, standard_flags, custom_flags);
   }
 }
 
@@ -198,7 +195,7 @@ bool Mdf4File::IsFinalized(uint16_t &standard_flags,
   return finalized;
 }
 
-bool Mdf4File::FinalizeFile(std::FILE* file) {
+bool Mdf4File::FinalizeFile(std::streambuf& buffer) {
 
   uint16_t standard_flags = 0;
   uint16_t custom_flags = 0;
@@ -228,7 +225,7 @@ bool Mdf4File::FinalizeFile(std::FILE* file) {
   }
   if (update_dt_blocks) {
     // Update the number of bytes in the DT block.
-    const bool update_dt = hd_block_->FinalizeDtBlocks(file);
+    const bool update_dt = hd_block_->FinalizeDtBlocks(buffer);
     if (!update_dt) {
       MDF_ERROR() << "Fail to finalize last DT block. File: " << Name();
       updated = false;
@@ -241,7 +238,7 @@ bool Mdf4File::FinalizeFile(std::FILE* file) {
 
   if (update_cg_blocks || update_vlsd_bytes || update_vlsd_offset ) {
     const bool update_nof_samples = hd_block_->FinalizeCgAndVlsdBlocks(
-        file, update_cg_blocks, update_vlsd_bytes || update_vlsd_offset);
+        buffer, update_cg_blocks, update_vlsd_bytes || update_vlsd_offset);
     if (!update_nof_samples) {
       MDF_ERROR() << "Failed to update number of samples and VLSD block sizes. File: " << Name();
       updated = false;
@@ -268,7 +265,7 @@ IDataGroup *Mdf4File::FindParentDataGroup(const IChannel &channel) const {
   return itr != dg_list.cend() ? itr->get() : nullptr;
 }
 
-void Mdf4File::FindAllReferences(std::FILE *file) {
+void Mdf4File::FindAllReferences(std::streambuf& buffer) {
   // Find all channel arrays
   if (!hd_block_) {
     return;
@@ -295,7 +292,7 @@ void Mdf4File::FindAllReferences(std::FILE *file) {
           try {
             auto* ca4 = dynamic_cast<Ca4Block*> (block.get());
             if (ca4 != nullptr) {
-              ca4->FindAllReferences(file);
+              ca4->FindAllReferences(buffer);
             }
           } catch (const std::exception& ) {
           }

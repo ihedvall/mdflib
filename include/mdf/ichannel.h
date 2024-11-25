@@ -480,7 +480,7 @@ class IChannel : public IBlock  {
   static bool GetVirtualSample(uint64_t sample, V& value) {
     // No need for array index here. Array is weird usage for virtual channels
     // as the channel value = sample.
-    value = static_cast<V>(sample);
+    value = static_cast<V>( static_cast<size_t>(sample) );
     return true;
   }
 

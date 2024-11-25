@@ -12,8 +12,8 @@ namespace mdf::detail {
 class Dv4Block : public DataBlock {
  public:
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  size_t Read(std::FILE* file) override;
-  [[nodiscard]] size_t DataSize() const override;
+  uint64_t Read(std::streambuf& buffer) override;
+  [[nodiscard]] uint64_t DataSize() const override;
 };
 
 }  // namespace mdf::detail

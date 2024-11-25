@@ -23,7 +23,7 @@ using ByteArray = std::vector<uint8_t>;  ///< Defines a dynamic byte array
  * @param out Pointer to the output file stream.
  * @return True on success.
  */
-bool Deflate(std::FILE* in, std::FILE* out);  ///< Compress file to file.
+bool Deflate(std::streambuf& in, std::streambuf& out);  ///< Compress file to file.
 
 /**
  * Compress a byte array directly to another array.
@@ -55,13 +55,13 @@ bool Deflate(const ByteArray& buf_in,
 bool Deflate(const std::string& filename,
              ByteArray& buf_out);  ///< Compress array to array.
 
-bool Inflate(std::FILE* in, std::FILE* out);  ///< Decompress file to file.
-bool Inflate(std::FILE* in, std::FILE* out,
+bool Inflate(std::streambuf& in, std::streambuf& out);  ///< Decompress file to file.
+bool Inflate(std::streambuf& in, std::streambuf& out,
              uint64_t nof_bytes);  ///< Decompress part of file to file
 bool Inflate(const ByteArray& in,
              ByteArray& out);  ///< Decompress array to array.
 bool Inflate(const ByteArray& in,
-             std::FILE* out);  ///< Decompress array to file.
+             std::streambuf& out);  ///< Decompress array to file.
 
 void Transpose(ByteArray& data,
                size_t record_size);  ///< Transpose of an array.

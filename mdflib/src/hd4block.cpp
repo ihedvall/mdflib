@@ -68,7 +68,11 @@ void SetCommonProperty(mdf::detail::Hd4Block& block, const std::string& key,
 
 namespace mdf::detail {
 
-Hd4Block::Hd4Block() { block_type_ = "##HD"; }
+Hd4Block::Hd4Block() {
+  block_type_ = "##HD";
+  UtcTimestamp now(MdfHelper::NowNs());
+  timestamp_.SetTime(now);
+}
 
 MdfBlock* Hd4Block::Find(int64_t index) const {
   if (index <= 0) {
@@ -169,48 +173,48 @@ void Hd4Block::GetBlockProperty(BlockPropertyList& dest) const {
   }
 }
 
-size_t Hd4Block::Read(std::FILE* file) {
-  size_t bytes = ReadHeader4(file);
+uint64_t Hd4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
 
   timestamp_.Init(*this);
-  bytes += timestamp_.Read(file);
+  bytes += timestamp_.Read(buffer);
 
-  bytes += ReadNumber(file, time_class_);
-  bytes += ReadNumber(file, flags_);
+  bytes += ReadNumber(buffer, time_class_);
+  bytes += ReadNumber(buffer, flags_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 1);
-  bytes += ReadNumber(file, start_angle_);
-  bytes += ReadNumber(file, start_distance_);
+  bytes += ReadByte(buffer, reserved, 1);
+  bytes += ReadNumber(buffer, start_angle_);
+  bytes += ReadNumber(buffer, start_distance_);
 
-  ReadLink4List(file, fh_list_, kIndexFh);
-  ReadMdComment(file, kIndexMd);
+  ReadLink4List(buffer, fh_list_, kIndexFh);
+  ReadMdComment(buffer, kIndexMd);
 
   return bytes;
 }
 
-void Hd4Block::ReadMeasurementInfo(std::FILE* file) {
+void Hd4Block::ReadMeasurementInfo(std::streambuf& buffer) {
   // We assume that the ID and HD block have been read (see ReadHeader)
 
   // Special handling of DG blocks.
-  ReadLink4List(file, dg_list_, kIndexDg);
+  ReadLink4List(buffer, dg_list_, kIndexDg);
   for (auto& dg4 : dg_list_) {
-    dg4->ReadCgList(file);
+    dg4->ReadCgList(buffer);
   }
 
   // Need to read in any attachments before we read in the channels as
   // they reference the attachments.
-  ReadLink4List(file, at_list_, kIndexAt);
+  ReadLink4List(buffer, at_list_, kIndexAt);
 }
 
-void Hd4Block::ReadEverythingButData(std::FILE* file) {
+void Hd4Block::ReadEverythingButData(std::streambuf& buffer) {
   // We assume that ReadMeasurementInfo have been called earlier
   for (auto& dg4 : dg_list_) {
     if (!dg4) {
       continue;
     }
     for (auto& cg4 : dg4->Cg4()) {
-      cg4->ReadCnList(file);
-      cg4->ReadSrList(file);
+      cg4->ReadCnList(buffer);
+      cg4->ReadSrList(buffer);
 
       // Update the VLSD record id reference on all channels
       // and fix the MSLD channel as well
@@ -239,8 +243,8 @@ void Hd4Block::ReadEverythingButData(std::FILE* file) {
   }
   // Must read in all channels before creating CH block that references the CN
   // blocks
-  ReadLink4List(file, ch_list_, kIndexCh);
-  ReadLink4List(file, ev_list_, kIndexEv);
+  ReadLink4List(buffer, ch_list_, kIndexCh);
+  ReadLink4List(buffer, ev_list_, kIndexEv);
   // Need to scan through the event and hierarchy blocks to find the referenced
   // blocks
   for (auto& ch4 : ch_list_) {
@@ -459,7 +463,7 @@ std::optional<double> Hd4Block::StartDistance() const {
   return {};
 }
 
-size_t Hd4Block::Write(std::FILE* file) {
+uint64_t Hd4Block::Write(std::streambuf& buffer) {
   const bool update =
       FilePosition() > 0;  // Write or update the values inside the block
   if (!update) {
@@ -467,53 +471,53 @@ size_t Hd4Block::Write(std::FILE* file) {
     block_length_ = 24 + (6 * 8) + 8 + 4 + 4 + 1 + 1 + 1 + 1 + 8 + 8;
     link_list_.resize(6, 0);
   }
-  auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
+  uint64_t bytes = update ? MdfBlock::Update(buffer) : MdfBlock::Write(buffer);
 
   // These values may change after the initial write
-  bytes += timestamp_.Write(file);
-  bytes += WriteNumber(file, time_class_);
-  bytes += WriteNumber(file, flags_);
-  bytes += WriteBytes(file, 1);
-  bytes += WriteNumber(file, start_angle_);
-  bytes += WriteNumber(file, start_distance_);
+  bytes += timestamp_.Write(buffer);
+  bytes += WriteNumber(buffer, time_class_);
+  bytes += WriteNumber(buffer, flags_);
+  bytes += WriteBytes(buffer, 1);
+  bytes += WriteNumber(buffer, start_angle_);
+  bytes += WriteNumber(buffer, start_distance_);
 
   if (!update) {
-    UpdateBlockSize(file, bytes);
+    UpdateBlockSize(buffer, bytes);
   }
-  WriteLink4List(file, fh_list_, kIndexFh,
+  WriteLink4List(buffer, fh_list_, kIndexFh,
                  UpdateOption::DoNotUpdateWrittenBlock);
-  WriteMdComment(file, kIndexMd);
-  WriteLink4List(file, at_list_, kIndexAt,
+  WriteMdComment(buffer, kIndexMd);
+  WriteLink4List(buffer, at_list_, kIndexAt,
                  UpdateOption::DoNotUpdateWrittenBlock);
-  WriteLink4List(file, ch_list_, kIndexCh,
+  WriteLink4List(buffer, ch_list_, kIndexCh,
                  UpdateOption::DoNotUpdateWrittenBlock);
-  WriteLink4List(file, ev_list_, kIndexEv,
+  WriteLink4List(buffer, ev_list_, kIndexEv,
                  UpdateOption::DoNotUpdateWrittenBlock);
 
   // Always write the list of DG last as it may contain a DT block that shall
   // be appended with data bytes. The DT block must be the last written block
   // in these cases.
-  WriteLink4List(file, dg_list_, kIndexDg,
+  WriteLink4List(buffer, dg_list_, kIndexDg,
        UpdateOption::DoUpdateOnlyLastBlock);  // Always rewrite last DG block
   return bytes;
 }
 
-bool Hd4Block::FinalizeDtBlocks(std::FILE *file) {
+bool Hd4Block::FinalizeDtBlocks(std::streambuf& buffer) {
   if (dg_list_.empty()) {
     return true;
   }
   Dg4Block* last_dg = dg_list_.back().get();
-  return last_dg != nullptr && last_dg->FinalizeDtBlocks(file);
+  return last_dg != nullptr && last_dg->FinalizeDtBlocks(buffer);
 }
 
-bool Hd4Block::FinalizeCgAndVlsdBlocks(std::FILE* file, bool update_cg,
+bool Hd4Block::FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg,
                                      bool update_vlsd) {
   if (dg_list_.empty()) {
     return true;
   }
   auto* last_dg = dg_list_.back().get();
   return last_dg != nullptr &&
-         last_dg->FinalizeCgAndVlsdBlocks(file, update_cg, update_vlsd);
+         last_dg->FinalizeCgAndVlsdBlocks(buffer, update_cg, update_vlsd);
 }
 
 const IMdfTimestamp* Hd4Block::StartTimestamp() const {

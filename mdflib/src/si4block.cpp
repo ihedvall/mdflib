@@ -92,20 +92,21 @@ void Si4Block::GetBlockProperty(BlockPropertyList &dest) const {
     md_comment_->GetBlockProperty(dest);
   }
 }
-size_t Si4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, type_);
-  bytes += ReadNumber(file, bus_type_);
-  bytes += ReadNumber(file, flags_);
+
+uint64_t Si4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, type_);
+  bytes += ReadNumber(buffer, bus_type_);
+  bytes += ReadNumber(buffer, flags_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 5);
-  name_ = ReadTx4(file, kIndexName);
-  path_ = ReadTx4(file, kIndexPath);
-  ReadMdComment(file, kIndexMd);
+  bytes += ReadByte(buffer, reserved, 5);
+  name_ = ReadTx4(buffer, kIndexName);
+  path_ = ReadTx4(buffer, kIndexPath);
+  ReadMdComment(buffer, kIndexMd);
   return bytes;
 }
 
-size_t Si4Block::Write(std::FILE *file) {
+uint64_t Si4Block::Write(std::streambuf& buffer) {
   const bool update = FilePosition() > 0;  // True if already written to file
   if (update) {
     return block_length_;
@@ -114,16 +115,16 @@ size_t Si4Block::Write(std::FILE *file) {
   block_type_ = "##SI";
   block_length_ = 24 + (3 * 8) + 1 + 1 + 1 + 5;
   link_list_.resize(3, 0);
-  WriteTx4(file, kIndexName, name_);
-  WriteTx4(file, kIndexPath, path_);
-  WriteMdComment(file, kIndexMd);
+  WriteTx4(buffer, kIndexName, name_);
+  WriteTx4(buffer, kIndexPath, path_);
+  WriteMdComment(buffer, kIndexMd);
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file, type_);
-  bytes += WriteNumber(file, bus_type_);
-  bytes += WriteNumber(file, flags_);
-  bytes += WriteBytes(file, 5);
-  UpdateBlockSize(file, bytes);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer, type_);
+  bytes += WriteNumber(buffer, bus_type_);
+  bytes += WriteNumber(buffer, flags_);
+  bytes += WriteBytes(buffer, 5);
+  UpdateBlockSize(buffer, bytes);
   return bytes;
 }
 

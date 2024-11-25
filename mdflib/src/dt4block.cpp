@@ -24,18 +24,18 @@ void Dt4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Data Size [byte]", std::to_string(DataSize()));
 }
 
-size_t Dt4Block::Read(std::FILE *file) {
-  const size_t bytes = ReadHeader4(file);
-  data_position_ = GetFilePosition(file);
+uint64_t Dt4Block::Read(std::streambuf& buffer) {
+  const uint64_t bytes = ReadHeader4(buffer);
+  data_position_ = GetFilePosition(buffer);
   return bytes;
 }
 
-size_t Dt4Block::DataSize() const {
+uint64_t Dt4Block::DataSize() const {
   return block_length_ > 24 ? block_length_ - 24 : 0;
 }
 
-void Dt4Block::UpdateDataSize(std::FILE *file) {
-  int64_t last_file_position = GetLastFilePosition(file);
+void Dt4Block::UpdateDataSize(std::streambuf& buffer) {
+  int64_t last_file_position = GetLastFilePosition(buffer);
   const auto data_size = last_file_position - data_position_;
   if (data_size > 0) {
     block_length_ = 24 + static_cast<uint64_t>(data_size);
@@ -43,7 +43,7 @@ void Dt4Block::UpdateDataSize(std::FILE *file) {
   MDF_TRACE() << "Updated the last DT block data size. Size: " << data_size;
 }
 
-size_t Dt4Block::Write(std::FILE *file) {
+uint64_t Dt4Block::Write(std::streambuf& buffer) {
   const auto update = FilePosition() > 0;
   if (!update) {
     block_type_ = "##DT";
@@ -53,11 +53,11 @@ size_t Dt4Block::Write(std::FILE *file) {
   }
 
 
-  size_t bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
+  uint64_t bytes = update ? MdfBlock::Update(buffer) : MdfBlock::Write(buffer);
 
   if (!update) {
-    data_position_ = GetLastFilePosition(file);
-    bytes += WriteByte(file, data_);
+    data_position_ = GetLastFilePosition(buffer);
+    bytes += WriteByte(buffer, data_);
   } else {
     bytes = block_length_;
   }

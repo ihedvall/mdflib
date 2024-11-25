@@ -21,7 +21,7 @@ std::string IChannelArray::DimensionAsString() const {
 }
 
 std::vector<int64_t>& IChannelArray::DataLinks() {
-  const size_t prod_dim = ProductOfArray();
+  const size_t prod_dim = static_cast<size_t>( ProductOfArray() );
   if (Storage() == ArrayStorage::DgTemplate
       && data_links_.size() < prod_dim) {
     data_links_.resize(prod_dim, 0);
@@ -64,8 +64,8 @@ std::vector<CaTripleReference>& IChannelArray::AxisList() {
 
 void IChannelArray::ResizeArrays() {
   const size_t dim = Dimensions();
-  const size_t sum_of_array = SumOfArray();
-  const size_t prod_of_array = ProductOfArray();
+  const size_t sum_of_array = static_cast<size_t>( SumOfArray() );
+  const size_t prod_of_array = static_cast<size_t>( ProductOfArray() );
   if (Storage() == ArrayStorage::DgTemplate &&
       data_links_.size() != prod_of_array) {
     data_links_.resize(prod_of_array,0);

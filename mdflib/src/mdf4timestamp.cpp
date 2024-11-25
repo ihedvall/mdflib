@@ -20,25 +20,25 @@ void Mdf4Timestamp::GetBlockProperty(detail::BlockPropertyList &dest) const {
   dest.emplace_back("Time Flags", flags.str());
 }
 
-size_t Mdf4Timestamp::Read(std::FILE *file) {
-  file_position_ = detail::GetFilePosition(file);
-  size_t bytes = ReadNumber(file, time_);
-  bytes += ReadNumber(file, tz_offset_);
-  bytes += ReadNumber(file, dst_offset_);
-  bytes += ReadNumber(file, flags_);
+uint64_t Mdf4Timestamp::Read(std::streambuf& buffer) {
+  file_position_ = detail::GetFilePosition(buffer);
+  uint64_t bytes = ReadNumber(buffer, time_);
+  bytes += ReadNumber(buffer, tz_offset_);
+  bytes += ReadNumber(buffer, dst_offset_);
+  bytes += ReadNumber(buffer, flags_);
   return bytes;
 }
 
-size_t Mdf4Timestamp::Write(std::FILE *file) {
+uint64_t Mdf4Timestamp::Write(std::streambuf& buffer) {
   if (file_position_ <= 0) {
-    file_position_ = detail::GetFilePosition(file);
+    file_position_ = detail::GetFilePosition(buffer);
   } else {
-    detail::SetFilePosition(file, file_position_);
+    detail::SetFilePosition(buffer, file_position_);
   }
-  auto bytes = WriteNumber(file, time_);
-  bytes += WriteNumber(file, tz_offset_);
-  bytes += WriteNumber(file, dst_offset_);
-  bytes += WriteNumber(file, flags_);
+  uint64_t bytes = WriteNumber(buffer, time_);
+  bytes += WriteNumber(buffer, tz_offset_);
+  bytes += WriteNumber(buffer, dst_offset_);
+  bytes += WriteNumber(buffer, flags_);
   return bytes;
 }
 

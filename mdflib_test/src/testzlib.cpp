@@ -5,6 +5,7 @@
 #include "testzlib.h"
 
 #include <filesystem>
+#include <fstream>
 
 #include "mdf/zlibutil.h"
 #include "platform.h"
@@ -69,24 +70,30 @@ TEST_F(TestZlib, FileCompress) {
     GTEST_SKIP() << "Skipped Test";
   }
 
-  auto* in = fopen(kTestFile.c_str(), "rb");
-  EXPECT_TRUE(in != nullptr);
-  auto* out = fopen(kDeflateFile.c_str(), "wb");
-  EXPECT_TRUE(out != nullptr);
+  std::filebuf in;
+  in.open(kTestFile, std::ios_base::in | std::ios_base::binary);
+  EXPECT_TRUE(in.is_open());
+
+  std::filebuf out;
+  out.open(kDeflateFile, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+  EXPECT_TRUE(out.is_open());
 
   EXPECT_TRUE(Deflate(in, out));
 
-  fclose(in);
-  fclose(out);
+  in.close();
+  out.close();
 
-  auto* in1 = fopen(kDeflateFile.c_str(), "rb");
-  EXPECT_TRUE(in1 != nullptr);
-  auto* out1 = fopen(kInflateFile.c_str(), "wb");
-  EXPECT_TRUE(out1 != nullptr);
+  std::filebuf in1;
+  in1.open(kDeflateFile, std::ios_base::in | std::ios_base::binary);
+  EXPECT_TRUE(in1.is_open());
+
+  std::filebuf out1;
+  out1.open(kInflateFile, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+  EXPECT_TRUE(out1.is_open());
 
   EXPECT_TRUE(Inflate(in1, out1));
-  fclose(in1);
-  fclose(out1);
+  in1.close();
+  out1.close();
 }
 
 TEST_F(TestZlib, FileToBuffCompress) {
@@ -97,12 +104,12 @@ TEST_F(TestZlib, FileToBuffCompress) {
   ByteArray buf_out;
   EXPECT_TRUE(Deflate(kTestFile, buf_out));
 
-  std::FILE* out_file = nullptr;
-  Platform::fileopen(&out_file, kInflateFile.c_str(), "wb");
-  ASSERT_TRUE(out_file != nullptr);
+  std::filebuf out_file;
+  out_file.open(kInflateFile, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+  ASSERT_TRUE(out_file.is_open());
 
   EXPECT_TRUE(Inflate(buf_out, out_file));
-  fclose(out_file);
+  out_file.close();
 }
 
 TEST_F(TestZlib, ArrayCompressLarge) {

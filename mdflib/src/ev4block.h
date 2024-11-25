@@ -15,8 +15,8 @@ class Ev4Block : public MdfBlock, public IEvent {
   Ev4Block();
 
   void GetBlockProperty(BlockPropertyList &dest) const override;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
   void FindReferencedBlocks(const Hd4Block &hd4);
 
   [[nodiscard]] int64_t Index() const override;

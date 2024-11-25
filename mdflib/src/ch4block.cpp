@@ -50,24 +50,24 @@ void Ch4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Ch4Block::Read(std::FILE *file) {  // NOLINT
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, nof_elements_);
-  bytes += ReadNumber(file, type_);
+uint64_t Ch4Block::Read(std::streambuf& buffer) {  // NOLINT
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, nof_elements_);
+  bytes += ReadNumber(buffer, type_);
 
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 3);
+  bytes += ReadByte(buffer, reserved, 3);
 
-  name_ = ReadTx4(file, kIndexTx);
-  ReadMdComment(file, kIndexMd);
-  ReadLink4List(file, ch_list_, kIndexCh);
+  name_ = ReadTx4(buffer, kIndexTx);
+  ReadMdComment(buffer, kIndexMd);
+  ReadLink4List(buffer, ch_list_, kIndexCh);
   return bytes;
 }
 
-size_t Ch4Block::Write(std::FILE *file) {  // NOLINT
+uint64_t Ch4Block::Write(std::streambuf& buffer) {  // NOLINT
   const auto update = FilePosition() > 0;
   if (update) {
-    WriteLink4List(file, ch_list_, kIndexCh,
+    WriteLink4List(buffer, ch_list_, kIndexCh,
                    UpdateOption::DoNotUpdateWrittenBlock);
     return block_length_;
   }
@@ -86,16 +86,16 @@ size_t Ch4Block::Write(std::FILE *file) {  // NOLINT
     link_list_[index + 2] =
         element.channel != nullptr ? element.channel->Index() : 0;
   }
-  WriteTx4(file, kIndexTx, name_);
-  WriteMdComment(file, kIndexMd);
-  WriteLink4List(file, ch_list_, kIndexCh,
+  WriteTx4(buffer, kIndexTx, name_);
+  WriteMdComment(buffer, kIndexMd);
+  WriteLink4List(buffer, ch_list_, kIndexCh,
                  UpdateOption::DoNotUpdateWrittenBlock);
 
-  size_t bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file, nof_elements_);
-  bytes += WriteNumber(file, type_);
-  bytes += WriteBytes(file, 3);
-  UpdateBlockSize(file, bytes);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer, nof_elements_);
+  bytes += WriteNumber(buffer, type_);
+  bytes += WriteBytes(buffer, 3);
+  UpdateBlockSize(buffer, bytes);
 
   return bytes;
 }

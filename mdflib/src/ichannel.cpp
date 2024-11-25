@@ -18,7 +18,7 @@ bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
                                 uint64_t array_index) const {
 
   const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
-    + (array_index * BitCount());
+    + static_cast<size_t>( (array_index * BitCount()) );
   if (Type() == ChannelType::VariableLength) {
      dest = detail::DbcHelper::RawToUnsigned(true,
                                             bit_offset,
@@ -61,7 +61,7 @@ bool IChannel::GetSignedValue(const std::vector<uint8_t> &record_buffer,
   // std::vector<uint8_t> data_buffer;
   // CopyToDataBuffer(record_buffer, data_buffer, array_index);
   const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
-      + (array_index * BitCount());
+      + static_cast<size_t>( (array_index * BitCount()) );
   const bool little_endian = DataType() == ChannelDataType::SignedIntegerLe;
   dest = detail::DbcHelper::RawToSigned(little_endian,
                                                    bit_offset,
@@ -74,7 +74,7 @@ bool IChannel::GetFloatValue(const std::vector<uint8_t> &record_buffer,
                              double &dest,
                              uint64_t array_index ) const {
   const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
-        + (array_index * BitCount());
+        + static_cast<size_t>( (array_index * BitCount()) );
   const bool little_endian = DataType() == ChannelDataType::FloatLe;
   bool valid = true;
   switch (BitCount()) {
@@ -191,7 +191,7 @@ bool IChannel::GetTextValue(const std::vector<uint8_t> &record_buffer,
 bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
                                  std::vector<uint8_t> &dest) const {
   try {
-    dest.resize(DataBytes(), 0);
+    dest.resize(static_cast<size_t>(DataBytes()), 0);
   } catch (const std::exception&) {
     return false;
   }
@@ -200,7 +200,7 @@ bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
   } else {
     if (dest.size() != DataBytes()) {
       try {
-        dest.resize(DataBytes());
+        dest.resize(static_cast<size_t>(DataBytes()) );
       } catch (const std::exception&) {
         return false;
       }
@@ -208,8 +208,8 @@ bool IChannel::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
     if (dest.empty()) {
       return true;
     }
-    if (ByteOffset() + DataBytes() <= record_buffer.size()) {
-      memcpy(dest.data(), record_buffer.data() + ByteOffset(), DataBytes());
+    if (ByteOffset() + static_cast<size_t>(DataBytes()) <= record_buffer.size()) {
+      memcpy(dest.data(), record_buffer.data() + ByteOffset(), static_cast<size_t>(DataBytes()) );
     } else {
       return false;
     }
@@ -258,7 +258,7 @@ void IChannel::SetUnsignedValueLe(uint64_t value, bool valid,
     return; // Invalid use of function
   }
 
-  const size_t bytes = DataBytes();
+  const auto bytes = static_cast<size_t>(DataBytes());
   const auto max_bytes = ByteOffset() +
                          (bytes * (array_index + 1));
   if (max_bytes > buffer.size()) {
@@ -305,7 +305,7 @@ void IChannel::SetUnsignedValueBe(uint64_t value, bool valid, uint64_t array_ind
     MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
-  const size_t bytes = DataBytes();
+  const size_t bytes = static_cast<size_t>(DataBytes());
   const auto max_bytes = ByteOffset() +
                          (bytes * array_index);
   if (max_bytes > buffer.size()) {
@@ -352,7 +352,7 @@ void IChannel::SetSignedValueLe(int64_t value, bool valid,
     MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
-  const size_t bytes = DataBytes();
+  const size_t bytes = static_cast<size_t>(DataBytes());
   const auto max_bytes = ByteOffset() +
                          (bytes * (array_index + 1));
   if (max_bytes > buffer.size()) {
@@ -400,7 +400,7 @@ void IChannel::SetSignedValueBe(int64_t value, bool valid,
     MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
-  const size_t bytes = DataBytes();
+  const size_t bytes = static_cast<size_t>( DataBytes() );
   const auto max_bytes = ByteOffset() +
                          (bytes * (array_index + 1));
   if (max_bytes > buffer.size()) {
@@ -446,7 +446,7 @@ void IChannel::SetFloatValueLe(double value, bool valid, uint64_t array_index) {
     MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
-  const size_t bytes = DataBytes();
+  const size_t bytes = static_cast<size_t>(DataBytes());
   const auto max_bytes = ByteOffset() +
                          (bytes * (array_index + 1));
   if (max_bytes > buffer.size()) {
@@ -481,7 +481,7 @@ void IChannel::SetFloatValueBe(double value, bool valid, uint64_t array_index) {
     MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
-  const size_t bytes = DataBytes();
+  const size_t bytes = static_cast<size_t>( DataBytes() );
   const auto max_bytes = ByteOffset() +
                          (bytes * (array_index + 1));
   if (max_bytes > buffer.size()) {

@@ -4,10 +4,11 @@
  */
 #include "cd3block.h"
 namespace mdf::detail {
-size_t Cd3Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader3(file);
-  bytes += ReadNumber(file, dependency_type_);
-  bytes += ReadNumber(file, nof_dependencies_);
+
+uint64_t Cd3Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader3(buffer);
+  bytes += ReadNumber(buffer, dependency_type_);
+  bytes += ReadNumber(buffer, nof_dependencies_);
   dependency_list_.clear();
   dimension_list_.clear();
   switch (dependency_type_) {
@@ -17,16 +18,16 @@ size_t Cd3Block::Read(std::FILE *file) {
     case 2:
       for (uint16_t dep = 0; dep < nof_dependencies_; ++dep) {
         Dependency d;
-        bytes += ReadNumber(file, d.link_dg);
-        bytes += ReadNumber(file, d.link_cg);
-        bytes += ReadNumber(file, d.link_cn);
+        bytes += ReadNumber(buffer, d.link_dg);
+        bytes += ReadNumber(buffer, d.link_cg);
+        bytes += ReadNumber(buffer, d.link_cn);
         dependency_list_.emplace_back(d);
       }
       break;
     default:
       for (uint16_t dim = 256; dim < nof_dependencies_; ++dim) {
         uint16_t temp = 0;
-        bytes += ReadNumber(file, temp);
+        bytes += ReadNumber(buffer, temp);
         dimension_list_.emplace_back(temp);
       }
       break;

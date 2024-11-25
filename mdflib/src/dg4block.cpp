@@ -31,10 +31,10 @@ struct CgCounter {
 
 ///< Helper function that recursively copies all data bytes to a
 /// destination file.
-size_t CopyDataToFile(
+uint64_t CopyDataToFile(
     const mdf::detail::DataListBlock::BlockList& block_list,  // NOLINT
-    std::FILE* from_file, std::FILE* to_file) {
-  size_t count = 0;
+    std::streambuf& from_file, std::streambuf& to_file) {
+  uint64_t count = 0;
   for (const auto& block : block_list) {
     if (!block) {
       continue;
@@ -97,19 +97,19 @@ void Dg4Block::GetBlockProperty(BlockPropertyList& dest) const {
   }
 }
 
-size_t Dg4Block::Read(std::FILE* file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, rec_id_size_);
+uint64_t Dg4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, rec_id_size_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 7);
+  bytes += ReadByte(buffer, reserved, 7);
 
-  ReadMdComment(file, kIndexMd);
-  ReadBlockList(file, kIndexData);
+  ReadMdComment(buffer, kIndexMd);
+  ReadBlockList(buffer, kIndexData);
 
   return bytes;
 }
 
-size_t Dg4Block::Write(std::FILE* file) {
+uint64_t Dg4Block::Write(std::streambuf& buffer) {
   const bool update = FilePosition() > 0;  // True if already written to file
   if (!update) {
     block_type_ = "##DG";
@@ -117,18 +117,18 @@ size_t Dg4Block::Write(std::FILE* file) {
     link_list_.resize(4, 0);
   }
 
-  WriteLink4List(file, cg_list_, kIndexCg,
+  WriteLink4List(buffer, cg_list_, kIndexCg,
               UpdateOption::DoUpdateAllBlocks); // Save nof samples in CG block
-  WriteMdComment(file, kIndexMd);
+  WriteMdComment(buffer, kIndexMd);
 
 
-  auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
+  uint64_t bytes = update ? MdfBlock::Update(buffer) : MdfBlock::Write(buffer);
   if (update) {
     bytes = block_length_;
   } else {
-    bytes += WriteNumber(file, rec_id_size_);
-    bytes += WriteBytes(file, 7);
-    UpdateBlockSize(file, bytes);
+    bytes += WriteNumber(buffer, rec_id_size_);
+    bytes += WriteBytes(buffer, 7);
+    UpdateBlockSize(buffer, bytes);
     // Need to update the signal data link for any channels referencing
     // VLSD CG blocks.
     for (auto& cg4 : cg_list_) {
@@ -139,7 +139,7 @@ size_t Dg4Block::Write(std::FILE* file) {
         auto* cn4 = other_cg4 != nullptr ?
                  other_cg4->FindVlsdChannel(cg4->RecordId()) : nullptr;
         if (cn4 != nullptr) {
-          cn4->UpdateDataLink(file, cg4->FilePosition());
+          cn4->UpdateDataLink(buffer, cg4->FilePosition());
         }
       }
     }
@@ -147,20 +147,19 @@ size_t Dg4Block::Write(std::FILE* file) {
   // Need to write any data block, so it is positioned last in the file
   // as any DT block should be appended with data bytes. The DT block must be
   // last in the file
-  WriteLink4List(file, block_list_, kIndexData,
+  WriteLink4List(buffer, block_list_, kIndexData,
                  UpdateOption::DoUpdateAllBlocks); // Update last HL or DT
   return bytes;
 }
-size_t Dg4Block::DataSize() const { return DataListBlock::DataSize(); }
 
-void Dg4Block::ReadCgList(std::FILE* file) {
-  ReadLink4List(file, cg_list_, kIndexCg);
+uint64_t Dg4Block::DataSize() const { return DataListBlock::DataSize(); }
+
+void Dg4Block::ReadCgList(std::streambuf& buffer) {
+  ReadLink4List(buffer, cg_list_, kIndexCg);
 }
 
-void Dg4Block::ReadData(std::FILE* file) {
-  if (file == nullptr) {
-    throw std::invalid_argument("File pointer is null");
-  }
+void Dg4Block::ReadData(std::streambuf& buffer) {
+
   const auto& block_list = DataBlockList();
   if (block_list.empty()) {
     return;
@@ -179,7 +178,7 @@ void Dg4Block::ReadData(std::FILE* file) {
       if (!sr4) {
         continue;
       }
-      sr4->ReadData(file);
+      sr4->ReadData(buffer);
     }
 
     // Fetch all signal data (SD)
@@ -218,13 +217,13 @@ void Dg4Block::ReadData(std::FILE* file) {
         case ChannelType::VariableLength:
           if (IsSubscribingOnChannelVlsd(*channel)) {
             if (block->BlockType() == "SD") {
-              cn_block->ReadSignalData(file);
+              cn_block->ReadSignalData(buffer);
             } else if (block->BlockType() == "DZ") {
-              cn_block->ReadSignalData(file);
+              cn_block->ReadSignalData(buffer);
             } else if (block->BlockType() == "DL") {
-              cn_block->ReadSignalData(file);
+              cn_block->ReadSignalData(buffer);
             } else if (block->BlockType() == "HL") {
-              cn_block->ReadSignalData(file);
+              cn_block->ReadSignalData(buffer);
             }
           }
           break;
@@ -277,7 +276,7 @@ void Dg4Block::ReadData(std::FILE* file) {
       channel_group->ResetSampleCounter();
     }
   }
-  ReadCache read_cache(this, file);
+  ReadCache read_cache(this, buffer);
   while (read_cache.ParseRecord()) {
   }
 
@@ -294,10 +293,7 @@ void Dg4Block::ReadData(std::FILE* file) {
   }
 }
 
-void Dg4Block::ReadRangeData(std::FILE* file, DgRange& range) {
-  if (file == nullptr) {
-    throw std::invalid_argument("File pointer is null");
-  }
+void Dg4Block::ReadRangeData(std::streambuf& buffer, DgRange& range) {
   const auto& block_list = DataBlockList();
   if (block_list.empty()) {
     return;
@@ -323,7 +319,7 @@ void Dg4Block::ReadRangeData(std::FILE* file, DgRange& range) {
       if (!sr4) {
         continue;
       }
-      sr4->ReadData(file);
+      sr4->ReadData(buffer);
     }
 
     // Fetch all signal data (SD)
@@ -361,13 +357,13 @@ void Dg4Block::ReadRangeData(std::FILE* file, DgRange& range) {
         case ChannelType::VariableLength:
           if (IsSubscribingOnChannelVlsd(*channel)) {
             if (block->BlockType() == "SD") {
-              cn_block->ReadSignalData(file);
+              cn_block->ReadSignalData(buffer);
             } else if (block->BlockType() == "DZ") {
-              cn_block->ReadSignalData(file);
+              cn_block->ReadSignalData(buffer);
             } else if (block->BlockType() == "DL") {
-              cn_block->ReadSignalData(file);
+              cn_block->ReadSignalData(buffer);
             } else if (block->BlockType() == "HL") {
-              cn_block->ReadSignalData(file);
+              cn_block->ReadSignalData(buffer);
             }
           }
           break;
@@ -384,7 +380,7 @@ void Dg4Block::ReadRangeData(std::FILE* file, DgRange& range) {
       channel_group->ResetSampleCounter();
     }
   }
-  ReadCache read_cache(this, file);
+  ReadCache read_cache(this, buffer);
   while (read_cache.ParseRangeRecord(range)) {
   }
 
@@ -401,13 +397,10 @@ void Dg4Block::ReadRangeData(std::FILE* file, DgRange& range) {
   }
 }
 
-void  Dg4Block::ReadVlsdData(std::FILE* file,Cn4Block& channel,
+void  Dg4Block::ReadVlsdData(std::streambuf& buffer,Cn4Block& channel,
                   const std::vector<uint64_t>& offset_list,
                   std::function<void(uint64_t,
                               const std::vector<uint8_t>&)>& callback) {
-  if (file == nullptr) {
-    throw std::invalid_argument("File pointer is null");
-  }
 
   // Fetch the channels referenced data block. Note that some types of
   // data blocks are owned by this channel as an SD block, but some are only
@@ -449,14 +442,14 @@ void  Dg4Block::ReadVlsdData(std::FILE* file,Cn4Block& channel,
   }
 
   if (read_signal_data) {
-    ReadCache read_cache(block, file);
+    ReadCache read_cache(block, buffer);
     read_cache.SetOffsetFilter(offset_list);
     read_cache.SetCallback(callback);
 
     while (read_cache.ParseSignalData()) {
     }
   } else if (read_vlsd_cg_data) {
-    ReadCache read_cache(this, file);
+    ReadCache read_cache(this, buffer);
     read_cache.SetRecordId(channel.VlsdRecordId());
     read_cache.SetOffsetFilter(offset_list);
     read_cache.SetCallback(callback);
@@ -467,8 +460,8 @@ void  Dg4Block::ReadVlsdData(std::FILE* file,Cn4Block& channel,
 
 }
 
-void Dg4Block::ParseDataRecords(std::FILE* file, size_t nof_data_bytes) {
-  if (file == nullptr || nof_data_bytes == 0) {
+void Dg4Block::ParseDataRecords(std::streambuf& buffer, uint64_t nof_data_bytes) {
+  if (nof_data_bytes == 0) {
     return;
   }
   for (const auto& channel_group : Cg4() ) {
@@ -477,16 +470,16 @@ void Dg4Block::ParseDataRecords(std::FILE* file, size_t nof_data_bytes) {
     }
   }
 
-  for (size_t count = 0; count < nof_data_bytes; /* No ++count here*/) {
+  for (uint64_t count = 0; count < nof_data_bytes; /* No ++count here*/) {
     // 1. Read Record ID
     uint64_t record_id = 0;
-    count += ReadRecordId(file, record_id);
+    count += ReadRecordId(buffer, record_id);
 
     const auto* cg4 = FindCgRecordId(record_id);
     if (cg4 == nullptr) {
       break;
     }
-    const auto read = cg4->ReadDataRecord(file, *this);
+    const auto read = cg4->ReadDataRecord(buffer, *this);
     if (read == 0) {
       break;
     }
@@ -495,37 +488,35 @@ void Dg4Block::ParseDataRecords(std::FILE* file, size_t nof_data_bytes) {
   }
 }
 
-size_t Dg4Block::ReadRecordId(std::FILE* file, uint64_t& record_id) const {
+uint64_t Dg4Block::ReadRecordId(std::streambuf& buffer, uint64_t& record_id) const {
   record_id = 0;
-  if (file == nullptr) {
-    return 0;
-  }
-  size_t count = 0;
+
+  uint64_t count = 0;
   switch (rec_id_size_) {
     case 1: {
       uint8_t id = 0;
-      count += ReadNumber(file, id);
+      count += ReadNumber(buffer, id);
       record_id = id;
       break;
     }
 
     case 2: {
       uint16_t id = 0;
-      count += ReadNumber(file, id);
+      count += ReadNumber(buffer, id);
       record_id = id;
       break;
     }
 
     case 4: {
       uint32_t id = 0;
-      count += ReadNumber(file, id);
+      count += ReadNumber(buffer, id);
       record_id = id;
       break;
     }
 
     case 8: {
       uint64_t id = 0;
-      count += ReadNumber(file, id);
+      count += ReadNumber(buffer, id);
       record_id = id;
       break;
     }
@@ -610,7 +601,7 @@ void Dg4Block::RecordIdSize(uint8_t id_size) { rec_id_size_ = id_size; }
 
 uint8_t Dg4Block::RecordIdSize() const { return rec_id_size_; }
 
-bool Dg4Block::FinalizeDtBlocks(std::FILE *file) {
+bool Dg4Block::FinalizeDtBlocks(std::streambuf& buffer) {
   auto& block_list = DataBlockList();
   if (block_list.empty()) {
     // No data blocks to update
@@ -627,7 +618,7 @@ bool Dg4Block::FinalizeDtBlocks(std::FILE *file) {
     MDF_ERROR() << "Invalid DT block type-cast.";
     return false;
   }
-  dt_block->UpdateDataSize(file);
+  dt_block->UpdateDataSize(buffer);
 
   return true;
 }
@@ -635,7 +626,7 @@ bool Dg4Block::FinalizeDtBlocks(std::FILE *file) {
 // Update the unfinished payload data (DT) block. This function updates the
 // channel group (CG) and a CG-VLSD channel group regarding cycle count
 // and offsets (VLSD)
-bool Dg4Block::FinalizeCgAndVlsdBlocks(std::FILE* file, bool update_cg,
+bool Dg4Block::FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg,
                                      bool update_vlsd) {
   auto& block_list = DataBlockList();
   if (block_list.empty()) {
@@ -670,11 +661,11 @@ bool Dg4Block::FinalizeCgAndVlsdBlocks(std::FILE* file, bool update_cg,
   }
 
 
-  SetFilePosition(file, dt_block->DataPosition());
-  size_t count = 0;
+  SetFilePosition(buffer, dt_block->DataPosition());
+  uint64_t count = 0;
   while (count < dt_block->DataSize()) {
     uint64_t record_id = 0;
-    count += ReadRecordId(file,record_id);
+    count += ReadRecordId(buffer,record_id);
     auto cg_find = counter_list.size() == 1 ?
            counter_list.begin() : counter_list.find(record_id);
     if (cg_find == counter_list.end()) {
@@ -683,7 +674,7 @@ bool Dg4Block::FinalizeCgAndVlsdBlocks(std::FILE* file, bool update_cg,
     }
     auto& counter = cg_find->second;
     auto* cg_block = counter.CgBlock;
-    size_t count_bytes = 0;
+    uint64_t count_bytes = 0;
     if (cg_block == nullptr) {
       MDF_ERROR() << "CG block pointer is null. Internal error.";
       return false;
@@ -692,15 +683,15 @@ bool Dg4Block::FinalizeCgAndVlsdBlocks(std::FILE* file, bool update_cg,
       // This is normally used for string,
       // and the CG block only includes one signal
       uint32_t length = 0;
-      count_bytes += ReadNumber(file, length);
+      count_bytes += ReadNumber(buffer, length);
       //std::vector<uint8_t> record(length, 0);
       if (length > 0) {
-        count_bytes += StepFilePosition(file, length);
+        count_bytes += StepFilePosition(buffer, length);
       }
     } else {
       // Normal fixed length records
       const size_t record_size = cg_block->NofDataBytes() + cg_block->NofInvalidBytes();
-      count_bytes += StepFilePosition(file, record_size);
+      count_bytes += StepFilePosition(buffer, record_size);
     }
     ++counter.NofSamples;
     counter.NofBytes += count_bytes;

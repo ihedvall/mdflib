@@ -38,15 +38,15 @@ const IChannelGroup *Sr3Block::ChannelGroup() const {
   return mdf_block != nullptr ? dynamic_cast<const IChannelGroup*>(mdf_block) : nullptr;
 }
 
-size_t Sr3Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader3(file);
-  bytes += ReadLinks3(file, 2);
-  bytes += ReadNumber(file, nof_reduced_samples_);
-  bytes += ReadNumber(file, time_interval_);
+uint64_t Sr3Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader3(buffer);
+  bytes += ReadLinks3(buffer, 2);
+  bytes += ReadNumber(buffer, nof_reduced_samples_);
+  bytes += ReadNumber(buffer, time_interval_);
   return bytes;
 }
 
-size_t Sr3Block::Write(std::FILE *file) {
+uint64_t Sr3Block::Write(std::streambuf& buffer) {
   // SR block must be written with its data once with no updates
   const bool update = FilePosition() > 0;
   if (update) {
@@ -55,9 +55,9 @@ size_t Sr3Block::Write(std::FILE *file) {
   block_type_ = "SR";
   block_size_ = (2 + 2) + (2 * 4) + 4 + 8;
   link_list_.resize(2, 0);
-  size_t bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file, nof_reduced_samples_);
-  bytes += WriteNumber(file, time_interval_);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer, nof_reduced_samples_);
+  bytes += WriteNumber(buffer, time_interval_);
 
   for (size_t index = 0; index < block_list_.size(); ++index) {
     auto &data = block_list_[index];
@@ -67,9 +67,9 @@ size_t Sr3Block::Write(std::FILE *file) {
     if (data->FilePosition() > 0) {
       continue;
     }
-    data->Write(file);
+    data->Write(buffer);
     if (index == 0) {
-      UpdateLink(file, kIndexData, data->FilePosition());
+      UpdateLink(buffer, kIndexData, data->FilePosition());
     }
   }
 
@@ -77,25 +77,21 @@ size_t Sr3Block::Write(std::FILE *file) {
 }
 
 
-void Sr3Block::ReadData(std::FILE *file) const {
-  if (file == nullptr) {
-    throw std::invalid_argument("File pointer is null");
-  }
-
-  size_t data_size = DataSize();
+void Sr3Block::ReadData(std::streambuf& buffer) const {
+  uint64_t data_size = DataSize();
   if (data_size == 0) {
     data_list_.clear();
     return;
   }
   try {
-    data_list_.resize(data_size, 0);
+    data_list_.resize(static_cast<size_t>(data_size), 0);
   } catch (const std::exception&) {
     data_list_.clear();
     return;
   }
 
-  SetFilePosition(file, Link(kIndexData));
-  ReadByte(file,data_list_, data_size);
+  SetFilePosition(buffer, Link(kIndexData));
+  ReadByte(buffer,data_list_, data_size);
 }
 
 void Sr3Block::ClearData() {

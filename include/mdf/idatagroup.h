@@ -82,7 +82,7 @@ class IDataGroup : public IBlock {
   /** \brief Detaches all observers from the measurement. */
   void DetachAllSampleObservers() const;
   /** \brief Notifies the observer that a new sample record have been read.*/
-  bool NotifySampleObservers(size_t sample, uint64_t record_id,
+  bool NotifySampleObservers(uint64_t sample, uint64_t record_id,
                              const std::vector<uint8_t>& record) const;
 
   /** \brief Clear all temporary sample and data buffers.

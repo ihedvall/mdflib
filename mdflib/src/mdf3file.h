@@ -33,19 +33,19 @@ class Mdf3File : public MdfFile {
   [[nodiscard]] MdfBlock *Find(int64_t id) const;
 
   [[nodiscard]] bool IsMdf4() const override;
-  void IsFinalized(bool finalized, std::FILE *file, uint16_t standard_flags,
+  void IsFinalized(bool finalized, std::streambuf& buffer, uint16_t standard_flags,
                    uint16_t custom_flags) override;
   [[nodiscard]] bool IsFinalized(uint16_t &standard_flags,
                                  uint16_t &custom_flags) const override;
 
-  void ReadHeader(std::FILE *file) override;
-  void ReadMeasurementInfo(std::FILE *file) override;
-  void ReadEverythingButData(std::FILE *file) override;
+  void ReadHeader(std::streambuf& buffer) override;
+  void ReadMeasurementInfo(std::streambuf& buffer) override;
+  void ReadEverythingButData(std::streambuf& buffer) override;
 
   [[nodiscard]] const IdBlock &Id() const;
   [[nodiscard]] const Hd3Block &Hd() const;
 
-  bool Write(std::FILE *file) override;
+  bool Write(std::streambuf& buffer) override;
 
   Mdf3File(const Mdf3File &) = delete;
   Mdf3File(Mdf3File &&) = delete;

@@ -79,8 +79,7 @@ class LocalTimestamp : public ITimestamp {
   [[nodiscard]] uint64_t GetUtcTimeNs() const override;
 
  private:
-  uint64_t local_timestamp_;  ///< The local timestamp in nanoseconds, with
-                              ///< timezone and DST offset.
+  uint64_t local_timestamp_;  ///< The local timestamp in nanoseconds, with timezone and DST offset.
   int16_t timezone_offset_min_ = 0;  ///< The timezone offset in minutes.
   int16_t dst_offset_min_ = 0;  ///< The daylight saving time offset in minutes.
 };

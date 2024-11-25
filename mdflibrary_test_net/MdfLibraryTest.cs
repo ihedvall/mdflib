@@ -953,6 +953,10 @@ public class MdfLibraryTest
             Assert.Inconclusive("File doesn't exist.");
         }
         var Reader = new MdfReader(TestFile4);
+        if (!Reader.IsOk)
+        {
+            Assert.Inconclusive("Invalid File");
+        }
         Reader.ReadEverythingButData();
         var lVersion = Reader.File.MainVersion;
 

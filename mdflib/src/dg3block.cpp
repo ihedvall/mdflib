@@ -53,24 +53,24 @@ void Dg3Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Record ID size [bytes]", std::to_string(nof_record_id_));
 }
 
-size_t Dg3Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader3(file);
-  bytes += ReadLinks3(file, 4);
-  bytes += ReadNumber(file, nof_cg_blocks_);
-  bytes += ReadNumber(file, nof_record_id_);
+uint64_t Dg3Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader3(buffer);
+  bytes += ReadLinks3(buffer, 4);
+  bytes += ReadNumber(buffer, nof_cg_blocks_);
+  bytes += ReadNumber(buffer, nof_record_id_);
 
   if (Link(kIndexTr) > 0) {
     tr_block_ = std::make_unique<Tr3Block>();
     tr_block_->Init(*this);
-    SetFilePosition(file, Link(kIndexTr));
-    tr_block_->Read(file);
+    SetFilePosition(buffer, Link(kIndexTr));
+    tr_block_->Read(buffer);
   }
 
   if (Link(kIndexData) > 0) {
     auto dt3 = std::make_unique<Dt3Block>();
     dt3->Init(*this);
-    SetFilePosition(file, Link(kIndexData));
-    dt3->Read(file);
+    SetFilePosition(buffer, Link(kIndexData));
+    dt3->Read(buffer);
     block_list_.push_back(std::move(dt3));
   }
 
@@ -78,8 +78,8 @@ size_t Dg3Block::Read(std::FILE *file) {
   for (auto link = Link(kIndexCg); link > 0; /* No ++ here*/) {
     auto cg3 = std::make_unique<Cg3Block>();
     cg3->Init(*this);
-    SetFilePosition(file, link);
-    cg3->Read(file);
+    SetFilePosition(buffer, link);
+    cg3->Read(buffer);
     link = cg3->Link(kIndexNext);
     cg_list_.push_back(std::move(cg3));
   }
@@ -87,7 +87,7 @@ size_t Dg3Block::Read(std::FILE *file) {
   return bytes;
 }
 
-size_t Dg3Block::Write(std::FILE *file) {
+uint64_t Dg3Block::Write(std::streambuf& buffer) {
   const bool update =
       FilePosition() > 0;  // Write or update the values inside the block
   nof_cg_blocks_ = static_cast<uint16_t>(cg_list_.size());
@@ -98,15 +98,15 @@ size_t Dg3Block::Write(std::FILE *file) {
     link_list_.resize(4, 0);
   }
 
-  size_t bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
-  bytes += WriteNumber(file, nof_cg_blocks_);
-  bytes += WriteNumber(file, nof_record_id_);
+  uint64_t bytes = update ? MdfBlock::Update(buffer) : MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer, nof_cg_blocks_);
+  bytes += WriteNumber(buffer, nof_record_id_);
   const std::vector<uint8_t> reserved(4, 0);
-  bytes += WriteByte(file, reserved);
+  bytes += WriteByte(buffer, reserved);
 
   if (tr_block_ && Link(kIndexTr) <= 0) {
-    tr_block_->Write(file);
-    UpdateLink(file, kIndexTr, tr_block_->FilePosition());
+    tr_block_->Write(buffer);
+    UpdateLink(buffer, kIndexTr, tr_block_->FilePosition());
   }
 
   for (size_t cg_index = 0; cg_index < cg_list_.size(); ++cg_index) {
@@ -114,13 +114,13 @@ size_t Dg3Block::Write(std::FILE *file) {
     if (!cg3) {
       continue;
     }
-    cg3->Write(file);
+    cg3->Write(buffer);
     if (cg_index == 0) {
-      UpdateLink(file, kIndexCg, cg3->FilePosition());
+      UpdateLink(buffer, kIndexCg, cg3->FilePosition());
     } else {
       auto &prev = cg_list_[cg_index - 1];
       if (prev) {
-        prev->UpdateLink(file, kIndexNext, cg3->FilePosition());
+        prev->UpdateLink(buffer, kIndexNext, cg3->FilePosition());
       }
     }
   }
@@ -133,9 +133,9 @@ size_t Dg3Block::Write(std::FILE *file) {
     if (data->FilePosition() > 0) {
       continue;
     }
-    data->Write(file);
+    data->Write(buffer);
     if (ii == 0) {
-      UpdateLink(file, kIndexData, data->FilePosition());
+      UpdateLink(buffer, kIndexData, data->FilePosition());
     }
   }
 
@@ -174,36 +174,28 @@ IChannelGroup *Dg3Block::CreateChannelGroup() {
   return cg_list_.empty() ? nullptr : cg_list_.back().get();
 }
 
-void Dg3Block::ReadData(std::FILE *file) {
-  if (file == nullptr) {
-    throw std::invalid_argument("File pointer is null");
-  }
+void Dg3Block::ReadData(std::streambuf& buffer) {
   InitFastObserverList();
-  std::FILE *data_file = nullptr;
-  size_t data_size = DataSize();
-  SetFilePosition(file, Link(kIndexData));
-  data_file = file;
 
-  auto pos = GetFilePosition(data_file);
+  uint64_t data_size = DataSize();
+  SetFilePosition(buffer, Link(kIndexData));
+
   // Read through all record
-  ParseDataRecords(data_file, data_size);
+  ParseDataRecords(buffer, data_size);
 
   // Read in all SR block data
   for (const auto& cg3 :Cg3()) {
     if (!cg3) { continue;}
-    cg3->ReadData(file);
+    cg3->ReadData(buffer);
   }
 }
 
-void Dg3Block::ReadRangeData(std::FILE *file, DgRange& range) {
-  if (file == nullptr) {
-    throw std::invalid_argument("File pointer is null");
-  }
+void Dg3Block::ReadRangeData(std::streambuf& buffer, DgRange& range) {
+
   InitFastObserverList();
-  std::FILE *data_file = nullptr;
-  size_t data_size = DataSize();
-  SetFilePosition(file, Link(kIndexData));
-  data_file = file;
+
+  uint64_t data_size = DataSize();
+  SetFilePosition(buffer, Link(kIndexData));
 
   // Read in all SR block data
   for (const auto& cg3 :Cg3()) {
@@ -212,13 +204,13 @@ void Dg3Block::ReadRangeData(std::FILE *file, DgRange& range) {
     }
     const auto record_id = cg3->RecordId();
     if (range.IsUsed(record_id)) {
-      cg3->ReadData(file);
+      cg3->ReadData(buffer);
     }
   }
 
   //  auto pos = GetFilePosition(data_file);
   // Read through all record
-  ParseRangeDataRecords(data_file, data_size, range);
+  ParseRangeDataRecords(buffer, data_size, range);
 
 
 }
@@ -227,8 +219,8 @@ void Dg3Block::ClearData() {
   IDataGroup::ClearData();
 }
 
-void Dg3Block::ParseDataRecords(std::FILE *file, size_t nof_data_bytes) {
-  if (file == nullptr || nof_data_bytes == 0) {
+void Dg3Block::ParseDataRecords(std::streambuf& buffer, uint64_t nof_data_bytes) {
+  if (nof_data_bytes == 0) {
     return;
   }
   for (const auto& channel_group : Cg3() ) {
@@ -237,31 +229,31 @@ void Dg3Block::ParseDataRecords(std::FILE *file, size_t nof_data_bytes) {
     }
   }
 
-  for (size_t count = 0; count < nof_data_bytes; /* No ++count here*/) {
+  for (uint64_t count = 0; count < nof_data_bytes; /* No ++count here*/) {
     // 1. Read Record ID
     uint8_t record_id = 0;
     if (nof_record_id_ == 1 || nof_record_id_ == 2) {
-      count += ReadNumber(file, record_id);
+      count += ReadNumber(buffer, record_id);
     }
     const auto *cg3 = FindCgRecordId(record_id);
     if (cg3 == nullptr) {
       break;
     }
 
-    const auto read = cg3->ReadDataRecord(file, *this);
+    const auto read = cg3->ReadDataRecord(buffer, *this);
     if (read == 0) {
       break;
     }
     count += read;
     if (nof_record_id_ == 2) {
-      count += ReadNumber(file, record_id);
+      count += ReadNumber(buffer, record_id);
     }
   }
 }
 
-void Dg3Block::ParseRangeDataRecords(std::FILE *file, size_t nof_data_bytes,
+void Dg3Block::ParseRangeDataRecords(std::streambuf& buffer, uint64_t nof_data_bytes,
                                      DgRange& range) {
-  if (file == nullptr || nof_data_bytes == 0) {
+  if (nof_data_bytes == 0) {
     return;
   }
   for (const auto& channel_group : Cg3() ) {
@@ -270,11 +262,11 @@ void Dg3Block::ParseRangeDataRecords(std::FILE *file, size_t nof_data_bytes,
     }
   }
 
-  for (size_t count = 0; count < nof_data_bytes; /* No ++count here*/) {
+  for (uint64_t count = 0; count < nof_data_bytes; /* No ++count here*/) {
     // 1. Read Record ID
     uint8_t record_id = 0;
     if (nof_record_id_ == 1 || nof_record_id_ == 2) {
-      count += ReadNumber(file, record_id);
+      count += ReadNumber(buffer, record_id);
     }
     const auto *cg3 = FindCgRecordId(record_id);
     const auto* cg_range = range.GetCgRange(record_id);
@@ -282,7 +274,7 @@ void Dg3Block::ParseRangeDataRecords(std::FILE *file, size_t nof_data_bytes,
       break;
     }
 
-    const auto read = cg3->ReadRangeDataRecord(file,
+    const auto read = cg3->ReadRangeDataRecord(buffer,
                                                *this,
                                                range);
     if (read == 0) {
@@ -290,7 +282,7 @@ void Dg3Block::ParseRangeDataRecords(std::FILE *file, size_t nof_data_bytes,
     }
     count += read;
     if (nof_record_id_ == 2) {
-      count += ReadNumber(file, record_id);
+      count += ReadNumber(buffer, record_id);
     }
     if (range.IsReady()) {
       break;

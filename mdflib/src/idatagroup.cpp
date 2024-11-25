@@ -32,7 +32,7 @@ void IDataGroup::DetachSampleObserver(const ISampleObserver *observer) const {
 
 void IDataGroup::DetachAllSampleObservers() const { observer_list_.clear(); }
 
-bool IDataGroup::NotifySampleObservers(size_t sample, uint64_t record_id,
+bool IDataGroup::NotifySampleObservers(uint64_t sample, uint64_t record_id,
     const std::vector<uint8_t> &record) const {
   if (fast_observer_list_.empty()) {
     return false; // No meaning to continue reading

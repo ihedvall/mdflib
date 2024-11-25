@@ -22,7 +22,7 @@ class Mdf4Writer : public MdfWriter {
  protected:
   uint64_t offset_ = 0;
   void CreateMdfFile() override;
-  void SetLastPosition(std::FILE* file) override;
+  void SetLastPosition(std::streambuf& buffer) override;
   bool PrepareForWriting() override;
   void SaveQueue(std::unique_lock<std::mutex>& lock) override;
   void CleanQueue(std::unique_lock<std::mutex>& lock) override;
@@ -34,8 +34,8 @@ class Mdf4Writer : public MdfWriter {
   /** \brief Save one DZ block from the sample queue. */
   virtual void CleanQueueCompressed(std::unique_lock<std::mutex>& lock, bool finalize);
 
-  void SetDataPosition(std::FILE* file) override;
-  bool WriteSignalData(std::FILE* file) override;
+  void SetDataPosition(std::streambuf& buffer) override;
+  bool WriteSignalData(std::streambuf& buffer) override;
 
   Dg4Block* GetLastDg4();
  private:

@@ -38,13 +38,13 @@ void Mdf3File::DataGroups(DataGroupList &dest) const {
 
 IHeader *Mdf3File::Header() const { return hd_block_.get(); }
 
-void Mdf3File::ReadHeader(std::FILE *file) {
+void Mdf3File::ReadHeader(std::streambuf& buffer) {
   if (!id_block_) {
     id_block_ = std::make_unique<IdBlock>();
   }
   if (id_block_->FilePosition() < 0) {
-    SetFilePosition(file, 0);
-    id_block_->Read(file);
+    SetFilePosition(buffer, 0);
+    id_block_->Read(buffer);
   }
 
   if (!hd_block_) {
@@ -52,22 +52,22 @@ void Mdf3File::ReadHeader(std::FILE *file) {
   }
   if (hd_block_->FilePosition() <= 0) {
     hd_block_->Init(*id_block_);
-    SetFilePosition(file, 64);
-    hd_block_->Read(file);
+    SetFilePosition(buffer, 64);
+    hd_block_->Read(buffer);
   }
 }
 
-void Mdf3File::ReadMeasurementInfo(std::FILE *file) {
-  ReadHeader(file);
+void Mdf3File::ReadMeasurementInfo(std::streambuf& buffer) {
+  ReadHeader(buffer);
   if (hd_block_) {
-    hd_block_->ReadMeasurementInfo(file);
+    hd_block_->ReadMeasurementInfo(buffer);
   }
 }
-void Mdf3File::ReadEverythingButData(std::FILE *file) {
-  ReadHeader(file);
+void Mdf3File::ReadEverythingButData(std::streambuf& buffer) {
+  ReadHeader(buffer);
   if (hd_block_) {
-    hd_block_->ReadMeasurementInfo(file);
-    hd_block_->ReadEverythingButData(file);
+    hd_block_->ReadMeasurementInfo(buffer);
+    hd_block_->ReadEverythingButData(buffer);
   }
 }
 bool Mdf3File::IsMdf4() const { return false; }
@@ -106,18 +106,15 @@ IDataGroup *Mdf3File::CreateDataGroup() {
   return hd_block_ ? hd_block_->CreateDataGroup() : nullptr;
 }
 
-bool Mdf3File::Write(std::FILE *file) {
-  if (file == nullptr) {
-    MDF_ERROR() << "File pointer is null. Invalid use of function.";
-    return false;
-  }
+bool Mdf3File::Write(std::streambuf& buffer) {
+
   if (!id_block_ || !hd_block_) {
     MDF_ERROR() << "No ID or HD block defined. Invalid use of function.";
     return false;
   }
   try {
-    id_block_->Write(file);
-    hd_block_->Write(file);
+    id_block_->Write(buffer);
+    hd_block_->Write(buffer);
   } catch (const std::exception &err) {
     MDF_ERROR() << "Failed to write MDF3 file. Error: " << err.what();
   }
@@ -143,10 +140,10 @@ void Mdf3File::MinorVersion(int minor) {
     id_block_->MinorVersion(minor);
   }
 }
-void Mdf3File::IsFinalized(bool finalized, std::FILE *file,
+void Mdf3File::IsFinalized(bool finalized, std::streambuf& buffer,
                            uint16_t standard_flags, uint16_t custom_flags) {
   if (id_block_) {
-    id_block_->IsFinalized(finalized, file, standard_flags, custom_flags);
+    id_block_->IsFinalized(finalized, buffer, standard_flags, custom_flags);
   }
 }
 

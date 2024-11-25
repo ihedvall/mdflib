@@ -6,7 +6,7 @@
 #pragma once
 
 #include "mdf4writer.h"
-
+#include <fstream>
 namespace mdf::detail {
 
 class MdfConverter : public Mdf4Writer {
@@ -28,7 +28,7 @@ class MdfConverter : public Mdf4Writer {
   void CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
                             bool finalize) override;
  private:
-  std::FILE* file_ = nullptr; ///< File pointer as the file is open between calls.
+  std::filebuf file_; ///< File pointer as the file is open between calls.
   void ConverterThread();
 };
 

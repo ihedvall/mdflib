@@ -6,6 +6,7 @@
 
 #include <cerrno>
 #include <sstream>
+#include <fstream>
 
 #include "mdf/cryptoutil.h"
 #include "mdf/mdfhelper.h"
@@ -46,15 +47,11 @@ std::string MakeFlagString(uint16_t flag) {
   return s.str();
 }
 
-bool CopyBytes(std::FILE* source, std::FILE* dest, uint64_t nof_bytes) {
+bool CopyBytes(std::streambuf& source, std::streambuf& dest, uint64_t nof_bytes) {
   uint8_t temp = 0;
   for (uint64_t ii = 0; ii < nof_bytes; ++ii) {
-    if (fread(&temp, 1, 1, source) != 1) {
-      return false;
-    }
-    if (fwrite(&temp, 1, 1, dest) != 1) {
-      return false;
-    }
+    temp = source.sbumpc();
+    dest.sputc(static_cast<char>(temp));
   }
   return true;
 }
@@ -144,27 +141,27 @@ void At4Block::GetBlockProperty(BlockPropertyList& dest) const {
   }
 }
 
-size_t At4Block::Read(std::FILE* file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, flags_);
-  bytes += ReadNumber(file, creator_index_);
+uint64_t At4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, flags_);
+  bytes += ReadNumber(buffer, creator_index_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 4);
-  bytes += ReadByte(file, md5_, 16);
-  bytes += ReadNumber(file, original_size_);
-  bytes += ReadNumber(file, nof_bytes_);
+  bytes += ReadByte(buffer, reserved, 4);
+  bytes += ReadByte(buffer, md5_, 16);
+  bytes += ReadNumber(buffer, original_size_);
+  bytes += ReadNumber(buffer, nof_bytes_);
   // Do not read in the data BLOB at this point but store the file position for
   // that data, so it is fast to get the data later
-  data_position_ = GetFilePosition(file);
+  data_position_ = GetFilePosition(buffer);
 
-  filename_ = ReadTx4(file, kIndexFilename);
-  file_type_ = ReadTx4(file, kIndexType);
-  ReadMdComment(file, kIndexMd);
+  filename_ = ReadTx4(buffer, kIndexFilename);
+  file_type_ = ReadTx4(buffer, kIndexType);
+  ReadMdComment(buffer, kIndexMd);
 
   return bytes;
 }
 
-size_t At4Block::Write(std::FILE* file) {
+uint64_t At4Block::Write(std::streambuf& buffer) {
   const bool update = FilePosition() > 0;
   if (update) {
     return block_size_;
@@ -190,8 +187,8 @@ size_t At4Block::Write(std::FILE* file) {
         return 0;
       }
     } else if (IsEmbedded()) {
-      const auto buffer = FileToBuffer(filename_, data_buffer);
-      if (!buffer) {
+      const auto read = FileToBuffer(filename_, data_buffer);
+      if (!read) {
         MDF_ERROR() << "File to buffer failure. File: " << filename;
         return 0;
       }
@@ -209,44 +206,47 @@ size_t At4Block::Write(std::FILE* file) {
   block_length_ = 24 + (4 * 8) + 2 + 2 + 4 + 16 + 8 + 8 + nof_bytes_;
   link_list_.resize(4, 0);
 
-  WriteTx4(file, kIndexFilename, filename_);
-  WriteTx4(file, kIndexType, file_type_);
-  WriteMdComment(file, kIndexMd);
+  WriteTx4(buffer, kIndexFilename, filename_);
+  WriteTx4(buffer, kIndexType, file_type_);
+  WriteMdComment(buffer, kIndexMd);
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file, flags_);
-  bytes += WriteNumber(file, creator_index_);
-  bytes += WriteBytes(file, 4);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer, flags_);
+  bytes += WriteNumber(buffer, creator_index_);
+  bytes += WriteBytes(buffer, 4);
   if (md5_.size() == 16) {
-    bytes += WriteByte(file, md5_);
+    bytes += WriteByte(buffer, md5_);
   } else {
-    bytes += WriteBytes(file, 16);
+    bytes += WriteBytes(buffer, 16);
   }
-  bytes += WriteNumber(file, original_size_);
-  bytes += WriteNumber(file, nof_bytes_);
+  bytes += WriteNumber(buffer, original_size_);
+  bytes += WriteNumber(buffer, nof_bytes_);
   data_position_ = FilePosition();
   if (nof_bytes_ > 0) {
-    bytes += WriteByte(file, data_buffer);
+    bytes += WriteByte(buffer, data_buffer);
   }
-  UpdateBlockSize(file, bytes);
+  UpdateBlockSize(buffer, bytes);
 
   return bytes;
 }
 
-void At4Block::ReadData(std::FILE* file, const std::string& dest_file) const {
-  if (file == nullptr || data_position_ <= 0) {
+void At4Block::ReadData(std::streambuf& buffer,
+                        const std::string& dest_file) const {
+  if (data_position_ <= 0) {
     throw std::invalid_argument("File is not opened or data position not read");
   }
-  SetFilePosition(file, data_position_);
+  SetFilePosition(buffer, data_position_);
   if (IsEmbedded()) {
-    FILE* dest = nullptr;
-    Platform::fileopen(&dest, dest_file.c_str(), "wb");
-    if (dest == nullptr) {
+    std::filebuf dest;
+    dest.open( dest_file,
+            std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+    if (!dest.is_open()) {
       throw std::ios_base::failure("Failed to open the destination file");
     }
-    const bool error = IsCompressed() ? !Inflate(file, dest, nof_bytes_)
-                                      : !CopyBytes(file, dest, nof_bytes_);
-    if (const int close = fclose(dest); error || close != 0) {
+    const bool error = IsCompressed() ? !Inflate(buffer, dest, nof_bytes_)
+                                      : !CopyBytes(buffer, dest, nof_bytes_);
+    dest.close();
+    if ( error ) {
       throw std::ios_base::failure("Failed to copy correct number of bytes");
     }
   } else {

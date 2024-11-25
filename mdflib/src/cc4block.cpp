@@ -203,43 +203,43 @@ void Cc4Block::GetBlockProperty(BlockPropertyList& dest) const {
   }
 }
 
-size_t Cc4Block::Read(std::FILE* file) {  // NOLINT
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, type_);
-  bytes += ReadNumber(file, precision_);
-  bytes += ReadNumber(file, flags_);
-  bytes += ReadNumber(file, nof_references_);
-  bytes += ReadNumber(file, nof_values_);
-  bytes += ReadNumber(file, range_min_);
-  bytes += ReadNumber(file, range_max_);
+uint64_t Cc4Block::Read(std::streambuf& buffer) {  // NOLINT
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, type_);
+  bytes += ReadNumber(buffer, precision_);
+  bytes += ReadNumber(buffer, flags_);
+  bytes += ReadNumber(buffer, nof_references_);
+  bytes += ReadNumber(buffer, nof_values_);
+  bytes += ReadNumber(buffer, range_min_);
+  bytes += ReadNumber(buffer, range_max_);
 
   value_list_.clear();
   for (uint16_t ii = 0; ii < nof_values_; ++ii) {
     if (Type() == ConversionType::BitfieldToText) {
       uint64_t temp = 0;
-      bytes += ReadNumber(file, temp);
+      bytes += ReadNumber(buffer, temp);
       value_list_.emplace_back(temp);
     } else {
       double temp = 0;
-      bytes += ReadNumber(file, temp);
+      bytes += ReadNumber(buffer, temp);
       value_list_.emplace_back(temp);
     }
   }
 
-  name_ = ReadTx4(file, kIndexName);
+  name_ = ReadTx4(buffer, kIndexName);
   if (Link(kIndexUnit) > 0) {
-    SetFilePosition(file, Link(kIndexUnit));
+    SetFilePosition(buffer, Link(kIndexUnit));
     unit_ = std::make_unique<Md4Block>();
     unit_->Init(*this);
-    unit_->Read(file);
+    unit_->Read(buffer);
   }
-  ReadMdComment(file, kIndexMd);
+  ReadMdComment(buffer, kIndexMd);
 
   if (Link(kIndexInverse) > 0) {
-    SetFilePosition(file, Link(kIndexInverse));
+    SetFilePosition(buffer, Link(kIndexInverse));
     cc_block_ = std::make_unique<Cc4Block>();
     cc_block_->Init(*this);
-    cc_block_->Read(file);
+    cc_block_->Read(buffer);
   }
   if (ref_list_.empty() && nof_references_ > 0) {
     for (uint16_t ii = 0; ii < nof_references_; ++ii) {
@@ -247,20 +247,20 @@ size_t Cc4Block::Read(std::FILE* file) {  // NOLINT
         ref_list_.emplace_back(std::unique_ptr<MdfBlock>());
         continue;
       }
-      SetFilePosition(file, Link(kIndexRef + ii));
-      const std::string block_type = ReadBlockType(file);
+      SetFilePosition(buffer, Link(kIndexRef + ii));
+      const std::string block_type = ReadBlockType(buffer);
 
-      SetFilePosition(file, Link(kIndexRef + ii));
+      SetFilePosition(buffer, Link(kIndexRef + ii));
       if (block_type == "TX") {
         auto tx = std::make_unique<Tx4Block>();
         tx->Init(*this);
-        tx->Read(file);
+        tx->Read(buffer);
         ref_list_.emplace_back(std::move(tx));
       } else if (block_type == "CC") {
         auto cc = std::make_unique<Cc4Block>();
         cc->Init(*this);
         cc->ChannelDataType(channel_data_type_);
-        cc->Read(file);
+        cc->Read(buffer);
         ref_list_.emplace_back(std::move(cc));
       } else {
         ref_list_.emplace_back(std::unique_ptr<MdfBlock>());
@@ -270,7 +270,7 @@ size_t Cc4Block::Read(std::FILE* file) {  // NOLINT
   return bytes;
 }
 
-size_t Cc4Block::Write(std::FILE* file) {  // NOLINT
+uint64_t Cc4Block::Write(std::streambuf& buffer) {  // NOLINT
   const bool update = FilePosition() > 0;  // True if already written to file
   if (update) {
     return static_cast<size_t>(block_length_);
@@ -283,35 +283,35 @@ size_t Cc4Block::Write(std::FILE* file) {  // NOLINT
   block_length_ = 24 + (4 * 8) + (nof_references_ * 8) + 1 + 1 + 2 + 2 + 2 + 8 +
                   8 + (8 * nof_values_);
   link_list_.resize(4 + nof_references_, 0);
-  WriteTx4(file, kIndexName, name_);
-  WriteBlock4(file, unit_, kIndexUnit);
-  WriteMdComment(file, kIndexMd);
-  WriteBlock4(file, cc_block_, kIndexInverse);
+  WriteTx4(buffer, kIndexName, name_);
+  WriteBlock4(buffer, unit_, kIndexUnit);
+  WriteMdComment(buffer, kIndexMd);
+  WriteBlock4(buffer, cc_block_, kIndexInverse);
   for (uint16_t index_m = 0; index_m < nof_references_; ++index_m) {
     const auto index = kIndexRef + index_m;
     auto& block = ref_list_[index_m];
-    WriteBlock4(file, block, index);
+    WriteBlock4(buffer, block, index);
   }
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file, type_);
-  bytes += WriteNumber(file, precision_);
-  bytes += WriteNumber(file, flags_);
-  bytes += WriteNumber(file, nof_references_);
-  bytes += WriteNumber(file, nof_values_);
-  bytes += WriteNumber(file, range_min_);
-  bytes += WriteNumber(file, range_max_);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer, type_);
+  bytes += WriteNumber(buffer, precision_);
+  bytes += WriteNumber(buffer, flags_);
+  bytes += WriteNumber(buffer, nof_references_);
+  bytes += WriteNumber(buffer, nof_values_);
+  bytes += WriteNumber(buffer, range_min_);
+  bytes += WriteNumber(buffer, range_max_);
   for (uint16_t index_n = 0; index_n < nof_values_; ++index_n) {
     const auto& val = value_list_[index_n];
     if (std::holds_alternative<double>(val)) {
-      bytes += WriteNumber(file, std::get<double>(val));
+      bytes += WriteNumber(buffer, std::get<double>(val));
     } else if (std::holds_alternative<uint64_t>(val)) {
-      bytes += WriteNumber(file, std::get<uint64_t>(val));
+      bytes += WriteNumber(buffer, std::get<uint64_t>(val));
     } else {
-      bytes += WriteNumber(file, 0.0);
+      bytes += WriteNumber(buffer, 0.0);
     }
   }
-  UpdateBlockSize(file, bytes);
+  UpdateBlockSize(buffer, bytes);
   return bytes;
 }
 

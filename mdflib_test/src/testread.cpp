@@ -9,6 +9,10 @@
 #include <map>
 #include <string>
 
+#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+
 #include "mdf/mdfreader.h"
 #include "mdf3file.h"
 #include "mdf4file.h"
@@ -24,6 +28,8 @@ using namespace mdf::detail;
 using namespace util::log;
 using namespace std::chrono_literals;
 using namespace std::chrono;
+using namespace boost::iostreams;
+
 namespace {
 const std::string mdf_source_dir =
     "k:/test/mdf";  // Where all source MDF files exist
@@ -634,4 +640,70 @@ TEST_F(TestRead, TestCssSampleObserver) {
             << "/" << diff2.count() << " ms)" << std::endl;
 
 }
+
+
+TEST_F(TestRead, TestStreamInterface)  // NOLINT
+{
+  if (kMdfList.empty()) {
+    GTEST_SKIP_("No MDF files found.");
+  }
+  // Read into memory and then parse the memory.
+
+  for (const auto &[name, filename] : kMdfList) {
+    uint64_t file_size = 0;
+    // Read in file into memory
+    try {
+      const path fullname(filename);
+      file_size = std::filesystem::file_size(fullname);
+     } catch (std::exception& err) {
+      ADD_FAILURE() << err.what();
+      continue;
+    }
+
+    if (file_size > 1'000'000'000) {
+      // Skip large files.
+      continue;
+    }
+    std::vector<char> file_array;
+    file_array.reserve(file_size);
+
+    back_insert_device<std::vector<char>> array_device(file_array);
+    stream_buffer< back_insert_device<std::vector<char> >> out_buffer(array_device);
+    std::ostream out_array(&out_buffer);
+
+    std::ifstream in_file(filename, std::ios_base::in | std::ios_base::binary);
+    for ( int input = in_file.get(); !in_file.eof(); input = in_file.get()  ) {
+      if (input>= 0) {
+        out_array.put(static_cast<char>(input));
+      }
+    }
+    in_file.close();
+    out_buffer.close();
+
+    if (file_array.empty()) {
+      ADD_FAILURE() << "File is empty. File: " << name;
+      continue;
+    }
+
+    std::shared_ptr<std::streambuf> input_buffer =
+        std::make_shared< stream_buffer<array_source> >(file_array.data(), file_array.size());
+
+    MdfReader oRead(input_buffer);
+    EXPECT_TRUE(oRead.ReadMeasurementInfo()) << name;
+    const auto *mdf_file = oRead.GetFile();
+    ASSERT_TRUE(mdf_file != nullptr) << name;
+    if (mdf_file->IsMdf4()) {
+      const auto *file4 = dynamic_cast<const Mdf4File *>(mdf_file);
+      ASSERT_TRUE(file4 != nullptr) << name;
+      const auto &hd4 = file4->Hd();
+      const auto &dg_list = hd4.Dg4();
+      std::cout <<"File: " << name << ", Nof Measurement: " << dg_list.size() << std::endl;
+      EXPECT_FALSE(dg_list.empty()) << name;
+    } else {
+      const auto *file3 = dynamic_cast<const Mdf3File *>(mdf_file);
+      EXPECT_TRUE(file3 != nullptr);
+    }
+  }
+}
+
 }  // namespace mdf::test

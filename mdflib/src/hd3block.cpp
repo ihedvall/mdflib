@@ -20,7 +20,11 @@ constexpr size_t kIndexNext = 0;
 }  // namespace
 
 namespace mdf::detail {
-
+Hd3Block::Hd3Block() {
+  block_type_ = "HD";
+  UtcTimestamp now(MdfHelper::NowNs());
+  timestamp_.SetTime(now);
+}
 const Hd3Block::Dg3List &Hd3Block::Dg3() const { return dg_list_; }
 
 std::string Hd3Block::Comment() const { return comment_; }
@@ -92,63 +96,63 @@ void Hd3Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Comment", comment_);
 }
 
-size_t Hd3Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader3(file);
-  bytes += ReadLinks3(file, 3);
+uint64_t Hd3Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader3(buffer);
+  bytes += ReadLinks3(buffer, 3);
   // The for loop handles earlier versions of the MDF file
   for (int ii = 3; bytes < block_size_; ++ii) {
     switch (ii) {
       case 3:
-        bytes += ReadNumber(file, nof_dg_blocks_);
+        bytes += ReadNumber(buffer, nof_dg_blocks_);
         break;
       case 4:
-        bytes += ReadStr(file, timestamp_.date_, 10);
+        bytes += ReadStr(buffer, timestamp_.date_, 10);
         break;
       case 5:
-        bytes += ReadStr(file, timestamp_.time_, 8);
+        bytes += ReadStr(buffer, timestamp_.time_, 8);
         break;
       case 6:
-        bytes += ReadStr(file, author_, 32);
+        bytes += ReadStr(buffer, author_, 32);
         break;
       case 7:
-        bytes += ReadStr(file, organisation_, 32);
+        bytes += ReadStr(buffer, organisation_, 32);
         break;
       case 8:
-        bytes += ReadStr(file, project_, 32);
+        bytes += ReadStr(buffer, project_, 32);
         break;
       case 9:
-        bytes += ReadStr(file, subject_, 32);
+        bytes += ReadStr(buffer, subject_, 32);
         break;
       case 10:
-        bytes += ReadNumber(file, timestamp_.local_timestamp_);
+        bytes += ReadNumber(buffer, timestamp_.local_timestamp_);
         break;
       case 11:
-        bytes += ReadNumber(file, timestamp_.utc_offset_);
+        bytes += ReadNumber(buffer, timestamp_.utc_offset_);
         break;
       case 12:
-        bytes += ReadNumber(file, timestamp_.time_quality_);
+        bytes += ReadNumber(buffer, timestamp_.time_quality_);
         break;
       case 13:
-        bytes += ReadStr(file, timestamp_.timer_id_, 32);
+        bytes += ReadStr(buffer, timestamp_.timer_id_, 32);
         break;
       default:
         std::string temp;
-        bytes += ReadStr(file, temp, 1);
+        bytes += ReadStr(buffer, temp, 1);
         break;
     }
   }
-  comment_ = ReadTx3(file, kIndexTx);
+  comment_ = ReadTx3(buffer, kIndexTx);
 
   if (Link(kIndexPr) > 0) {
     pr_block_ = std::make_unique<Pr3Block>();
     pr_block_->Init(*this);
-    SetFilePosition(file, Link(kIndexPr));
-    pr_block_->Read(file);
+    SetFilePosition(buffer, Link(kIndexPr));
+    pr_block_->Read(buffer);
   }
   return bytes;
 }
 
-size_t Hd3Block::Write(std::FILE *file) {
+uint64_t Hd3Block::Write(std::streambuf& buffer) {
   const bool update =
       FilePosition() > 0;  // Write or update the values inside the block
   if (!update) {
@@ -157,36 +161,36 @@ size_t Hd3Block::Write(std::FILE *file) {
     link_list_.resize(3, 0);
   }
 
-  auto bytes = update ? MdfBlock::Update(file) : MdfBlock::Write(file);
+  uint64_t bytes = update ? MdfBlock::Update(buffer) : MdfBlock::Write(buffer);
 
   nof_dg_blocks_ = static_cast<uint16_t>(dg_list_.size());
-  bytes += WriteNumber(file, nof_dg_blocks_);
-  bytes += WriteStr(file, timestamp_.date_, 10);
-  bytes += WriteStr(file, timestamp_.time_, 8);
-  bytes += WriteStr(file, author_, 32);
-  bytes += WriteStr(file, organisation_, 32);
-  bytes += WriteStr(file, project_, 32);
-  bytes += WriteStr(file, subject_, 32);
-  bytes += WriteNumber(file, timestamp_.local_timestamp_);
-  bytes += WriteNumber(file, timestamp_.utc_offset_);
-  bytes += WriteNumber(file, timestamp_.time_quality_);
-  bytes += WriteStr(file, timestamp_.timer_id_, 32);
+  bytes += WriteNumber(buffer, nof_dg_blocks_);
+  bytes += WriteStr(buffer, timestamp_.date_, 10);
+  bytes += WriteStr(buffer, timestamp_.time_, 8);
+  bytes += WriteStr(buffer, author_, 32);
+  bytes += WriteStr(buffer, organisation_, 32);
+  bytes += WriteStr(buffer, project_, 32);
+  bytes += WriteStr(buffer, subject_, 32);
+  bytes += WriteNumber(buffer, timestamp_.local_timestamp_);
+  bytes += WriteNumber(buffer, timestamp_.utc_offset_);
+  bytes += WriteNumber(buffer, timestamp_.time_quality_);
+  bytes += WriteStr(buffer, timestamp_.timer_id_, 32);
 
   if (!update) {
-    UpdateBlockSize(file, bytes);
+    UpdateBlockSize(buffer, bytes);
   }
 
   if (!comment_.empty() && Link(kIndexTx) <= 0) {
     Tx3Block tx(comment_);
     tx.Init(*this);
-    tx.Write(file);
-    UpdateLink(file, kIndexTx, tx.FilePosition());
+    tx.Write(buffer);
+    UpdateLink(buffer, kIndexTx, tx.FilePosition());
   }
 
   if (pr_block_ && Link(kIndexPr) <= 0) {
     pr_block_->Init(*this);
-    pr_block_->Write(file);
-    UpdateLink(file, kIndexPr, pr_block_->FilePosition());
+    pr_block_->Write(buffer);
+    UpdateLink(buffer, kIndexPr, pr_block_->FilePosition());
   }
 
   for (size_t index = 0; index < dg_list_.size(); ++index) {
@@ -202,40 +206,40 @@ size_t Hd3Block::Write(std::FILE *file) {
       continue;
     }
 
-    dg3->Write(file);
+    dg3->Write(buffer);
     if (index == 0) {
-      UpdateLink(file, kIndexDg, dg3->FilePosition());
+      UpdateLink(buffer, kIndexDg, dg3->FilePosition());
     } else {
       auto &prev = dg_list_[index - 1];
       if (prev) {
-        prev->UpdateLink(file, kIndexNext, dg3->FilePosition());
+        prev->UpdateLink(buffer, kIndexNext, dg3->FilePosition());
       }
     }
   }
   return bytes;
 }
 
-void Hd3Block::ReadMeasurementInfo(std::FILE *file) {
+void Hd3Block::ReadMeasurementInfo(std::streambuf& buffer) {
   dg_list_.clear();
   for (auto link = Link(kIndexDg); link > 0; /* No ++ here*/) {
     auto dg = std::make_unique<Dg3Block>();
     dg->Init(*this);
-    SetFilePosition(file, link);
-    dg->Read(file);
+    SetFilePosition(buffer, link);
+    dg->Read(buffer);
     link = dg->Link(kIndexNext);
     dg_list_.emplace_back(std::move(dg));
   }
 }
 
-void Hd3Block::ReadEverythingButData(std::FILE *file) {
+void Hd3Block::ReadEverythingButData(std::streambuf& buffer) {
   // We assume that ReadMeasurementInfo have been called earlier
   for (auto &dg : dg_list_) {
     if (!dg) {
       continue;
     }
     for (auto &cg : dg->Cg3()) {
-      cg->ReadCnList(file);
-      cg->ReadSrList(file);
+      cg->ReadCnList(buffer);
+      cg->ReadSrList(buffer);
     }
   }
 }
@@ -304,5 +308,6 @@ void Hd3Block::AddDg3(std::unique_ptr<Dg3Block> &dg3) {
 const mdf::IMdfTimestamp *Hd3Block::StartTimestamp() const { 
   return &timestamp_;
 }
+
 
 }  // end namespace mdf::detail

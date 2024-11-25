@@ -72,48 +72,46 @@ void IdBlock::GetBlockProperty(BlockPropertyList &dest) const {
 
 }
 
-size_t IdBlock::Read(std::FILE *file) {
+uint64_t IdBlock::Read(std::streambuf& buffer) {
   block_type_ = "ID";
   block_length_ = 64;
 
-  file_position_ = GetFilePosition(file);
-  size_t bytes = ReadStr(file, file_identifier_, 8);
-  bytes += ReadStr(file, format_identifier_, 8);
-  bytes += ReadStr(file, program_identifier_, 8);
-  bytes += ReadNumber(file, byte_order_);  // Note defined in MdfBlock class
-  bytes += ReadNumber(file, floating_point_format_);
-  bytes += ReadNumber(file, version_);
-  bytes += ReadNumber(file, code_page_number_);
+  file_position_ = GetFilePosition(buffer);
+  uint64_t bytes = ReadStr(buffer, file_identifier_, 8);
+  bytes += ReadStr(buffer, format_identifier_, 8);
+  bytes += ReadStr(buffer, program_identifier_, 8);
+  bytes += ReadNumber(buffer, byte_order_);  // Note defined in MdfBlock class
+  bytes += ReadNumber(buffer, floating_point_format_);
+  bytes += ReadNumber(buffer, version_);
+  bytes += ReadNumber(buffer, code_page_number_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 28);
-  bytes += ReadNumber(file, standard_flags_);
-  bytes += ReadNumber(file, custom_flags_);
+  bytes += ReadByte(buffer, reserved, 28);
+  bytes += ReadNumber(buffer, standard_flags_);
+  bytes += ReadNumber(buffer, custom_flags_);
   return bytes;
 }
 
-size_t IdBlock::Write(std::FILE *file) {
+uint64_t IdBlock::Write(std::streambuf& buffer) {
   // Check if it has been written. Update is not supported in ID
   if (FilePosition() == 0) {
     return 64;
   }
 
   //  Do not call MdfBlock::Write(file) as the other block writes do
-  if (file == nullptr) {
-    throw std::runtime_error("File pointer is null");
-  }
-  SetFirstFilePosition(file);
-  file_position_ = GetFilePosition(file);
-  size_t bytes = WriteStr(file, file_identifier_, 8);
-  bytes += WriteStr(file, format_identifier_, 8);
-  bytes += WriteStr(file, program_identifier_, 8);
-  bytes += WriteNumber(file, byte_order_);
-  bytes += WriteNumber(file, floating_point_format_);
-  bytes += WriteNumber(file, version_);
-  bytes += WriteNumber(file, code_page_number_);
+
+  SetFirstFilePosition(buffer);
+  file_position_ = GetFilePosition(buffer);
+  uint64_t bytes = WriteStr(buffer, file_identifier_, 8);
+  bytes += WriteStr(buffer, format_identifier_, 8);
+  bytes += WriteStr(buffer, program_identifier_, 8);
+  bytes += WriteNumber(buffer, byte_order_);
+  bytes += WriteNumber(buffer, floating_point_format_);
+  bytes += WriteNumber(buffer, version_);
+  bytes += WriteNumber(buffer, code_page_number_);
   std::vector<uint8_t> reserved(28, 0);
-  bytes += WriteByte(file, reserved);
-  bytes += WriteNumber(file, standard_flags_);
-  bytes += WriteNumber(file, custom_flags_);
+  bytes += WriteByte(buffer, reserved);
+  bytes += WriteNumber(buffer, standard_flags_);
+  bytes += WriteNumber(buffer, custom_flags_);
   if (bytes != 64) {
     throw std::runtime_error("ID block not 64 bytes");
   }
@@ -173,7 +171,7 @@ void IdBlock::MinorVersion(int minor) {
   version_ = 100 * major + minor;
 }
 
-void IdBlock::IsFinalized(bool finalized, std::FILE *file,
+void IdBlock::IsFinalized(bool finalized, std::streambuf& buffer,
                           uint16_t standard_flags, uint16_t custom_flags) {
   if (finalized) {
     file_identifier_ = "MDF     ";
@@ -186,12 +184,12 @@ void IdBlock::IsFinalized(bool finalized, std::FILE *file,
   }
 
   // Check if the file also needs update
-  if (file != nullptr && FilePosition() == 0) {
-    SetFirstFilePosition(file);
-    WriteStr(file, file_identifier_, 8);
-    SetFilePosition(file, 60);
-    WriteNumber(file, standard_flags_);
-    WriteNumber(file, custom_flags_);
+  if (FilePosition() == 0) {
+    SetFirstFilePosition(buffer);
+    WriteStr(buffer, file_identifier_, 8);
+    SetFilePosition(buffer, 60);
+    WriteNumber(buffer, standard_flags_);
+    WriteNumber(buffer, custom_flags_);
   }
 }
 

@@ -6,33 +6,18 @@
 
 #include <cstdio>
 #include <sstream>
+#include <utility>
 
 #include "mdf/mdfhelper.h"
 
 namespace mdf::detail {
 
-Tx3Block::Tx3Block(const std::string &text) : text_(text) {}
+Tx3Block::Tx3Block(std::string text) : text_(std::move(text)) {}
 
-size_t Tx3Block::Read(std::FILE *file) {
-  auto bytes = ReadHeader3(file);
-
-  std::ostringstream temp;
-  char in = '\0';
-  for (; bytes < block_size_; ++bytes) {
-    auto nof = std::fread(&in, 1, 1, file);
-    if (nof != 1) {
-      // Suppose end of file or something
-      break;
-    }
-    if (in == '\0') {
-      // No more to read
-      break;
-    }
-    temp << in;
-  }
-  text_ = temp.str();
-
-  return bytes;
+uint64_t Tx3Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader3(buffer);
+  bytes += ReadStr(buffer, text_, block_size_ - bytes -1);
+  return bytes + 1;
 }
 
 std::string Tx3Block::Text() const {
@@ -40,15 +25,18 @@ std::string Tx3Block::Text() const {
   MdfHelper::Trim(temp);
   return temp;
 }
-size_t Tx3Block::Write(std::FILE *file) {
+
+uint64_t Tx3Block::Write(std::streambuf& buffer) {
   block_type_ = "TX";
   block_size_ = static_cast<uint16_t>((2 + 2) + text_.size() + 1);
   link_list_.clear();
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += std::fwrite(text_.data(), 1, text_.size(), file);
+  auto bytes = MdfBlock::Write(buffer);
+  bytes += buffer.sputn(text_.data(),
+                        static_cast<std::streamsize>(text_.size()));
   constexpr char blank = '\0';
-  bytes += std::fwrite(&blank, 1, 1, file);
+  buffer.sputc(blank);
+  ++bytes;
   return bytes;
 }
 

@@ -7,50 +7,50 @@
 #include <array>
 namespace mdf::detail {
 
-size_t DataBlock::CopyDataToFile(std::FILE *from_file,
-                                 std::FILE *to_file) const {
-  if (from_file == nullptr || to_file == nullptr) {
-    throw std::invalid_argument("File pointers may not be null");
-  }
-
+uint64_t DataBlock::CopyDataToFile(std::streambuf& from_file,
+                                 std::streambuf& to_file) const {
   SetFilePosition(from_file, DataPosition());
 
-  auto data_size = DataSize();
+  uint64_t data_size = DataSize();
   if (data_size == 0) {
     return 0;
   }
-  size_t count = 0;
-  std::array<uint8_t, 10'000> temp{};
-  size_t bytes_to_read = std::min(data_size, temp.size());
-  for (auto reads = fread(temp.data(), 1, bytes_to_read, from_file);
+  uint64_t count = 0;
+  std::array<char, 10'000> temp{};
+  uint64_t bytes_to_read = std::min(data_size, static_cast<uint64_t>(temp.size()) );
+  for (uint64_t reads = from_file.sgetn(temp.data(),
+                                    static_cast<std::streamsize>(bytes_to_read));
        reads > 0 && bytes_to_read > 0 && data_size > 0;
-       reads = fread(temp.data(), 1, bytes_to_read, from_file)) {
-    const auto writes = fwrite(temp.data(), 1, reads, to_file);
+       reads = from_file.sgetn(temp.data(),
+                                   static_cast<std::streamsize>(bytes_to_read) )) {
+    const uint64_t writes = to_file.sputn(temp.data(),
+                                      static_cast<std::streamsize>(reads));
     count += writes;
     if (writes != reads) {
       break;
     }
 
     data_size -= reads;
-    bytes_to_read = std::min(data_size, temp.size());
+    bytes_to_read = std::min(data_size, static_cast<uint64_t>(temp.size()) );
   }
   return count;
 }
 
-size_t DataBlock::CopyDataToBuffer(std::FILE *from_file,
-                                   std::vector<uint8_t> &buffer,
-                                   size_t &buffer_index) const {
-  if (from_file == nullptr) {
-    throw std::invalid_argument("File pointers may not be null");
-  }
-  SetFilePosition(from_file, DataPosition());
-  const auto data_size = DataSize();
+uint64_t DataBlock::CopyDataToBuffer(std::streambuf& buffer,
+                                   std::vector<uint8_t> &dest,
+                                   uint64_t &buffer_index) const {
+  SetFilePosition(buffer, DataPosition());
+  const uint64_t data_size = DataSize();
   if (data_size == 0) {
     return 0;
   }
+  if (dest.size() > (buffer_index + data_size)) {
+    throw std::runtime_error("Buffer overflow detected.");
+  }
 
-  const auto reads =
-      fread(buffer.data() + buffer_index, 1, data_size, from_file);
+  const uint64_t reads = buffer.sgetn(
+      reinterpret_cast<char*>(dest.data()) + buffer_index,
+      static_cast<std::streamsize>(data_size));
   buffer_index += reads;
   return reads;
 }
@@ -60,11 +60,12 @@ bool DataBlock::Data(const std::vector<uint8_t> &data) {
   return true;
 }
 
-size_t DataBlock::ReadData(std::FILE *file) {
-  if (data_position_ <= 0 || file == nullptr) {
+uint64_t DataBlock::ReadData(std::streambuf& buffer) {
+  if (data_position_ <= 0) {
     return 0;
   }
-  return ReadByte(file, data_,DataSize());
+  SetFilePosition(buffer,data_position_);
+  return ReadByte(buffer, data_,DataSize());
 }
 
 }  // namespace mdf::detail

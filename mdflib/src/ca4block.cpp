@@ -269,17 +269,17 @@ void Ca4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Ca4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);  // This function also read in all links
-  bytes += ReadNumber(file, type_);
-  bytes += ReadNumber(file, storage_);
-  bytes += ReadNumber(file, dimensions_);
-  bytes += ReadNumber(file, flags_);
-  bytes += ReadNumber(file, byte_offset_base_);
-  bytes += ReadNumber(file, invalid_bit_pos_base_);
+uint64_t Ca4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);  // This function also read in all links
+  bytes += ReadNumber(buffer, type_);
+  bytes += ReadNumber(buffer, storage_);
+  bytes += ReadNumber(buffer, dimensions_);
+  bytes += ReadNumber(buffer, flags_);
+  bytes += ReadNumber(buffer, byte_offset_base_);
+  bytes += ReadNumber(buffer, invalid_bit_pos_base_);
   dim_size_list_.resize(dimensions_, 0);  // Resize number values/dimension
   for (uint64_t& dim_size : dim_size_list_ ) {
-    bytes += ReadNumber(file, dim_size);
+    bytes += ReadNumber(buffer, dim_size);
   }
   const auto sum_dim = SumOfArray();
   const auto prod_dim = ProductOfArray();
@@ -287,7 +287,7 @@ size_t Ca4Block::Read(std::FILE *file) {
   if ((flags_ & CaFlag::FixedAxis) != 0) {
     axis_value_list_.resize(static_cast<size_t>(sum_dim), 0.0);
     for (double& axis_value : axis_value_list_) {
-      bytes += ReadNumber(file, axis_value);
+      bytes += ReadNumber(buffer, axis_value);
     }
   }
 
@@ -297,7 +297,7 @@ size_t Ca4Block::Read(std::FILE *file) {
       cycle_count_list_.resize(static_cast<size_t>(prod_dim), 0);
       for (uint64_t& cycle : cycle_count_list_) {
         if (bytes + 8 <= max_bytes) {
-          bytes += ReadNumber(file, cycle);
+          bytes += ReadNumber(buffer, cycle);
         }
       }
       break;
@@ -309,23 +309,23 @@ size_t Ca4Block::Read(std::FILE *file) {
 
   // Need to read all composition blocks if they exist
   if (Link(kIndexComposition) > 0) {
-    SetFilePosition(file, Link(kIndexComposition));
-    const auto block_type = ReadBlockType(file);
+    SetFilePosition(buffer, Link(kIndexComposition));
+    const auto block_type = ReadBlockType(buffer);
 
     if (composition_list_.empty() && (Link(kIndexComposition) > 0)) {
       for (auto link = Link(kIndexComposition); link > 0; /* No ++ here*/) {
         if (block_type == "CA") {
           auto ca_block = std::make_unique<Ca4Block>();
           ca_block->Init(*this);
-          SetFilePosition(file, link);
-          ca_block->Read(file);
+          SetFilePosition(buffer, link);
+          ca_block->Read(buffer);
           link = ca_block->Link(0);
           composition_list_.emplace_back(std::move(ca_block));
         } else if (block_type == "CN") {
           auto cn_block = std::make_unique<Cn4Block>();
           cn_block->Init(*this);
-          SetFilePosition(file, link);
-          cn_block->Read(file);
+          SetFilePosition(buffer, link);
+          cn_block->Read(buffer);
           link = cn_block->Link(0);
           composition_list_.emplace_back(std::move(cn_block));
         }
@@ -334,11 +334,11 @@ size_t Ca4Block::Read(std::FILE *file) {
   }
   // Finds all objects. Note that is function is called after all blocks are
   // read. For now, it sizes the lists.
-  FindAllReferences(file);
+  FindAllReferences(buffer);
   return bytes;
 }
 
-void Ca4Block::FindAllReferences(std::FILE* file) {
+void Ca4Block::FindAllReferences(std::streambuf& buffer) {
   const uint64_t prod_dim = ProductOfArray();
   size_t link_index = 1;
   if (Storage() == ArrayStorage::DgTemplate) {
@@ -403,7 +403,7 @@ void Ca4Block::FindAllReferences(std::FILE* file) {
   }
 }
 
-size_t Ca4Block::Write(std::FILE *file) {
+uint64_t Ca4Block::Write(std::streambuf& buffer) {
   const bool update = FilePosition() > 0;  // True if already written to file
   if (update) {
     return static_cast<size_t>(block_length_);
@@ -465,31 +465,31 @@ size_t Ca4Block::Write(std::FILE *file) {
   }
 
   link_list_.resize(nof_links, 0);
-  WriteLink4List(file, composition_list_, kIndexComposition,
+  WriteLink4List(buffer, composition_list_, kIndexComposition,
                  UpdateOption::DoNotUpdateWrittenBlock);
   size_t link_index = kIndexArray;
   if (Storage() == ArrayStorage::DgTemplate) {
     for (size_t index = 0; index < ProductOfArray(); ++index) {
       const int64_t data_position = index < data_links_.size() ?
                                         data_links_[index] : 0;
-      UpdateLink(file, link_index, data_position);
+      UpdateLink(buffer, link_index, data_position);
       ++link_index;
     }
   }
   if ((Flags() & CaFlag::DynamicSize) != 0) {
-    link_index += WriteReferences(file, dynamic_size_list_,
+    link_index += WriteReferences(buffer, dynamic_size_list_,
                                   Dimensions(), link_index);
   }
   if ((Flags() & CaFlag::InputQuantity) != 0) {
-    link_index += WriteReferences(file, input_quantity_list_,
+    link_index += WriteReferences(buffer, input_quantity_list_,
                                   Dimensions(), link_index);
   }
   if ((Flags() & CaFlag::OutputQuantity) != 0) {
-    WriteReference(file, output_quantity_, link_index);
+    WriteReference(buffer, output_quantity_, link_index);
     link_index += 3;
   }
   if ((Flags() & CaFlag::ComparisonQuantity) != 0) {
-    WriteReference(file, comparison_quantity_, link_index);
+    WriteReference(buffer, comparison_quantity_, link_index);
     link_index += 3;
   }
   if ((Flags() & CaFlag::Axis) != 0) {
@@ -497,36 +497,36 @@ size_t Ca4Block::Write(std::FILE *file) {
       if (index < axis_conversion_list_.size()) {
         const auto* cc_block = axis_conversion_list_[index];
         const int64_t axis_position = cc_block != nullptr ? cc_block->Index() : 0;
-        UpdateLink(file,link_index,axis_position);
+        UpdateLink(buffer,link_index,axis_position);
       } else {
-        UpdateLink(file,link_index,0);
+        UpdateLink(buffer,link_index,0);
       }
       ++link_index;
     }
   }
   if ((Flags() & CaFlag::Axis) != 0 && (Flags() & CaFlag::FixedAxis) == 0) {
-    link_index += WriteReferences(file, axis_list_,
+    link_index += WriteReferences(buffer, axis_list_,
                                   Dimensions(), link_index);
   }
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file, type_);
-  bytes += WriteNumber(file, storage_);
-  bytes += WriteNumber(file, dimensions_);
-  bytes += WriteNumber(file, flags_);
-  bytes += WriteNumber(file, byte_offset_base_);
-  bytes += WriteNumber(file, invalid_bit_pos_base_);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer, type_);
+  bytes += WriteNumber(buffer, storage_);
+  bytes += WriteNumber(buffer, dimensions_);
+  bytes += WriteNumber(buffer, flags_);
+  bytes += WriteNumber(buffer, byte_offset_base_);
+  bytes += WriteNumber(buffer, invalid_bit_pos_base_);
 
   for (size_t dimension = 0; dimension < Dimensions(); ++dimension) {
     const uint64_t dim_size = dimension < dim_size_list_.size() ?
                                    dim_size_list_[dimension] : 0;
-    bytes += WriteNumber(file, dim_size);
+    bytes += WriteNumber(buffer, dim_size);
   }
   if ((Flags() & CaFlag::FixedAxis) != 0) {
     for (size_t axis = 0; axis < SumOfArray(); ++axis) {
       const double axis_value = axis < axis_value_list_.size() ?
                                 axis_value_list_[axis] : 0.0;
-      bytes += WriteNumber(file, axis_value);
+      bytes += WriteNumber(buffer, axis_value);
     }
   }
 
@@ -536,7 +536,7 @@ size_t Ca4Block::Write(std::FILE *file) {
       for (size_t cycle = 0; cycle < ProductOfArray(); ++cycle) {
         const uint64_t count =
             cycle < cycle_count_list_.size() ? cycle_count_list_[cycle] : 0;
-        bytes += WriteNumber(file, count);
+        bytes += WriteNumber(buffer, count);
       }
       break;
     }
@@ -544,7 +544,7 @@ size_t Ca4Block::Write(std::FILE *file) {
     default:
       break;
   }
-  UpdateBlockSize(file, bytes);
+  UpdateBlockSize(buffer, bytes);
   return bytes;
 }
 
@@ -701,18 +701,18 @@ CaTripleReference Ca4Block::ReadReference(size_t index) const {
   return ref;
 }
 
-void Ca4Block::WriteReference(std::FILE* file,
+void Ca4Block::WriteReference(std::streambuf& buffer,
                     const CaTripleReference& ref, size_t start_index) {
 
-  UpdateLink(file, start_index,
+  UpdateLink(buffer, start_index,
              ref.DataGroup != nullptr ? ref.DataGroup->Index() : 0 );
-  UpdateLink(file, start_index + 1,
+  UpdateLink(buffer, start_index + 1,
              ref.ChannelGroup != nullptr ? ref.ChannelGroup->Index() : 0 );
-  UpdateLink(file, start_index + 2,
+  UpdateLink(buffer, start_index + 2,
              ref.Channel != nullptr ? ref.Channel->Index() : 0 );
 }
 
-size_t Ca4Block::WriteReferences(std::FILE* file,
+size_t Ca4Block::WriteReferences(std::streambuf& buffer,
                        const std::vector<CaTripleReference>& list,
                        size_t max_fill,
                        size_t start_index) {
@@ -720,13 +720,13 @@ size_t Ca4Block::WriteReferences(std::FILE* file,
   for (size_t index = 0; index < max_fill; ++index) {
     if (index < list.size()) {
       const auto& ref = list[index];
-      WriteReference(file, ref, start_index + nof_links);
-      UpdateLink(file, start_index + nof_links,
+      WriteReference(buffer, ref, start_index + nof_links);
+      UpdateLink(buffer, start_index + nof_links,
                  ref.DataGroup != nullptr ? ref.DataGroup->Index() : 0 );
     } else {
-      UpdateLink(file, start_index + nof_links,0 );
-      UpdateLink(file, start_index + nof_links + 1, 0 );
-      UpdateLink(file, start_index + nof_links + 2, 0 );
+      UpdateLink(buffer, start_index + nof_links,0 );
+      UpdateLink(buffer, start_index + nof_links + 1, 0 );
+      UpdateLink(buffer, start_index + nof_links + 2, 0 );
     }
     nof_links += 3;
   }

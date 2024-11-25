@@ -6,17 +6,17 @@
 #include "littlebuffer.h"
 
 namespace mdf::detail {
-size_t Sd4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  data_position_ = GetFilePosition(file);
+uint64_t Sd4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  data_position_ = GetFilePosition(buffer);
   return bytes;
 }
 
-size_t Sd4Block::DataSize() const {
+uint64_t Sd4Block::DataSize() const {
   return block_length_ > 24 ? block_length_ - 24 : 0;
 }
 
-size_t Sd4Block::Write(std::FILE *file) {
+uint64_t Sd4Block::Write(std::streambuf& buffer) {
   const auto update = FilePosition() > 0;
   if (update) {
     return block_length_;
@@ -25,8 +25,8 @@ size_t Sd4Block::Write(std::FILE *file) {
   link_list_.clear();
   block_length_ = 24 + data_.size();
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteByte(file, data_);
+  auto bytes = MdfBlock::Write(buffer);
+  bytes += WriteByte(buffer, data_);
   return bytes;
 }
 

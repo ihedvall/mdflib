@@ -41,20 +41,20 @@ class Mdf4File : public MdfFile {
 
   [[nodiscard]] bool IsMdf4() const override;
 
-  void IsFinalized(bool finalized, std::FILE* file, uint16_t standard_flags,
+  void IsFinalized(bool finalized, std::streambuf& buffer, uint16_t standard_flags,
                    uint16_t custom_flags) override;
   [[nodiscard]] bool IsFinalized(uint16_t& standard_flags,
                                  uint16_t& custom_flags) const override;
   [[nodiscard]] bool IsFinalizedDone() const override;
 
-  void ReadHeader(std::FILE* file) override;
-  void ReadMeasurementInfo(std::FILE* file) override;
-  void ReadEverythingButData(std::FILE* file) override;
+  void ReadHeader(std::streambuf& buffer) override;
+  void ReadMeasurementInfo(std::streambuf& buffer) override;
+  void ReadEverythingButData(std::streambuf& buffer) override;
 
   [[nodiscard]] const IdBlock& Id() const;
   [[nodiscard]] const Hd4Block& Hd() const;
 
-  bool Write(std::FILE* file) override;
+  bool Write(std::streambuf& buffer) override;
 
   [[nodiscard]] IDataGroup* FindParentDataGroup(
       const IChannel& channel) const  override;
@@ -64,7 +64,7 @@ class Mdf4File : public MdfFile {
   std::unique_ptr<Hd4Block> hd_block_;
 
   bool finalized_done_ = false;
-  bool FinalizeFile(std::FILE* file);
-  void FindAllReferences(std::FILE* file);
+  bool FinalizeFile(std::streambuf& buffer);
+  void FindAllReferences(std::streambuf& buffer);
 };
 }  // namespace mdf::detail

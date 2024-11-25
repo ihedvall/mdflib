@@ -14,10 +14,10 @@ class Dt4Block : public DataBlock {
   Dt4Block();
   void Init(const MdfBlock &id_block) override;
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  size_t Read(std::FILE* file) override;
-  size_t Write(std::FILE *file) override;
-  [[nodiscard]] size_t DataSize() const override;
-  void UpdateDataSize(std::FILE* file);
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
+  [[nodiscard]] uint64_t DataSize() const override;
+  void UpdateDataSize(std::streambuf& buffer);
 
 };
 

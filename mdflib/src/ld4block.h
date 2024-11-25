@@ -19,7 +19,7 @@ constexpr uint32_t InvalidData = 0x80000000;
 class Ld4Block : public DataListBlock {
  public:
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  size_t Read(std::FILE* file) override;
+  uint64_t Read(std::streambuf& buffer) override;
 
  private:
   uint32_t flags_ = 0;

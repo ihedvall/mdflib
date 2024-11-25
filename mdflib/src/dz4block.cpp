@@ -36,20 +36,20 @@ void Dz4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Data Size  [byte]", std::to_string(data_length_));
 }
 
-size_t Dz4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadStr(file, orig_block_type_, 2);
-  bytes += ReadNumber(file, type_);
+uint64_t Dz4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadStr(buffer, orig_block_type_, 2);
+  bytes += ReadNumber(buffer, type_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 1);
-  bytes += ReadNumber(file, parameter_);
-  bytes += ReadNumber(file, orig_data_length_);
-  bytes += ReadNumber(file, data_length_);
-  data_position_ = GetFilePosition(file);
+  bytes += ReadByte(buffer, reserved, 1);
+  bytes += ReadNumber(buffer, parameter_);
+  bytes += ReadNumber(buffer, orig_data_length_);
+  bytes += ReadNumber(buffer, data_length_);
+  data_position_ = GetFilePosition(buffer);
   return bytes;
 }
 
-size_t Dz4Block::Write(std::FILE *file) {
+uint64_t Dz4Block::Write(std::streambuf& buffer) {
   const bool update = FilePosition() > 0;
   if (update) {
     // The DZ block properties cannot be changed after it has been written
@@ -60,27 +60,27 @@ size_t Dz4Block::Write(std::FILE *file) {
   link_list_.clear();
   block_length_ = 24 + 2 + 1 + 1 + 4 + 8 + 8 + data_length_;
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteStr(file, orig_block_type_, 2);
-  bytes += WriteNumber(file, type_);
-  bytes += WriteBytes(file, 1);
-  bytes += WriteNumber(file, parameter_);
-  bytes += WriteNumber(file, orig_data_length_);
-  bytes += WriteNumber(file, data_length_);
-  bytes += WriteByte(file,data_);
-  UpdateBlockSize(file, bytes);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteStr(buffer, orig_block_type_, 2);
+  bytes += WriteNumber(buffer, type_);
+  bytes += WriteBytes(buffer, 1);
+  bytes += WriteNumber(buffer, parameter_);
+  bytes += WriteNumber(buffer, orig_data_length_);
+  bytes += WriteNumber(buffer, data_length_);
+  bytes += WriteByte(buffer,data_);
+  UpdateBlockSize(buffer, bytes);
 
   return bytes;
 }
 
-size_t Dz4Block::CopyDataToFile(std::FILE *from_file,
-                                std::FILE *to_file) const {
+uint64_t Dz4Block::CopyDataToFile(std::streambuf& from_file,
+                                std::streambuf& to_file) const {
   if (data_position_ == 0 || orig_data_length_ == 0 || data_length_ == 0) {
     return 0;
   }
   SetFilePosition(from_file, data_position_);
 
-  size_t count = 0;
+  uint64_t count = 0;
   switch (static_cast<Dz4ZipType>(type_)) {
     case Dz4ZipType::Deflate: {
       const bool inflate = Inflate(from_file, to_file, data_length_);
@@ -89,16 +89,15 @@ size_t Dz4Block::CopyDataToFile(std::FILE *from_file,
     }
 
     case Dz4ZipType::TransposeAndDeflate: {
-      ByteArray temp(data_length_, 0);
-      {
-        auto dummy = fread(temp.data(), 1, temp.size(), from_file);
-        if (dummy == 0) {
-        }
-      }
-      ByteArray out(orig_data_length_, 0);
+      ByteArray temp(static_cast<size_t>(data_length_), 0);
+      from_file.sgetn(
+            reinterpret_cast<char*>(temp.data()),
+                static_cast<std::streamsize>(temp.size()) );
+      ByteArray out(static_cast<size_t>(orig_data_length_), 0);
       const bool inflate = Inflate(temp, out);
       InvTranspose(out, parameter_);
-      fwrite(out.data(), 1, out.size(), to_file);
+      to_file.sputn(reinterpret_cast<char*>(out.data()),
+                    static_cast<std::streamsize>(out.size()) );
       count = inflate ? orig_data_length_ : 0;
       break;
     }
@@ -109,45 +108,39 @@ size_t Dz4Block::CopyDataToFile(std::FILE *from_file,
   return count;
 }
 
-size_t Dz4Block::CopyDataToBuffer(std::FILE *from_file,
-                                  std::vector<uint8_t> &buffer,
-                                  size_t &buffer_index) const {
+uint64_t Dz4Block::CopyDataToBuffer(std::streambuf& from_file,
+                                  std::vector<uint8_t> &dest,
+                                  uint64_t &buffer_index) const {
   if (data_position_ == 0 || orig_data_length_ == 0 || data_length_ == 0) {
     return 0;
   }
 
   SetFilePosition(from_file, data_position_);
 
-  size_t count = 0;
+  uint64_t count = 0;
   switch (static_cast<Dz4ZipType>(type_)) {
     case Dz4ZipType::Deflate: {
-      ByteArray temp(data_length_, 0);
-      {
-        auto dummy = fread(temp.data(), 1, temp.size(), from_file);
-        if (dummy == 0) {
-        }
-      }
-      ByteArray out(orig_data_length_, 0);
+      ByteArray temp(static_cast<size_t>(data_length_), 0);
+      from_file.sgetn( reinterpret_cast<char*>(temp.data()),
+                              static_cast<std::streamsize>(temp.size()) );
+      ByteArray out(static_cast<size_t>(orig_data_length_), 0);
       Inflate(temp, out);
       count = orig_data_length_;
-      memcpy(buffer.data() + buffer_index, out.data(), count);
+      memcpy(dest.data() + buffer_index, out.data(), static_cast<size_t>(count) );
       buffer_index += count;
       break;
     }
 
     case Dz4ZipType::TransposeAndDeflate: {
-      ByteArray temp(data_length_, 0);
-      {
-        auto dummy = fread(temp.data(), 1, temp.size(), from_file);
-        if (dummy == 0) {
-        }
-      }
-      ByteArray out(orig_data_length_, 0);
+      ByteArray temp(static_cast<size_t>(data_length_), 0);
+      from_file.sgetn(reinterpret_cast<char*>(temp.data()),
+                      static_cast<std::streamsize>(temp.size()) );
+      ByteArray out(static_cast<size_t>( orig_data_length_ ), 0);
       Inflate(temp, out);
       InvTranspose(out, parameter_);
 
       count = orig_data_length_;
-      memcpy(buffer.data() + buffer_index, out.data(), count);
+      memcpy(dest.data() + buffer_index, out.data(), static_cast<size_t>(count) );
       buffer_index += count;
       break;
     }

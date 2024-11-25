@@ -9,6 +9,7 @@
 #include <string>
 #include <functional>
 #include <vector>
+#include <fstream>
 
 #include "mdf/ichannelobserver.h"
 #include "mdf/mdffile.h"
@@ -67,9 +68,18 @@ void CreateChannelObserverForDataGroup(const IDataGroup& data_group,
  */
 class MdfReader {
  public:
-  explicit MdfReader(
-      const std::string& filename);  ///< Constructor that opens the file and
-                                     ///< read ID and HD block.
+  /** \brief Constructor for readers using an external file.
+   *
+   * This constructor is used when reading from an external file. The other
+   * way of reading from a C++ stream buffer. The latter is more complicated
+   * but more generic as it support environment without a file block
+   * storage.
+   *
+   * @param filename Full file path to the input file.
+   */
+  explicit MdfReader(std::string filename);
+
+  explicit MdfReader(std::shared_ptr<std::streambuf>& buffer);
   virtual ~MdfReader();  ///< Destructor that close any open file and destructs.
 
   MdfReader() = delete;
@@ -118,14 +128,21 @@ class MdfReader {
   [[nodiscard]] std::string ShortName()
       const;  ///< Returns the file name without paths.
 
-  bool Open();   ///< Opens the file stream for reading.
+  /** \brief Opens the internal stream buffer.
+   *
+   * Normally the stream buffer is an ordinary file but the use may also
+   * attach a generic C++ stream
+   * @return True if the stream was opened.
+   */
+  [[nodiscard]] bool Open();
+  [[nodiscard]] bool IsOpen() const;
   void Close();  ///< Closes the file stream.
 
   bool ReadHeader();             ///< Reads the ID and the HD block.
   bool ReadMeasurementInfo();    ///< Reads everything but not CG and raw data.
   bool ReadEverythingButData();  ///< Reads all blocks but not raw data.
 
-  /** \brief Export the attachment data to a detination file. */
+  /** \brief Export the attachment data to a destination file. */
   bool ExportAttachmentData(const IAttachment& attachment,
                             const std::string& dest_file);
 
@@ -184,7 +201,7 @@ class MdfReader {
    * bytes typical a video stream. These files tends to be huge so the
    * application runs out of memory.
    *
-   * This function reads in VLSD stored data in smaller batcher. The
+   * This function reads in VLSD stored data in smaller batches. The
    * application first reads in all offsets to the raw data. Using these offsets
    * the application can read in typically one sample (offset) at a time. This
    * tactic saves primary memory.
@@ -203,11 +220,23 @@ class MdfReader {
 
 
  private:
-  std::FILE* file_ = nullptr;          ///< Pointer to the file stream.
+  /** \brief Internal pointer to the active stream buffer.
+   *
+   * Shared pointer to the C++ stream buffer. This buffer is either
+   * created by this class (file streams) or outside the
+   */
+  std::shared_ptr<std::streambuf> file_;
+
   std::string filename_;               ///< The file name with full path.
   std::unique_ptr<MdfFile> instance_;  ///< Pointer to the MDF file object.
   int64_t index_ = 0;  ///< Unique (database) file index that can be used to
                        ///< identify a file instead of its path.
+
+  /** \brief Reads in the
+   *
+   */
+  void VerifyMdfFile();
+
 };
 
 }  // namespace mdf

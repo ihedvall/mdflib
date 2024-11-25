@@ -19,18 +19,16 @@ using namespace std::chrono_literals;
 namespace mdf::detail {
 MdfConverter::~MdfConverter() {
   StopWorkThread();
-  if (file_ != nullptr) {
-    fclose(file_);
-    file_ = nullptr;
+  if (file_.is_open()) {
+    file_.close();
   }
 }
 
 bool MdfConverter::InitMeasurement() {
   StopWorkThread();  // Just in case
 
-  if (file_ != nullptr) {
-    fclose(file_);
-    file_ = nullptr;
+  if (file_.is_open()) {
+    file_.close();
   }
 
   if (!mdf_file_) {
@@ -48,8 +46,10 @@ bool MdfConverter::InitMeasurement() {
   // 1: Save ID, HD, DG, AT, CG and CN blocks to the file.
 
   detail::OpenMdfFile(file_, filename_,
-                      write_state_ == WriteState::Create ? "wb" : "r+b");
-  if (file_ == nullptr) {
+    write_state_ == WriteState::Create ?
+    std::ios_base::out | std::ios_base::trunc | std::ios_base::binary
+    :  std::ios_base::out | std::ios_base::in |std::ios_base::trunc | std::ios_base::binary);
+  if (!file_.is_open()) {
     MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
@@ -97,7 +97,7 @@ void MdfConverter::SaveQueue(std::unique_lock<std::mutex>& lock) {
   }
 
   // File should be open at this point
-  if (file_ == nullptr) {
+  if (!file_.is_open()) {
     lock.lock();
     return;
   }
@@ -217,7 +217,7 @@ void MdfConverter::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
   }
 
   lock.unlock();
-  if (file_ == nullptr) {
+  if (!file_.is_open()) {
     lock.lock();
     return;
   }
@@ -372,14 +372,14 @@ bool MdfConverter::FinalizeMeasurement() {
     return false;
   }
 
-  if (file_ == nullptr) {
+  if (!file_.is_open()) {
     MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
   const bool write = mdf_file_ && mdf_file_->Write(file_);
   const bool signal_data = WriteSignalData(file_);
-  fclose(file_);
-  file_ = nullptr;
+  file_.close();
+
   write_state_ = WriteState::Finalize;
   return write && signal_data;
 }

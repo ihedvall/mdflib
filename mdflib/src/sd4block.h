@@ -11,13 +11,13 @@ namespace mdf::detail {
 
 class Sd4Block : public DataBlock {
  public:
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
   uint64_t AppendData(const std::string& text);
   uint64_t AppendData(const std::vector<uint8_t>& data);
  protected:
-  [[nodiscard]] size_t DataSize() const override;
+  [[nodiscard]] uint64_t DataSize() const override;
  private:
   uint64_t AppendData(const VlsdData& data);
   std::map<VlsdData, uint64_t> sorted_data_;

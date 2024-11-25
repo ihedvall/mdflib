@@ -16,8 +16,8 @@ constexpr uint8_t DistanceValues = 0x08;
 class Dl4Block : public DataListBlock {
  public:
   void GetBlockProperty(BlockPropertyList& dest) const override;
-  size_t Read(std::FILE* file) override;
-  size_t Write(std::FILE* file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
   void Flags(uint8_t flags) {flags_ = flags;}
   [[nodiscard]] uint8_t Flags() const {return flags_;}

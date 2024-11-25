@@ -185,15 +185,15 @@ void Cc3Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Cc3Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader3(file);
-  bytes += ReadBool(file, range_valid_);
-  bytes += ReadNumber(file, min_);
-  bytes += ReadNumber(file, max_);
-  bytes += ReadStr(file, unit_, 20);
-  bytes += ReadNumber(file, conversion_type_);
+uint64_t Cc3Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader3(buffer);
+  bytes += ReadBool(buffer, range_valid_);
+  bytes += ReadNumber(buffer, min_);
+  bytes += ReadNumber(buffer, max_);
+  bytes += ReadStr(buffer, unit_, 20);
+  bytes += ReadNumber(buffer, conversion_type_);
   if (bytes < block_size_) {
-    bytes += ReadNumber(file, nof_values_);
+    bytes += ReadNumber(buffer, nof_values_);
   }
 
   value_list_.clear();
@@ -209,7 +209,7 @@ size_t Cc3Block::Read(std::FILE *file) {
       case 9:  // Rational
         for (uint16_t par = 0; par < nof_values_; ++par) {
           double temp = 0;
-          bytes += ReadNumber(file, temp);
+          bytes += ReadNumber(buffer, temp);
           value_list_.emplace_back(temp);
         }
         break;
@@ -218,23 +218,23 @@ size_t Cc3Block::Read(std::FILE *file) {
       case 2:  // Tabular
         for (uint16_t par = 0; par < nof_values_; ++par) {
           double temp1 = 0;
-          bytes += ReadNumber(file, temp1);
+          bytes += ReadNumber(buffer, temp1);
           value_list_.emplace_back(temp1);
           double temp2 = 0;
-          bytes += ReadNumber(file, temp2);
+          bytes += ReadNumber(buffer, temp2);
           value_list_.emplace_back(temp2);
         }
         break;
 
       case 10:  // Text formula
-        bytes += ReadStr(file, formula_, nof_values_);
+        bytes += ReadStr(buffer, formula_, nof_values_);
         break;
 
       case 11:  // Text Table
         for (uint16_t par = 0; par < nof_values_; ++par) {
           TextConversion cc;
-          bytes += ReadNumber(file, cc.value);
-          bytes += ReadStr(file, cc.text, 32);
+          bytes += ReadNumber(buffer, cc.value);
+          bytes += ReadStr(buffer, cc.text, 32);
           text_conversion_list_.emplace_back(cc);
         }
         break;
@@ -242,9 +242,9 @@ size_t Cc3Block::Read(std::FILE *file) {
       case 12:  // Text Range Table
         for (uint16_t par = 0; par < nof_values_; ++par) {
           TextRangeConversion cc;
-          bytes += ReadNumber(file, cc.lower);
-          bytes += ReadNumber(file, cc.upper);
-          bytes += ReadNumber(file, cc.link_text);
+          bytes += ReadNumber(buffer, cc.lower);
+          bytes += ReadNumber(buffer, cc.upper);
+          bytes += ReadNumber(buffer, cc.link_text);
           text_range_conversion_list_.emplace_back(cc);
         }
         break;
@@ -260,15 +260,15 @@ size_t Cc3Block::Read(std::FILE *file) {
     if (conv.link_text > 0) {
       Tx3Block temp;
       temp.Init(*this);
-      SetFilePosition(file, conv.link_text);
-      temp.Read(file);
+      SetFilePosition(buffer, conv.link_text);
+      temp.Read(buffer);
       conv.text = temp.Text();
     }
   }
   return bytes;
 }
 
-size_t Cc3Block::Write(std::FILE *file) {
+uint64_t Cc3Block::Write(std::streambuf& buffer) {
   const bool update =
       FilePosition() > 0;  // Write or update the values inside the block
   if (update) {
@@ -281,7 +281,7 @@ size_t Cc3Block::Write(std::FILE *file) {
     if (!range.text.empty()) {
       Tx3Block temp;
       temp.Init(*this);
-      temp.Write(file);
+      temp.Write(buffer);
       link = static_cast<uint32_t>(temp.FilePosition());
     }
     range.link_text = link;
@@ -291,12 +291,12 @@ size_t Cc3Block::Write(std::FILE *file) {
                 2;  // Will be updated at the end of the block write
   link_list_.clear();
 
-  size_t bytes = MdfBlock::Write(file);
-  bytes += WriteBool(file, range_valid_);
-  bytes += WriteNumber(file, min_);
-  bytes += WriteNumber(file, max_);
-  bytes += WriteStr(file, unit_, 20);
-  bytes += WriteNumber(file, conversion_type_);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteBool(buffer, range_valid_);
+  bytes += WriteNumber(buffer, min_);
+  bytes += WriteNumber(buffer, max_);
+  bytes += WriteStr(buffer, unit_, 20);
+  bytes += WriteNumber(buffer, conversion_type_);
 
   switch (conversion_type_) {
     case 0:  // Parametric
@@ -305,43 +305,43 @@ size_t Cc3Block::Write(std::FILE *file) {
     case 8:  // Logarithmic
     case 9:  // Rational
       nof_values_ = static_cast<uint16_t>(value_list_.size());
-      bytes += WriteNumber(file, nof_values_);
+      bytes += WriteNumber(buffer, nof_values_);
       for (auto par : value_list_) {
-        bytes += WriteNumber(file, par);
+        bytes += WriteNumber(buffer, par);
       }
       break;
 
     case 1:  // Tabular interpolation
     case 2:  // Tabular
       nof_values_ = static_cast<uint16_t>(value_list_.size() / 2);
-      bytes += WriteNumber(file, nof_values_);
+      bytes += WriteNumber(buffer, nof_values_);
       for (auto par : value_list_) {
-        bytes += WriteNumber(file, par);
+        bytes += WriteNumber(buffer, par);
       }
       break;
 
     case 10:  // Text formula
       nof_values_ = static_cast<uint16_t>(formula_.size());
-      bytes += WriteNumber(file, nof_values_);
-      WriteStr(file, formula_, formula_.size());
+      bytes += WriteNumber(buffer, nof_values_);
+      WriteStr(buffer, formula_, formula_.size());
       break;
 
     case 11:  // Text Table
       nof_values_ = static_cast<uint16_t>(text_conversion_list_.size());
-      bytes += WriteNumber(file, nof_values_);
+      bytes += WriteNumber(buffer, nof_values_);
       for (const auto &conv : text_conversion_list_) {
-        bytes += WriteNumber(file, conv.value);
-        bytes += WriteStr(file, conv.text, 32);
+        bytes += WriteNumber(buffer, conv.value);
+        bytes += WriteStr(buffer, conv.text, 32);
       }
       break;
 
     case 12:  // Text Range Table
       nof_values_ = static_cast<uint16_t>(text_range_conversion_list_.size());
-      bytes += WriteNumber(file, nof_values_);
+      bytes += WriteNumber(buffer, nof_values_);
       for (const auto &conv : text_range_conversion_list_) {
-        bytes += WriteNumber(file, conv.lower);
-        bytes += WriteNumber(file, conv.upper);
-        bytes += WriteNumber(file, conv.link_text);
+        bytes += WriteNumber(buffer, conv.lower);
+        bytes += WriteNumber(buffer, conv.upper);
+        bytes += WriteNumber(buffer, conv.link_text);
       }
       break;
 
@@ -350,10 +350,10 @@ size_t Cc3Block::Write(std::FILE *file) {
     case 65535:  // 1:1 conversion (used to set unit to a CN block)
     default:
       nof_values_ = 0;
-      bytes += WriteNumber(file, nof_values_);
+      bytes += WriteNumber(buffer, nof_values_);
       break;
   }
-  UpdateBlockSize(file, bytes);
+  UpdateBlockSize(buffer, bytes);
   return bytes;
 }
 

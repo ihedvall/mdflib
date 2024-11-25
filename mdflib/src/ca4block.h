@@ -62,10 +62,10 @@ class Ca4Block : public MdfBlock, public IChannelArray {
   [[nodiscard]] MdfBlock *Find(int64_t index) const override;
   [[nodiscard]] const Cx4List& Cx4() const { return composition_list_; }
 
-  size_t Read(std::FILE* file) override;
-  void FindAllReferences(std::FILE* file);
+  uint64_t Read(std::streambuf& buffer) override;
+  void FindAllReferences(std::streambuf& buffer);
 
-  size_t Write(std::FILE* file) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
   void SetParentChannel(const Cn4Block* parent);
   void PrepareForWriting();
@@ -89,9 +89,9 @@ class Ca4Block : public MdfBlock, public IChannelArray {
 
   [[nodiscard]] CaTripleReference ReadReference(size_t index) const;
 
-  void WriteReference(std::FILE* file,
+  void WriteReference(std::streambuf& buffer,
                       const CaTripleReference& ref, size_t start_index);
-  size_t WriteReferences(std::FILE* file,
+  size_t WriteReferences(std::streambuf& buffer,
                        const std::vector<CaTripleReference>& list,
                        size_t max_fill,
                        size_t start_index);

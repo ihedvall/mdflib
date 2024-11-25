@@ -309,8 +309,8 @@ class MdfWriter {
 
   virtual void CreateMdfFile() = 0; ///< Creates an MDF file
   virtual bool PrepareForWriting() = 0; ///< Prepare for writing.
-  virtual void SetDataPosition(std::FILE* file); ///< Set the data position.
-  virtual bool WriteSignalData(std::FILE* file); ///< Write an SD block.
+  virtual void SetDataPosition(std::streambuf& file); ///< Set the data position.
+  virtual bool WriteSignalData(std::streambuf& file); ///< Write an SD block.
 
   void StopWorkThread(); ///< Stops the worker thread
   void WorkThread(); ///< Worker thread function
@@ -323,7 +323,7 @@ class MdfWriter {
   /** \brief Increment the sample counter. */
   void IncrementNofSamples(uint64_t record_id) const;
   /** \brief Set the last file position. */
-  virtual void SetLastPosition(std::FILE* file) = 0;
+  virtual void SetLastPosition(std::streambuf& buffer) = 0;
 
 
  private:

@@ -33,11 +33,11 @@ class Dg3Block : public DataListBlock, public IDataGroup {
   uint16_t NofRecordId() const { return nof_record_id_; }
   void GetBlockProperty(BlockPropertyList& dest) const override;
   [[nodiscard]] MdfBlock* Find(int64_t index) const override;
-  size_t Read(std::FILE* file) override;
-  size_t Write(std::FILE* file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
-  void ReadData(std::FILE* file);
-  void ReadRangeData(std::FILE* file, DgRange& range);
+  void ReadData(std::streambuf& buffer);
+  void ReadRangeData(std::streambuf& buffer, DgRange& range);
   void ClearData() override;
 
 
@@ -49,8 +49,8 @@ class Dg3Block : public DataListBlock, public IDataGroup {
 
   std::unique_ptr<Tr3Block> tr_block_;
   Cg3List cg_list_;
-  void ParseDataRecords(std::FILE* file, size_t nof_data_bytes);
-  void ParseRangeDataRecords(std::FILE* file, size_t nof_data_bytes,
+  void ParseDataRecords(std::streambuf& buffer, uint64_t nof_data_bytes);
+  void ParseRangeDataRecords(std::streambuf& buffer, uint64_t nof_data_bytes,
                              DgRange& range);
   const Cg3Block* FindCgRecordId(const uint64_t record_id) const;
 };

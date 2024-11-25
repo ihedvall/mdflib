@@ -162,12 +162,12 @@ std::string MakeFlagString(uint32_t flag) {
 
 ///< Helper function that recursively copies all data bytes to a
 /// destination buffer.
-size_t CopyDataToBuffer(const mdf::detail::MdfBlock *data, std::FILE *from_file,
-                        std::vector<uint8_t> &buffer, size_t &buffer_index) {
+uint64_t CopyDataToBuffer(const mdf::detail::MdfBlock *data, std::streambuf& from_file,
+                        std::vector<uint8_t> &buffer, uint64_t &buffer_index) {
   if (data == nullptr) {
     return 0;
   }
-  size_t count = 0;
+  uint64_t count = 0;
   const auto *db = dynamic_cast<const mdf::detail::DataBlock *>(data);
   const auto *dl = dynamic_cast<const mdf::detail::DataListBlock *>(data);
   if (db != nullptr) {
@@ -186,8 +186,8 @@ namespace mdf::detail {
 
 Cn4Block::Cn4Block() { block_type_ = "##CN"; }
 
-void Cn4Block::UpdateDataLink(std::FILE *file, int64_t position) {
-  UpdateLink(file, kIndexData, position);
+void Cn4Block::UpdateDataLink(std::streambuf& buffer, int64_t position) {
+  UpdateLink(buffer, kIndexData, position);
 }
 
 int64_t Cn4Block::DataLink() const { return Link(kIndexData); }
@@ -387,47 +387,47 @@ void Cn4Block::GetBlockProperty(BlockPropertyList &dest) const {
   }
 }
 
-size_t Cn4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  bytes += ReadNumber(file, type_);
-  bytes += ReadNumber(file, sync_type_);
-  bytes += ReadNumber(file, data_type_);
-  bytes += ReadNumber(file, bit_offset_);
-  bytes += ReadNumber(file, byte_offset_);
-  bytes += ReadNumber(file, bit_count_);
-  bytes += ReadNumber(file, flags_);
-  bytes += ReadNumber(file, invalid_bit_pos_);
-  bytes += ReadNumber(file, precision_);
+uint64_t Cn4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  bytes += ReadNumber(buffer, type_);
+  bytes += ReadNumber(buffer, sync_type_);
+  bytes += ReadNumber(buffer, data_type_);
+  bytes += ReadNumber(buffer, bit_offset_);
+  bytes += ReadNumber(buffer, byte_offset_);
+  bytes += ReadNumber(buffer, bit_count_);
+  bytes += ReadNumber(buffer, flags_);
+  bytes += ReadNumber(buffer, invalid_bit_pos_);
+  bytes += ReadNumber(buffer, precision_);
   std::vector<uint8_t> reserved;
-  bytes += ReadByte(file, reserved, 1);
-  bytes += ReadNumber(file, nof_attachments_);
-  bytes += ReadNumber(file, range_min_);
-  bytes += ReadNumber(file, range_max_);
-  bytes += ReadNumber(file, limit_min_);
-  bytes += ReadNumber(file, limit_max_);
-  bytes += ReadNumber(file, limit_ext_min_);
-  bytes += ReadNumber(file, limit_ext_max_);
+  bytes += ReadByte(buffer, reserved, 1);
+  bytes += ReadNumber(buffer, nof_attachments_);
+  bytes += ReadNumber(buffer, range_min_);
+  bytes += ReadNumber(buffer, range_max_);
+  bytes += ReadNumber(buffer, limit_min_);
+  bytes += ReadNumber(buffer, limit_max_);
+  bytes += ReadNumber(buffer, limit_ext_min_);
+  bytes += ReadNumber(buffer, limit_ext_max_);
 
-  name_ = ReadTx4(file, kIndexName);
+  name_ = ReadTx4(buffer, kIndexName);
 
   if (Link(kIndexCx) > 0) {
-    SetFilePosition(file, Link(kIndexCx));
-    auto block_type = ReadBlockType(file);
+    SetFilePosition(buffer, Link(kIndexCx));
+    auto block_type = ReadBlockType(buffer);
 
     if (cx_list_.empty() && (Link(kIndexCx) > 0)) {
       for (auto link = Link(kIndexCx); link > 0; /* No ++ here*/) {
         if (block_type == "CA") {
           auto ca_block = std::make_unique<Ca4Block>();
           ca_block->Init(*this);
-          SetFilePosition(file, link);
-          ca_block->Read(file);
+          SetFilePosition(buffer, link);
+          ca_block->Read(buffer);
           link = ca_block->Link(0);
           cx_list_.emplace_back(std::move(ca_block));
         } else if (block_type == "CN") {
           auto cn_block = std::make_unique<Cn4Block>();
           cn_block->Init(*this);
-          SetFilePosition(file, link);
-          cn_block->Read(file);
+          SetFilePosition(buffer, link);
+          cn_block->Read(buffer);
           link = cn_block->Link(0);
           cx_list_.emplace_back(std::move(cn_block));
         }
@@ -436,31 +436,31 @@ size_t Cn4Block::Read(std::FILE *file) {
   }
 
   if (Link(kIndexSi) > 0) {
-    SetFilePosition(file, Link(kIndexSi));
+    SetFilePosition(buffer, Link(kIndexSi));
     si_block_ = std::make_unique<Si4Block>();
     si_block_->Init(*this);
-    si_block_->Read(file);
+    si_block_->Read(buffer);
   }
 
   if (Link(kIndexCc) > 0) {
-    SetFilePosition(file, Link(kIndexCc));
+    SetFilePosition(buffer, Link(kIndexCc));
     cc_block_ = std::make_unique<Cc4Block>();
     cc_block_->Init(*this);
     cc_block_->ChannelDataType(data_type_);
-    cc_block_->Read(file);
+    cc_block_->Read(buffer);
   }
 
   // Need ot check if the data block is owned by this CN block or if it is a
   // reference only
-  ReadBlockList(file, kIndexData);
+  ReadBlockList(buffer, kIndexData);
 
   if (Link(kIndexUnit) > 0) {
-    SetFilePosition(file, Link(kIndexUnit));
+    SetFilePosition(buffer, Link(kIndexUnit));
     unit_ = std::make_unique<Md4Block>();
     unit_->Init(*this);
-    unit_->Read(file);
+    unit_->Read(buffer);
   }
-  ReadMdComment(file, kIndexMd);
+  ReadMdComment(buffer, kIndexMd);
 
   if (nof_attachments_ > 0) {
     // Need the header block to find the AT blocks by its file position.
@@ -490,7 +490,7 @@ size_t Cn4Block::Read(std::FILE *file) {
   return bytes;
 }
 
-size_t Cn4Block::Write(std::FILE *file) {
+uint64_t Cn4Block::Write(std::streambuf& buffer) {
   const bool update = FilePosition() > 0;  // True if already written to file
   if (update) {
     return block_length_;
@@ -506,16 +506,16 @@ size_t Cn4Block::Write(std::FILE *file) {
   }
   block_length_ += 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 1 + 1 + 2 + (6 * 8);
   link_list_.resize(8 + nof_attachments_ + (default_x ? 1 : 0), 0);
-  WriteLink4List(file, cx_list_, kIndexCx,
+  WriteLink4List(buffer, cx_list_, kIndexCx,
                  UpdateOption::DoNotUpdateWrittenBlock);
-  WriteTx4(file, kIndexName, name_);
-  WriteBlock4(file, si_block_, kIndexSi);
-  WriteBlock4(file, cc_block_, kIndexCc);
+  WriteTx4(buffer, kIndexName, name_);
+  WriteBlock4(buffer, si_block_, kIndexSi);
+  WriteBlock4(buffer, cc_block_, kIndexCc);
   // The signal data shall not be stored here. Instead, the function
   // WriteSignalData() should be used. It is called by the Mdf(4)Writer class
   // when the measurement is finalized.
-  WriteBlock4(file, unit_, kIndexUnit);
-  WriteMdComment(file, kIndexMd);
+  WriteBlock4(buffer, unit_, kIndexUnit);
+  WriteMdComment(buffer, kIndexMd);
   for (size_t index_at = 0; index_at < attachment_list_.size(); ++index_at) {
     const auto index = 8 + index_at;
     const auto *at4 = attachment_list_[index_at];
@@ -531,26 +531,26 @@ size_t Cn4Block::Write(std::FILE *file) {
     link_list_[index] = cn4 != nullptr ? cn4->Index() : 0;
   }
 
-  auto bytes = MdfBlock::Write(file);
-  bytes += WriteNumber(file, type_);
-  bytes += WriteNumber(file, sync_type_);
-  bytes += WriteNumber(file, data_type_);
-  bytes += WriteNumber(file, bit_offset_);
-  bytes += WriteNumber(file, byte_offset_);
-  bytes += WriteNumber(file, bit_count_);
-  bytes += WriteNumber(file, flags_);
-  bytes += WriteNumber(file, invalid_bit_pos_);
-  bytes += WriteNumber(file, precision_);
+  uint64_t bytes = MdfBlock::Write(buffer);
+  bytes += WriteNumber(buffer, type_);
+  bytes += WriteNumber(buffer, sync_type_);
+  bytes += WriteNumber(buffer, data_type_);
+  bytes += WriteNumber(buffer, bit_offset_);
+  bytes += WriteNumber(buffer, byte_offset_);
+  bytes += WriteNumber(buffer, bit_count_);
+  bytes += WriteNumber(buffer, flags_);
+  bytes += WriteNumber(buffer, invalid_bit_pos_);
+  bytes += WriteNumber(buffer, precision_);
 
-  bytes += WriteBytes(file, 1);
-  bytes += WriteNumber(file, nof_attachments_);
-  bytes += WriteNumber(file, range_min_);
-  bytes += WriteNumber(file, range_max_);
-  bytes += WriteNumber(file, limit_min_);
-  bytes += WriteNumber(file, limit_max_);
-  bytes += WriteNumber(file, limit_ext_min_);
-  bytes += WriteNumber(file, limit_ext_max_);
-  UpdateBlockSize(file, bytes);
+  bytes += WriteBytes(buffer, 1);
+  bytes += WriteNumber(buffer, nof_attachments_);
+  bytes += WriteNumber(buffer, range_min_);
+  bytes += WriteNumber(buffer, range_max_);
+  bytes += WriteNumber(buffer, limit_min_);
+  bytes += WriteNumber(buffer, limit_max_);
+  bytes += WriteNumber(buffer, limit_ext_min_);
+  bytes += WriteNumber(buffer, limit_ext_max_);
+  UpdateBlockSize(buffer, bytes);
   return bytes;
 }
 
@@ -589,20 +589,20 @@ MdfBlock *Cn4Block::Find(int64_t index) const {
   return DataListBlock::Find(index);
 }
 
-void Cn4Block::ReadSignalData(std::FILE *file) const {
-  const size_t count = DataSize();
+void Cn4Block::ReadSignalData(std::streambuf& buffer) const {
+  const uint64_t count = DataSize();
 
-  size_t index = 0;
-  data_list_.resize(count, 0);
+  uint64_t index = 0;
+  data_list_.resize(static_cast<size_t>(count), 0);
   // The block list should only contain one block.
   // A SD block is uncompressed data block
   for (const auto &block : block_list_) {
     const auto *data_list = dynamic_cast<const DataListBlock *>(block.get());
     const auto *data_block = dynamic_cast<const DataBlock *>(block.get());
     if (data_list != nullptr) {
-      data_list->CopyDataToBuffer(file, data_list_, index);
+      data_list->CopyDataToBuffer(buffer, data_list_, index);
     } else if (data_block != nullptr) {
-      data_block->CopyDataToBuffer(file, data_list_, index);
+      data_block->CopyDataToBuffer(buffer, data_list_, index);
     }
   }
 }
@@ -645,7 +645,7 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
     if (index + 4 > data_list_.size()) {
       return false;
     }
-    const LittleBuffer<uint32_t> length(data_list_, index);
+    const LittleBuffer<uint32_t> length(data_list_, static_cast<size_t>(index) );
     try {
       temp.resize(length.value(), 0);
     } catch (const std::exception&) {
@@ -770,7 +770,7 @@ bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
     if (index + 4 > data_list_.size()) {
       return false;
     }
-    const LittleBuffer<uint32_t> length(data_list_, index);
+    const LittleBuffer<uint32_t> length(data_list_, static_cast<size_t>(index) );
     try {
       dest.resize(length.value(), 0);
     } catch (const std::exception&) {
@@ -784,12 +784,12 @@ bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
 
   } else {
     try {
-      dest.resize(nof_bytes, 0);
+      dest.resize(static_cast<size_t>(nof_bytes), 0);
     } catch (const std::exception&) {
       return false; // Return invalid value
     }
     if (offset + nof_bytes <= record_buffer.size()) {
-      memcpy(dest.data(), record_buffer.data() + offset, nof_bytes);
+      memcpy(dest.data(), record_buffer.data() + offset, static_cast<size_t>(nof_bytes) );
     } else {
       valid = false;
     }
@@ -1011,7 +1011,7 @@ void Cn4Block::Flags(uint32_t flags) {flags_ = flags; }
 
 uint32_t Cn4Block::Flags() const { return flags_; }
 
-void Cn4Block::PrepareForWriting(size_t offset) {
+void Cn4Block::PrepareForWriting(uint64_t offset) {
   bit_offset_ = 0;
   byte_offset_ = static_cast<uint32_t>(offset);
   data_list_.clear(); // Temporary storage of signal data (SD)
@@ -1170,7 +1170,7 @@ bool Cn4Block::GetValid(const std::vector<uint8_t> &record_buffer,
   bool valid = true;
   if (Flags() & CnFlag::InvalidValid && cg_block_ != nullptr) {
     const auto invalid_pos = invalid_bit_pos_ + array_index;
-    const auto byte_offset = cg_block_->NofDataBytes() + (invalid_pos / 8);
+    const auto byte_offset = static_cast<size_t>( cg_block_->NofDataBytes() + (invalid_pos / 8) );
     const auto bit_offset = invalid_pos % 8;
     const uint8_t mask = 0x01 << bit_offset;
     if (byte_offset < record_buffer.size()) {
@@ -1180,31 +1180,31 @@ bool Cn4Block::GetValid(const std::vector<uint8_t> &record_buffer,
   return valid;
 }
 
-size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
-  size_t bytes = 0;
+uint64_t Cn4Block::WriteSignalData(std::streambuf& buffer, bool compress) {
+  uint64_t bytes = 0;
 
-  if (file == nullptr || Type() == ChannelType::MaxLength ||
+  if (Type() == ChannelType::MaxLength ||
       (Type() == ChannelType::VariableLength && VlsdRecordId() > 0) ) {
     // Signal data is updated elsewhere
     return 0;
   }
 
   if (data_list_.empty()) {
-    UpdateLink(file, kIndexData, 0); // No data link
+    UpdateLink(buffer, kIndexData, 0); // No data link
   } else if (!compress || data_list_.size() <= 100 ){
     // Store as SD block
     auto sd4 = std::make_unique<Sd4Block>();
     sd4->Data(data_list_);
-    bytes = sd4->Write(file);
-    UpdateLink(file, kIndexData,sd4->FilePosition());
+    bytes = sd4->Write(buffer);
+    UpdateLink(buffer, kIndexData,sd4->FilePosition());
   } else if (data_list_.size() <= kMaxDataSize) { // Compress data
     // Store DZ (SD) block
     auto dz4 = std::make_unique<Dz4Block>();
     dz4->OrigBlockType("SD");
     dz4->Type(Dz4ZipType::Deflate);
     dz4->Data(data_list_); // Compress and set up the sizes
-    bytes = dz4->Write(file);
-    UpdateLink(file, kIndexData,dz4->FilePosition());
+    bytes = dz4->Write(buffer);
+    UpdateLink(buffer, kIndexData,dz4->FilePosition());
   } else {
     // Store HL + DL + DZ blocks
     auto hl4 = std::make_unique<Hl4Block>();
@@ -1212,31 +1212,31 @@ size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
     hl4->Type(Hl4ZipType::Deflate);
 
     auto dl4 = std::make_unique<Dl4Block>();
-    std::vector<uint8_t> buffer;
-    buffer.reserve(kMaxDataSize);
+    std::vector<uint8_t> data;
+    data.reserve(kMaxDataSize);
     dl4->Flags(Dl4Flags::EqualLength);
     dl4->EqualLength(kMaxDataSize);
 
     for (const auto in_byte : data_list_) {
-      buffer.push_back(in_byte);
-      if (buffer.size() + 1 > kMaxDataSize) {
+      data.push_back(in_byte);
+      if (data.size() + 1 > kMaxDataSize) {
         auto dz4 = std::make_unique<Dz4Block>();
         dz4->OrigBlockType("SD");
         dz4->Type(Dz4ZipType::Deflate);
-        dz4->Data(buffer); // Compress and set up the sizes
+        dz4->Data(data); // Compress and set up the sizes
 
         auto& block_list = dl4->DataBlockList();
         block_list.push_back(std::move(dz4));
 
-        buffer.clear();
-        buffer.reserve(kMaxDataSize);
+        data.clear();
+        data.reserve(kMaxDataSize);
       }
     }
-    if (!buffer.empty()) {
+    if (!data.empty()) {
       auto dz4 = std::make_unique<Dz4Block>();
       dz4->OrigBlockType("SD");
       dz4->Type(Dz4ZipType::Deflate);
-      dz4->Data(buffer); // Compress and set up the sizes
+      dz4->Data(data); // Compress and set up the sizes
 
       auto& block_list = dl4->DataBlockList();
       block_list.push_back(std::move(dz4));
@@ -1244,8 +1244,8 @@ size_t Cn4Block::WriteSignalData(std::FILE *file, bool compress) {
     auto& top_list = hl4->DataBlockList();
     top_list.push_back(std::move(dl4));
 
-    bytes = hl4->Write(file);
-    UpdateLink(file, kIndexData,hl4->FilePosition());
+    bytes = hl4->Write(buffer);
+    UpdateLink(buffer, kIndexData,hl4->FilePosition());
   }
   return bytes;
 }

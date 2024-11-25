@@ -6,13 +6,13 @@
 
 namespace mdf::detail {
 
-size_t Rd4Block::Read(std::FILE *file) {
-  size_t bytes = ReadHeader4(file);
-  data_position_ = GetFilePosition(file);
+uint64_t Rd4Block::Read(std::streambuf& buffer) {
+  uint64_t bytes = ReadHeader4(buffer);
+  data_position_ = GetFilePosition(buffer);
   return bytes;
 }
 
-size_t Rd4Block::DataSize() const {
+uint64_t Rd4Block::DataSize() const {
   return block_length_ > 24 ? block_length_ - 24 : 0;
 }
 

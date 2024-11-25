@@ -18,7 +18,7 @@ namespace mdf::detail {
 class ReadCache {
  public:
   ReadCache() = delete;
-  ReadCache( MdfBlock* block, FILE* file);
+  ReadCache( MdfBlock* block, std::streambuf& buffer);
 
   bool ParseRecord();
   bool ParseRangeRecord(DgRange& range);
@@ -35,14 +35,14 @@ class ReadCache {
  void SetCallback(const std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback );
  private:
 
-  FILE* file_;
+  std::streambuf& buffer_;
   DataListBlock* data_list_ = nullptr; ///< List of data_block example a DL block
   DataBlock* data_block_ = nullptr; ///< A single data block
   Dg4Block* dg4_block_ = nullptr;
 
   size_t file_index_ = 0;
   std::vector<uint8_t> file_buffer_; // Needs a file buffer to handle the DZ block.
-  size_t data_size_ = 0;
+  uint64_t data_size_ = 0;
 
   uint64_t data_count_ = 0;
   uint64_t max_data_count_ = 0;

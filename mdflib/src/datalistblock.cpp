@@ -25,89 +25,89 @@ constexpr size_t kIndexNext = 0;
 
 namespace mdf::detail {
 
-void DataListBlock::ReadBlockList(std::FILE* file, size_t data_index) {
+void DataListBlock::ReadBlockList(std::streambuf& buffer, size_t data_index) {
   if (block_list_.empty() && Link(data_index) > 0) {
-    SetFilePosition(file, Link(data_index));
-    std::string block_type = ReadBlockType(file);
+    SetFilePosition(buffer, Link(data_index));
+    std::string block_type = ReadBlockType(buffer);
 
-    SetFilePosition(file, Link(data_index));
+    SetFilePosition(buffer, Link(data_index));
     if (block_type == "DT") {
       auto dt = std::make_unique<Dt4Block>();
       dt->Init(*this);
-      dt->Read(file);
+      dt->Read(buffer);
       block_list_.emplace_back(std::move(dt));
     } else if (block_type == "DZ") {
       auto dz = std::make_unique<Dz4Block>();
       dz->Init(*this);
-      dz->Read(file);
+      dz->Read(buffer);
       block_list_.emplace_back(std::move(dz));
     } else if (block_type == "DV") {
       auto dv_block = std::make_unique<Dv4Block>();
       dv_block->Init(*this);
-      dv_block->Read(file);
+      dv_block->Read(buffer);
       block_list_.emplace_back(std::move(dv_block));
     } else if (block_type == "DI") {
       auto di_block = std::make_unique<Di4Block>();
       di_block->Init(*this);
-      di_block->Read(file);
+      di_block->Read(buffer);
       block_list_.emplace_back(std::move(di_block));
     } else if (block_type == "DL") {
       for (auto link = Link(data_index); link > 0; /* no increment here*/) {
-        SetFilePosition(file, link);
+        SetFilePosition(buffer, link);
         auto dl = std::make_unique<Dl4Block>();
         dl->Init(*this);
-        dl->Read(file);
+        dl->Read(buffer);
         link = dl->Link(kIndexNext);
         block_list_.emplace_back(std::move(dl));
       }
     } else if (block_type == "LD") {
       for (auto link = Link(data_index); link > 0; /* no increment here*/) {
-        SetFilePosition(file, link);
+        SetFilePosition(buffer, link);
         auto ld_block = std::make_unique<Ld4Block>();
         ld_block->Init(*this);
-        ld_block->Read(file);
+        ld_block->Read(buffer);
         link = ld_block->Link(kIndexNext);
         block_list_.emplace_back(std::move(ld_block));
       }
     } else if (block_type == "HL") {
       auto hl = std::make_unique<Hl4Block>();
       hl->Init(*this);
-      hl->Read(file);
+      hl->Read(buffer);
       block_list_.emplace_back(std::move(hl));
     } else if (block_type == "SR") {
       for (auto link = Link(data_index); link > 0; /* no increment here*/) {
-        SetFilePosition(file, link);
+        SetFilePosition(buffer, link);
         auto sr = std::make_unique<Sr4Block>();
         sr->Init(*this);
-        sr->Read(file);
+        sr->Read(buffer);
         link = sr->Link(kIndexNext);
         block_list_.emplace_back(std::move(sr));
       }
     } else if (block_type == "RD") {
       auto rd = std::make_unique<Rd4Block>();
       rd->Init(*this);
-      rd->Read(file);
+      rd->Read(buffer);
       block_list_.emplace_back(std::move(rd));
     } else if (block_type == "RV") {
       auto rv_block = std::make_unique<Rv4Block>();
       rv_block->Init(*this);
-      rv_block->Read(file);
+      rv_block->Read(buffer);
       block_list_.emplace_back(std::move(rv_block));
     } else if (block_type == "RI") {
       auto ri_block = std::make_unique<Ri4Block>();
       ri_block->Init(*this);
-      ri_block->Read(file);
+      ri_block->Read(buffer);
       block_list_.emplace_back(std::move(ri_block));
     } else if (block_type == "SD") {
       auto sd = std::make_unique<Sd4Block>();
       sd->Init(*this);
-      sd->Read(file);
+      sd->Read(buffer);
       block_list_.emplace_back(std::move(sd));
     }
   }
 }
 
-void DataListBlock::ReadLinkList(std::FILE* file, size_t data_index,
+void DataListBlock::ReadLinkList(std::streambuf& buffer, size_t data_index,
                                  uint32_t nof_link) {
   if (block_list_.empty()) {
     for (uint32_t ii = 0; ii < nof_link; ++ii) {
@@ -115,59 +115,59 @@ void DataListBlock::ReadLinkList(std::FILE* file, size_t data_index,
       if (link <= 0) {
         continue;
       }
-      SetFilePosition(file, link);
-      std::string block_type = ReadBlockType(file);
+      SetFilePosition(buffer, link);
+      std::string block_type = ReadBlockType(buffer);
 
-      SetFilePosition(file, link);
+      SetFilePosition(buffer, link);
       // Note that we only read in data block that this list own. If it points
       // to a CG or CN block, this means that someone else is reading in this
       // block.
       if (block_type == "DT") {
         auto dt = std::make_unique<Dt4Block>();
         dt->Init(*this);
-        dt->Read(file);
+        dt->Read(buffer);
         block_list_.emplace_back(std::move(dt));
       } else if (block_type == "DZ") {
         auto dz = std::make_unique<Dz4Block>();
         dz->Init(*this);
-        dz->Read(file);
+        dz->Read(buffer);
         block_list_.emplace_back(std::move(dz));
       } else if (block_type == "DV") {
         auto dv_block = std::make_unique<Dv4Block>();
         dv_block->Init(*this);
-        dv_block->Read(file);
+        dv_block->Read(buffer);
         block_list_.emplace_back(std::move(dv_block));
       } else if (block_type == "DI") {
         auto di_block = std::make_unique<Di4Block>();
         di_block->Init(*this);
-        di_block->Read(file);
+        di_block->Read(buffer);
         block_list_.emplace_back(std::move(di_block));
       } else if (block_type == "RD") {
         auto rd = std::make_unique<Rd4Block>();
         rd->Init(*this);
-        rd->Read(file);
+        rd->Read(buffer);
         block_list_.emplace_back(std::move(rd));
       } else if (block_type == "RV") {
         auto rv_block = std::make_unique<Rv4Block>();
         rv_block->Init(*this);
-        rv_block->Read(file);
+        rv_block->Read(buffer);
         block_list_.emplace_back(std::move(rv_block));
       } else if (block_type == "RI") {
         auto ri_block = std::make_unique<Ri4Block>();
         ri_block->Init(*this);
-        ri_block->Read(file);
+        ri_block->Read(buffer);
         block_list_.emplace_back(std::move(ri_block));
       } else if (block_type == "SD") {
         auto sd = std::make_unique<Sd4Block>();
         sd->Init(*this);
-        sd->Read(file);
+        sd->Read(buffer);
         block_list_.emplace_back(std::move(sd));
       }
     }
   }
 }
 
-void DataListBlock::WriteBlockList(std::FILE* file, size_t first_index) {
+void DataListBlock::WriteBlockList(std::streambuf& buffer, size_t first_index) {
 
   for (size_t index = 0; index < block_list_.size(); ++index) {
     auto* block = block_list_[index].get();
@@ -178,8 +178,8 @@ void DataListBlock::WriteBlockList(std::FILE* file, size_t first_index) {
       continue;
     }
 
-    block->Write(file);
-    UpdateLink(file, first_index + index, block->FilePosition());
+    block->Write(buffer);
+    UpdateLink(buffer, first_index + index, block->FilePosition());
   }
 }
 
@@ -196,8 +196,8 @@ MdfBlock* DataListBlock::Find(int64_t index) const {
   return MdfBlock::Find(index);
 }
 
-size_t DataListBlock::DataSize() const {  // NOLINT
-  size_t count = 0;
+uint64_t DataListBlock::DataSize() const {  // NOLINT
+  uint64_t count = 0;
   for (const auto& block : block_list_) {
     if (!block) {
       continue;
@@ -226,8 +226,9 @@ void DataListBlock::ClearData() { // NOLINT
   }
 }
 
-void DataListBlock::CopyDataToBuffer(std::FILE *from_file, std::vector<uint8_t> &buffer,
-                      size_t &buffer_index) const {
+void DataListBlock::CopyDataToBuffer(std::streambuf& from_file,
+                      std::vector<uint8_t> &buffer,
+                      uint64_t &buffer_index) const {
   for (const auto &block : block_list_) {
     const auto *data_list = dynamic_cast<const DataListBlock *>(block.get());
     const auto *data_block = dynamic_cast<const DataBlock *>(block.get());

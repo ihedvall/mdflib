@@ -67,10 +67,10 @@ class Cn4Block : public DataListBlock, public IChannel {
 
   void GetBlockProperty(BlockPropertyList& dest) const override;
   [[nodiscard]] MdfBlock* Find(int64_t index) const override;
-  size_t Read(std::FILE* file) override;
-  size_t Write(std::FILE* file) override;
-  void ReadSignalData(std::FILE* file) const;  ///< Reads in (VLSD) channel data (SD)
-  size_t WriteSignalData(std::FILE* file, bool compress);
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
+  void ReadSignalData(std::streambuf& buffer) const;  ///< Reads in (VLSD) channel data (SD)
+  uint64_t WriteSignalData(std::streambuf& buffer, bool compress);
 
   void Init(const MdfBlock& id_block) override;
 
@@ -84,7 +84,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   void ClearData() const { data_list_.clear(); }
   const std::vector<uint8_t>& DataList() const { return data_list_; }
 
-  void UpdateDataLink(std::FILE *file, int64_t position);
+  void UpdateDataLink(std::streambuf& buffer, int64_t position);
   [[nodiscard]] int64_t DataLink() const;
 
   [[nodiscard]] std::vector<int64_t> AtLinkList() const;
@@ -109,8 +109,8 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] ISourceInformation *SourceInformation() const override;
   [[nodiscard]] ISourceInformation* CreateSourceInformation() override;
 
-  void PrepareForWriting(size_t offset);
-  void SetInvalidOffset(size_t bit_offset) {
+  void PrepareForWriting(uint64_t offset);
+  void SetInvalidOffset(uint64_t bit_offset) {
     invalid_bit_pos_ = static_cast<uint32_t>(bit_offset);
   }
 

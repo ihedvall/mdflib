@@ -19,7 +19,7 @@ namespace mdf::detail {
 class Hd3Block : public MdfBlock, public IHeader {
  public:
   using Dg3List = std::vector<std::unique_ptr<Dg3Block>>;
-  Hd3Block() = default;
+  Hd3Block();
   ~Hd3Block() override = default;
 
   [[nodiscard]] int64_t Index() const override;
@@ -57,11 +57,11 @@ class Hd3Block : public MdfBlock, public IHeader {
   [[nodiscard]] std::string Comment() const override;
   [[nodiscard]] MdfBlock *Find(int64_t index) const override;
   void GetBlockProperty(BlockPropertyList &dest) const override;
-  size_t Read(std::FILE *file) override;
-  size_t Write(std::FILE *file) override;
+  uint64_t Read(std::streambuf& buffer) override;
+  uint64_t Write(std::streambuf& buffer) override;
 
-  void ReadMeasurementInfo(std::FILE *file);
-  void ReadEverythingButData(std::FILE *file);
+  void ReadMeasurementInfo(std::streambuf& buffer);
+  void ReadEverythingButData(std::streambuf& buffer);
 
  private:
   uint16_t nof_dg_blocks_ = 0;

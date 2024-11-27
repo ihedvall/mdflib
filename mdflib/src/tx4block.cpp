@@ -76,8 +76,8 @@ size_t Tx4Block::Write(std::FILE *file) {
 
 uint64_t Tx4Block::Read(std::streambuf& buffer) {
   uint64_t bytes = ReadHeader4(buffer);
-  bytes += ReadStr(buffer, text_, block_size_ - bytes - 1);
-  return bytes + 1;
+  bytes += ReadStr(buffer, text_, block_length_ - bytes);
+  return bytes;
 }
 
 uint64_t Tx4Block::Write(std::streambuf& buffer) {

@@ -221,10 +221,18 @@ uint64_t WriteBytes(std::streambuf& buffer, uint64_t nof_bytes) {
 
 uint64_t ReadStr(std::streambuf& buffer, std::string &dest, uint64_t size) {
   std::ostringstream temp;
-
-  for (uint64_t ii = 0; ii < size; ++ii) {
-    const auto input = buffer.sbumpc();
+  uint64_t ii;
+  for (ii = 0; ii < size; ++ii) {
+    const int input = buffer.sbumpc();
+    if (input == '\0') {
+      ++ii;
+      break;
+    }
     temp << static_cast<char>(input);
+  }
+    // Correct the file position
+  if (ii < size) {
+    StepFilePosition(buffer, size - ii);
   }
   dest = temp.str();
   MdfHelper::Trim(dest);
@@ -390,6 +398,9 @@ size_t MdfBlock::ReadHeader4(std::FILE *file) {
 uint64_t MdfBlock::ReadHeader3(std::streambuf& buffer) {
   file_position_ = GetFilePosition(buffer);
   uint64_t bytes = ReadStr(buffer, block_type_, 2);
+  if (block_type_ == "##") {
+    throw std::runtime_error("MDF 4 header detected. This is not an MDF 3 file.");
+  }
   bytes += ReadNumber(buffer, block_size_);
   block_length_ = block_size_;
   return bytes;

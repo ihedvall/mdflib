@@ -92,6 +92,7 @@ bool Deflate(const std::string& filename, ByteArray& buf_out) {
         reinterpret_cast<char*>(buf_in.data()),
         static_cast<std::streamsize>(size) );
     file.close();
+
     if (nof_bytes < size) {
       buf_in.resize(static_cast<size_t>(nof_bytes), 0);
     }

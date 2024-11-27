@@ -54,6 +54,7 @@ class At4Block : public MdfBlock, public IAttachment {
   uint64_t Read(std::streambuf& buffer) override;
 
   void ReadData(std::streambuf& buffer, const std::string& dest_file) const;
+  void ReadData(std::streambuf& buffer, std::streambuf& dest_buffer) const;
 
   uint64_t Write(std::streambuf& buffer) override;
   [[nodiscard]] std::optional<std::string> Md5() const override;

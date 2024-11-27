@@ -75,6 +75,7 @@ void IdBlock::GetBlockProperty(BlockPropertyList &dest) const {
 uint64_t IdBlock::Read(std::streambuf& buffer) {
   block_type_ = "ID";
   block_length_ = 64;
+  SetFirstFilePosition(buffer);
 
   file_position_ = GetFilePosition(buffer);
   uint64_t bytes = ReadStr(buffer, file_identifier_, 8);

@@ -652,6 +652,9 @@ TEST_F(TestRead, TestStreamInterface)  // NOLINT
   for (const auto &[name, filename] : kMdfList) {
     uint64_t file_size = 0;
     // Read in file into memory
+
+    ASSERT_TRUE(IsMdfFile(filename));
+
     try {
       const path fullname(filename);
       file_size = std::filesystem::file_size(fullname);
@@ -678,6 +681,7 @@ TEST_F(TestRead, TestStreamInterface)  // NOLINT
       }
     }
     in_file.close();
+    out_buffer.pubsync(); // Doing a flush of buffer to vector
     out_buffer.close();
 
     if (file_array.empty()) {
@@ -688,6 +692,8 @@ TEST_F(TestRead, TestStreamInterface)  // NOLINT
     std::shared_ptr<std::streambuf> input_buffer =
         std::make_shared< stream_buffer<array_source> >(file_array.data(), file_array.size());
 
+    ASSERT_TRUE(IsMdfFile(*input_buffer));
+
     MdfReader oRead(input_buffer);
     EXPECT_TRUE(oRead.ReadMeasurementInfo()) << name;
     const auto *mdf_file = oRead.GetFile();
@@ -697,11 +703,18 @@ TEST_F(TestRead, TestStreamInterface)  // NOLINT
       ASSERT_TRUE(file4 != nullptr) << name;
       const auto &hd4 = file4->Hd();
       const auto &dg_list = hd4.Dg4();
-      std::cout <<"File: " << name << ", Nof Measurement: " << dg_list.size() << std::endl;
+      std::cout <<"File: " << name << " (" << file_size / 1'000
+                << " kB) , Nof Measurement: " << dg_list.size() << std::endl;
       EXPECT_FALSE(dg_list.empty()) << name;
     } else {
       const auto *file3 = dynamic_cast<const Mdf3File *>(mdf_file);
       EXPECT_TRUE(file3 != nullptr);
+      ASSERT_TRUE(file3 != nullptr) << name;
+      const auto &hd3 = file3->Hd();
+      const auto &dg_list = hd3.Dg3();
+      std::cout <<"File: " << name << " (" << file_size / 1'000
+                << " kB) , Nof Measurement: " << dg_list.size() << std::endl;
+      EXPECT_FALSE(dg_list.empty()) << name;
     }
   }
 }

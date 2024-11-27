@@ -267,6 +267,31 @@ void At4Block::ReadData(std::streambuf& buffer,
   }
 }
 
+void At4Block::ReadData(std::streambuf& buffer,
+                        std::streambuf& dest_buffer) const {
+  if (data_position_ <= 0) {
+    throw std::invalid_argument("File is not opened or data position not read");
+  }
+  SetFilePosition(buffer, data_position_);
+  if (IsEmbedded()) {
+    const bool error = IsCompressed() ? !Inflate(buffer, dest_buffer, nof_bytes_)
+                                      : !CopyBytes(buffer, dest_buffer, nof_bytes_);
+    if ( error ) {
+      throw std::ios_base::failure("Failed to copy correct number of bytes");
+    }
+  } else {
+    // Need to copy the source file
+    std::ifstream source(filename_, std::ios_base::in | std::ios_base::binary);
+    if (!source.is_open()) {
+      throw std::runtime_error("Failed to open the source file.");
+    }
+    for (int input = source.get(); !source.eof(); input = source.get()) {
+      dest_buffer.sputc(static_cast<char>(input));
+    }
+  }
+  // Difficult to check that the checksum was correct.
+}
+
 void At4Block::IsEmbedded(bool embed) {
   if (embed) {
     flags_ |= At4Flags::kEmbeddedData;

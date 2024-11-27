@@ -47,18 +47,24 @@ bool IsMdfFile(const std::string &filename) {
   if (!file.is_open()) {
     return false;
   }
+  const bool is_mdf = IsMdfFile(file);
+  file.close();
+  return is_mdf;
+}
+
+bool IsMdfFile(std::streambuf &buffer) {
+  std::filebuf file;
 
   detail::IdBlock oId;
   bool bError = true;
   try {
-    uint64_t bytes = oId.Read(file);
+    uint64_t bytes = oId.Read(buffer);
     if (bytes == 64) {
       bError = false;
     }
   } catch (const std::exception &) {
     bError = true;
   }
-  file.close();
   if (bError) {
     return false;
   }
@@ -351,8 +357,11 @@ void MdfReader::Close() {
     auto* file_buf = dynamic_cast<std::filebuf*>(buffer);
     if (file_buf != nullptr && file_buf->is_open()) {
       file_buf->close();
+    } else {
+      buffer->pubsync(); // Should flush output
     }
   } catch (const std::exception& err) {
+
     MDF_ERROR() << "Dynamic cast of pointer failed. Error: " << err.what();
   }
 }
@@ -448,6 +457,35 @@ bool MdfReader::ExportAttachmentData(const IAttachment &attachment,
   try {
     auto &at4 = dynamic_cast<const detail::At4Block &>(attachment);
     at4.ReadData(*file_, dest_file);
+  } catch (const std::exception &error) {
+    MDF_ERROR() << "Failed to read the file information blocks. Error: "
+                << error.what();
+    no_error = false;
+  }
+
+  if (shall_close) {
+    Close();
+  }
+  return no_error;
+}
+
+bool MdfReader::ExportAttachmentData(const IAttachment &attachment,
+                                     std::streambuf &dest_buffer) {
+  if (!instance_ || !file_) {
+    MDF_ERROR() << "No instance created. File: " << filename_;
+    return false;
+  }
+
+  bool shall_close = !IsOpen() && Open();
+  if (!IsOpen()) {
+    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    return false;
+  }
+
+  bool no_error = true;
+  try {
+    auto &at4 = dynamic_cast<const detail::At4Block &>(attachment);
+    at4.ReadData(*file_, dest_buffer);
   } catch (const std::exception &error) {
     MDF_ERROR() << "Failed to read the file information blocks. Error: "
                 << error.what();

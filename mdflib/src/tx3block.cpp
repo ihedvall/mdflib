@@ -16,8 +16,8 @@ Tx3Block::Tx3Block(std::string text) : text_(std::move(text)) {}
 
 uint64_t Tx3Block::Read(std::streambuf& buffer) {
   uint64_t bytes = ReadHeader3(buffer);
-  bytes += ReadStr(buffer, text_, block_size_ - bytes -1);
-  return bytes + 1;
+  bytes += ReadStr(buffer, text_, block_length_ - bytes);
+  return bytes;
 }
 
 std::string Tx3Block::Text() const {

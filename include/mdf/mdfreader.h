@@ -24,8 +24,23 @@ using ChannelObserverPtr = std::unique_ptr<IChannelObserver>;
 /** \brief List of observer. */
 using ChannelObserverList = std::vector<ChannelObserverPtr>;
 
-/// \brief Returns true if the file is an MDF file.
+/** \brief Returns true if the file is an MDF file.
+ *
+ * Check if a file is an MDF file. The function reads the first 64
+ * bytes (ID block) of the file and test if it is an MDF file.
+ * @param filename Full path to the file.
+ * @return True if this is a MDF file.
+ */
 [[nodiscard]] bool IsMdfFile(const std::string& filename);
+
+/** \brief Returns true if the stream buffer is an MDF file.
+ *
+ * Check if a stream buffer is an MDF file. The function reads the first 64
+ * bytes (ID block) of the buffer and test if it is an MDF file.
+ * @param buffer Reference to the stream buffer.
+ * @return True if this is a MDF stream.
+ */
+[[nodiscard]] bool IsMdfFile(std::streambuf& buffer );
 
 /// \brief Creates and attaches a channel sample observer.
 [[nodiscard]] ChannelObserverPtr CreateChannelObserver(
@@ -142,10 +157,33 @@ class MdfReader {
   bool ReadMeasurementInfo();    ///< Reads everything but not CG and raw data.
   bool ReadEverythingButData();  ///< Reads all blocks but not raw data.
 
-  /** \brief Export the attachment data to a destination file. */
+  /** \brief Export the attachment data to a destination file.
+   *
+   * Export an attachment block to a file. If the attachment is an external
+   * referenced file, that file is copied to the destination file.
+   * If the attachment is embedded in the MDF file, the attachment data is
+   * copied to the destination file.
+   *
+   * Any existing file will be overwritten.
+   * @param attachment Reference to the attachment block
+   * @param dest_file Full path to the
+   * @return True if the export was successful.
+   */
   bool ExportAttachmentData(const IAttachment& attachment,
                             const std::string& dest_file);
 
+  /** \brief Export an embedded attachment to a stream buffer.
+   *
+   * This function export an attachment data to an external stream buffer.
+   * Note that this function shouldn't be used with external referenced
+   * files.
+   *
+   * @param attachment Reference to an attachment.
+   * @param dest_buffer Refrence to an external stream buffer.
+   * @return True if the export was successful.
+   */
+  bool ExportAttachmentData(const IAttachment& attachment,
+                            std::streambuf& dest_buffer);
   /** \brief Reads all sample, sample reduction and signal data into memory.
    *
    * Reads in all data bytes that belongs to a data group (DG). The function

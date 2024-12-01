@@ -58,6 +58,7 @@ class MdfChannelGroup {
     auto pChannels = new mdf::IChannel*[count];
     MdfChannelGroupGetChannels(group, pChannels);
     std::vector<MdfChannel> channels;
+    channels.reserve(count);
     for (size_t i = 0; i < count; i++) channels.push_back(pChannels[i]);
     delete[] pChannels;
     return channels;

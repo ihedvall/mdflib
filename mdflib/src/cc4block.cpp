@@ -515,7 +515,7 @@ void Cc4Block::Formula(const std::string& formula) {
   constexpr size_t index = 0;
   while (index >= ref_list_.size()) {
     auto temp = std::make_unique<Tx4Block>();
-    ref_list_.push_back(std::move(temp));
+    ref_list_.emplace_back(std::move(temp));
   }
   auto* tx4 = dynamic_cast<Tx4Block*>(ref_list_[0].get());
   if (tx4 != nullptr) {
@@ -542,7 +542,7 @@ const std::string& Cc4Block::Formula() const {
 void Cc4Block::Reference(uint16_t index, const std::string& text) {
   while (index >= ref_list_.size()) {
     auto temp = std::make_unique<Tx4Block>();
-    ref_list_.push_back(std::move(temp));
+    ref_list_.emplace_back(std::move(temp));
   }
   auto* tx4 = dynamic_cast<Tx4Block*>(ref_list_.back().get());
   if (tx4 != nullptr) {

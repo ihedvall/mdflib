@@ -28,7 +28,7 @@ class MdfConverter : public Mdf4Writer {
   void CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
                             bool finalize) override;
  private:
-  std::filebuf file_; ///< File pointer as the file is open between calls.
+
   void ConverterThread();
 };
 

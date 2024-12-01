@@ -19,16 +19,16 @@ using namespace std::chrono_literals;
 namespace mdf::detail {
 MdfConverter::~MdfConverter() {
   StopWorkThread();
-  if (file_.is_open()) {
-    file_.close();
+  if (IsOpen()) {
+    Close();
   }
 }
 
 bool MdfConverter::InitMeasurement() {
   StopWorkThread();  // Just in case
 
-  if (file_.is_open()) {
-    file_.close();
+  if (IsOpen()) {
+    Close();
   }
 
   if (!mdf_file_) {
@@ -45,18 +45,17 @@ bool MdfConverter::InitMeasurement() {
   }
   // 1: Save ID, HD, DG, AT, CG and CN blocks to the file.
 
-  detail::OpenMdfFile(file_, filename_,
-    write_state_ == WriteState::Create ?
+  Open( write_state_ == WriteState::Create ?
     std::ios_base::out | std::ios_base::trunc | std::ios_base::binary
-    :  std::ios_base::out | std::ios_base::in |std::ios_base::trunc | std::ios_base::binary);
-  if (!file_.is_open()) {
+    :  std::ios_base::out | std::ios_base::binary);
+  if (!IsOpen()) {
     MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
 
   // Save the configuration to disc
-  const bool write = mdf_file_->Write(file_);
-  SetDataPosition(file_);  // Set up data position to end of file
+  const bool write = mdf_file_->Write(*file_);
+  SetDataPosition(*file_);  // Set up data position to end of file
 
   // Keep the file open to save conversion time
 
@@ -97,12 +96,12 @@ void MdfConverter::SaveQueue(std::unique_lock<std::mutex>& lock) {
   }
 
   // File should be open at this point
-  if (!file_.is_open()) {
+  if (!IsOpen()) {
     lock.lock();
     return;
   }
 
-  SetLastPosition(file_);
+  SetLastPosition(*file_);
 
   const auto id_size = dg4->RecordIdSize();
 
@@ -133,7 +132,7 @@ void MdfConverter::SaveQueue(std::unique_lock<std::mutex>& lock) {
     // the VLSD CG must have the next record_id
     if (vlsd_group != nullptr) {
       // Store as a VLSD record
-      const auto vlsd_index = vlsd_group->WriteVlsdSample(file_, id_size,
+      const auto vlsd_index = vlsd_group->WriteVlsdSample(*file_, id_size,
                                                           sample.vlsd_buffer);
       // Update the sample buffer with the new vlsd_index. Index is always
       // last 8 bytes in sample buffer
@@ -158,15 +157,15 @@ void MdfConverter::SaveQueue(std::unique_lock<std::mutex>& lock) {
       }
     }
 
-    cg4->WriteSample(file_, id_size, sample.record_buffer);
+    cg4->WriteSample(*file_, id_size, sample.record_buffer);
     lock.lock();
   }
 
   lock.unlock();
-  const auto last_position = GetFilePosition(file_);
+  const auto last_position = GetFilePosition(*file_);
   uint64_t block_length = 24 + (last_position - data_position);
-  dt4->UpdateBlockSize(file_, block_length);
-  dg4->Write(file_); // Flush out data
+  dt4->UpdateBlockSize(*file_, block_length);
+  dg4->Write(*file_); // Flush out data
 
   lock.lock();
 }
@@ -217,12 +216,12 @@ void MdfConverter::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
   }
 
   lock.unlock();
-  if (!file_.is_open()) {
+  if (!IsOpen()) {
     lock.lock();
     return;
   }
 
-  SetLastPosition(file_);
+  SetLastPosition(*file_);
 
   std::vector<uint8_t> buffer;
   buffer.reserve(4'000'000);
@@ -356,7 +355,7 @@ void MdfConverter::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
   hl4->DataBlockList().push_back(std::move(dl4));
 
 
-  dg4->Write(file_); // Flush out data
+  dg4->Write(*file_); // Flush out data
   lock.lock();
 
   hl4->ClearData(); // Remove temp data
@@ -372,13 +371,13 @@ bool MdfConverter::FinalizeMeasurement() {
     return false;
   }
 
-  if (!file_.is_open()) {
+  if (!IsOpen()) {
     MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
-  const bool write = mdf_file_ && mdf_file_->Write(file_);
-  const bool signal_data = WriteSignalData(file_);
-  file_.close();
+  const bool write = mdf_file_ && mdf_file_->Write(*file_);
+  const bool signal_data = WriteSignalData(*file_);
+  Close();
 
   write_state_ = WriteState::Finalize;
   return write && signal_data;

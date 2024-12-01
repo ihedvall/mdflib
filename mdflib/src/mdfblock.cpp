@@ -139,7 +139,7 @@ std::size_t WriteStr(std::FILE *file, const std::string &source, size_t size) {
 int64_t GetFilePosition(std::streambuf& buffer) {
   const auto pos = buffer.pubseekoff(0, std::ios_base::cur);
   if (pos < 0) {
-    throw std::ios_base::failure("Failed to get a file position");
+    throw std::ios_base::failure("Failed to get a stream position");
   }
   return pos;
 }
@@ -147,7 +147,7 @@ int64_t GetFilePosition(std::streambuf& buffer) {
 int64_t GetLastFilePosition(std::streambuf& buffer) {
   const auto pos = buffer.pubseekoff(0, std::ios_base::end);
   if (pos < 0) {
-    throw std::ios_base::failure("Failed to get last file position");
+    throw std::ios_base::failure("Failed to get last stream position");
   }
   return pos;
 }
@@ -156,21 +156,21 @@ void SetFilePosition(std::streambuf& buffer, int64_t position) {
   const auto pos = buffer.pubseekpos(
       static_cast<std::streambuf::pos_type>(position));
   if (pos < 0) {
-    throw std::ios_base::failure("Failed to set a file position");
+    throw std::ios_base::failure("Failed to set a stream position");
   }
 }
 
 void SetFirstFilePosition(std::streambuf& buffer) {
   const auto pos = buffer.pubseekoff(0, std::ios_base::beg);
   if (pos < 0) {
-    throw std::ios_base::failure("Failed to set first file position");
+    throw std::ios_base::failure("Failed to set first stream position");
   }
 }
 uint64_t StepFilePosition(std::streambuf& buffer, uint64_t steps) {
   const auto pos = buffer.pubseekoff(
       static_cast<std::streambuf::pos_type>(steps), std::ios_base::cur);
   if (pos < 0) {
-    throw std::ios_base::failure("Failed to set a file position");
+    throw std::ios_base::failure("Failed to set a stream position");
   }
   return steps;
 }
@@ -308,6 +308,12 @@ bool OpenMdfFile(FILE *&file, const std::string &filename,
 bool OpenMdfFile(std::streambuf& buffer, const std::string &filename,
                  std::ios_base::openmode mode) {
   const std::filebuf* file = nullptr;
+  // Dirty trick if the file was opened outside through the stream
+  // buffer interface.
+  if (filename.empty()) {
+    return true;
+  }
+
   try {
     auto& file_buffer = dynamic_cast<std::filebuf&>(buffer);
 

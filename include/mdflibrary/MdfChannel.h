@@ -109,7 +109,8 @@ class MdfChannel {
     auto pChannels = new mdf::IChannel*[count];
     MdfChannelGetChannelCompositions(channel, pChannels);
     std::vector<MdfChannel> channelss;
-    for (size_t i = 0; i < count; i++) channelss.push_back(pChannels[i]);
+    channelss.reserve(count);
+    for (size_t i = 0; i < count; i++) channelss.emplace_back(pChannels[i]);
     delete[] pChannels;
     return channelss;
   }

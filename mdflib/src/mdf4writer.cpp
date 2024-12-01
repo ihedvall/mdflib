@@ -144,14 +144,14 @@ void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
   }
   lock.unlock();
 
-  std::filebuf file;
-  file.open(filename_, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-  if (!file.is_open()) {
+
+  Open( std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+  if (!IsOpen()) {
     lock.lock();
     return;
   }
 
-  SetLastPosition(file);
+  SetLastPosition(*file_);
 
   lock.lock();
 
@@ -187,7 +187,7 @@ void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
     // the VLSD CG must have the next record_id
     if (vlsd_group != nullptr) {
       // Store as a VLSD record
-      const auto vlsd_index = vlsd_group->WriteVlsdSample(file, id_size,
+      const auto vlsd_index = vlsd_group->WriteVlsdSample(*file_, id_size,
                                                     sample.vlsd_buffer);
       // Update the sample buffer with the new vlsd_index. Index is always
       // last 8 bytes in sample buffer
@@ -212,16 +212,16 @@ void Mdf4Writer::SaveQueue(std::unique_lock<std::mutex>& lock) {
       }
     }
 
-    cg4->WriteSample(file, id_size, sample.record_buffer);
+    cg4->WriteSample(*file_, id_size, sample.record_buffer);
     lock.lock();
   }
 
   lock.unlock();
-  const auto last_position = GetFilePosition(file);
+  const int64_t last_position = GetFilePosition(*file_);
   uint64_t block_length = 24 + (last_position - data_position);
-  dt4->UpdateBlockSize(file, block_length);
-  dg4->Write(file); // Flush out data
-  file.close();
+  dt4->UpdateBlockSize(*file_, block_length);
+  dg4->Write(*file_); // Flush out data
+  Close();
   lock.lock();
 
 }
@@ -286,14 +286,13 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
   // Open the file for writing
   lock.unlock();
 
-  std::filebuf file;
-  file.open(filename_, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-  if (!file.is_open()) {
+  Open( std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+  if (!IsOpen()) {
     lock.lock();
     return;
   }
 
-  SetLastPosition(file);
+  SetLastPosition(*file_);
 
   std::vector<uint8_t> buffer;
   buffer.reserve(4'000'000);
@@ -433,8 +432,8 @@ void Mdf4Writer::CleanQueueCompressed(std::unique_lock<std::mutex>& lock,
   hl4->DataBlockList().push_back(std::move(dl4));
 
 
-  dg4->Write(file); // Flush out data
-  file.close();
+  dg4->Write(*file_); // Flush out data
+  Close();
   lock.lock();
 
   hl4->ClearData(); // Remove temp data

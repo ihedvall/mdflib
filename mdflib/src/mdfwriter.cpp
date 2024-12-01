@@ -29,6 +29,7 @@ namespace fs = std::filesystem;
 using namespace fs;
 using namespace std::chrono_literals;
 
+
 namespace {
 /*
 std::string StrErrNo(int error) {
@@ -109,6 +110,58 @@ IChannelGroup* MdfWriter::CreateChannelGroup(IDataGroup* parent) {
   return parent == nullptr ? nullptr : parent->CreateChannelGroup();
 }
 
+void MdfWriter::Open(std::ios_base::openmode mode) {
+  auto* buffer = file_.get();
+  if (buffer == nullptr) {
+    MDF_ERROR()
+    << "Invalid use of function. Need to init the file or stream buffer first.";
+    return;
+  }
+  detail::OpenMdfFile(*file_, filename_, mode);
+}
+
+bool MdfWriter::IsOpen() const {
+  const auto* buffer = file_.get();
+  if (buffer == nullptr) {
+    return false;
+  }
+  try {
+    const auto* file = dynamic_cast<const std::filebuf*>(buffer);
+    if (file == nullptr) {
+      return true;
+    }
+    return file->is_open();
+  } catch (const std::exception& err) {
+    MDF_ERROR() << "Checking if file is opened, failed. Error: " << err.what();
+  }
+  return false;
+}
+
+void MdfWriter::Close() {
+  auto* buffer = file_.get();
+  if (buffer == nullptr) {
+    return;
+  }
+  if (filename_.empty()) {
+    // This indicates that the user used the stream buffer interface.
+    // Closing the stream buffer may cause that the stream never is
+    // opened again.
+    buffer->pubsync();
+    return;
+  }
+  try {
+    auto* file = dynamic_cast<std::filebuf*>(buffer);
+    if (file != nullptr && file->is_open()) {
+      file->close();
+    } else if (file == nullptr) {
+      buffer->pubsync();
+    }
+
+  } catch( const std::exception& err) {
+    MDF_ERROR() << "Close of file failed. Error: " << err.what();
+  }
+}
+
 bool MdfWriter::Init(const std::string& filename) {
   bool init = false;
   CreateMdfFile();
@@ -116,15 +169,19 @@ bool MdfWriter::Init(const std::string& filename) {
   if (mdf_file_) {
     mdf_file_->FileName(filename);
   }
-  std::filebuf file;
+  file_ = std::make_shared<std::filebuf>();
+  if (!file_) {
+    MDF_ERROR() << "Failed to create a file buffer. Internal error.";
+    return false;
+  }
   try {
     if (fs::exists(filename_)) {
       // Read in existing file so we can append to it
 
-      detail::OpenMdfFile(file, filename_, std::ios_base::in | std::ios_base::binary);
-      if (!file.is_open()) {
-        mdf_file_->ReadEverythingButData(file);
-        file.close();
+      Open(std::ios_base::in | std::ios_base::binary);
+      if (IsOpen()) {
+        mdf_file_->ReadEverythingButData(*file_);
+        Close();
         write_state_ = WriteState::Finalize;  // Append to the file
         MDF_DEBUG() << "Reading existing file. File: " << filename_;
         init = true;
@@ -140,8 +197,8 @@ bool MdfWriter::Init(const std::string& filename) {
       init = true;
     }
   } catch (const std::exception& err) {
-    if (file.is_open()) {
-      file.close();
+    if (IsOpen()) {
+      Close();
       write_state_ = WriteState::Finalize;
       MDF_ERROR() << "Failed to read the existing MDF file. Error: "
                   << err.what() << ", File: " << filename_;
@@ -151,6 +208,14 @@ bool MdfWriter::Init(const std::string& filename) {
                   << err.what() << ", File: " << filename_;
     }
   }
+  return init;
+}
+
+bool MdfWriter::Init(const std::shared_ptr<std::streambuf>& buffer) {
+  bool init = true;
+  CreateMdfFile();
+  file_ = buffer;
+  write_state_ = WriteState::Create;
   return init;
 }
 
@@ -169,19 +234,18 @@ bool MdfWriter::InitMeasurement() {
     return false;
   }
   // 1: Save ID, HD, DG, AT, CG and CN blocks to the file.
-  std::filebuf file;
-  detail::OpenMdfFile(file, filename_,
-          write_state_ == WriteState::Create ?
+
+  Open(write_state_ == WriteState::Create ?
              std::ios_base::out | std::ios_base::binary | std::ios_base::trunc:
              std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-  if (!file.is_open()) {
+  if (!IsOpen()) {
     MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
 
-  const bool write = mdf_file_->Write(file);
-  SetDataPosition(file);  // Set up data position to end of file
-  file.close();
+  const bool write = mdf_file_->Write(*file_);
+  SetDataPosition(*file_);  // Set up data position to end of file
+  Close();
   start_time_ = 0;  // Zero indicate not started
   stop_time_ = 0;   // Zero indicate not stopped
   // Start the working thread that handles the samples
@@ -312,10 +376,8 @@ void MdfWriter::StartMeasurement(uint64_t start_time) {
     return;
   }
 
-  if (header->StartTime() == 0) {
-    if (const auto dg_list = header->DataGroups(); dg_list.size() == 1) {
-      header->StartTime(start_time);
-    }
+  if (const auto dg_list = header->DataGroups(); dg_list.size() == 1) {
+    header->StartTime(start_time);
   }
 
   sample_event_.notify_one();
@@ -339,10 +401,8 @@ void MdfWriter::StartMeasurement(ITimestamp &start_time) {
     return;
   }
 
-  if (header->StartTime() == 0) {
-    if (const auto dg_list = header->DataGroups(); dg_list.size() == 1) {
-      header->StartTime(start_time);
-    }
+ if (const auto dg_list = header->DataGroups(); dg_list.size() == 1) {
+    header->StartTime(start_time);
   }
 
   sample_event_.notify_one();
@@ -368,16 +428,14 @@ bool MdfWriter::FinalizeMeasurement() {
     return false;
   }
 
-  std::filebuf file;
-  detail::OpenMdfFile(file, filename_,
-                 std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-  if (!file.is_open()) {
+  Open(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+  if (!IsOpen()) {
     MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
     return false;
   }
-  const bool write = mdf_file_ && mdf_file_->Write(file);
-  const bool signal_data = WriteSignalData(file);
-  file.close();
+  const bool write = mdf_file_ && mdf_file_->Write(*file_);
+  const bool signal_data = WriteSignalData(*file_);
+  Close();
   write_state_ = WriteState::Finalize;
   return write && signal_data;
 }
@@ -461,15 +519,14 @@ void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
   }
 
   lock.unlock();
-  std::filebuf file;
-  file.open(filename_,
-            std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-  if (!file.is_open()) {
+
+  Open(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+  if (!IsOpen()) {
     lock.lock();
     return;
   }
 
-  SetLastPosition(file);
+  SetLastPosition(*file_);
 
   lock.lock();
 
@@ -488,13 +545,13 @@ void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
 
     if (dg3->NofRecordId() > 0) {
       const auto id = static_cast<uint8_t>(sample.record_id);
-      file.sputc(static_cast<char>(id));
+      file_->sputc(static_cast<char>(id));
     }
-    file.sputn(reinterpret_cast<const char*>(sample.record_buffer.data()),
+    file_->sputn(reinterpret_cast<const char*>(sample.record_buffer.data()),
                static_cast<std::streamsize>(sample.record_buffer.size()) );
     if (dg3->NofRecordId() > 1) {
       const auto id = static_cast<uint8_t>(sample.record_id);
-      file.sputc(static_cast<char>(id));
+      file_->sputc(static_cast<char>(id));
     }
     IncrementNofSamples(sample.record_id);
     lock.lock();
@@ -504,11 +561,11 @@ void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
   lock.unlock();
   for (const auto& cg3 : dg3->Cg3()) {
     if (cg3 != nullptr) {
-      cg3->Write(file);
+      cg3->Write(*file_);
     }
   }
 
-  file.close();
+  Close();
   lock.lock();
 }
 
@@ -549,7 +606,7 @@ bool MdfWriter::WriteSignalData(std::streambuf&) {
 std::string MdfWriter::Name() const {
   try {
     auto filename = u8path(filename_).stem().u8string();
-    return std::string(filename.begin(), filename.end());
+    return {filename.begin(), filename.end()};
   } catch (...) {
   }
   return {};

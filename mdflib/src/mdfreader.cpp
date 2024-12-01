@@ -53,7 +53,6 @@ bool IsMdfFile(const std::string &filename) {
 }
 
 bool IsMdfFile(std::streambuf &buffer) {
-  std::filebuf file;
 
   detail::IdBlock oId;
   bool bError = true;
@@ -267,7 +266,7 @@ MdfReader::MdfReader(std::string filename) : filename_(std::move(filename)) {
   VerifyMdfFile();
 }
 
-MdfReader::MdfReader(std::shared_ptr<std::streambuf>& buffer)  {
+MdfReader::MdfReader(const std::shared_ptr<std::streambuf>& buffer)  {
   file_ = buffer;
   VerifyMdfFile();
 }
@@ -326,6 +325,7 @@ bool MdfReader::Open() {
         "No stream buffer has been assigned. Invalid use of the function";
     return false;
   }
+
   // Note that the above function will return true if it isn't a file
   // buffer.
   return detail::OpenMdfFile(*file_, filename_,
@@ -350,6 +350,12 @@ bool MdfReader::IsOpen() const {
 void MdfReader::Close() {
   std::streambuf* buffer = file_.get();
   if (buffer == nullptr) {
+    return;
+  }
+  if (filename_.empty()) {
+    // Indicate that the stream buffer interface is used.
+    // Could be dangerous to close the file here.
+    buffer->pubsync();
     return;
   }
 

@@ -44,16 +44,17 @@ void Dl4Block::GetBlockProperty(BlockPropertyList &dest) const {
 uint64_t Dl4Block::Read(std::streambuf& buffer) {
   uint64_t bytes = ReadHeader4(buffer);
   bytes += ReadNumber(buffer, flags_);
-  std::vector<uint8_t> reserved;
-  bytes += ReadByte(buffer, reserved, 3);
+
+  bytes += StepFilePosition(buffer, 3);
   bytes += ReadNumber(buffer, nof_blocks_);
   if (flags_ & Dl4Flags::EqualLength) {
     bytes += ReadNumber(buffer, equal_length_);
   } else {
+    offset_list_.reserve(nof_blocks_);
     for (uint32_t ii = 0; ii < nof_blocks_; ++ii) {
       uint64_t offset = 0;
       bytes += ReadNumber(buffer, offset);
-      offset_list_.push_back(offset);
+      offset_list_.emplace_back(offset);
     }
   }
   ReadLinkList(buffer, kIndexData, nof_blocks_);
@@ -140,7 +141,7 @@ uint64_t Dl4Block::EqualLength() const { return equal_length_;}
 
 void Dl4Block::Offset(size_t index, uint64_t offset) {
   while (index >= offset_list_.size()) {
-    offset_list_.push_back(0);
+    offset_list_.emplace_back(0);
   }
   flags_ &= ~Dl4Flags::EqualLength;
   offset_list_[index] = offset;
@@ -152,7 +153,7 @@ uint64_t Dl4Block::Offset(size_t index) const {
 
 void Dl4Block::TimeValue(size_t index, uint64_t value) {
   while (index >= time_list_.size()) {
-    time_list_.push_back(0);
+    time_list_.emplace_back(0);
   }
   flags_ |= Dl4Flags::TimeValues;
   time_list_[index] = value;
@@ -164,7 +165,7 @@ uint64_t Dl4Block::TimeValue(size_t index) const {
 
 void Dl4Block::AngleValue(size_t index, uint64_t value) {
   while (index >= angle_list_.size()) {
-    angle_list_.push_back(0);
+    angle_list_.emplace_back(0);
   }
   flags_ |= Dl4Flags::AngleValues;
   angle_list_[index] = value;
@@ -176,7 +177,7 @@ uint64_t Dl4Block::AngleValue(size_t index) const {
 
 void Dl4Block::DistanceValue(size_t index, uint64_t value) {
   while (index >= distance_list_.size()) {
-    distance_list_.push_back(0);
+    distance_list_.emplace_back(0);
   }
   flags_ |= Dl4Flags::DistanceValues;
   distance_list_[index] = value;

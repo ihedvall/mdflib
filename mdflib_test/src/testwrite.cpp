@@ -10,6 +10,10 @@
 #include <thread>
 #include <set>
 
+#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+
 #include "util/logconfig.h"
 #include "util/logstream.h"
 #include "util/timestamp.h"
@@ -32,6 +36,7 @@ using namespace util::log;
 using namespace util::time;
 using namespace std::filesystem;
 using namespace mdf;
+using namespace boost::iostreams;
 
 namespace {
 
@@ -3313,6 +3318,150 @@ TEST_F(TestWrite, Mdf4TimeStamp) {
   CreateMdfWithTime(tz_path.string(), MdfWriterType::Mdf4Basic,
                     timezone_timestamp);
   TestMdf4Time(tz_path.string(), start_time, tz_offset_min, dst_offset_min);
+}
+
+
+TEST_F(TestWrite, TestStreamInterface) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path test_file(kTestDir);
+  test_file.append("stream_write.mf4");
+
+  auto buffer = std::make_shared<std::filebuf>();
+  const auto* file = buffer->open(test_file.string(),
+    std::ios_base::out | std::ios_base::binary | std::ios_base::trunc );
+  ASSERT_TRUE(file != nullptr) << test_file;
+
+  const auto start_write = TimeStampToNs();
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfConverter);
+
+  writer->Init(buffer);
+
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test MDF Converter");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  writer->PreTrigTime(0.0);
+  writer->CompressData(true);
+
+  auto* last_dg = header->CreateDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
+
+  // Note that no master channel added
+
+  auto* group1 = last_dg->CreateChannelGroup("Group1");
+  ASSERT_TRUE(group1 != nullptr);
+
+  auto* master1 = group1->CreateChannel("Master1");
+  ASSERT_TRUE(master1 != nullptr);
+  master1->DataType(ChannelDataType::FloatLe);
+  master1->Type(ChannelType::Master);
+  master1->Sync(ChannelSyncType::Time);
+  master1->Unit("s");
+  master1->DataBytes(4);
+
+  auto* signal1 = group1->CreateChannel("Signal1");
+  ASSERT_TRUE(signal1 != nullptr);
+  signal1->DataType(ChannelDataType::FloatLe);
+  signal1->DataBytes(8);
+
+  auto* group2 = last_dg->CreateChannelGroup("Group2");
+  ASSERT_TRUE(group2 != nullptr);
+
+  auto* master2 = group2->CreateChannel("Master2");
+  ASSERT_TRUE(master2 != nullptr);
+  master2->DataType(ChannelDataType::FloatLe);
+  master2->Type(ChannelType::Master);
+  master2->Sync(ChannelSyncType::Time);
+  master2->Unit("s");
+  master2->DataBytes(4);
+
+  auto* signal2 = group2->CreateChannel("Signal2");
+  ASSERT_TRUE(signal2 != nullptr);
+  signal2->DataType(ChannelDataType::FloatLe);
+  signal2->DataBytes(8);
+
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  for (size_t sample = 0; sample < 1'000'000; ++sample) {
+    const auto value = static_cast<double>(sample);
+    signal1->SetChannelValue(value, true);
+    writer->SaveSample(*group1, tick_time);
+
+    signal2->SetChannelValue(value, true);
+    writer->SaveSample(*group2, tick_time);
+    tick_time += 1'000'000; // 1 ms period
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+  const auto stop_write = TimeStampToNs();
+  buffer->close();
+
+  std::cout << "Write Time [ms]: " <<
+      static_cast<double>(stop_write - start_write) / 1'000'000
+            << std::endl;
+
+  auto in_buffer = std::make_shared<std::filebuf>();
+  const auto* in_file = in_buffer->open(test_file.string(),
+             std::ios_base::in | std::ios_base::binary);
+  ASSERT_TRUE( in_file != nullptr) << test_file;
+
+  MdfReader reader( in_buffer );
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 2);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+  in_buffer->close();
+
+  const auto read_time = TimeStampToNs();
+  std::cout << "Write Time [ms]: " <<
+      static_cast<double>(read_time - stop_write) / 1'000'000
+            << std::endl;
+
+  std::set<std::string> unique_list;
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    EXPECT_EQ(observer->NofSamples(), 1'000'000);
+    // Verify only signal data
+
+    // Verify that the values are correct. Only checking first 10 values.
+    for (size_t sample = 0; sample < 10; ++sample ) {
+      if (observer->IsMaster()) {
+        double value = -1.0;
+        const bool valid = observer->GetChannelValue(sample, value);
+        EXPECT_TRUE(valid);
+        if (sample > 0 ) {
+          EXPECT_GT(value, 0.0);
+        }
+      } else {
+        double value = -1.0;
+        const bool valid = observer->GetChannelValue(sample, value);
+        EXPECT_TRUE(valid);
+        EXPECT_DOUBLE_EQ(value, static_cast<double>(sample));
+      }
+    }
+  }
 }
 
 }  // end namespace mdf::test

@@ -11,6 +11,7 @@
 #include <string>
 #include <thread>
 #include <map>
+#include <ios>
 
 #include "mdf/mdffile.h"
 #include "mdf/samplerecord.h"
@@ -112,15 +113,23 @@ class MdfWriter {
   /** \brief Returns the filename without extension and path (stem). */
   [[nodiscard]] std::string Name() const;
 
-  /** \brief Initiate the file.
+  /** \brief Init the writer against a file.
    *
    * Initiate the writer by defining which file it shall work with. Note that
    * appending an existing file is supported.
+   *
    * @param filename Filename with full path.
    * @return Returns true if the function was successful.
    */
   bool Init(const std::string& filename);
 
+  /** \brief Initialize the writer against a  generic stream buffer.
+   *
+   * This function attach the internal stream buffer
+   * @param buffer
+   * @return
+   */
+  bool Init(const std::shared_ptr<std::streambuf>& buffer);
   /** \brief Returns true if this is a new file. */
   [[nodiscard]] bool IsFileNew() const {
     return write_state_ == WriteState::Create;
@@ -280,6 +289,14 @@ class MdfWriter {
   [[nodiscard]] bool CompressData() const { return compress_data_;}
 
  protected:
+  /** \brief Smart pointer to a stream buffer.
+   *
+   * The smart pointer to a stream buffer is normally set to
+   * a std::filebuf but can be assigned to a generic stream
+   * buffer.
+   */
+  std::shared_ptr<std::streambuf> file_;
+
   /** \brief Internal state of the thread. */
   enum class WriteState : uint8_t {
     Create,     ///< Only at first measurement
@@ -325,8 +342,13 @@ class MdfWriter {
   /** \brief Set the last file position. */
   virtual void SetLastPosition(std::streambuf& buffer) = 0;
 
+  void Open(std::ios_base::openmode mode);
+  [[nodiscard]] bool IsOpen() const;
+  void Close();
+
 
  private:
+
   bool compress_data_ = false; ///< True if the data shall be compressed.
   MdfBusType bus_type_ = MdfBusType::UNKNOWN;
   MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;

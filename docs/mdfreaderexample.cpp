@@ -17,7 +17,7 @@ int main() {
     mdf_file->DataGroups(dg_list);
 
     // In this example, we read in all sample data and fetch all values.
-    for (const auto* dg4 : dg_list) {
+    for (auto* dg4 : dg_list) {
       // Subscribers holds the sample data for a channel.
       // You should normally only subscribe on some channels.
       // We need a list to hold them.
@@ -28,7 +28,7 @@ int main() {
         for (const auto* cn4 : cn_list) {
           // Create a subscriber and add it to the temporary list
           auto sub = CreateChannelObserver(*dg4, *cg4, *cn4);
-          subscriber_list.push_back(std::move(sub));
+          subscriber_list.emplace_back(std::move(sub));
         }
       }
 
@@ -47,7 +47,7 @@ int main() {
       // Not needed in this example as we delete the subscribers,
       // but it is good practise to remove samples data from memory
       // when it is no longer needed.
-      dg4->ResetSample();
+      dg4->ClearData();
     }
     reader.Close(); // Close the file
 

@@ -61,7 +61,7 @@ TEST(BoostIostreams, SimpleByteArray) {
   }
   out_buffer.close();
 
-  stream_buffer<array_source> input_buffer(reinterpret_cast<char*>(data_list.data()),
+  stream_buffer<array> input_buffer(reinterpret_cast<char*>(data_list.data()),
                                            data_list.size());
   std::istream input_array(&input_buffer);
   int byte_index = 0;
@@ -92,7 +92,9 @@ TEST(BoostIostreams, SimpleWrite) {
 
   for (int index = 0; index < 256; ++index ) {
     out_array.put(static_cast<char>(index));
+
   }
+  out_array.tellp();
   out_buffer.close();
 
   std::cout << "Size: " << data_list.size() << std::endl;

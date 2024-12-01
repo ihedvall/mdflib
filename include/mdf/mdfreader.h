@@ -94,7 +94,7 @@ class MdfReader {
    */
   explicit MdfReader(std::string filename);
 
-  explicit MdfReader(std::shared_ptr<std::streambuf>& buffer);
+  explicit MdfReader(const std::shared_ptr<std::streambuf>& buffer);
   virtual ~MdfReader();  ///< Destructor that close any open file and destructs.
 
   MdfReader() = delete;

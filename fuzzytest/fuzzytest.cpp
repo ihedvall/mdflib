@@ -34,7 +34,7 @@ int main()
             for (const auto* cn4 : cn_list) {
                 // Create a subscriber and add it to the temporary list
                 auto sub = CreateChannelObserver(*dg4, *cg4, *cn4);
-                subscriber_list.push_back(std::move(sub));
+                subscriber_list.emplace_back(std::move(sub));
             }
         }
 

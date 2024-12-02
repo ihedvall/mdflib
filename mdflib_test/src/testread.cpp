@@ -46,7 +46,7 @@ constexpr std::string_view kLargeFrameCounter = "FrameCounter_VC0";
 constexpr std::string_view kLargeFrameData = "VideoRawdata_VC0";
 constexpr std::string_view kBenchMarkFile = "K:/test/mdf/net/test.mf4";
 constexpr std::string_view kCssTestFile = "css_test";
-
+constexpr std::string_view kCanFdFile = "test_canfd";
 
 using MdfList = std::map<std::string, std::string, util::string::IgnoreCase>;
 MdfList kMdfList;
@@ -717,6 +717,76 @@ TEST_F(TestRead, TestStreamInterface)  // NOLINT
       EXPECT_FALSE(dg_list.empty()) << name;
     }
   }
+}
+
+TEST_F(TestRead, TestCanFd) {
+  std::string test_file = GetMdfFile(kCanFdFile.data());
+  if (test_file.empty()) {
+    GTEST_SKIP_("CAN FD file not found");
+  }
+
+  MdfReader reader(test_file);
+  const bool read_config = reader.ReadEverythingButData();
+  ASSERT_TRUE(read_config);
+
+  const MdfFile* mf4_file = reader.GetFile();
+  ASSERT_TRUE(mf4_file != nullptr);
+
+  std::vector<IDataGroup*> dg_list;
+  mf4_file->DataGroups(dg_list);
+  EXPECT_EQ(dg_list.size(), 3);
+
+  for (IDataGroup* data_group : dg_list ) {
+    ASSERT_TRUE(data_group != nullptr);
+
+    // Subscribe on all channels
+    ChannelObserverList observer_list;
+    CreateChannelObserverForDataGroup(*data_group, observer_list);
+    EXPECT_FALSE(observer_list.empty());
+
+    const bool read = reader.ReadData(*data_group);
+    EXPECT_TRUE(read);
+
+    for (uint64_t sample = 0; sample < 5; ++sample) {
+
+      bool valid = false;
+      uint16_t channel = 0;
+      bool direction = false;
+      uint32_t can_id = 0;
+      std::vector<uint8_t> data_bytes;
+
+      for (const auto &observer : observer_list) {
+        if (observer->Name() == "CAN_DataFrame.BusChannel") {
+          valid = observer->GetEngValue(sample, channel);
+          EXPECT_TRUE(valid);
+        } else if (observer->Name() == "CAN_DataFrame.Dir") {
+          valid = observer->GetEngValue(sample, direction);
+          EXPECT_TRUE(valid);
+        } else if (observer->Name() == "CAN_DataFrame.ID") {
+          valid = observer->GetEngValue(sample, can_id);
+          EXPECT_TRUE(valid);
+        } else if (observer->Name() == "CAN_DataFrame.DataBytes") {
+          valid = observer->GetEngValue(sample, data_bytes);
+          EXPECT_TRUE(valid);
+        }
+      }
+      if (valid) {
+        std::cout << "Sample: " << sample
+                  << " Channel: " << channel
+                  << " Direction: " << (direction ? "Tx" : "Rx")
+                  << " Data: ";
+        for (uint8_t data : data_bytes) {
+          std::cout << std::hex << std::uppercase << std::setw(2)
+                    << std::setfill('0') << static_cast<int>(data) << " ";
+        }
+        std::cout << std::endl;
+
+      }
+    }
+
+  }
+
+
 }
 
 }  // namespace mdf::test

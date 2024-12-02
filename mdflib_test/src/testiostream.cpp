@@ -94,7 +94,7 @@ TEST(BoostIostreams, SimpleWrite) {
     out_array.put(static_cast<char>(index));
 
   }
-  out_array.tellp();
+
   out_buffer.close();
 
   std::cout << "Size: " << data_list.size() << std::endl;

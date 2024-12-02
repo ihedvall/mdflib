@@ -280,10 +280,11 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
         sample.vlsd_data = true;
         sample.vlsd_buffer = data_bytes_;
         UnsignedToRaw(true, (8+6)*8, 64, data_index_, record.data());
-      } else {}
-      for (size_t index = 0; index < max_data_length; ++index) {
-        record[14 + index] = index < data_bytes_.size()
-                                 ? data_bytes_[index] : 0xFF;
+      } else {
+        for (size_t index = 0; index < max_data_length; ++index) {
+          record[14 + index] =
+              index < data_bytes_.size() ? data_bytes_[index] : 0xFF;
+        }
       }
       break;
 
@@ -312,10 +313,11 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
         sample.vlsd_data = true;
         sample.vlsd_buffer = data_bytes_;
         UnsignedToRaw(true, (8+8)*8, 64, data_index_, record.data());
-      } else {}
-      for (size_t index = 0; index < max_data_length; ++index) {
+      } else {
+        for (size_t index = 0; index < max_data_length; ++index) {
         record[16 + index] = index < data_bytes_.size()
                                  ? data_bytes_[index] : 0xFF;
+        }
       }
       break;
 

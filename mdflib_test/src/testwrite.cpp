@@ -2448,7 +2448,7 @@ TEST_F(TestWrite, Mdf4VlsdCanConfig) {
 
   writer->BusType(MdfBusType::CAN);
   writer->StorageType(MdfStorageType::VlsdStorage);
-  writer->MaxLength(8);
+  writer->MaxLength(20);
   EXPECT_TRUE(writer->CreateBusLogConfiguration());
   writer->PreTrigTime(0.0);
   writer->CompressData(false);
@@ -2482,6 +2482,13 @@ TEST_F(TestWrite, Mdf4VlsdCanConfig) {
     EXPECT_EQ(msg.BusChannel(), 11);
     msg.DataBytes(data);
 
+    if (sample < 5) {
+      SampleRecord temp;
+      msg.ToRaw(MessageType::CAN_DataFrame,temp, 8, true);
+      std::cout << "Sample: " << sample
+                << ", Size: " << temp.vlsd_buffer.size() << std::endl;
+    }
+
     // Add dummy message to all for message types. Not realistic
     // but makes the test simpler.
     writer->SaveCanMessage(*can_data_frame, tick_time, msg);
@@ -2503,7 +2510,9 @@ TEST_F(TestWrite, Mdf4VlsdCanConfig) {
   const auto dg_list = header1->DataGroups();
   EXPECT_EQ(dg_list.size(), 1);
 
+  IDataGroup* last_data_group = nullptr;
   for (auto* dg4 : dg_list) {
+    last_data_group = dg4;
     const auto cg_list = dg4->ChannelGroups();
     EXPECT_EQ(cg_list.size(), 6);
     for (auto* cg4 : cg_list) {
@@ -2513,9 +2522,21 @@ TEST_F(TestWrite, Mdf4VlsdCanConfig) {
   }
   reader.Close();
 
+
+
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
     EXPECT_EQ(observer->NofSamples(), 100'000);
+    if (observer->Name() == "CAN_DataFrame" ) {
+      for (uint64_t sample1 = 0;
+           sample1 < 5 && sample1 < observer->NofSamples();
+           ++sample1) {
+        std::vector<uint8_t> frame_data;
+        const bool valid = observer->GetEngValue(sample1,frame_data);
+        std::cout << "Sample: " << sample1
+                  << ", Size: " << frame_data.size() << std::endl;
+      }
+    }
   }
 
 }

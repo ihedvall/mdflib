@@ -27,13 +27,12 @@ namespace mdf {
  * Enumerate that is used when doing bus logging. The enumerate is used when
  * creating default channel and channel group names.
  */
-enum class MdfBusType : int {
-  CAN,      ///< CAN or CAN-FD bus
-  LIN,      ///< LIN bus
-  FlexRay,  ///< FlexRay bus
-  MOST,     ///< MOST bus
-  Ethernet, ///< Ethernet bus
-  UNKNOWN   ///< Unknown bus type (Default)
+namespace MdfBusType  {
+  constexpr uint16_t CAN = 0x0001;      ///< CAN or CAN-FD bus
+  constexpr uint16_t LIN = 0x0002;      ///< LIN bus
+  constexpr uint16_t FlexRay = 0x0004;  ///< FlexRay bus
+  constexpr uint16_t MOST = 0x0008;     ///< MOST bus
+  constexpr uint16_t Ethernet = 0x0010; ///< Ethernet bus
 };
 
 /** \brief Enumerate that defines how the raw data is stored. By default
@@ -231,18 +230,18 @@ class MdfWriter {
    * When using the MDF writer as a bus logger, the naming of channel groups
    * and channels are defined in an ASAM standard. The naming is depending on
    * the basic low level protocol.
-   * @param type Type of basic protocol on the bus.
+   * @param type Type of basic protocols on the bus.
    */
-  void BusType(MdfBusType type) { bus_type_ = type; }
+  void BusType(uint16_t type) { bus_type_ = type; }
 
   /** \brief Returns the type of bus the MDF file is associated with. Only
    * used when doing bus logging.
    * @return Type of bus.
    */
-  [[nodiscard]] MdfBusType BusType() const { return bus_type_; }
+  [[nodiscard]] uint16_t BusType() const { return bus_type_; }
 
   /** \brief Returns the bus type as text. */
-  [[nodiscard]] std::string_view BusTypeAsString() const;
+  [[nodiscard]] std::string BusTypeAsString() const;
 
   /** \brief Only used when doing bus logging. It defines how raw data is
    * stored.
@@ -350,7 +349,7 @@ class MdfWriter {
  private:
 
   bool compress_data_ = false; ///< True if the data shall be compressed.
-  MdfBusType bus_type_ = MdfBusType::UNKNOWN;
+  uint16_t bus_type_ = 0; ///< Defines protocols.
   MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;
   uint32_t max_length_ = 8; ///< Max data byte storage
   std::map<uint64_t, const IChannel*> master_channels_; ///< List of master channels

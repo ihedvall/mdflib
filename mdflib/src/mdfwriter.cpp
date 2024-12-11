@@ -631,29 +631,51 @@ bool MdfWriter::CreateBusLogConfiguration() {
   }
 
   // 2. Create bus dependent CG and CN blocks
-  switch (BusType()) {
-    case MdfBusType::CAN:
-      CreateCanConfig(*last_dg);
-      break;
-
-    default:
-      MDF_ERROR() << "Bus type not supported. Bus Type: " << BusTypeAsString();
-      return false;
+  if ((BusType() & MdfBusType::CAN) != 0) {
+    CreateCanConfig(*last_dg);
   }
+
   return true;
 }
 
-std::string_view MdfWriter::BusTypeAsString() const {
-  switch (BusType()) {
-    case MdfBusType::CAN: return "CAN";
-    case MdfBusType::LIN: return "LIN";
-    case MdfBusType::FlexRay: return "FlexRay";
-    case MdfBusType::MOST: return "MOST";
-    case MdfBusType::Ethernet: return "Ethernet";
-    default:
-      break;
+std::string MdfWriter::BusTypeAsString() const {
+  std::ostringstream type;
+
+  if ((BusType() & MdfBusType::CAN) != 0) {
+    if (!type.str().empty()) {
+      type << ",";
+    }
+    type << "CAN";
   }
-  return {};
+
+  if ((BusType() & MdfBusType::LIN) != 0) {
+    if (!type.str().empty()) {
+      type << ",";
+    }
+    type << "LIN";
+  }
+
+  if ((BusType() & MdfBusType::FlexRay) != 0) {
+    if (!type.str().empty()) {
+      type << ",";
+    }
+    type << "FlexRay";
+  }
+
+  if ((BusType() & MdfBusType::MOST) != 0) {
+    if (!type.str().empty()) {
+      type << ",";
+    }
+    type << "MOST";
+  }
+
+  if ((BusType() & MdfBusType::Ethernet) != 0) {
+    if (!type.str().empty()) {
+      type << ",";
+    }
+    type << "Ethernet";
+  }
+  return type.str();
 }
 
 void MdfWriter::CreateCanConfig(IDataGroup& dg_block) const {
@@ -823,7 +845,19 @@ void MdfWriter::CreateCanDataFrameChannel(IChannelGroup& group) const {
 
   }
 
-  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.Dir", 8 + 5, 0);
+  auto* dir = CreateBitChannel(*cn_data_frame,"CAN_DataFrame.Dir", 8 + 5, 0);
+  if (dir != nullptr) {
+    // Add Rx(0) Tx(1) CC block
+    auto* cc_dir = dir->CreateChannelConversion();
+    if (cc_dir != nullptr) {
+        cc_dir->Type(ConversionType::ValueToText);
+        cc_dir->Parameter(0, 0.0);
+        cc_dir->Parameter(1, 1.0);
+        cc_dir->Reference(0, "Rx");
+        cc_dir->Reference(1, "Tx");
+        cc_dir->Reference(2, ""); // Default text
+    }
+  }
   CreateBitChannel(*cn_data_frame,"CAN_DataFrame.SRR", 8 + 5, 1);
   CreateBitChannel(*cn_data_frame,"CAN_DataFrame.EDL", 8 + 5, 2);
   CreateBitChannel(*cn_data_frame,"CAN_DataFrame.BRS", 8 + 5, 3);
@@ -903,7 +937,19 @@ void MdfWriter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
     }
   }
 
-  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.Dir", 8 + 5, 0);
+  auto* dir = CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.Dir", 8 + 5, 0);
+  if (dir != nullptr) {
+    // Add Rx(0) Tx(1) CC block
+    auto* cc_dir = dir->CreateChannelConversion();
+    if (cc_dir != nullptr) {
+      cc_dir->Type(ConversionType::ValueToText);
+      cc_dir->Parameter(0, 0.0);
+      cc_dir->Parameter(1, 1.0);
+      cc_dir->Reference(0, "Rx");
+      cc_dir->Reference(1, "Tx");
+      cc_dir->Reference(2, "");  // Default text
+    }
+  }
   CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.SRR", 8 + 5, 1);
   CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.WakeUp", 8 + 5, 5);
   CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.SingleWire", 8 + 5, 6);
@@ -1012,7 +1058,19 @@ void MdfWriter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
     }
   }
 
-  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.Dir", 8 + 5, 0);
+  auto* dir = CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.Dir", 8 + 5, 0);
+  if (dir != nullptr) {
+    // Add Rx(0) Tx(1) CC block
+    auto* cc_dir = dir->CreateChannelConversion();
+    if (cc_dir != nullptr) {
+      cc_dir->Type(ConversionType::ValueToText);
+      cc_dir->Parameter(0, 0.0);
+      cc_dir->Parameter(1, 1.0);
+      cc_dir->Reference(0, "Rx");
+      cc_dir->Reference(1, "Tx");
+      cc_dir->Reference(2, "");  // Default text
+    }
+  }
   CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.RTR", 8 + 5, 7);
   CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.SRR", 8 + 5, 1);
   CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.EDL", 8 + 5, 2);
@@ -1069,7 +1127,19 @@ void MdfWriter::CreateCanOverloadFrameChannel(IChannelGroup& group) {
     frame_bus->BitCount(4);
     frame_bus->Flags(CnFlag::BusEvent);
   }
-  CreateBitChannel(*cn_overload_frame,"CAN_OverloadFrame.Dir", 8 + 0, 0);
+  auto* dir = CreateBitChannel(*cn_overload_frame,"CAN_OverloadFrame.Dir", 8 + 0, 0);
+  if (dir != nullptr) {
+    // Add Rx(0) Tx(1) CC block
+    auto* cc_dir = dir->CreateChannelConversion();
+    if (cc_dir != nullptr) {
+      cc_dir->Type(ConversionType::ValueToText);
+      cc_dir->Parameter(0, 0.0);
+      cc_dir->Parameter(1, 1.0);
+      cc_dir->Reference(0, "Rx");
+      cc_dir->Reference(1, "Tx");
+      cc_dir->Reference(2, "");  // Default text
+    }
+  }
 
 }
 

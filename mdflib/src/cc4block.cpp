@@ -161,9 +161,9 @@ void Cc4Block::GetBlockProperty(BlockPropertyList& dest) const {
                     "Link to inverse formula", BlockItemType::LinkItem);
   for (const auto& block : ref_list_) {
     if (!block) {
-      continue;
-    }
-    if (block->BlockType() == "TX") {
+
+      dest.emplace_back("Reference Link NIL", "0x00", "", BlockItemType::LinkItem);
+    } else if (block->BlockType() == "TX") {
       const auto* tx = dynamic_cast<const Tx4Block*>(block.get());
       dest.emplace_back("Reference Link TX", ToHexString(block->FilePosition()),
                         tx != nullptr ? tx->Text() : "",

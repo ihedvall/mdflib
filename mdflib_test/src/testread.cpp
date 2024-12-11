@@ -751,7 +751,7 @@ TEST_F(TestRead, TestCanFd) {
 
       bool valid = false;
       uint16_t channel = 0;
-      bool direction = false;
+      std::string direction;
       uint32_t can_id = 0;
       std::vector<uint8_t> data_bytes;
 
@@ -773,13 +773,15 @@ TEST_F(TestRead, TestCanFd) {
       if (valid) {
         std::cout << "Sample: " << sample
                   << " Channel: " << channel
-                  << " Direction: " << (direction ? "Tx" : "Rx")
+                  << " Direction: " << direction
+                  << " CAN ID: " << can_id
                   << " Data: ";
+        std::ostringstream hex; // Needs temporary stream as I change format.
         for (uint8_t data : data_bytes) {
-          std::cout << std::hex << std::uppercase << std::setw(2)
+          hex << std::hex << std::uppercase << std::setw(2)
                     << std::setfill('0') << static_cast<int>(data) << " ";
         }
-        std::cout << std::endl;
+        std::cout << hex.str() << std::endl;
 
       }
     }

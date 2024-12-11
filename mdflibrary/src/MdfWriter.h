@@ -20,13 +20,13 @@ namespace MdfLibrary {
  * Enumerate that is used when doing bus logging. The enumerate is used when
  * creating default channel and channel group names.
  */
-public enum class MdfBusType : int {
-  CAN,      ///< CAN or CAN-FD bus
-  LIN,      ///< LIN bus
-  FlexRay,  ///< FlexRay bus
-  MOST,     ///< MOST bus
-  Ethernet, ///< Ethernet bus
-  UNKNOWN   ///< Unknown bus type (Default)
+public enum class MdfBusType : uint16_t {
+  CAN = 0x0001,      ///< CAN or CAN-FD bus
+  LIN = 0x0002,      ///< LIN bus
+  FlexRay = 0x0004,  ///< FlexRay bus
+  MOST = 0x0008,     ///< MOST bus
+  Ethernet = 0x0010, ///< Ethernet bus
+  UNKNOWN = 0x0000   ///< Unknown bus type (Default)
 };
 
 /** \brief MDF writer types. */

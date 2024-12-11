@@ -67,7 +67,7 @@ uint64_t MdfWriter::StopTime::get() {
 
 void MdfWriter::BusType::set(MdfBusType type) {
   if (writer_ != nullptr) {
-    writer_->BusType(static_cast<mdf::MdfBusType>(type));
+    writer_->BusType(static_cast<uint16_t>(type));
   }
 }
 

@@ -2,6 +2,9 @@
  * Copyright 2023 Simplxs
  * SPDX-License-Identifier: MIT
  */
+#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include <mdf/ichannelgroup.h>
 #include <mdf/idatagroup.h>
@@ -91,8 +94,8 @@ EXPORTFEATUREFUNC(void, SetPreTrigTime, double pre_trig_time) {
 }
 EXPORTFEATUREFUNC(uint64_t, GetStartTime) { return writer->StartTime(); }
 EXPORTFEATUREFUNC(uint64_t, GetStopTime) { return writer->StopTime(); }
-EXPORTFEATUREFUNC(MdfBusType, GetBusType) { return writer->BusType(); }
-EXPORTFEATUREFUNC(void, SetBusType, MdfBusType type) { writer->BusType(type); }
+EXPORTFEATUREFUNC(uint16_t, GetBusType) { return writer->BusType(); }
+EXPORTFEATUREFUNC(void, SetBusType, uint16_t type) { writer->BusType(type); }
 EXPORTFEATUREFUNC(MdfStorageType, GetStorageType) {
   return writer->StorageType();
 }

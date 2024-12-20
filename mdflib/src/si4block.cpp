@@ -85,7 +85,7 @@ void Si4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Name", name_);
   dest.emplace_back("Path", path_);
   dest.emplace_back("Source Type", MakeSourceTypeString(type_));
-  dest.emplace_back("Bus Type", MakeBusTypeString(type_));
+  dest.emplace_back("Bus Type", MakeBusTypeString(bus_type_));
   dest.emplace_back("Flags", MakeFlagString(flags_));
 
   if (md_comment_) {

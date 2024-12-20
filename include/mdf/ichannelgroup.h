@@ -108,11 +108,16 @@ class IChannelGroup : public IBlock {
   [[nodiscard]] virtual const IChannel* GetXChannel(
       const IChannel& reference) const = 0;
 
-  /** \brief Create a source information (SI) block. */
+  /** \brief Creates or returns the group source information (SI) block.
+   *
+   * This function creates or returns the source information (SI) block
+   * for the channel group.
+   * @return Pointer to a source information (SI) block.
+   */
   [[nodiscard]] virtual ISourceInformation* CreateSourceInformation();
 
   [[nodiscard]] virtual ISourceInformation* SourceInformation()
-      const; ///< Returns the source information (SI) block if it exist. */
+      const; ///< Returns the source information (SI) block if it exist.
 
   /** \brief Support function that creates a sample record. */
   [[nodiscard]] SampleRecord GetSampleRecord() const;

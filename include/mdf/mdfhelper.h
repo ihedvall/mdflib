@@ -227,6 +227,11 @@ class MdfHelper {
 
   /** \brief Converts a text string to a byte array. */
   static std::vector<uint8_t> TextToByteArray(const std::string& text);
+
+
+ static void UnsignedToRaw(bool little_endian, size_t start, size_t length,
+                     uint64_t value, uint8_t* raw);
+
 };
 
 }  // namespace mdf

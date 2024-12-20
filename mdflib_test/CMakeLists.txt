@@ -34,7 +34,9 @@ add_executable(test_mdf
         src/testxtensor.cpp
         src/testqueue.cpp
         src/testiostream.cpp
-        src/testmdfblock.cpp)
+        src/testmdfblock.cpp
+        src/testbuslogger.cpp
+        src/testbuslogger.h)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 if(VCPKG)

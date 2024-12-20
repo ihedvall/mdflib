@@ -2,13 +2,15 @@
 * Copyright 2023 Ingemar Hedvall
 * SPDX-License-Identifier: MIT
  */
+#include <array>
 
 #include "mdf/canmessage.h"
-#include <array>
 #include "mdf/ichannel.h"
+#include "mdf/mdfhelper.h"
 
 
 namespace {
+
 constexpr uint32_t kExtendedBit    = 0x80000000;
 constexpr uint32_t k11BitMask      = 0x7FF;
 constexpr uint8_t kDirBit         = 0x01;
@@ -22,34 +24,6 @@ constexpr uint8_t kRtrBit         = 0x80;
 
 constexpr std::array<size_t,16> kDataLengthCode =
     {0,1,2,3,4,5,6,7,8,12,16,20,24,32,48,64};
-constexpr uint8_t kMask[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
-
-void UnsignedToRaw(bool little_endian, size_t start, size_t length,
-                   uint64_t value, uint8_t* raw) {
-  if (raw == nullptr || length == 0) {
-    return;
-  }
-
-  uint64_t mask = 1ULL << (length - 1);
-  auto bit = little_endian ? static_cast<int>(start + length - 1)
-                           : static_cast<int>(start);
-  auto byte = bit / 8;
-  bit %= 8;
-
-  for (size_t index = 0; index < length; ++index) {
-    if ((value & mask) != 0) {
-      raw[byte] |= kMask[bit];
-    } else {
-      raw[byte] &= ~kMask[bit];
-    }
-    mask >>= 1;
-    --bit;
-    if (bit < 0) {
-      bit = 7;
-      little_endian ? --byte : ++byte;
-    }
-  }
-}
 
 } // end namespace
 
@@ -270,16 +244,16 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
       if (record.size() != record_size) {
         record.resize(record_size);
       }
-      UnsignedToRaw(true, 8*8, 32, message_id_, record.data());
+      MdfHelper::UnsignedToRaw(true, 8*8, 32, message_id_, record.data());
       record[8+4] =  dlc_;
       record[8+5] = flags_;
       if (save_index) {
-        // The data index have in reality not been updated at this point but
+        // The data index have in reality not been updated at this point, but
         // it will be updated when the sample buffer is written to the disc.
         // We need to save the data bytes to a temp buffer (VLSD data).
         sample.vlsd_data = true;
         sample.vlsd_buffer = data_bytes_;
-        UnsignedToRaw(true, (8+6)*8, 64, data_index_, record.data());
+        MdfHelper::UnsignedToRaw(true, (8+6)*8, 64, data_index_, record.data());
       } else {
         for (size_t index = 0; index < max_data_length; ++index) {
           record[14 + index] =
@@ -293,7 +267,7 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
       if (record.size() != record_size) {
         record.resize(record_size);
       }
-      UnsignedToRaw(true, 8*8, 32, message_id_, record.data());
+      MdfHelper::UnsignedToRaw(true, 8*8, 32, message_id_, record.data());
       record[8+4] = dlc_;
       record[8+5] = flags_;
       break;
@@ -304,7 +278,7 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
       if (record.size() < record_size) {
         record.resize(record_size);
       }
-      UnsignedToRaw(true, 8*8, 32, message_id_, record.data());
+      MdfHelper::UnsignedToRaw(true, 8*8, 32, message_id_, record.data());
       record[8+4] =  dlc_;
       record[8+5] = flags_;
       record[8+6] = bit_position_;
@@ -312,7 +286,7 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
       if (save_index) {
         sample.vlsd_data = true;
         sample.vlsd_buffer = data_bytes_;
-        UnsignedToRaw(true, (8+8)*8, 64, data_index_, record.data());
+        MdfHelper::UnsignedToRaw(true, (8+8)*8, 64, data_index_, record.data());
       } else {
         for (size_t index = 0; index < max_data_length; ++index) {
         record[16 + index] = index < data_bytes_.size()

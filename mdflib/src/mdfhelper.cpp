@@ -18,6 +18,8 @@
 
 namespace {
 
+constexpr uint8_t kMask[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+
 void LTrim(std::string &s) {
   s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
             return !std::isspace(ch);
@@ -361,6 +363,33 @@ int64_t MdfHelper::DstOffsetNs() {
   // should use a better method to calculate it in the future
   int dst_offset_seconds = local_tm.tm_isdst > 0 ? 3600 : 0;
   return static_cast<int64_t>(dst_offset_seconds) * 1'000'000'000;
+}
+
+void MdfHelper::UnsignedToRaw(bool little_endian, size_t start, size_t length,
+                              uint64_t value, uint8_t *raw) {
+  if (raw == nullptr || length == 0) {
+    return;
+  }
+
+  uint64_t mask = 1ULL << (length - 1);
+  auto bit = little_endian ? static_cast<int>(start + length - 1)
+                           : static_cast<int>(start);
+  auto byte = bit / 8;
+  bit %= 8;
+
+  for (size_t index = 0; index < length; ++index) {
+    if ((value & mask) != 0) {
+      raw[byte] |= kMask[bit];
+    } else {
+      raw[byte] &= ~kMask[bit];
+    }
+    mask >>= 1;
+    --bit;
+    if (bit < 0) {
+      bit = 7;
+      little_endian ? --byte : ++byte;
+    }
+  }
 }
 
 }  // namespace mdf

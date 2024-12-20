@@ -187,6 +187,7 @@
     <ClCompile Include="src\at4block.cpp" />
     <ClCompile Include="src\bigbuffer.cpp" />
     <ClCompile Include="src\blockproperty.cpp" />
+    <ClCompile Include="src\busconfigadapter.cpp" />
     <ClCompile Include="src\ca4block.cpp" />
     <ClCompile Include="src\canmessage.cpp" />
     <ClCompile Include="src\cc3block.cpp" />
@@ -240,6 +241,8 @@
     <ClCompile Include="src\ixmlfile.cpp" />
     <ClCompile Include="src\ixmlnode.cpp" />
     <ClCompile Include="src\ld4block.cpp" />
+    <ClCompile Include="src\linconfigadapter.cpp" />
+    <ClCompile Include="src\linmessage.cpp" />
     <ClCompile Include="src\littlebuffer.cpp" />
     <ClCompile Include="src\md4block.cpp" />
     <ClCompile Include="src\mdf3file.cpp" />
@@ -296,6 +299,7 @@
     <ClInclude Include="..\include\mdf\isampleobserver.h" />
     <ClInclude Include="..\include\mdf\isamplereduction.h" />
     <ClInclude Include="..\include\mdf\isourceinformation.h" />
+    <ClInclude Include="..\include\mdf\linmessage.h" />
     <ClInclude Include="..\include\mdf\mdffactory.h" />
     <ClInclude Include="..\include\mdf\mdffile.h" />
     <ClInclude Include="..\include\mdf\mdfhelper.h" />
@@ -307,6 +311,7 @@
     <ClInclude Include="src\at4block.h" />
     <ClInclude Include="src\bigbuffer.h" />
     <ClInclude Include="src\blockproperty.h" />
+    <ClInclude Include="src\busconfigadapter.h" />
     <ClInclude Include="src\ca4block.h" />
     <ClInclude Include="src\cc3block.h" />
     <ClInclude Include="src\cc4block.h" />
@@ -342,6 +347,7 @@
     <ClInclude Include="src\ixmlfile.h" />
     <ClInclude Include="src\ixmlnode.h" />
     <ClInclude Include="src\ld4block.h" />
+    <ClInclude Include="src\linconfigadapter.h" />
     <ClInclude Include="src\littlebuffer.h" />
     <ClInclude Include="src\md4block.h" />
     <ClInclude Include="src\mdf3file.h" />

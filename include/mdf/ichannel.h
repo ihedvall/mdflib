@@ -220,7 +220,15 @@ class IChannel : public IBlock  {
   /** \brief Returns the source information, if any. */
   [[nodiscard]] virtual ISourceInformation *SourceInformation() const;
 
-  /** \brief Creates a source information block. */
+  /** \brief Creates a source information block.
+   *
+   * This function creates or returns the existing source information (SI)
+   * block.
+   * Source information is describes the source. It can be the test
+   * object or test equipment.
+   * SI blocks only exist in MDF 4 files.
+   * @return Existing or a new source information (SI) block.
+   */
   [[nodiscard]] virtual ISourceInformation* CreateSourceInformation();
 
   /** \brief Returns the channel array object if any exist in this channel.

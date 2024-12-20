@@ -104,6 +104,12 @@ add_library(mdf
         src/timestamp.cpp
         src/mdf3timestamp.cpp
         src/mdf3timestamp.h
+        src/linmessage.cpp
+        ../include/mdf/linmessage.h
+        src/linconfigadapter.cpp
+        src/linconfigadapter.h
+        src/busconfigadapter.cpp
+        src/busconfigadapter.h
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})

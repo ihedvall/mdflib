@@ -16,7 +16,7 @@
 #include "mdf/mdffile.h"
 #include "mdf/samplerecord.h"
 #include "mdf/canmessage.h"
-
+#include "mdf/linmessage.h"
 /** \file mdfwriter.h
  * \brief Interface against an MDF writer object.
  */
@@ -210,6 +210,20 @@ class MdfWriter {
   void SaveCanMessage(const IChannelGroup& group, uint64_t time,
                       const CanMessage& msg);
 
+  /** \brief Saves a LIN message into a bus logger channel group.
+   *
+   * This function replace the normal SaveSample() function. It shall be used
+   * when logging LIN messages into a standard ASAM bus logger
+   * configuration.
+   *
+   * As before the function creates a record byte array and puts it onto an
+   * internal sample buffer. The time shall be absolute time (ns since 1970).
+   * @param group  Reference to the channel group (CG).
+   * @param time   Absolute time nano-seconds since 1970.
+   * @param msg    The LIN message to store.
+   */
+  void SaveLinMessage(const IChannelGroup& group, uint64_t time,
+                      const LinMessage& msg);
   /** \brief Starts the measurement. */
   virtual void StartMeasurement(uint64_t start_time);
   
@@ -284,8 +298,33 @@ class MdfWriter {
 
    /** \brief If set to true, the data block will be compressed. */
   void CompressData(bool compress) {compress_data_ = compress;}
+
   /** \brief Returns true if the data block is compressed. */
   [[nodiscard]] bool CompressData() const { return compress_data_;}
+
+  /** \brief Define only mandatory members.
+   *
+   * This option defines if only mandatory members should be automatic
+   * generated.
+   * This property is only used for bus configurations.
+   * When the property is true, only data frames are saved.
+   *
+   * It's questionable if this property should be used for on-line
+   * loggers but if only correct data frames are of interest, the
+   * property can be set to true.
+   * @param mandatory_only If set true, only mandatory members are created.
+   */
+  void MandatoryMembersOnly(bool mandatory_only) {
+    mandatory_members_only_ = mandatory_only;
+  }
+
+  /**
+   *
+   * @return
+   */
+  [[nodiscard]] bool MandatoryMembersOnly() const {
+    return mandatory_members_only_;
+  }
 
  protected:
   /** \brief Smart pointer to a stream buffer.
@@ -353,6 +392,7 @@ class MdfWriter {
   MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;
   uint32_t max_length_ = 8; ///< Max data byte storage
   std::map<uint64_t, const IChannel*> master_channels_; ///< List of master channels
+  bool mandatory_members_only_ = false;
   void RecalculateTimeMaster();
   void CreateCanConfig(IDataGroup& dg_block) const;
 

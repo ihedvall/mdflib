@@ -372,9 +372,11 @@ void Cg4Block::PathSeparator(char16_t path_separator) {
 }
 
 ISourceInformation *Cg4Block::CreateSourceInformation() {
-  auto si4 = std::make_unique<Si4Block>();
-  si4->Init(*this);
-  si_block_ = std::move(si4);
+  if (!si_block_) {
+    auto si4 = std::make_unique<Si4Block>();
+    si4->Init(*this);
+    si_block_ = std::move(si4);
+  }
   return si_block_.get();
 }
 

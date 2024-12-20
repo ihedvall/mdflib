@@ -5,9 +5,9 @@
 
 #include "mdf/mdfwriter.h"
 
+#include <mdf/canmessage.h>
 #include <mdf/idatagroup.h>
 #include <mdf/mdflogstream.h>
-#include <mdf/canmessage.h>
 
 #include <algorithm>
 #include <chrono>
@@ -15,6 +15,7 @@
 #include <fstream>
 
 #include "dg3block.h"
+#include "linconfigadapter.h"
 #include "mdfblock.h"
 #include "platform.h"
 
@@ -301,6 +302,44 @@ void MdfWriter::SaveCanMessage(const IChannelGroup& group, uint64_t time,
   } else if (group.Name() == "CAN_OverloadFrame") {
     msg.ToRaw(MessageType::CAN_OverloadFrame, sample, MaxLength(), save_index);
   }
+  std::lock_guard lock(locker_);
+  sample_queue_.emplace_back(sample);
+}
+
+void MdfWriter::SaveLinMessage(const IChannelGroup& group, uint64_t time,
+                               const LinMessage& msg) {
+  SampleRecord sample = group.GetSampleRecord();
+  sample.timestamp = time;
+  const auto itr_master = master_channels_.find(group.RecordId());
+  const auto* master =  itr_master == master_channels_.cend() ?
+                                                             nullptr : itr_master->second;
+  if (master != nullptr && master->CalculateMasterTime()) {
+    auto rel_ns = static_cast<int64_t>(sample.timestamp);
+    rel_ns -= static_cast<int64_t>(start_time_);
+    const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
+    master->SetTimestamp(rel_s, sample.record_buffer);
+  }
+  // Convert the LIN message to a sample record. Note that LIN always uses the
+  // MLSD storage type.
+
+  if (group.Name() == "LIN_Frame") {
+    msg.ToRaw(LinMessageType::LIN_Frame, sample);
+  } else if (group.Name() == "LIN_WakeUp") {
+    msg.ToRaw(LinMessageType::LIN_WakeUp, sample);
+  } else if (group.Name() == "LIN_ChecksumError") {
+    msg.ToRaw(LinMessageType::LIN_ChecksumError, sample);
+  } else if (group.Name() == "LIN_TransmissionError") {
+    msg.ToRaw(LinMessageType::LIN_TransmissionError, sample);
+  } else if (group.Name() == "LIN_SyncError") {
+    msg.ToRaw(LinMessageType::LIN_SyncError, sample);
+  } else if (group.Name() == "LIN_ReceiveError") {
+    msg.ToRaw(LinMessageType::LIN_ReceiveError, sample);
+  } else if (group.Name() == "LIN_Spike") {
+    msg.ToRaw(LinMessageType::LIN_Spike, sample);
+  } else if (group.Name() == "LIN_LongDom") {
+    msg.ToRaw(LinMessageType::LIN_LongDominantSignal, sample);
+  }
+
   std::lock_guard lock(locker_);
   sample_queue_.emplace_back(sample);
 }
@@ -634,7 +673,10 @@ bool MdfWriter::CreateBusLogConfiguration() {
   if ((BusType() & MdfBusType::CAN) != 0) {
     CreateCanConfig(*last_dg);
   }
-
+  if ((BusType() & MdfBusType::LIN) != 0) {
+    LinConfigAdapter configurator(*this);
+    configurator.CreateConfig(*last_dg);
+  }
   return true;
 }
 

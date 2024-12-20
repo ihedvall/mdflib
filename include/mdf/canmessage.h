@@ -3,7 +3,7 @@
 * SPDX-License-Identifier: MIT
 */
 
-/** \file canmessage.h
+/** \file canmessage.h "mdf/canmessage.h"
  * \brief Simple wrapper around a CAN or CAN FD message.
  *
  * The class is a simpler wrapper around a CAN message. It is used when
@@ -46,26 +46,61 @@ class IChannel;
  */
 class CanMessage {
  public:
-  /** \brief CAN message ID. Note that bit 31 indicate extended ID. */
+  /** \brief DBC message ID. Note that bit 31 indicate extended ID.
+   *
+   * The message ID is the CAN ID + highest bit 31 set if the CAN ID
+   * uses extended 29-bit ID. The message ID is actually used in a
+   * DBC file and not sent on the CAN bus, well the extended bit is sent.
+   * @param msg_id DBC Message ID
+   */
   void MessageId(uint32_t msg_id);
 
-  /** \brief CAN message ID. Note that bit 31 indicate extended ID. */
+  /** \brief DBC message ID. Note that bit 31 indicate extended ID.
+   *
+   * The message ID is the CAN ID with the highest bit 31 set if the
+   * CAN ID uses a 29-bit address.
+   * @return DBC message ID.
+   */
   [[nodiscard]] uint32_t MessageId() const;
 
-  /** \brief 29/11 bit CAN message ID. Note that bit 31 is not used. */
+  /** \brief 29/11 bit CAN message ID. Note that bit 31 is not used.
+   *
+   *  The CAN message ID identifies the message on a CAN bus. Note that
+   *  there is a DBC message ID which is the CAN ID + highest bit 31 set
+   *  if the CAN ID uses 29-bit addressing. This is a confusing naming
+   *  that causes invalid handling of messages.
+   * @return 29-bit CAN ID.
+   */
   [[nodiscard]] uint32_t CanId() const;
 
-  void ExtendedId(bool extended ); ///< Sets the extended CAN ID bit.
+  /** \brief Set true if the CAN ID uses 20-bit addressing.
+   *
+   * @param extended True if CAN ID uses 29-bit addressing.
+   */
+  void ExtendedId(bool extended );
+
+  /** \brief Returns true if the CAN ID uses 29-bit addressing,
+   *
+   * @return True if CAN ID uses extended addressing.
+   */
   [[nodiscard]] bool ExtendedId() const; ///< Returns the extended CAN ID.
 
-  /** \brief Sets the CAM message data length code.
+  /** \brief Sets the CAN message data length code.
    *
    * Sets the data length code (DLC). The DLC is the same as data length for
    * CAN but not for CAN FD. Note that the DataBytes() function fix both data
    * length and the DLC code so this function is normally not used.
    * @param dlc Data length code.
    */
-  void Dlc(uint8_t dlc); ///< Sets the
+  void Dlc(uint8_t dlc);
+
+  /** \brief Returns the data length code (DLC).
+   *
+   * The DLC is equal to number of bytes for CAN messages but not for CAN FD
+   * messages.
+   *
+   * @return Data length code for the message.
+   */
   [[nodiscard]] uint8_t Dlc() const; ///< Returns the CAN message length code.
 
   /** \brief Sets number of data bytes.

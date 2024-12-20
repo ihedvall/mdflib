@@ -4,10 +4,13 @@
  */
 
 #pragma once
-#include <array>
+
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <vector>
+#include <array>
+
 namespace mdf {
 
 template <typename T>

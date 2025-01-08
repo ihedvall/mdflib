@@ -6,6 +6,7 @@
  * \brief Support class for the MDF library.
  */
 #pragma once
+
 #include <cstdint>
 #include <string>
 #include <vector>

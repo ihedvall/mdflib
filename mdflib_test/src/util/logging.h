@@ -10,6 +10,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <string>
+#include <cstdint>
 
 #if __has_include(<source_location>)
 #include <source_location>

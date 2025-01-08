@@ -101,7 +101,7 @@ void LinConfigAdapter::CreateFrameChannels(IChannelGroup& group) {
   const std::string group_name = group.Name();
   auto* cn_frame = group.CreateChannel(group_name);
   if (cn_frame == nullptr) {
-    MDF_ERROR() << "Failed to create the channel. NAme :" << group_name;
+    MDF_ERROR() << "Failed to create the channel. Name :" << group_name;
     return;
   }
 

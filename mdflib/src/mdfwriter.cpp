@@ -16,6 +16,7 @@
 
 #include "dg3block.h"
 #include "linconfigadapter.h"
+#include "ethconfigadapter.h"
 #include "mdfblock.h"
 #include "platform.h"
 
@@ -338,6 +339,36 @@ void MdfWriter::SaveLinMessage(const IChannelGroup& group, uint64_t time,
     msg.ToRaw(LinMessageType::LIN_Spike, sample);
   } else if (group.Name() == "LIN_LongDom") {
     msg.ToRaw(LinMessageType::LIN_LongDominantSignal, sample);
+  }
+
+  std::lock_guard lock(locker_);
+  sample_queue_.emplace_back(sample);
+}
+
+void MdfWriter::SaveEthMessage(const IChannelGroup& group, uint64_t time,
+                               const EthMessage& msg) {
+  SampleRecord sample = group.GetSampleRecord();
+  sample.timestamp = time;
+  const auto itr_master = master_channels_.find(group.RecordId());
+  const auto* master =  itr_master == master_channels_.cend() ?
+                                                             nullptr : itr_master->second;
+  if (master != nullptr && master->CalculateMasterTime()) {
+    auto rel_ns = static_cast<int64_t>(sample.timestamp);
+    rel_ns -= static_cast<int64_t>(start_time_);
+    const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
+    master->SetTimestamp(rel_s, sample.record_buffer);
+  }
+  // Convert the LIN message to a sample record. Note that LIN always uses the
+  // MLSD storage type.
+
+  if (group.Name() == "ETH_Frame") {
+    msg.ToRaw(EthMessageType::ETH_Frame, sample);
+  } else if (group.Name() == "ETH_ChecksumError") {
+    msg.ToRaw(EthMessageType::ETH_ChecksumError, sample);
+  } else if (group.Name() == "ETH_LengthError") {
+    msg.ToRaw(EthMessageType::ETH_LengthError, sample);
+  } else if (group.Name() == "ETH_ReceiveError") {
+    msg.ToRaw(EthMessageType::ETH_ReceiveError, sample);
   }
 
   std::lock_guard lock(locker_);
@@ -675,6 +706,10 @@ bool MdfWriter::CreateBusLogConfiguration() {
   }
   if ((BusType() & MdfBusType::LIN) != 0) {
     LinConfigAdapter configurator(*this);
+    configurator.CreateConfig(*last_dg);
+  }
+  if ((BusType() & MdfBusType::Ethernet) != 0) {
+    EthConfigAdapter configurator(*this);
     configurator.CreateConfig(*last_dg);
   }
   return true;

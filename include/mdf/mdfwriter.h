@@ -17,6 +17,8 @@
 #include "mdf/samplerecord.h"
 #include "mdf/canmessage.h"
 #include "mdf/linmessage.h"
+#include "mdf/ethmessage.h"
+
 /** \file mdfwriter.h
  * \brief Interface against an MDF writer object.
  */
@@ -224,6 +226,21 @@ class MdfWriter {
    */
   void SaveLinMessage(const IChannelGroup& group, uint64_t time,
                       const LinMessage& msg);
+
+/** \brief Saves an Ethernet message into a bus logger channel group.
+*
+* This function replace the normal SaveSample() function. It shall be used
+* when logging Ethernet messages into a standard ASAM bus logger
+* configuration.
+*
+* As before the function creates a record byte array and puts it onto an
+* internal sample buffer. The time shall be absolute time (ns since 1970).
+* @param group  Reference to the channel group (CG).
+* @param time   Absolute time nano-seconds since 1970.
+* @param msg    The Etnernet message to store.
+                                            */
+void SaveEthMessage(const IChannelGroup& group, uint64_t time,
+                   const EthMessage& msg);
   /** \brief Starts the measurement. */
   virtual void StartMeasurement(uint64_t start_time);
   

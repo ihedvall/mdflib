@@ -110,6 +110,10 @@ add_library(mdf
         src/linconfigadapter.h
         src/busconfigadapter.cpp
         src/busconfigadapter.h
+        src/ethmessage.cpp
+        ../include/mdf/ethmessage.h
+        src/ethconfigadapter.cpp
+        src/ethconfigadapter.h
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})

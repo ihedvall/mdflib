@@ -168,6 +168,7 @@ TEST_F(TestWrite, Mdf3WriteHD) {
   for (size_t dg_index = 0; dg_index < 2; ++dg_index) {
     auto* dg3 = writer->CreateDataGroup();
     ASSERT_TRUE(dg3 != nullptr);
+    dg3->Description("First Measurement");
     for (size_t cg_index = 0; cg_index < 2; ++cg_index) {
       auto* cg3 = mdf::MdfWriter::CreateChannelGroup(dg3);
       ASSERT_TRUE(cg3 != nullptr);

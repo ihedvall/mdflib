@@ -218,9 +218,9 @@ void Hd4Block::ReadEverythingButData(std::streambuf& buffer) {
 
       // Update the VLSD record id reference on all channels
       // and fix the MSLD channel as well
-      auto channel_list = cg4->Channels();
+      const auto channel_list = cg4->Channels();
       for (auto *channel : channel_list) {
-        auto *cn4 = dynamic_cast<Cn4Block *>(channel);
+        const auto *cn4 = dynamic_cast<const Cn4Block *>(channel);
         if (cn4 == nullptr || cn4->DataLink() == 0) {
           // Nothing to set
           continue;
@@ -233,8 +233,31 @@ void Hd4Block::ReadEverythingButData(std::streambuf& buffer) {
           cn4->VlsdRecordId(ref_cg == nullptr ? 0 : ref_cg->RecordId());
         } else if (block != nullptr && block->BlockType() == "CN") {
           // Point to the length of byte array channel
-          const auto *mlsd_channel = dynamic_cast<const Cn4Block *>(block);
-          if (mlsd_channel != nullptr) {
+          if (const auto *mlsd_channel = dynamic_cast<const Cn4Block *>(block);
+              mlsd_channel != nullptr) {
+            // Check if the MLSD channel is valid. It must be of data type 0..3
+            // and number of data bytes > 0.
+            bool mlsd_valid = mlsd_channel->DataBytes() > 0;
+            switch (mlsd_channel->DataType()) {
+              case ChannelDataType::UnsignedIntegerLe:
+              case ChannelDataType::UnsignedIntegerBe:
+              case ChannelDataType::SignedIntegerLe:
+              case ChannelDataType::SignedIntegerBe:
+                break;
+
+              default:
+                mlsd_valid = false;
+                break;
+            }
+            if (!mlsd_valid) {
+              MDF_ERROR() << "Invalid MLSD data channel referenced. Data Channel: "
+                          << mlsd_channel->Name();
+               // Try to recover with data length channel
+              if (const auto* data_length_channel = cg4->GetChannel(".DataLength");
+                  data_length_channel != nullptr ) {
+                mlsd_channel = dynamic_cast<const Cn4Block*>(data_length_channel);
+              }
+            }
             cn4->MlsdChannel(mlsd_channel);
           }
         }

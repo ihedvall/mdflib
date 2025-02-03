@@ -215,6 +215,8 @@
     <ClCompile Include="src\dv4block.cpp" />
     <ClCompile Include="src\dz4block.cpp" />
     <ClCompile Include="src\etag.cpp" />
+    <ClCompile Include="src\ethconfigadapter.cpp" />
+    <ClCompile Include="src\ethmessage.cpp" />
     <ClCompile Include="src\ev4block.cpp" />
     <ClCompile Include="src\expatxml.cpp" />
     <ClCompile Include="src\fh4block.cpp" />
@@ -283,6 +285,7 @@
     <ClInclude Include="..\include\mdf\canmessage.h" />
     <ClInclude Include="..\include\mdf\cryptoutil.h" />
     <ClInclude Include="..\include\mdf\etag.h" />
+    <ClInclude Include="..\include\mdf\ethmessage.h" />
     <ClInclude Include="..\include\mdf\iattachment.h" />
     <ClInclude Include="..\include\mdf\iblock.h" />
     <ClInclude Include="..\include\mdf\ichannel.h" />
@@ -336,6 +339,7 @@
     <ClInclude Include="src\dt4block.h" />
     <ClInclude Include="src\dv4block.h" />
     <ClInclude Include="src\dz4block.h" />
+    <ClInclude Include="src\ethconfigadapter.h" />
     <ClInclude Include="src\ev4block.h" />
     <ClInclude Include="src\expatxml.h" />
     <ClInclude Include="src\fh4block.h" />

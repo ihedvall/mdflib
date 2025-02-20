@@ -303,6 +303,18 @@
     <ClCompile Include="src\ethmessage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\convertersamplequeue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\samplequeue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\writer4samplequeue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\writecache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\at4block.h">
@@ -595,6 +607,18 @@
     </ClInclude>
     <ClInclude Include="src\ethconfigadapter.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\convertersamplequeue.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\samplequeue.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\writer4samplequeue.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\writecache.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

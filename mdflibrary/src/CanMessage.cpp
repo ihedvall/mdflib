@@ -210,4 +210,9 @@ void CanMessage::Reset() {
     msg_->Reset();
   }
 }
+
+uint8_t CanMessage::DlcToLength(uint8_t dlc) {
+  return static_cast<uint8_t>(mdf::CanMessage::DlcToLength(dlc));
+}
+
 }

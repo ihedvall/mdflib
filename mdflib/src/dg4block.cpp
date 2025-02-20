@@ -148,7 +148,7 @@ uint64_t Dg4Block::Write(std::streambuf& buffer) {
   // as any DT block should be appended with data bytes. The DT block must be
   // last in the file
   WriteLink4List(buffer, block_list_, kIndexData,
-                 UpdateOption::DoUpdateAllBlocks); // Update last HL or DT
+                 UpdateOption::DoUpdateOnlyLastBlock); // Update last HL or DT
   return bytes;
 }
 

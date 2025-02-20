@@ -7,35 +7,54 @@
 
 #include "mdf/mdfwriter.h"
 
+#include "writecache.h"
+
 namespace mdf::detail {
 class Dg4Block;
 
 class Mdf4Writer : public MdfWriter {
  public:
-  Mdf4Writer() = default;
+  Mdf4Writer();
   ~Mdf4Writer() override;
 
-  bool InitMeasurement() override;
 
   IChannelConversion* CreateChannelConversion(IChannel* parent) override;
 
  protected:
-  uint64_t offset_ = 0;
+  WriteCache write_cache_;
+
+  void SaveSample(const IChannelGroup& group, uint64_t time) override;
+  void SaveSample(const IDataGroup& data_group,
+                  const IChannelGroup& channel_group, uint64_t time) override;
+
+  void SaveCanMessage(const IChannelGroup& group, uint64_t time,
+                      const CanMessage& msg) override;
+  void SaveCanMessage(const IDataGroup& data_group,
+                      const IChannelGroup& channel_group, uint64_t time,
+                      const CanMessage& msg) override;
+
+  void SaveLinMessage(const IChannelGroup& group, uint64_t time,
+                      const LinMessage& msg) override;
+  void SaveLinMessage(const IDataGroup& data_group,
+                      const IChannelGroup& channel_group, uint64_t time,
+                      const LinMessage& msg) override;
+
+  void SaveEthMessage(const IChannelGroup& group, uint64_t time,
+                      const EthMessage& msg) override;
+  void SaveEthMessage(const IDataGroup& data_group,
+                      const IChannelGroup& channel_group, uint64_t time,
+                      const EthMessage& msg) override;
+
   void CreateMdfFile() override;
-  void SetLastPosition(std::streambuf& buffer) override;
+
   bool PrepareForWriting() override;
-  void SaveQueue(std::unique_lock<std::mutex>& lock) override;
-  void CleanQueue(std::unique_lock<std::mutex>& lock) override;
 
-  /** \brief Calculates number of DZ blocks in the sample queue */
-  [[nodiscard]] size_t CalculateNofDzBlocks();
-  virtual void SaveQueueCompressed(std::unique_lock<std::mutex>& lock);
-
-  /** \brief Save one DZ block from the sample queue. */
-  virtual void CleanQueueCompressed(std::unique_lock<std::mutex>& lock, bool finalize);
-
-  void SetDataPosition(std::streambuf& buffer) override;
   bool WriteSignalData(std::streambuf& buffer) override;
+
+  void InitWriteCache() override;
+  void ExitWriteCache() override;
+  void RecalculateTimeMaster() override;
+  void NotifySample() override;
 
   Dg4Block* GetLastDg4();
  private:

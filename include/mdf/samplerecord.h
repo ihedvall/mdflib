@@ -26,7 +26,9 @@ struct SampleRecord {
 
   /** \brief Returns the size of a record buffer. */
   [[nodiscard]] size_t SampleSize() const {
-    return record_buffer.size() + vlsd_buffer.size();
+    // Note that record ID size is missing
+    // Fixed record length + VLSD data + VLSD length
+    return record_buffer.size() + vlsd_buffer.size() + 4;
   }
 };
 

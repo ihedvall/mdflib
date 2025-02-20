@@ -4,8 +4,6 @@
  */
 
 #include "mdf/mdfwriter.h"
-
-#include <mdf/canmessage.h>
 #include <mdf/idatagroup.h>
 #include <mdf/mdflogstream.h>
 
@@ -14,11 +12,13 @@
 #include <cstdio>
 #include <fstream>
 
-#include "dg3block.h"
 #include "linconfigadapter.h"
 #include "ethconfigadapter.h"
 #include "mdfblock.h"
 #include "platform.h"
+#include "samplequeue.h"
+#include "dg4block.h"
+#include "dt4block.h"
 
 #if INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
 #include <experimental/filesystem>
@@ -81,13 +81,10 @@ mdf::IChannel* CreateBitChannel(mdf::IChannel& parent,
   return frame_bit;
 }
 
-
-
 }  // namespace
 
 namespace mdf {
 
-MdfWriter::~MdfWriter() { StopWorkThread(); }
 
 void MdfWriter::PreTrigTime(double pre_trig_time) {
   pre_trig_time *= 1'000'000'000;
@@ -98,6 +95,10 @@ double MdfWriter::PreTrigTime() const {
   auto temp = static_cast<double>(pre_trig_time_);
   temp /= 1'000'000'000;
   return temp;
+}
+
+uint64_t MdfWriter::PreTrigTimeNs() const {
+  return pre_trig_time_;
 }
 
 IHeader* MdfWriter::Header() const {
@@ -222,7 +223,7 @@ bool MdfWriter::Init(const std::shared_ptr<std::streambuf>& buffer) {
 }
 
 bool MdfWriter::InitMeasurement() {
-  StopWorkThread();  // Just in case
+  ExitWriteCache();  // Just in case
   if (!mdf_file_) {
     MDF_ERROR() << "The MDF file is not created. Invalid use of the function.";
     return false;
@@ -246,186 +247,15 @@ bool MdfWriter::InitMeasurement() {
   }
 
   const bool write = mdf_file_->Write(*file_);
-  SetDataPosition(*file_);  // Set up data position to end of file
+
+  SetDataPosition();  // Set up data position to end of file
   Close();
   start_time_ = 0;  // Zero indicate not started
   stop_time_ = 0;   // Zero indicate not stopped
   // Start the working thread that handles the samples
   write_state_ = WriteState::Init;  // Waits for new samples
-  sample_queue_size_ = 0;
-  work_thread_ = std::thread(&MdfWriter::WorkThread, this);
+  InitWriteCache();
   return write;
-}
-
-void MdfWriter::SaveSample(const IChannelGroup& group, uint64_t time) {
-  SampleRecord sample = group.GetSampleRecord();
-  sample.timestamp = time;
-  const auto itr_master = master_channels_.find(group.RecordId());
-  const auto* master =
-      itr_master == master_channels_.cend() ? nullptr : itr_master->second;
-  if (master != nullptr && master->CalculateMasterTime()) {
-    auto rel_ns = static_cast<int64_t>(sample.timestamp);
-    rel_ns -= static_cast<int64_t>(start_time_);
-    const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
-    master->SetTimestamp(rel_s, sample.record_buffer);
-  }
-  sample_queue_size_ += sample.SampleSize();
-  std::lock_guard lock(locker_);
-  sample_queue_.emplace_back(sample);
-}
-
-void MdfWriter::SaveCanMessage(const IChannelGroup& group, uint64_t time,
-                    const CanMessage& msg) {
-  SampleRecord sample = group.GetSampleRecord();
-  sample.timestamp = time;
-  const auto itr_master = master_channels_.find(group.RecordId());
-  const auto* master =  itr_master == master_channels_.cend() ?
-                                    nullptr : itr_master->second;
-  if (master != nullptr && master->CalculateMasterTime()) {
-    auto rel_ns = static_cast<int64_t>(sample.timestamp);
-    rel_ns -= static_cast<int64_t>(start_time_);
-    const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
-    master->SetTimestamp(rel_s, sample.record_buffer);
-  }
-  // Convert the CAN message to a sample record. Note that depending on the
-  // storage type, either the whole message buffer is stored (Max Length) or
-  // an index to a SD or a VLSD CG record is stored. The index cannot be
-  // calculated at this point as it have to be calculated before saving the
-  // recording to disc. Instead, is the buffer temporary hold by the
-  // SampleRecord struct and fixed just before saving to disc.
-  const bool save_index = StorageType() != MdfStorageType::MlsdStorage;
-  if (group.Name() == "CAN_DataFrame") {
-    msg.ToRaw(MessageType::CAN_DataFrame, sample, MaxLength(), save_index);
-  } else if (group.Name() == "CAN_RemoteFrame") {
-    msg.ToRaw(MessageType::CAN_RemoteFrame, sample, MaxLength(), save_index);
-  } else if (group.Name() == "CAN_ErrorFrame") {
-    msg.ToRaw(MessageType::CAN_ErrorFrame, sample, MaxLength(), save_index);
-  } else if (group.Name() == "CAN_OverloadFrame") {
-    msg.ToRaw(MessageType::CAN_OverloadFrame, sample, MaxLength(), save_index);
-  }
-  std::lock_guard lock(locker_);
-  sample_queue_.emplace_back(sample);
-}
-
-void MdfWriter::SaveLinMessage(const IChannelGroup& group, uint64_t time,
-                               const LinMessage& msg) {
-  SampleRecord sample = group.GetSampleRecord();
-  sample.timestamp = time;
-  const auto itr_master = master_channels_.find(group.RecordId());
-  const auto* master =  itr_master == master_channels_.cend() ?
-                                                             nullptr : itr_master->second;
-  if (master != nullptr && master->CalculateMasterTime()) {
-    auto rel_ns = static_cast<int64_t>(sample.timestamp);
-    rel_ns -= static_cast<int64_t>(start_time_);
-    const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
-    master->SetTimestamp(rel_s, sample.record_buffer);
-  }
-  // Convert the LIN message to a sample record. Note that LIN always uses the
-  // MLSD storage type.
-
-  if (group.Name() == "LIN_Frame") {
-    msg.ToRaw(LinMessageType::LIN_Frame, sample);
-  } else if (group.Name() == "LIN_WakeUp") {
-    msg.ToRaw(LinMessageType::LIN_WakeUp, sample);
-  } else if (group.Name() == "LIN_ChecksumError") {
-    msg.ToRaw(LinMessageType::LIN_ChecksumError, sample);
-  } else if (group.Name() == "LIN_TransmissionError") {
-    msg.ToRaw(LinMessageType::LIN_TransmissionError, sample);
-  } else if (group.Name() == "LIN_SyncError") {
-    msg.ToRaw(LinMessageType::LIN_SyncError, sample);
-  } else if (group.Name() == "LIN_ReceiveError") {
-    msg.ToRaw(LinMessageType::LIN_ReceiveError, sample);
-  } else if (group.Name() == "LIN_Spike") {
-    msg.ToRaw(LinMessageType::LIN_Spike, sample);
-  } else if (group.Name() == "LIN_LongDom") {
-    msg.ToRaw(LinMessageType::LIN_LongDominantSignal, sample);
-  }
-
-  std::lock_guard lock(locker_);
-  sample_queue_.emplace_back(sample);
-}
-
-void MdfWriter::SaveEthMessage(const IChannelGroup& group, uint64_t time,
-                               const EthMessage& msg) {
-  SampleRecord sample = group.GetSampleRecord();
-  sample.timestamp = time;
-  const auto itr_master = master_channels_.find(group.RecordId());
-  const auto* master =  itr_master == master_channels_.cend() ?
-                                                             nullptr : itr_master->second;
-  if (master != nullptr && master->CalculateMasterTime()) {
-    auto rel_ns = static_cast<int64_t>(sample.timestamp);
-    rel_ns -= static_cast<int64_t>(start_time_);
-    const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
-    master->SetTimestamp(rel_s, sample.record_buffer);
-  }
-  // Convert the LIN message to a sample record. Note that LIN always uses the
-  // MLSD storage type.
-
-  if (group.Name() == "ETH_Frame") {
-    msg.ToRaw(EthMessageType::ETH_Frame, sample);
-  } else if (group.Name() == "ETH_ChecksumError") {
-    msg.ToRaw(EthMessageType::ETH_ChecksumError, sample);
-  } else if (group.Name() == "ETH_LengthError") {
-    msg.ToRaw(EthMessageType::ETH_LengthError, sample);
-  } else if (group.Name() == "ETH_ReceiveError") {
-    msg.ToRaw(EthMessageType::ETH_ReceiveError, sample);
-  }
-
-  std::lock_guard lock(locker_);
-  sample_queue_.emplace_back(sample);
-}
-
-void MdfWriter::RecalculateTimeMaster() {
-  master_channels_.clear();
-  const auto* header = Header();
-  if (header == nullptr) {
-    return;
-  }
-  // Find last DG block
-  const auto dg_list = header->DataGroups();
-  if (dg_list.empty()) {
-    return;
-  }
-  const auto* last_dg = dg_list.back();
-  if (last_dg == nullptr) {
-    return;
-  }
-  const auto cg_list = last_dg->ChannelGroups();
-  for (const auto* group : cg_list) {
-    if (group == nullptr) {
-      continue;
-    }
-    const auto cn_list = group->Channels();
-    for (const auto* channel : cn_list) {
-      if (channel == nullptr) {
-        continue;
-      }
-      if (channel->Type() == ChannelType::Master &&
-          channel->Sync() == ChannelSyncType::Time) {
-        master_channels_.emplace(group->RecordId(), channel);
-        break;
-      }
-    }
-  }
-  if (master_channels_.empty()) {
-    return;
-  }
-  std::scoped_lock list_lock(locker_);
-  for (auto& sample : sample_queue_) {
-    auto itr_ch = master_channels_.find(sample.record_id);
-    if (itr_ch == master_channels_.end()) {
-      continue;
-    }
-    const auto* master = itr_ch->second;
-    if (master == nullptr || !master->CalculateMasterTime() ) {
-      continue;
-    }
-    auto rel_ns = static_cast<int64_t>(sample.timestamp);
-    rel_ns -= static_cast<int64_t>(start_time_);
-    const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
-
-    master->SetTimestamp(rel_s, sample.record_buffer);
-  }
 }
 
 void MdfWriter::StartMeasurement(uint64_t start_time) {
@@ -437,20 +267,16 @@ void MdfWriter::StartMeasurement(uint64_t start_time) {
   // times to relative times by using the start_time_.
   RecalculateTimeMaster();
 
-  sample_event_.notify_one();
+  NotifySample();
 
   // Set the time in the header if this is the first DG block in the file.
   // This gives a better start time than when the file was created.
-  auto* header = Header();
-  if (header == nullptr) {
-    return;
-  }
-
-  if (const auto dg_list = header->DataGroups(); dg_list.size() == 1) {
+  if ( auto* header = Header();
+      header != nullptr && IsFirstMeasurement()) {
     header->StartTime(start_time);
   }
 
-  sample_event_.notify_one();
+  NotifySample();
 }
 
 void MdfWriter::StartMeasurement(ITimestamp &start_time) {
@@ -462,26 +288,23 @@ void MdfWriter::StartMeasurement(ITimestamp &start_time) {
   // times to relative times by using the start_time_.
   RecalculateTimeMaster();
 
-  sample_event_.notify_one();
+  NotifySample();
 
   // Set the time in the header if this is the first DG block in the file.
   // This gives a better start time than when the file was created.
-  auto* header = Header();
-  if (header == nullptr) {
-    return;
-  }
-
- if (const auto dg_list = header->DataGroups(); dg_list.size() == 1) {
+  if ( auto* header = Header();
+      header != nullptr && IsFirstMeasurement()) {
     header->StartTime(start_time);
   }
 
-  sample_event_.notify_one();
+  NotifySample();
 }
 
 void MdfWriter::StopMeasurement(uint64_t stop_time) {
+  ExitWriteCache();
   write_state_ = WriteState::StopMeas;
   stop_time_ = stop_time;
-  sample_event_.notify_one();
+  NotifySample();
 }
 
 void MdfWriter::StopMeasurement(ITimestamp& start_time) {
@@ -489,7 +312,6 @@ void MdfWriter::StopMeasurement(ITimestamp& start_time) {
 }
 
 bool MdfWriter::FinalizeMeasurement() {
-  StopWorkThread();
 
   // Save outstanding non-written blocks and any block updates as
   // sample counters which changes during DG/DT updates
@@ -510,164 +332,10 @@ bool MdfWriter::FinalizeMeasurement() {
   return write && signal_data;
 }
 
-void MdfWriter::StopWorkThread() {
-  stop_thread_ = true;
-  if (work_thread_.joinable()) {
-    sample_event_.notify_one();
-    work_thread_.join();
-  }
-  stop_thread_ = false;
-}
-
-void MdfWriter::TrimQueue() {
-  // Last Time - First Time <= Pre-trig time. Note that we must include start
-  // sample, so ignore the last sample
-  while (sample_queue_.size() > 1) {
-    const auto next_time = sample_queue_[1].timestamp;
-    const auto last_time = sample_queue_.back().timestamp;
-    if (start_time_ > 0) {
-      // Measurement started
-      if (next_time >= start_time_ - pre_trig_time_) {
-        break;
-      }
-    } else {
-      // Measurement not started. The queue shall be at least the pre-trig time
-      const auto buffer_time = last_time - next_time;
-      if (buffer_time <= pre_trig_time_) {
-        break;
-      }
-    }
-    sample_queue_.pop_front();
-  }
-}
-
-void MdfWriter::WorkThread() {
-  do {
-    // Wait on stop condition
-    std::unique_lock lock(locker_);
-    sample_event_.wait_for(lock, 10s, [&] { return stop_thread_.load(); });
-    switch (write_state_) {
-      case WriteState::Init: {
-        TrimQueue();  // Purge the queue using pre-trig time
-        break;
-      }
-      case WriteState::StartMeas: {
-        SaveQueue(lock);  // Save the contents of the queue to file
-        break;
-      }
-
-      case WriteState::StopMeas: {
-        CleanQueue(lock);
-        break;
-      }
-
-      default:
-        sample_queue_.clear();
-        break;
-    }
-  } while (!stop_thread_);
-  {
-    std::unique_lock lock(locker_);
-    CleanQueue(lock);
-  }
-}
-
-void MdfWriter::SaveQueue(std::unique_lock<std::mutex>& lock) {
-  // Save uncompressed data in last DG3 block
-  const auto* header = Header();
-  if (header == nullptr) {
-    return;
-  }
-
-  auto* last_dg = header->LastDataGroup();
-  if (last_dg == nullptr) {
-    return;
-  }
-  const auto* dg3 = dynamic_cast<detail::Dg3Block*>(last_dg);
-  if (dg3 == nullptr) {
-    return;
-  }
-
-  lock.unlock();
-
-  Open(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-  if (!IsOpen()) {
-    lock.lock();
-    return;
-  }
-
-  SetLastPosition(*file_);
-
-  lock.lock();
-
-  // Trim the queue so the start time is included in the first sample
-  TrimQueue();
-
-  // Save the queue onto the file
-  while (!sample_queue_.empty()) {
-    // Write a sample last to file
-    auto sample = sample_queue_.front();
-    sample_queue_.pop_front();
-    if (stop_time_ > 0 && sample.timestamp > stop_time_) {
-      break;  // Skip this sample
-    }
-    lock.unlock();
-
-    if (dg3->NofRecordId() > 0) {
-      const auto id = static_cast<uint8_t>(sample.record_id);
-      file_->sputc(static_cast<char>(id));
-    }
-    file_->sputn(reinterpret_cast<const char*>(sample.record_buffer.data()),
-               static_cast<std::streamsize>(sample.record_buffer.size()) );
-    if (dg3->NofRecordId() > 1) {
-      const auto id = static_cast<uint8_t>(sample.record_id);
-      file_->sputc(static_cast<char>(id));
-    }
-    IncrementNofSamples(sample.record_id);
-    lock.lock();
-  }
-
-  // Update channel group headers to reflect the new number of samples
-  lock.unlock();
-  for (const auto& cg3 : dg3->Cg3()) {
-    if (cg3 != nullptr) {
-      cg3->Write(*file_);
-    }
-  }
-
-  Close();
-  lock.lock();
-}
-
-void MdfWriter::CleanQueue(std::unique_lock<std::mutex>& lock) {
-  SaveQueue(lock);
-}
-
-void MdfWriter::IncrementNofSamples(uint64_t record_id) const {
-  const auto* header = Header();
-  if (header == nullptr) {
-    return;
-  }
-  const auto* data_group = header->LastDataGroup();
-  if (data_group == nullptr) {
-    return;
-  }
-  const auto list = data_group->ChannelGroups();
-  std::for_each(list.cbegin(), list.cend(), [&](auto* group) {
-    if (group != nullptr && group->RecordId() == record_id) {
-      group->IncrementSample();            // Increment internal sample counter
-      group->NofSamples(group->Sample());  // Update block counter
-    }
-  });
-}
-
 IChannel* MdfWriter::CreateChannel(IChannelGroup* parent) {
   return parent == nullptr ? nullptr : parent->CreateChannel();
 }
 
-void MdfWriter::SetDataPosition(std::streambuf&) {
-  // Only needed for MDF4 and uncompressed storage
-}
 bool MdfWriter::WriteSignalData(std::streambuf&) {
   // Only  supported by MDF4
   return true;
@@ -1219,5 +887,98 @@ void MdfWriter::CreateCanOverloadFrameChannel(IChannelGroup& group) {
   }
 
 }
+bool MdfWriter::IsFirstMeasurement() const {
+  const auto* header = Header();
+  if (header == nullptr) {
+    return true;
+  }
+
+  for (const auto* data_group : header->DataGroups()) {
+    if (data_group == nullptr) {
+      continue;
+    }
+    for (const auto* channel_group : data_group->ChannelGroups()) {
+      if (channel_group == nullptr ||
+          (channel_group->Flags() & CgFlag::VlsdChannel) != 0) {
+        continue;
+      }
+      if (channel_group->NofSamples() > 0) {
+        return false;
+      }
+    }
+
+  }
+  return true;
+}
+
+void MdfWriter::SetDataPosition() {
+  if (CompressData() || !file_) {
+    return;
+  }
+
+  const auto* header = Header();
+  if (header == nullptr) {
+    MDF_ERROR() << "No MDF header. Invalid use of function.";
+    return;
+  }
+
+  std::vector<IDataGroup*> measurement_list;
+
+  for (IDataGroup* data_group : header->DataGroups()) {
+    if (data_group == nullptr) {
+      continue;
+    }
+    for (IChannelGroup* channel_group : data_group->ChannelGroups()) {
+      if (channel_group == nullptr ||
+          (channel_group->Flags() & CgFlag::VlsdChannel) != 0 ||
+          channel_group->NofSamples() > 0) {
+        continue;
+      }
+      measurement_list.push_back(data_group);
+      break;
+    }
+  }
+
+  for (IDataGroup* measurement : measurement_list) {
+    if (measurement == nullptr) {
+      continue;
+    }
+
+    auto* dg4 = dynamic_cast<detail::Dg4Block*>(measurement);
+    if (dg4 == nullptr) {
+      return;
+    }
+    auto& block_list = dg4->DataBlockList();
+    if (block_list.empty()) {
+      return;
+    }
+    auto* dt4 = dynamic_cast<detail::Dt4Block*>(block_list.back().get());
+    if (dt4 == nullptr) {
+      return;
+    }
+
+    file_->pubseekoff(0, std::ios_base::end);
+
+    if (dg4->Link(2) > 0) {
+      return;
+    }
+
+    dg4->SetLastFilePosition(*file_);
+    const auto position = detail::GetFilePosition(*file_);
+    dg4->UpdateLink(*file_, 2, position);
+    dg4->SetLastFilePosition(*file_);
+
+    const int64_t data_position = detail::GetFilePosition(*file_);
+    dt4->DataPosition(data_position);
+
+  }
+}
+
+/** \brief Checks if the compression is required
+ *
+ * The function checks if the compression is required to be enabled.
+ * This is required if it is MDF 4 and more than one DG block is active.
+ */
+
 
 }  // namespace mdf

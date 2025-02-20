@@ -4,17 +4,13 @@
  */
 
 #pragma once
-#include <atomic>
-#include <condition_variable>
 #include <deque>
-#include <mutex>
 #include <string>
-#include <thread>
 #include <map>
 #include <ios>
+#include <atomic>
 
 #include "mdf/mdffile.h"
-#include "mdf/samplerecord.h"
 #include "mdf/canmessage.h"
 #include "mdf/linmessage.h"
 #include "mdf/ethmessage.h"
@@ -23,6 +19,22 @@
  * \brief Interface against an MDF writer object.
  */
 namespace mdf {
+
+/** \brief MDF writer types. */
+enum class MdfWriterType : int {
+  Mdf3Basic = 0, ///< Basic MDF version 3 writer.
+  Mdf4Basic = 1,  ///< Basic MDF version 4 writer.
+  MdfBusLogger = 2, ///< Specialized bus logger writer.
+  MdfConverter = 3, ///< MDF writer for MDF 4 conversion applications.
+};
+
+enum class WriteState : uint8_t {
+  Create,     ///< Only at first measurement
+  Init,       ///< Start work thread and start collecting samples
+  StartMeas,  ///< Start saving samples to file
+  StopMeas,   ///< Stop saving samples. OK to
+  Finalize    ///< OK to add new DG and CG blocks
+};
 
 /** \brief Enumerate that defines type of bus. Only relevant for bus logging.
  *
@@ -62,6 +74,12 @@ class IChannelGroup;
 class IChannel;
 class IChannelConversion;
 class IDataGroup;
+
+namespace detail {
+class SampleQueue;
+class Writer4SampleQueue;
+class ConverterSampleQueue;
+}
 
 /** \brief Interface against an MDF writer object.
  *
@@ -104,15 +122,29 @@ class IDataGroup;
  *
  */
 class MdfWriter {
+  friend class detail::SampleQueue;
+  friend class detail::Writer4SampleQueue;
+  friend class detail::ConverterSampleQueue;
  public:
-  MdfWriter() = default; ///< Default constructor.
-  virtual ~MdfWriter();  ///< Default destructor.
+
+  virtual ~MdfWriter() = default;  ///< Default destructor.
 
   MdfWriter(const MdfWriter& writer) = delete;
   MdfWriter& operator=(const MdfWriter& writer) = delete;
 
   /** \brief Returns the filename without extension and path (stem). */
   [[nodiscard]] std::string Name() const;
+
+  [[nodiscard]] MdfWriterType TypeOfWriter() const {
+    return type_of_writer_;
+  }
+
+  void State(WriteState state) {
+    write_state_ = state;
+  }
+  [[nodiscard]] WriteState State() const {
+    return write_state_;
+  }
 
   /** \brief Init the writer against a file.
    *
@@ -131,10 +163,11 @@ class MdfWriter {
    * @return
    */
   bool Init(const std::shared_ptr<std::streambuf>& buffer);
+
   /** \brief Returns true if this is a new file. */
   [[nodiscard]] bool IsFileNew() const {
     return write_state_ == WriteState::Create;
-  }
+  };
 
   /** \brief Sets the pre-trig time (s) of the writer.
    *
@@ -144,7 +177,7 @@ class MdfWriter {
    */
   void PreTrigTime(double pre_trig_time);
   [[nodiscard]] double PreTrigTime() const; ///< Pre-trig time (s).
-
+  [[nodiscard]] uint64_t PreTrigTimeNs() const; ///< Pre-trig time (ns).
   /** \brief Returns start time in nano-seconds since 1970. */
   [[nodiscard]] uint64_t StartTime() const { return start_time_; }
   /** \brief Returns stop time in nano-seconds since 1970. */
@@ -195,8 +228,10 @@ class MdfWriter {
    * to a relative time before it is stored onto the disc. The will be relative
    * to the start time, see StartMeasurement() function.
    */
-  virtual void SaveSample(const IChannelGroup& group, uint64_t time);
-
+  virtual void SaveSample(const IChannelGroup& group, uint64_t time) = 0;
+  virtual void SaveSample(const IDataGroup& data_group,
+                          const IChannelGroup& channel_group,
+                          uint64_t time) = 0;
   /** \brief Saves a CAN message into a bus logger channel group.
    *
    * This function replace the normal SaveSample() function. It shall be used
@@ -209,9 +244,11 @@ class MdfWriter {
    * @param time   Absolute time nano-seconds since 1970.
    * @param msg    The CAN message to store.
    */
-  void SaveCanMessage(const IChannelGroup& group, uint64_t time,
-                      const CanMessage& msg);
-
+  virtual void SaveCanMessage(const IChannelGroup& group, uint64_t time,
+                      const CanMessage& msg) = 0;
+  virtual void SaveCanMessage(const IDataGroup& data_group,
+                              const IChannelGroup& channel_group, uint64_t time,
+                              const CanMessage& msg) = 0;
   /** \brief Saves a LIN message into a bus logger channel group.
    *
    * This function replace the normal SaveSample() function. It shall be used
@@ -224,23 +261,28 @@ class MdfWriter {
    * @param time   Absolute time nano-seconds since 1970.
    * @param msg    The LIN message to store.
    */
-  void SaveLinMessage(const IChannelGroup& group, uint64_t time,
-                      const LinMessage& msg);
-
-/** \brief Saves an Ethernet message into a bus logger channel group.
-*
-* This function replace the normal SaveSample() function. It shall be used
-* when logging Ethernet messages into a standard ASAM bus logger
-* configuration.
-*
-* As before the function creates a record byte array and puts it onto an
-* internal sample buffer. The time shall be absolute time (ns since 1970).
-* @param group  Reference to the channel group (CG).
-* @param time   Absolute time nano-seconds since 1970.
-* @param msg    The Etnernet message to store.
-                                            */
-void SaveEthMessage(const IChannelGroup& group, uint64_t time,
-                   const EthMessage& msg);
+  virtual void SaveLinMessage(const IChannelGroup& group, uint64_t time,
+                      const LinMessage& msg) = 0;
+  virtual void SaveLinMessage(const IDataGroup& data_group,
+                              const IChannelGroup& channel_group, uint64_t time,
+                              const LinMessage& msg) = 0;
+  /** \brief Saves an Ethernet message into a bus logger channel group.
+  *
+  * This function replace the normal SaveSample() function. It shall be used
+  * when logging Ethernet messages into a standard ASAM bus logger
+  * configuration.
+  *
+  * As before the function creates a record byte array and puts it onto an
+  * internal sample buffer. The time shall be absolute time (ns since 1970).
+  * @param group  Reference to the channel group (CG).
+  * @param time   Absolute time nano-seconds since 1970.
+  * @param msg    The Etnernet message to store.
+                                              */
+  virtual void SaveEthMessage(const IChannelGroup& group, uint64_t time,
+                     const EthMessage& msg) = 0;
+  virtual void SaveEthMessage(const IDataGroup& data_group,
+                              const IChannelGroup& channel_group, uint64_t time,
+                              const EthMessage& msg) = 0;
   /** \brief Starts the measurement. */
   virtual void StartMeasurement(uint64_t start_time);
   
@@ -335,15 +377,13 @@ void SaveEthMessage(const IChannelGroup& group, uint64_t time,
     mandatory_members_only_ = mandatory_only;
   }
 
-  /**
-   *
-   * @return
-   */
+
   [[nodiscard]] bool MandatoryMembersOnly() const {
     return mandatory_members_only_;
   }
 
  protected:
+  MdfWriterType type_of_writer_ = MdfWriterType::Mdf4Basic;
   /** \brief Smart pointer to a stream buffer.
    *
    * The smart pointer to a stream buffer is normally set to
@@ -352,16 +392,6 @@ void SaveEthMessage(const IChannelGroup& group, uint64_t time,
    */
   std::shared_ptr<std::streambuf> file_;
 
-  /** \brief Internal state of the thread. */
-  enum class WriteState : uint8_t {
-    Create,     ///< Only at first measurement
-    Init,       ///< Start work thread and start collecting samples
-    StartMeas,  ///< Start saving samples to file
-    StopMeas,   ///< Stop saving samples. OK to
-    Finalize    ///< OK to add new DG and CG blocks
-  };
-  std::atomic<WriteState> write_state_ =
-      WriteState::Create;  ///< Keeps track of the worker thread state.
 
   std::unique_ptr<MdfFile> mdf_file_;  ///< Holds the actual file object.
   std::string filename_;  ///< Full name of file with path and extension.
@@ -369,48 +399,37 @@ void SaveEthMessage(const IChannelGroup& group, uint64_t time,
   std::atomic<uint64_t> pre_trig_time_ = 0;  ///< Nanoseconds difference.
   std::atomic<uint64_t> start_time_ = 0;     ///< Nanoseconds since 1970.
   std::atomic<uint64_t> stop_time_ = 0;      ///< Nanoseconds since 1970.
+  std::atomic<WriteState> write_state_ =
+      WriteState::Create;  ///< Keeps track of the worker thread state.
 
-  std::thread work_thread_; ///< Sample queue thread.
-  std::atomic_bool stop_thread_ = false; ///< Set to true to stop the thread.
-  std::mutex locker_; ///< Mutex for thread-safe handling of the sample queue.
-  std::condition_variable sample_event_; ///< Used internally.
-  std::atomic<size_t> sample_queue_size_ = 0; ///< Used to trig flushing to disc.
-
-  using SampleQueue = std::deque<SampleRecord>; ///< Sample queue
-  SampleQueue sample_queue_; ///< Sample queue
+  MdfWriter() = default; ///< Default constructor.
 
   virtual void CreateMdfFile() = 0; ///< Creates an MDF file
   virtual bool PrepareForWriting() = 0; ///< Prepare for writing.
-  virtual void SetDataPosition(std::streambuf& file); ///< Set the data position.
+
   virtual bool WriteSignalData(std::streambuf& file); ///< Write an SD block.
 
-  void StopWorkThread(); ///< Stops the worker thread
-  void WorkThread(); ///< Worker thread function
-
-  virtual void TrimQueue(); ///< Trims the sample queue.
-  /** \brief Saves the queue to file. */
-  virtual void SaveQueue(std::unique_lock<std::mutex>& lock);
-  /** \brief Flush the sample queue. */
-  virtual void CleanQueue(std::unique_lock<std::mutex>& lock);
-  /** \brief Increment the sample counter. */
-  void IncrementNofSamples(uint64_t record_id) const;
   /** \brief Set the last file position. */
-  virtual void SetLastPosition(std::streambuf& buffer) = 0;
+
 
   void Open(std::ios_base::openmode mode);
   [[nodiscard]] bool IsOpen() const;
   void Close();
 
+  virtual void InitWriteCache() = 0;
+  virtual void ExitWriteCache() = 0;
+  virtual void RecalculateTimeMaster() = 0;
+  virtual void NotifySample() = 0;
 
+  void SetDataPosition();
  private:
 
   bool compress_data_ = false; ///< True if the data shall be compressed.
   uint16_t bus_type_ = 0; ///< Defines protocols.
   MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;
   uint32_t max_length_ = 8; ///< Max data byte storage
-  std::map<uint64_t, const IChannel*> master_channels_; ///< List of master channels
   bool mandatory_members_only_ = false;
-  void RecalculateTimeMaster();
+
   void CreateCanConfig(IDataGroup& dg_block) const;
 
   /** \brief Create the composition channels for a data frame
@@ -481,6 +500,10 @@ void SaveEthMessage(const IChannelGroup& group, uint64_t time,
   * @param group The The CAN Overload Frame channel group object.
    */
   static void CreateCanOverloadFrameChannel(IChannelGroup& group);
+
+
+  [[nodiscard]] bool IsFirstMeasurement() const;
+
 };
 
 }  // namespace mdf

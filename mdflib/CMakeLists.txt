@@ -114,6 +114,14 @@ add_library(mdf
         ../include/mdf/ethmessage.h
         src/ethconfigadapter.cpp
         src/ethconfigadapter.h
+        src/writecache.cpp
+        src/writecache.h
+        src/samplequeue.cpp
+        src/samplequeue.h
+        src/writer4samplequeue.cpp
+        src/writer4samplequeue.h
+        src/convertersamplequeue.cpp
+        src/convertersamplequeue.h
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})

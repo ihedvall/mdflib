@@ -201,6 +201,7 @@
     <ClCompile Include="src\channelobserver.cpp" />
     <ClCompile Include="src\cn3block.cpp" />
     <ClCompile Include="src\cn4block.cpp" />
+    <ClCompile Include="src\convertersamplequeue.cpp" />
     <ClCompile Include="src\cryptoutil.cpp" />
     <ClCompile Include="src\datablock.cpp" />
     <ClCompile Include="src\datalistblock.cpp" />
@@ -268,6 +269,7 @@
     <ClCompile Include="src\readcache.cpp" />
     <ClCompile Include="src\ri4block.cpp" />
     <ClCompile Include="src\rv4block.cpp" />
+    <ClCompile Include="src\samplequeue.cpp" />
     <ClCompile Include="src\sd4block.cpp" />
     <ClCompile Include="src\si4block.cpp" />
     <ClCompile Include="src\sr3block.cpp" />
@@ -277,6 +279,8 @@
     <ClCompile Include="src\tx3block.cpp" />
     <ClCompile Include="src\tx4block.cpp" />
     <ClCompile Include="src\vlsddata.cpp" />
+    <ClCompile Include="src\writecache.cpp" />
+    <ClCompile Include="src\writer4samplequeue.cpp" />
     <ClCompile Include="src\writexml.cpp" />
     <ClCompile Include="src\xmlnode.cpp" />
     <ClCompile Include="src\zlibutil.cpp" />
@@ -327,6 +331,7 @@
     <ClInclude Include="src\channelobserver.h" />
     <ClInclude Include="src\cn3block.h" />
     <ClInclude Include="src\cn4block.h" />
+    <ClInclude Include="src\convertersamplequeue.h" />
     <ClInclude Include="src\datablock.h" />
     <ClInclude Include="src\datalistblock.h" />
     <ClInclude Include="src\dbchelper.h" />
@@ -369,6 +374,7 @@
     <ClInclude Include="src\readcache.h" />
     <ClInclude Include="src\ri4block.h" />
     <ClInclude Include="src\rv4block.h" />
+    <ClInclude Include="src\samplequeue.h" />
     <ClInclude Include="src\sd4block.h" />
     <ClInclude Include="src\si4block.h" />
     <ClInclude Include="src\sr3block.h" />
@@ -377,6 +383,8 @@
     <ClInclude Include="src\tx3block.h" />
     <ClInclude Include="src\tx4block.h" />
     <ClInclude Include="src\vlsddata.h" />
+    <ClInclude Include="src\writecache.h" />
+    <ClInclude Include="src\writer4samplequeue.h" />
     <ClInclude Include="src\writexml.h" />
     <ClInclude Include="src\xmlnode.h" />
   </ItemGroup>

@@ -11,6 +11,7 @@
 #include "mdf4writer.h"
 #include "mdfbuslogger.h"
 #include "mdfconverter.h"
+
 #include "mdf/mdflogstream.h"
 #include "cn4block.h"
 #include "sr4block.h"
@@ -46,6 +47,7 @@ std::unique_ptr<MdfWriter> MdfFactory::CreateMdfWriter(MdfWriterType type) {
       writer = std::move(mdf4);
       break;
     }
+
     default:
       break;
   }

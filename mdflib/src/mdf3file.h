@@ -10,6 +10,7 @@
 #include "mdf/idatagroup.h"
 #include "mdf/mdffile.h"
 
+
 namespace mdf::detail {
 
 class Mdf3File : public MdfFile {
@@ -31,6 +32,7 @@ class Mdf3File : public MdfFile {
   [[nodiscard]] IDataGroup *CreateDataGroup() override;
 
   [[nodiscard]] MdfBlock *Find(int64_t id) const;
+
 
   [[nodiscard]] bool IsMdf4() const override;
   void IsFinalized(bool finalized, std::streambuf& buffer, uint16_t standard_flags,
@@ -54,6 +56,7 @@ class Mdf3File : public MdfFile {
 
   [[nodiscard]] IDataGroup* FindParentDataGroup(
       const IChannel& channel) const  override;
+
  private:
   std::unique_ptr<IdBlock> id_block_;
   std::unique_ptr<Hd3Block> hd_block_;

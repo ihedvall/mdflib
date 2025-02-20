@@ -10,16 +10,12 @@
 #include <thread>
 #include <set>
 
-#include <boost/iostreams/device/file.hpp>
-#include <boost/iostreams/stream.hpp>
-#include <boost/iostreams/device/back_inserter.hpp>
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
 #include "util/timestamp.h"
 
 #include "mdf/isourceinformation.h"
-#include "mdf/iattachment.h"
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
 #include "mdf/ievent.h"
@@ -36,7 +32,7 @@ using namespace util::log;
 using namespace util::time;
 using namespace std::filesystem;
 using namespace mdf;
-using namespace boost::iostreams;
+
 
 namespace {
 

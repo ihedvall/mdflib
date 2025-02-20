@@ -853,7 +853,7 @@ void IChannel::SetTimestamp(double timestamp,
       conversion->Parameter(1) != 0.0) {
     timestamp -= conversion->Parameter(0);
     timestamp /= conversion->Parameter(1);
-  } else if (conversion != nullptr) {
+  } else if (conversion != nullptr && conversion->Type() != ConversionType::NoConversion) {
     return;
   }
 

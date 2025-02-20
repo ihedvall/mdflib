@@ -55,6 +55,7 @@ public:
   }
 
   void Reset();
+  static uint8_t DlcToLength(uint8_t dlc);
 protected:
   !CanMessage();
 internal:

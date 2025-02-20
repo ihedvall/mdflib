@@ -521,7 +521,7 @@ uint64_t Hd4Block::Write(std::streambuf& buffer) {
   // be appended with data bytes. The DT block must be the last written block
   // in these cases.
   WriteLink4List(buffer, dg_list_, kIndexDg,
-       UpdateOption::DoUpdateOnlyLastBlock);  // Always rewrite last DG block
+       UpdateOption::DoUpdateAllBlocks);  // Always rewrite last DG block
   return bytes;
 }
 

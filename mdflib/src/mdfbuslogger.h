@@ -11,7 +11,7 @@ namespace mdf::detail {
 
 class MdfBusLogger : public Mdf4Writer {
  public:
-  MdfBusLogger() = default;
+  MdfBusLogger();
   ~MdfBusLogger() override;
 
 };

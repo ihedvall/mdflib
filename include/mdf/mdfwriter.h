@@ -9,6 +9,8 @@
 #include <map>
 #include <ios>
 #include <atomic>
+#include <memory>
+#include <streambuf>
 
 #include "mdf/mdffile.h"
 #include "mdf/canmessage.h"

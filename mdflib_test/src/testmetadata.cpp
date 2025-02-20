@@ -8,6 +8,7 @@
 #include <memory>
 #include <filesystem>
 
+#include "ixmlfile.h"
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
@@ -311,6 +312,63 @@ TEST_F(TestMetaData, OdsMetaData) {
     }
   }
 
+}
+
+TEST_F(TestMetaData, HDcommentTxOrder) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("metadata_tx.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  ASSERT_EQ(header->MetaData(), nullptr);
+  auto* meta_data = header->CreateMetaData();
+  ASSERT_TRUE(meta_data != nullptr);
+
+  {
+    auto xml = CreateXmlFile();
+    xml->ParseString(header->MetaData()->XmlSnippet());
+    auto& root_nood = xml->RootName(xml->RootName());
+    IXmlNode::ChildList child_list;
+    root_nood.GetChildList(child_list);
+    ASSERT_EQ(child_list.size(), 1);
+    ASSERT_EQ(child_list[0]->TagName(), "TX");
+    ASSERT_EQ(child_list[0]->Value<std::string>(), "");
+  }
+
+  ETag engine_code;
+  engine_code.Name("Engine_Type");
+  engine_code.Description("Engine Type");
+  engine_code.DataType(ETagDataType::StringType);
+  engine_code.Value("DIESEL");
+  meta_data->CommonProperty(engine_code);
+
+  {
+    auto xml = CreateXmlFile();
+    xml->ParseString(header->MetaData()->XmlSnippet());
+    auto& root_nood = xml->RootName(xml->RootName());
+    IXmlNode::ChildList child_list;
+    root_nood.GetChildList(child_list);
+    ASSERT_EQ(child_list.size(), 2);
+    ASSERT_EQ(child_list[0]->TagName(), "TX");
+    ASSERT_EQ(child_list[0]->Value<std::string>(), "");
+  }
+
+  header->Description("Must be first in XML");
+
+  {
+    auto xml = CreateXmlFile();
+    xml->ParseString(header->MetaData()->XmlSnippet());
+    auto& root_nood = xml->RootName(xml->RootName());
+    IXmlNode::ChildList child_list;
+    root_nood.GetChildList(child_list);
+    ASSERT_EQ(child_list.size(), 2);
+    ASSERT_EQ(child_list[0]->TagName(), "TX");
+    ASSERT_EQ(child_list[0]->Value<std::string>(), "Must be first in XML");
+  }
 }
 
 }  // namespace mdf::test

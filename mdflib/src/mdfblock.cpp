@@ -845,6 +845,10 @@ void MdfBlock::CreateMd4Block() {
     const auto *tx4 = dynamic_cast<const Tx4Block *>(md_comment_.get());
     xml->SetProperty("TX", tx4 != nullptr ? tx4->TxComment() : std::string());
   }
+  
+  if (this->BlockType() == "HD") {
+    xml->SetProperty("TX", std::string());
+  }
 
   md4->XmlSnippet(xml->WriteString(true));
   md_comment_ = std::move(md4);

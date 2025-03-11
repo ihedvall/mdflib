@@ -14,7 +14,7 @@ if (MDF_BUILD_SHARED_LIB_NET)
   message(STATUS  "Enable CLR")
   add_library(mdflibrary SHARED
             # C++ files
-            src/MdfExport.cpp
+            src/MdfExport.cpp ../include/mdflibrary/MdfExport.h
             
             # Following files are needed for clr
             src/AssemblyInfo.cpp

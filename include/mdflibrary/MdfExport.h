@@ -39,12 +39,12 @@ enum class MdfWriterType : int {
  * creating default channel and channel group names.
  */
 enum class MdfBusType : int {
-  CAN,       ///< CAN or CAN-FD bus
-  LIN,       ///< LIN bus
-  FlexRay,   ///< FlexRay bus
-  MOST,      ///< MOST bus
-  Ethernet,  ///< Ethernet bus
-  UNKNOWN    ///< Unknown bus type (Default)
+  CAN = 0x01,       ///< CAN or CAN-FD bus
+  LIN = 0x02,       ///< LIN bus
+  FlexRay = 0x04,   ///< FlexRay bus
+  MOST = 0x08,      ///< MOST bus
+  Ethernet = 0x10,  ///< Ethernet bus
+  UNKNOWN = 0x00    ///< Unknown bus type (Default)
 };
 
 /** \brief Enumerate that defines how the raw data is stored. By default

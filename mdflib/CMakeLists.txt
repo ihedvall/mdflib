@@ -154,6 +154,7 @@ endif()
 
 set(MDF_PUBLIC_HEADERS
     ../include/mdf/cryptoutil.h
+    ../include/mdf/canmessage.h
     ../include/mdf/etag.h
     ../include/mdf/iattachment.h
     ../include/mdf/iblock.h
@@ -170,6 +171,8 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/imetadata.h
     ../include/mdf/isampleobserver.h
     ../include/mdf/isourceinformation.h
+    ../include/mdf/itimestamp.h
+    ../include/mdf/imdftimestamp.h
     ../include/mdf/mdffactory.h
     ../include/mdf/mdffile.h
     ../include/mdf/mdfhelper.h

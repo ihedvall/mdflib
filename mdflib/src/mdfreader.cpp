@@ -632,10 +632,6 @@ bool MdfReader::ReadVlsdData(IDataGroup &data_group,
                              std::function<void (uint64_t,
                                       const std::vector<uint8_t>&)>& callback)
 {
-  if (vlsd_channel.DataType() != ChannelDataType::MimeSample) {
-    MDF_ERROR() << "The channels data type is not a mime sample.";
-    return false;
-  }
   if (vlsd_channel.Type() != ChannelType::VariableLength) {
     MDF_ERROR() << "The channels type is not variable length type.";
     return false;

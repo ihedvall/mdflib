@@ -7,6 +7,7 @@
 
 #include <map>
 #include <string>
+#include <cstdint>
 
 #include "mdf/mdcomment.h"
 #include "mdf/mdstring.h"

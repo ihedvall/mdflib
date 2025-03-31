@@ -12,9 +12,11 @@
 #include <optional>
 #include <string>
 #include <vector>
+
 #include "mdf/iblock.h"
-#include "itimestamp.h"
-#include "imdftimestamp.h"
+#include "mdf/itimestamp.h"
+#include "mdf/imdftimestamp.h"
+#include "mdf/hdcomment.h"
 
 namespace mdf {
 
@@ -303,6 +305,9 @@ class IHeader : public IBlock {
    * @return Start distance in meters.
    */
   [[nodiscard]] virtual std::optional<double> StartDistance() const;
+
+  void SetHdComment(const HdComment& hd_comment);
+  void GetHdComment(HdComment& hd_comment) const;
 
  protected:
   ~IHeader() override = default;  ///< Default constructor

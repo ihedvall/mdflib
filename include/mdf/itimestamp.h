@@ -4,14 +4,6 @@
 
 namespace mdf {
 
-namespace timeunits {
-constexpr uint64_t kNanosecondsPerSecond = 1'000'000'000;
-constexpr uint64_t kNanosecondsPerMinute = 60 * kNanosecondsPerSecond;
-constexpr uint64_t kNanosecondsPerHour = 60 * kNanosecondsPerMinute;
-constexpr uint32_t kSecondsPerMinute = 60;
-constexpr uint32_t kSecondsPerHour = 60 * kSecondsPerMinute;
-}  // namespace timeunits
-
 /**
  * \brief Interface for timestamp handling in MDF files.
  */
@@ -41,6 +33,7 @@ class ITimestamp {
    * \return UTC time in nanoseconds.
    */
   [[nodiscard]] virtual uint64_t GetUtcTimeNs() const = 0;
+
 };
 
 /**
@@ -48,16 +41,25 @@ class ITimestamp {
  */
 class UtcTimestamp : public ITimestamp {
  public:
+
+  UtcTimestamp();
   /**
    * \brief Constructor for UtcTimeStamp.
    * \param utc_timestamp The UTC timestamp in nanoseconds.
    */
   explicit UtcTimestamp(uint64_t utc_timestamp);
+  explicit UtcTimestamp(const std::string& iso_date_time);
 
   [[nodiscard]] uint64_t GetTimeNs() const override;
   [[nodiscard]] int16_t GetTimezoneMin() const override;
   [[nodiscard]] int16_t GetDstMin() const override;
   [[nodiscard]] uint64_t GetUtcTimeNs() const override;
+
+  [[nodiscard]] std::string ToIsoDate() const;
+  [[nodiscard]] std::string ToIsoTime(bool include_ms) const;
+  [[nodiscard]] std::string ToIsoDateTime(bool include_ms) const;
+
+  void FromIsoDateTime(const std::string& date_time);
 
  private:
   uint64_t utc_timestamp_;  ///< The UTC timestamp in nanoseconds.
@@ -68,6 +70,7 @@ class UtcTimestamp : public ITimestamp {
  */
 class LocalTimestamp : public ITimestamp {
  public:
+
   /**
    * \brief Constructor for LocalTimeStamp.
    * \param local_timestamp The local timestamp in nanoseconds, with timezone
@@ -78,6 +81,7 @@ class LocalTimestamp : public ITimestamp {
   [[nodiscard]] int16_t GetTimezoneMin() const override;
   [[nodiscard]] int16_t GetDstMin() const override;
   [[nodiscard]] uint64_t GetUtcTimeNs() const override;
+
 
  private:
   uint64_t local_timestamp_;  ///< The local timestamp in nanoseconds, with timezone and DST offset.

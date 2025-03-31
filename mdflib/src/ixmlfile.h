@@ -139,7 +139,7 @@ class IXmlFile {
    *
    * Returns a (unique) node with a specific tag name
    * @param tag Tag name
-   * @return Pointer ti the node.
+   * @return Pointer to the node.
    */
   [[nodiscard]] const IXmlNode *GetNode(
       const std::string &tag) const;  ///< Returns a tag node.
@@ -151,6 +151,8 @@ class IXmlFile {
   virtual bool WriteFile();                           ///< Writes the XML file.
   std::string WriteString(bool skip_header = false);  ///< Creates a string that
                                                       ///< is a whole XML file.
+  [[nodiscard]] const IXmlNode* RootNode() const { return root_node_.get(); }
+  [[nodiscard]] IXmlNode* RootNode() { return root_node_.get(); }
  protected:
   IXmlFile() = default;  ///< Default constructor is hidden from external users.
   std::string filename_;            ///< File name with full path.

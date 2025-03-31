@@ -93,35 +93,54 @@ add_library(mdf
         src/isampleobserver.cpp  ../include/mdf/isampleobserver.h
         src/isamplereduction.cpp ../include/mdf/isamplereduction.h
         src/readcache.cpp src/readcache.h
-        src/dgrange.cpp
-        src/dgrange.h
-        src/cgrange.cpp
-        src/cgrange.h
-        src/mdfconverter.cpp
-        src/mdfconverter.h
-        src/timestamp.cpp
-        ../include/mdf/imdftimestamp.h
-        src/timestamp.cpp
-        src/mdf3timestamp.cpp
-        src/mdf3timestamp.h
-        src/linmessage.cpp
-        ../include/mdf/linmessage.h
-        src/linconfigadapter.cpp
-        src/linconfigadapter.h
-        src/busconfigadapter.cpp
-        src/busconfigadapter.h
-        src/ethmessage.cpp
-        ../include/mdf/ethmessage.h
-        src/ethconfigadapter.cpp
-        src/ethconfigadapter.h
-        src/writecache.cpp
-        src/writecache.h
-        src/samplequeue.cpp
-        src/samplequeue.h
-        src/writer4samplequeue.cpp
-        src/writer4samplequeue.h
-        src/convertersamplequeue.cpp
-        src/convertersamplequeue.h
+        src/dgrange.cpp src/dgrange.h
+        src/cgrange.cpp src/cgrange.h
+        src/mdfconverter.cpp src/mdfconverter.h
+        src/timestamp.cpp  ../include/mdf/imdftimestamp.h
+        src/mdf3timestamp.cpp src/mdf3timestamp.h
+        src/linmessage.cpp ../include/mdf/linmessage.h
+        src/linconfigadapter.cpp src/linconfigadapter.h
+        src/busconfigadapter.cpp src/busconfigadapter.h
+        src/ethmessage.cpp ../include/mdf/ethmessage.h
+        src/ethconfigadapter.cpp src/ethconfigadapter.h
+        src/writecache.cpp src/writecache.h
+        src/samplequeue.cpp src/samplequeue.h
+        src/writer4samplequeue.cpp src/writer4samplequeue.h
+        src/convertersamplequeue.cpp src/convertersamplequeue.h
+        src/mdcomment.cpp ../include/mdf/mdcomment.h
+        src/mdstandardattribute.cpp ../include/mdf/mdstandardattribute.h
+        src/mdproperty.cpp ../include/mdf/mdproperty.h
+        src/mdlist.cpp ../include/mdf/mdlist.h
+        src/mdenumerate.cpp ../include/mdf/mdenumerate.h
+        src/mdstring.cpp ../include/mdf/mdstring.h
+        src/mdalternativename.cpp ../include/mdf/mdalternativename.h
+        src/mdformula.cpp ../include/mdf/mdformula.h
+        src/mdsyntax.cpp ../include/mdf/mdsyntax.h
+        src/mdvariable.cpp ../include/mdf/mdvariable.h
+        src/mdextension.cpp ../include/mdf/mdextension.h
+        src/hdcomment.cpp ../include/mdf/hdcomment.h
+        src/hounitspecification.cpp ../include/mdf/hounitspecification.h
+        src/hoadmindata.cpp ../include/mdf/hoadmindata.h
+        src/horevision.cpp ../include/mdf/horevision.h
+        src/honamedetails.cpp ../include/mdf/honamedetails.h
+        src/hophysicaldimension.cpp ../include/mdf/hophysicaldimension.h
+        src/hounitgroup.cpp ../include/mdf/hounitgroup.h
+        src/hounit.cpp ../include/mdf/hounit.h
+        src/hointerval.cpp ../include/mdf/hointerval.h
+        src/fhcomment.cpp ../include/mdf/fhcomment.h
+        src/chcomment.cpp ../include/mdf/chcomment.h
+        src/atcomment.cpp ../include/mdf/atcomment.h
+        src/mdnumber.cpp ../include/mdf/mdnumber.h
+        src/evcomment.cpp ../include/mdf/evcomment.h
+        src/dgcomment.cpp ../include/mdf/dgcomment.h
+        src/cgcomment.cpp ../include/mdf/cgcomment.h
+        src/sicomment.cpp ../include/mdf/sicomment.h
+        src/cncomment.cpp ../include/mdf/cncomment.h
+        src/hocompumethod.cpp ../include/mdf/hocompumethod.h
+        src/hoenumerates.cpp ../include/mdf/hoenumerates.h
+        src/hoscaleconstraint.cpp ../include/mdf/hoscaleconstraint.h
+        src/hocompuscale.cpp ../include/mdf/hocompuscale.h
+        src/cccomment.cpp ../include/mdf/cccomment.h
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})

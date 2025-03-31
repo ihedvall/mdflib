@@ -9,7 +9,18 @@
 #include <string>
 #include <thread>
 #include <set>
+#include <random>
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN      // Exclude rarely-used stuff from Windows headers
+
+#include <windows.h>
+
+#include <crtdbg.h>
+#include <processthreadsapi.h>
+#include <psapi.h>
+#undef CreateEvent
+#endif
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
@@ -65,13 +76,48 @@ void NoLog(const MdfLocation& location, mdf::MdfLogSeverity severity,
            const std::string& text) {
 }
 
+#ifdef _WIN32
+
+class MemoryLeakDetector {
+ public:
+  MemoryLeakDetector() {
+    _CrtMemCheckpoint(&memState_);
+  }
+
+  ~MemoryLeakDetector() {
+    _CrtMemState stateDiff, stateNow;
+    _CrtMemCheckpoint(&stateNow);
+    int diffResult = _CrtMemDifference(&stateDiff, &memState_, &stateNow);
+    if (diffResult)
+      reportFailure(stateDiff.lSizes[1]);
+  }
+ private:
+  static void reportFailure(uint64_t unfreedBytes) {
+    FAIL() << "Memory leak of " << unfreedBytes << " byte(s) detected.";
+  }
+  _CrtMemState memState_ = {};
+};
+
+void LogMemoryUsage() {
+  HANDLE current_process = GetCurrentProcess();
+  PROCESS_MEMORY_COUNTERS_EX2 mem_counters = {};
+  mem_counters.cb = sizeof(mem_counters);
+  BOOL get_mem = GetProcessMemoryInfo(current_process,
+               reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&mem_counters), sizeof(mem_counters) );
+  std::cout << "Page Faults: " << mem_counters.PageFaultCount  << std::endl;
+  std::cout << "Peak Working Set: " << mem_counters.PeakWorkingSetSize / 1'000'000 << " MB" << std::endl;
+  std::cout << "Working Set Size: " << mem_counters.WorkingSetSize / 1'000'000 << " MB"<< std::endl;
+  std::cout << "Private Usage Size: " << mem_counters.PrivateUsage / 1'000'000 << " MB"<< std::endl;
+  std::cout << "Private Working Set Size: " << mem_counters.PrivateWorkingSetSize / 1'000'000 << " MB"<< std::endl;
+}
+#endif
+
 }  // namespace
 
 
 namespace mdf::test {
 
 void TestWrite::SetUpTestSuite() {
-
 
   try {
     // Create the root asn log directory. Note that this directory
@@ -1936,7 +1982,7 @@ TEST_F(TestWrite, Mdf4Multi) {
 
       writer->SaveSample(*group1, tick_time);
       writer->SaveSample(*group2, tick_time);
-      tick_time += 1'000'000'000;
+      tick_time += 2'000'000'000;
     }
     writer->StopMeasurement(tick_time);
     writer->FinalizeMeasurement();
@@ -2078,7 +2124,7 @@ TEST_F(TestWrite, Mdf4Master) {
   master2->Type(ChannelType::Master);
   master2->Sync(ChannelSyncType::Time);
   master2->DataType(ChannelDataType::FloatBe);
-  master1->DataBytes(8);
+  master2->DataBytes(8);
 
   auto* ch2 = group2->CreateChannel();
   ch2->Name("Intel32");
@@ -2139,7 +2185,7 @@ TEST_F(TestWrite, Mdf4Master) {
   ch4->DataType(ChannelDataType::FloatLe);
   ch4->DataBytes(4);
 
-  writer->PreTrigTime(1.0); // Store one seconds samples before start
+  writer->PreTrigTime(2.0); // Store one seconds samples before start
   writer->InitMeasurement(); // Start the internal cache
   auto tick_time = TimeStampToNs();
 
@@ -2155,7 +2201,7 @@ TEST_F(TestWrite, Mdf4Master) {
     writer->SaveSample(*group2, tick_time);
     writer->SaveSample(*group3, tick_time);
     writer->SaveSample(*group4, tick_time);
-    tick_time += 1'000'000; // Stepping 1ms
+    tick_time += 2'000'000; // Stepping 1ms
   }
 
   writer->StartMeasurement(tick_time);
@@ -2171,7 +2217,7 @@ TEST_F(TestWrite, Mdf4Master) {
     writer->SaveSample(*group2, tick_time);
     writer->SaveSample(*group3, tick_time);
     writer->SaveSample(*group4, tick_time);
-    tick_time += 1'000'000;
+    tick_time += 2'000'000;
   }
   writer->StopMeasurement(tick_time);
   writer->FinalizeMeasurement();
@@ -2214,6 +2260,177 @@ TEST_F(TestWrite, Mdf4Master) {
         }
         if (sample < 1000) {
           EXPECT_LE(time, 0.0) << "Time/Sample: " << time << "/" << sample;
+        }
+        previous = time;
+      }
+    }
+  }
+}
+
+TEST_F(TestWrite, Mdf4Master2s) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+
+  path mdf_file(kTestDir);
+  mdf_file.append("master_2s.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  auto* data_group = header->CreateDataGroup();
+
+  auto* group1 = data_group->CreateChannelGroup();
+  group1->Name("FloatMaster");
+
+  auto* master1 = group1->CreateChannel();
+  master1->Name("Time");
+  master1->Type(ChannelType::Master);
+  master1->Sync(ChannelSyncType::Time);
+  master1->DataType(ChannelDataType::FloatLe);
+  master1->DataBytes(4);
+
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("Intel32");
+  ch1->Type(ChannelType::FixedLength);
+  ch1->Sync(ChannelSyncType::None);
+  ch1->DataType(ChannelDataType::FloatLe);
+  ch1->DataBytes(4);
+
+  auto* group2 = data_group->CreateChannelGroup();
+  group1->Name("DoubleMaster");
+
+  auto* master2 = group2->CreateChannel();
+  master2->Name("Time");
+  master2->Type(ChannelType::Master);
+  master2->Sync(ChannelSyncType::Time);
+  master2->DataType(ChannelDataType::FloatBe);
+  master2->DataBytes(8);
+
+  auto* ch2 = group2->CreateChannel();
+  ch2->Name("Intel32");
+  ch2->Type(ChannelType::FixedLength);
+  ch2->Sync(ChannelSyncType::None);
+  ch2->DataType(ChannelDataType::FloatLe);
+  ch2->DataBytes(4);
+
+  auto* group3 = data_group->CreateChannelGroup();
+  group3->Name("Signed64Master");
+
+  auto* master3 = group3->CreateChannel();
+  master3->Name("Time");
+  master3->Unit("s");
+  master3->Type(ChannelType::Master);
+  master3->Sync(ChannelSyncType::Time);
+  master3->DataType(ChannelDataType::SignedIntegerLe);
+  master3->DataBytes(8);
+
+  auto cc3 = master3->CreateChannelConversion();
+  cc3->Name("NsToS");
+  cc3->Description("Nanoseconds to seconds conversion");
+  cc3->Unit("s");
+  cc3->Type(ConversionType::Linear);
+  cc3->Parameter(0,0.0);
+  cc3->Parameter(1, 1E-9);
+
+  auto* ch3 = group3->CreateChannel();
+  ch3->Name("Intel32");
+  ch3->Type(ChannelType::FixedLength);
+  ch3->Sync(ChannelSyncType::None);
+  ch3->DataType(ChannelDataType::FloatLe);
+  ch3->DataBytes(4);
+
+  auto* group4 = data_group->CreateChannelGroup();
+  group4->Name("Signed64Master");
+
+  auto* master4 = group4->CreateChannel();
+  master4->Name("Time");
+  master4->Unit("s");
+  master4->Type(ChannelType::Master);
+  master4->Sync(ChannelSyncType::Time);
+  master4->DataType(ChannelDataType::SignedIntegerLe);
+  master4->DataBytes(8);
+
+  auto cc4 = master4->CreateChannelConversion();
+  cc4->Name("NsToS");
+  cc4->Description("Nanoseconds to seconds conversion");
+  cc4->Unit("s");
+  cc4->Type(ConversionType::Linear);
+  cc4->Parameter(0,0.0);
+  cc4->Parameter(1, 1E-9);
+
+  auto* ch4 = group4->CreateChannel();
+  ch4->Name("Intel32");
+  ch4->Type(ChannelType::FixedLength);
+  ch4->Sync(ChannelSyncType::None);
+  ch4->DataType(ChannelDataType::FloatLe);
+  ch4->DataBytes(4);
+
+  writer->PreTrigTime(0.0); // Store one seconds samples before start
+  writer->InitMeasurement(); // Start the internal cache
+  auto tick_time = TimeStampToNs();
+
+  writer->StartMeasurement(tick_time);
+  size_t sample = 0;
+  // Fill with 1 seconds samples after start.
+  for (; sample < 2000; ++sample) {
+    const auto value = static_cast<uint32_t>(sample);
+    ch1->SetChannelValue(value);
+    ch2->SetChannelValue(value);
+    ch3->SetChannelValue(value);
+    ch4->SetChannelValue(value);
+    writer->SaveSample(*group1, tick_time);
+    writer->SaveSample(*group2, tick_time);
+    writer->SaveSample(*group3, tick_time);
+    writer->SaveSample(*group4, tick_time);
+    tick_time += 2'000'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MDF_TRACE() << "Written MDF File: " <<  writer->Name();
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 4);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    ASSERT_EQ(observer_list.size(), 8) << "Observer List Size: " << observer_list.size();
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    const auto nof_samples = observer->NofSamples();
+    EXPECT_EQ(nof_samples, 2000);
+    if (observer->IsMaster()) {
+      // Check that the times are stepping forward
+      double previous = 0.0;
+      for (sample = 0 ; sample < nof_samples; ++sample) {
+        double time = 0.0;
+        observer->GetEngValue(sample, time, 0);
+        if (sample > 0) {
+          EXPECT_GT(time, previous) << "Time/Previous: " << time << "/" << previous;
         }
         previous = time;
       }
@@ -2545,111 +2762,6 @@ TEST_F(TestWrite, MdfConverter) {
   }
 }
 
-void CreateMdfWithTime(const std::string& filepath, MdfWriterType writerType,
-                       ITimestamp& timestamp) {
-  auto writer = MdfFactory::CreateMdfWriter(writerType);
-  writer->Init(filepath);
-  auto* header = writer->Header();
-  ASSERT_TRUE(header != nullptr);
-  header->StartTime(timestamp);
-  writer->InitMeasurement();
-  writer->StartMeasurement(timestamp);
-  writer->StopMeasurement(timestamp);
-  writer->FinalizeMeasurement();
-}
-
-void TestMdf3Time(const std::string& filepath, uint64_t time) {
-  MdfReader reader(filepath);
-  ASSERT_TRUE(reader.IsOk());
-  ASSERT_TRUE(reader.ReadHeader());
-  const auto* file1 = reader.GetFile();
-  ASSERT_TRUE(file1 != nullptr);
-  const auto* header1 = file1->Header();
-  ASSERT_TRUE(header1 != nullptr);
-  
-  EXPECT_EQ(header1->StartTime(), time);
-}
-
-void TestMdf4Time(const std::string& filepath, uint64_t time,
-                  uint16_t tz_offset_min, uint16_t dst_offset_min) {
-  MdfReader reader(filepath);
-  ASSERT_TRUE(reader.IsOk());
-  ASSERT_TRUE(reader.ReadHeader());
-  const auto* file = reader.GetFile();
-  const auto* header = file->Header();
-  ASSERT_TRUE(header != nullptr);
-  const auto* local_ts = header->StartTimestamp();
-  EXPECT_EQ(local_ts->GetTimeNs(), time);
-  EXPECT_EQ(local_ts->GetDstOffsetMin(), dst_offset_min);
-  EXPECT_EQ(local_ts->GetTzOffsetMin(), tz_offset_min);
-}
-
-TEST_F(TestWrite, Mdf3TimeStamp) {
-  
-  const auto start_time = TimeStampToNs();
-  const auto local_time = start_time + MdfHelper::TimeZoneOffset() *
-                                           timeunits::kNanosecondsPerSecond;
-  // local time
-  path local_path(kTestDir);
-  local_path.append("mf3_local.mf3");
-  LocalTimestamp local_timestamp(local_time);
-  CreateMdfWithTime(local_path.string(), MdfWriterType::Mdf3Basic, local_timestamp);
-  TestMdf3Time(local_path.string(), local_time);
-
-  // utc time
-  path utc_path(kTestDir);
-  utc_path.append("mf3_utc.mf3");
-  UtcTimestamp utc_time(start_time);
-  CreateMdfWithTime(utc_path.string(), MdfWriterType::Mdf3Basic, utc_time);
-  TestMdf3Time(utc_path.string(), local_time);
-
-  // timezone time
-  auto tz_offset_min = static_cast<int16_t>(MdfHelper::GmtOffsetNs() /
-                                            timeunits::kNanosecondsPerMinute);
-  auto dst_offset_min = static_cast<int16_t>(MdfHelper::DstOffsetNs() /
-                                             timeunits::kNanosecondsPerMinute);
-  path tz_path(kTestDir);
-  tz_path.append("mf3_tz.mf3");
-  TimezoneTimestamp timezone_timestamp(start_time, tz_offset_min,
-                                       dst_offset_min);
-  CreateMdfWithTime(tz_path.string(), MdfWriterType::Mdf3Basic, local_timestamp);
-  TestMdf3Time(tz_path.string(), local_time);
-}
-
-TEST_F(TestWrite, Mdf4TimeStamp) {
-  const auto start_time = TimeStampToNs();
-
-  // local time
-  path local_path(kTestDir);
-  local_path.append("mf4_local.mf4");
-  LocalTimestamp local_timestamp(start_time);
-  CreateMdfWithTime(local_path.string(), MdfWriterType::Mdf4Basic,
-                    local_timestamp);
-  TestMdf4Time(local_path.string(), start_time, 0, 0);
-
-  // utc time
-  path utc_path(kTestDir);
-  utc_path.append("mf4_utc.mf4");
-  UtcTimestamp utc_time(start_time);
-  CreateMdfWithTime(utc_path.string(), MdfWriterType::Mdf4Basic, utc_time);
-  MdfReader utc_reader(utc_path.string());
-  TestMdf4Time(utc_path.string(), start_time, 0, 0);
-  
-
-  // timezone time
-  auto tz_offset_min = static_cast<int16_t>(MdfHelper::GmtOffsetNs() /
-                                            timeunits::kNanosecondsPerMinute);
-  auto dst_offset_min = static_cast<int16_t>(MdfHelper::DstOffsetNs() /
-                                             timeunits::kNanosecondsPerMinute);
-  path tz_path(kTestDir);
-  tz_path.append("mf4_tz.mf4");
-  TimezoneTimestamp timezone_timestamp(start_time, tz_offset_min,
-                                       dst_offset_min);
-  CreateMdfWithTime(tz_path.string(), MdfWriterType::Mdf4Basic,
-                    timezone_timestamp);
-  TestMdf4Time(tz_path.string(), start_time, tz_offset_min, dst_offset_min);
-}
-
 
 TEST_F(TestWrite, TestStreamInterface) {
   if (kSkipTest) {
@@ -2794,4 +2906,87 @@ TEST_F(TestWrite, TestStreamInterface) {
   }
 }
 
+#ifdef _WIN32
+TEST_F(TestWrite, TestMemoryUsage) {
+
+
+  std::cout << "BEFORE TEST" << std::endl;
+  LogMemoryUsage();
+  std::cout << std::endl;
+  {
+    MemoryLeakDetector leakDetector;
+    path test_file(kTestDir);
+    test_file.append("memory_usage.mf4");
+
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    writer->Init(test_file.string());
+
+    writer->CompressData(true);
+    auto* header = writer->Header();
+    auto* history = header->CreateFileHistory();
+    history->Description("Test data types");
+    history->ToolName("MdfWrite");
+    history->ToolVendor("ACME Road Runner Company");
+    history->ToolVersion("1.0");
+    history->UserName("Ingemar Hedvall");
+    auto* dg = header->CreateDataGroup();
+    std::vector<IChannelGroup*> cgs(80, nullptr);
+    std::vector<IChannel*> cns(80, nullptr);
+    for (size_t cg_num = 0; cg_num < 80; ++cg_num) {
+      auto* cg = dg->CreateChannelGroup();
+      cgs[cg_num] = cg;
+      // master
+      auto* master_ch = cg->CreateChannel();
+      master_ch->Name("master");
+      master_ch->Type(ChannelType::Master);
+      master_ch->Sync(ChannelSyncType::Time);
+      master_ch->DataType(ChannelDataType::FloatLe);
+      master_ch->DataBytes(4);
+      // channel
+      auto* data_cn = cg->CreateChannel();
+      std::string signal_name = "signal" + std::to_string(cg_num);
+      data_cn->Name(signal_name);
+      data_cn->Type(ChannelType::FixedLength);
+      data_cn->Sync(ChannelSyncType::None);
+      data_cn->DataType(ChannelDataType::FloatLe);
+      data_cn->DataBytes(4);
+      cns[cg_num] = data_cn;
+    }
+
+    std::cout << "BEFORE INIT MEASUREMENT" << std::endl;
+    LogMemoryUsage();
+    std::cout << std::endl;
+
+    // start record
+    writer->PreTrigTime(0);
+    writer->InitMeasurement();
+    auto tick_time = MdfHelper::NowNs();
+    writer->StartMeasurement(tick_time);
+    // record data
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 1000);
+    int randomNumber = 0;
+
+    for (size_t count = 0; count < 49800; ++count) {
+      for (size_t cg_num = 0; cg_num < 80; ++cg_num) {
+        randomNumber = distrib(gen);
+        cns[cg_num]->SetChannelValue(randomNumber);
+        writer->SaveSample(*cgs[cg_num], tick_time);
+      }
+      //std::this_thread::sleep_for(1ns);
+      tick_time += 100'000'000;
+    }
+    std::cout << "BEFORE STOP MEASUREMENT" << std::endl;
+    LogMemoryUsage();
+    std::cout << std::endl;
+
+    writer->StopMeasurement(tick_time);
+    writer->FinalizeMeasurement();
+  }
+  std::cout << "AFTER TEST" << std::endl;
+  LogMemoryUsage();
+  std::cout << std::endl;
+}
+#endif
 }  // end namespace mdf::test

@@ -4,6 +4,7 @@
  */
 
 #include "mdf/iheader.h"
+#include "mdf/imetadata.h"
 
 namespace mdf {
 
@@ -47,6 +48,20 @@ IChannelHierarchy *IHeader::CreateChannelHierarchy() { return nullptr; }
 
 std::vector<IChannelHierarchy *> IHeader::ChannelHierarchies() const {
   return {};
+}
+
+void IHeader::SetHdComment(const HdComment &hd_comment) {
+  if (IMetaData* meta_data = CreateMetaData();
+      meta_data != nullptr ) {
+    meta_data->XmlSnippet(hd_comment.ToXml());
+  }
+}
+
+void IHeader::GetHdComment(HdComment &hd_comment) const {
+  if (const IMetaData* meta_data = MetaData();
+      meta_data != nullptr) {
+    hd_comment.FromXml(meta_data->XmlSnippet());
+  }
 }
 
 }  // namespace mdf

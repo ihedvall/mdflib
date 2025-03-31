@@ -188,6 +188,20 @@ void IXmlNode::DeleteNode(const IXmlNode *node) {
   }
 }
 
+IXmlNode::KeyValueList IXmlNode::GetAttributeList() const {
+  KeyValueList attr_list;
+  for (const auto& [key, value] : attribute_list_) {
+    if (!key.empty()) {
+      attr_list.emplace(key, value);
+    }
+  }
+  return attr_list;
+}
+
+bool IXmlNode::HasChildren() const {
+  return !node_list_.empty();
+}
+
 template <>
 void IXmlNode::Value(const bool &value) {
   value_ = value ? "true" : "false";

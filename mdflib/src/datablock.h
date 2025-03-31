@@ -23,7 +23,10 @@ class DataBlock : public MdfBlock {
 
   virtual uint64_t ReadData(std::streambuf& buffer);
   virtual bool Data(const std::vector<uint8_t>& data);
-  void ClearData() { data_.clear();}
+  void ClearData() {
+    data_.clear();
+    data_.shrink_to_fit();
+  }
  protected:
   int64_t data_position_ = 0;
   IDataGroup* dg_block_ = nullptr; ///< Needed for the writing

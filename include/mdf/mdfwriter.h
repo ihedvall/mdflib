@@ -307,7 +307,9 @@ class MdfWriter {
    * the basic low level protocol.
    * @param type Type of basic protocols on the bus.
    */
-  void BusType(uint16_t type) { bus_type_ = type; }
+  void BusType(uint16_t type) {
+    bus_type_ = type;
+  }
 
   /** \brief Returns the type of bus the MDF file is associated with. Only
    * used when doing bus logging.

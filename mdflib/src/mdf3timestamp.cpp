@@ -1,7 +1,13 @@
 #include "mdf3timestamp.h"
 
 #include "mdf/mdfhelper.h"
-
+namespace {
+constexpr uint64_t kNanosecondsPerSecond = 1'000'000'000;
+constexpr uint64_t kNanosecondsPerMinute = 60 * kNanosecondsPerSecond;
+constexpr uint64_t kNanosecondsPerHour = 60 * kNanosecondsPerMinute;
+constexpr uint32_t kSecondsPerMinute = 60;
+constexpr uint32_t kSecondsPerHour = 60 * kSecondsPerMinute;
+}  // namespace
 namespace mdf::detail {
 
 void Mdf3Timestamp::GetBlockProperty(detail::BlockPropertyList& dest) const {
@@ -19,7 +25,7 @@ void Mdf3Timestamp::SetTime(uint64_t time) {
   time_ = MdfHelper::NanoSecToHHMMSS(time);
   local_timestamp_ = time + MdfHelper::GmtOffsetNs();
   utc_offset_ = static_cast<int16_t>(MdfHelper::GmtOffsetNs() /
-                                     timeunits::kNanosecondsPerHour);
+                                     kNanosecondsPerHour);
   time_quality_ = 0;
   timer_id_ = "Local PC Reference Time";
 }
@@ -35,7 +41,7 @@ void Mdf3Timestamp::SetTime(mdf::ITimestamp& timestamp) {
     time_ = MdfHelper::NanoSecUtcToHHMMSS(local_time->GetTimeNs());
     local_timestamp_ = timestamp.GetTimeNs() - MdfHelper::DstOffsetNs();
     utc_offset_ = static_cast<int16_t>(MdfHelper::GmtOffsetNs() /
-                                       timeunits::kNanosecondsPerHour);
+                                       kNanosecondsPerHour);
     time_quality_ = 0;
     timer_id_ = "Local PC Reference Time";
     return;
@@ -47,7 +53,7 @@ void Mdf3Timestamp::SetTime(mdf::ITimestamp& timestamp) {
     time_ = MdfHelper::NanoSecTzToHHMMSS(timestamp.GetTimeNs(),
                                          tz->GetTimezoneMin(), tz->GetDstMin());
     local_timestamp_ = timestamp.GetTimeNs() +
-                       tz->GetTimezoneMin() * timeunits::kNanosecondsPerMinute;
+                       tz->GetTimezoneMin() * kNanosecondsPerMinute;
     utc_offset_ = static_cast<int16_t>(timestamp.GetTimezoneMin() / 60);
     time_quality_ = 0;
     timer_id_ = "Local PC Reference Time";

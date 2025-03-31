@@ -38,7 +38,10 @@ add_executable(test_mdf
         src/testbuslogger.cpp
         src/testbuslogger.h
         src/testmultipledgwrite.cpp
-        src/testmultipledgwrite.h)
+        src/testmultipledgwrite.h
+        src/testtimestamp.cpp
+        src/testtimestamp.h
+        src/testhdcomment.cpp)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 if(VCPKG)

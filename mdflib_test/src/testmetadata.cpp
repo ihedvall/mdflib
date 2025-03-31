@@ -371,4 +371,136 @@ TEST_F(TestMetaData, HDcommentTxOrder) {
   }
 }
 
+TEST_F(TestMetaData, CommentNg) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("hd_comment_ng.mf4");
+  constexpr std::string_view kTx = "HD Comment Test";
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    writer->Init(mdf_file.string());
+
+    auto* header = writer->Header();
+    ASSERT_TRUE(header != nullptr);
+
+    HdComment comment;
+
+    comment.Comment(MdString(kTx));
+
+    MdProperty engine_code;
+    engine_code.Name("Engine_Type");
+    engine_code.Description("Engine Type");
+    engine_code.DataType(MdDataType::MdString);
+    engine_code.Value(std::string("DIESEL"));
+    comment.AddProperty(engine_code);
+
+    header->SetHdComment(comment);
+
+    auto* history = header->CreateFileHistory();
+    history->Description("Test MDF Converter");
+    history->ToolName("MdfWrite");
+    history->ToolVendor("ACME Road Runner Company");
+    history->ToolVersion("1.0");
+    history->UserName("Ingemar Hedvall");
+
+    writer->PreTrigTime(0.0);
+    writer->CompressData(true);
+
+    auto* last_dg = header->CreateDataGroup();
+    ASSERT_TRUE(last_dg != nullptr);
+
+    // Note that no master channel added
+
+    auto* group1 = last_dg->CreateChannelGroup("Group1");
+    ASSERT_TRUE(group1 != nullptr);
+
+    auto* master1 = group1->CreateChannel("Master1");
+    ASSERT_TRUE(master1 != nullptr);
+    master1->DataType(ChannelDataType::FloatLe);
+    master1->Type(ChannelType::Master);
+    master1->Sync(ChannelSyncType::Time);
+    master1->Unit("s");
+    master1->DataBytes(4);
+
+    auto* signal1 = group1->CreateChannel("Signal1");
+    ASSERT_TRUE(signal1 != nullptr);
+    signal1->DataType(ChannelDataType::FloatLe);
+    signal1->DataBytes(8);
+
+    auto* group2 = last_dg->CreateChannelGroup("Group2");
+    ASSERT_TRUE(group2 != nullptr);
+
+    auto* master2 = group2->CreateChannel("Master2");
+    ASSERT_TRUE(master2 != nullptr);
+    master2->DataType(ChannelDataType::FloatLe);
+    master2->Type(ChannelType::Master);
+    master2->Sync(ChannelSyncType::Time);
+    master2->Unit("s");
+    master2->DataBytes(4);
+
+    auto* signal2 = group2->CreateChannel("Signal2");
+    ASSERT_TRUE(signal2 != nullptr);
+    signal2->DataType(ChannelDataType::FloatLe);
+    signal2->DataBytes(8);
+
+    writer->InitMeasurement();
+    auto tick_time = TimeStampToNs();
+    writer->StartMeasurement(tick_time);
+    for (size_t sample = 0; sample < 1'000; ++sample) {
+      const auto value = static_cast<double>(sample);
+      signal1->SetChannelValue(value, true);
+      writer->SaveSample(*group1, tick_time);
+
+      signal2->SetChannelValue(value, true);
+      writer->SaveSample(*group2, tick_time);
+      tick_time += 1'000'000;  // 1 ms period
+    }
+    writer->StopMeasurement(tick_time);
+    writer->FinalizeMeasurement();
+  }
+  {
+    MdfReader reader(mdf_file.string());
+    ChannelObserverList observer_list;
+
+    ASSERT_TRUE(reader.IsOk());
+    ASSERT_TRUE(reader.ReadEverythingButData());
+    const auto* file = reader.GetFile();
+    ASSERT_TRUE(file != nullptr);
+
+    const auto* header = file->Header();
+    ASSERT_TRUE(header != nullptr);
+
+    HdComment comment;
+    header->GetHdComment(comment);
+    std::cout << comment.ToXml() << std::endl;
+
+    EXPECT_EQ(comment.Comment(), kTx);
+    EXPECT_EQ(comment.Properties().size(), 1);
+
+    const auto dg_list = header->DataGroups();
+    EXPECT_EQ(dg_list.size(), 1);
+
+    for (auto* dg4 : dg_list) {
+      const auto cg_list = dg4->ChannelGroups();
+      EXPECT_EQ(cg_list.size(), 2);
+      for (auto* cg4 : cg_list) {
+        CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+      }
+      EXPECT_GT(observer_list.size(), 0);
+      reader.ReadData(*dg4);
+    }
+    reader.Close();
+
+    std::set<std::string> unique_list;
+
+    for (auto& observer : observer_list) {
+      ASSERT_TRUE(observer);
+      EXPECT_EQ(observer->NofSamples(), 1'000);
+   }
+  }
+
+}
+
 }  // namespace mdf::test

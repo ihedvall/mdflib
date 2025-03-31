@@ -1234,6 +1234,11 @@ TEST_F(TestBusLogger, Mdf4EthMandatory) {
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
   writer->Init(mdf_file.string());
+  if (auto* md4_file = writer->GetFile();
+      md4_file != nullptr ) {
+    md4_file->MinorVersion(11);
+  }
+
   auto* header = writer->Header();
   auto* history = header->CreateFileHistory();
   history->Description("Test data types");

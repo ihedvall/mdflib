@@ -317,7 +317,7 @@ bool OpenMdfFile(std::streambuf& buffer, const std::string &filename,
   try {
     auto& file_buffer = dynamic_cast<std::filebuf&>(buffer);
 
-    for (size_t delay = 0; delay < 6'000; delay += 100) {
+    for (size_t delay = 0; file == nullptr && delay < 6'000; delay += 100) {
       if (file_buffer.is_open()) {
         file_buffer.close();
       }

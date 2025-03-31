@@ -12,6 +12,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <map>
 
 #include "mdf/mdfhelper.h"
 #include "platform.h"
@@ -32,6 +33,8 @@ namespace mdf {
  */
 class IXmlNode {
  public:
+  using KeyValueList = std::map<std::string, std::string>;
+
   explicit IXmlNode(const std::string &tag_name);  ///< Creates a XML tag.
   virtual ~IXmlNode() = default;                   ///< Destructor
 
@@ -64,7 +67,7 @@ class IXmlNode {
    *
    * Tests if an attribute exist.
    * @param key Attribute name
-   * @param value Attribute vallue
+   * @param value Attribute value
    * @return True if the attribute exist
    */
   [[nodiscard]] bool IsAttribute(const std::string &key,
@@ -175,9 +178,10 @@ class IXmlNode {
 
   virtual void Write(std::ostream &dest,
                      size_t level);  ///< Write the node to the stream
-  [[nodiscard]] bool HasChildren() const {
-    return !node_list_.empty();
-  }
+  [[nodiscard]] bool HasChildren() const;
+
+  [[nodiscard]] KeyValueList GetAttributeList() const;
+
  protected:
   std::string tag_name_;  ///< Name of this tag.
   std::string value_;     ///< String value of this tag.
@@ -191,7 +195,7 @@ class IXmlNode {
   /** \typedef NodeList
    * \brief  List of nodes
    */
-  using NodeList = std::vector<std::unique_ptr<IXmlNode> >;
+  using NodeList = std::vector<std::unique_ptr<IXmlNode>>;
   NodeList node_list_;  ///< List of nodes
 
   [[nodiscard]] virtual std::unique_ptr<IXmlNode> CreateNode(

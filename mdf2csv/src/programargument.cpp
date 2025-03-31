@@ -6,6 +6,8 @@
 #include "programargument.h"
 #include <iostream>
 #include <string_view>
+#include <boost/program_options/variables_map.hpp>
+
 using namespace boost::program_options;
 
 namespace {

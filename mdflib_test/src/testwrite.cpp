@@ -11,17 +11,6 @@
 #include <set>
 #include <random>
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN      // Exclude rarely-used stuff from Windows headers
-
-#include <windows.h>
-
-#include <crtdbg.h>
-#include <processthreadsapi.h>
-#include <psapi.h>
-#undef CreateEvent
-#endif
-
 #include "util/logconfig.h"
 #include "util/logstream.h"
 #include "util/timestamp.h"
@@ -76,41 +65,7 @@ void NoLog(const MdfLocation& location, mdf::MdfLogSeverity severity,
            const std::string& text) {
 }
 
-#ifdef _WIN32
 
-class MemoryLeakDetector {
- public:
-  MemoryLeakDetector() {
-    _CrtMemCheckpoint(&memState_);
-  }
-
-  ~MemoryLeakDetector() {
-    _CrtMemState stateDiff, stateNow;
-    _CrtMemCheckpoint(&stateNow);
-    int diffResult = _CrtMemDifference(&stateDiff, &memState_, &stateNow);
-    if (diffResult)
-      reportFailure(stateDiff.lSizes[1]);
-  }
- private:
-  static void reportFailure(uint64_t unfreedBytes) {
-    FAIL() << "Memory leak of " << unfreedBytes << " byte(s) detected.";
-  }
-  _CrtMemState memState_ = {};
-};
-
-void LogMemoryUsage() {
-  HANDLE current_process = GetCurrentProcess();
-  PROCESS_MEMORY_COUNTERS_EX2 mem_counters = {};
-  mem_counters.cb = sizeof(mem_counters);
-  BOOL get_mem = GetProcessMemoryInfo(current_process,
-               reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&mem_counters), sizeof(mem_counters) );
-  std::cout << "Page Faults: " << mem_counters.PageFaultCount  << std::endl;
-  std::cout << "Peak Working Set: " << mem_counters.PeakWorkingSetSize / 1'000'000 << " MB" << std::endl;
-  std::cout << "Working Set Size: " << mem_counters.WorkingSetSize / 1'000'000 << " MB"<< std::endl;
-  std::cout << "Private Usage Size: " << mem_counters.PrivateUsage / 1'000'000 << " MB"<< std::endl;
-  std::cout << "Private Working Set Size: " << mem_counters.PrivateWorkingSetSize / 1'000'000 << " MB"<< std::endl;
-}
-#endif
 
 }  // namespace
 
@@ -2906,87 +2861,4 @@ TEST_F(TestWrite, TestStreamInterface) {
   }
 }
 
-#ifdef _WIN32
-TEST_F(TestWrite, TestMemoryUsage) {
-
-
-  std::cout << "BEFORE TEST" << std::endl;
-  LogMemoryUsage();
-  std::cout << std::endl;
-  {
-    MemoryLeakDetector leakDetector;
-    path test_file(kTestDir);
-    test_file.append("memory_usage.mf4");
-
-    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
-    writer->Init(test_file.string());
-
-    writer->CompressData(true);
-    auto* header = writer->Header();
-    auto* history = header->CreateFileHistory();
-    history->Description("Test data types");
-    history->ToolName("MdfWrite");
-    history->ToolVendor("ACME Road Runner Company");
-    history->ToolVersion("1.0");
-    history->UserName("Ingemar Hedvall");
-    auto* dg = header->CreateDataGroup();
-    std::vector<IChannelGroup*> cgs(80, nullptr);
-    std::vector<IChannel*> cns(80, nullptr);
-    for (size_t cg_num = 0; cg_num < 80; ++cg_num) {
-      auto* cg = dg->CreateChannelGroup();
-      cgs[cg_num] = cg;
-      // master
-      auto* master_ch = cg->CreateChannel();
-      master_ch->Name("master");
-      master_ch->Type(ChannelType::Master);
-      master_ch->Sync(ChannelSyncType::Time);
-      master_ch->DataType(ChannelDataType::FloatLe);
-      master_ch->DataBytes(4);
-      // channel
-      auto* data_cn = cg->CreateChannel();
-      std::string signal_name = "signal" + std::to_string(cg_num);
-      data_cn->Name(signal_name);
-      data_cn->Type(ChannelType::FixedLength);
-      data_cn->Sync(ChannelSyncType::None);
-      data_cn->DataType(ChannelDataType::FloatLe);
-      data_cn->DataBytes(4);
-      cns[cg_num] = data_cn;
-    }
-
-    std::cout << "BEFORE INIT MEASUREMENT" << std::endl;
-    LogMemoryUsage();
-    std::cout << std::endl;
-
-    // start record
-    writer->PreTrigTime(0);
-    writer->InitMeasurement();
-    auto tick_time = MdfHelper::NowNs();
-    writer->StartMeasurement(tick_time);
-    // record data
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distrib(0, 1000);
-    int randomNumber = 0;
-
-    for (size_t count = 0; count < 49800; ++count) {
-      for (size_t cg_num = 0; cg_num < 80; ++cg_num) {
-        randomNumber = distrib(gen);
-        cns[cg_num]->SetChannelValue(randomNumber);
-        writer->SaveSample(*cgs[cg_num], tick_time);
-      }
-      //std::this_thread::sleep_for(1ns);
-      tick_time += 100'000'000;
-    }
-    std::cout << "BEFORE STOP MEASUREMENT" << std::endl;
-    LogMemoryUsage();
-    std::cout << std::endl;
-
-    writer->StopMeasurement(tick_time);
-    writer->FinalizeMeasurement();
-  }
-  std::cout << "AFTER TEST" << std::endl;
-  LogMemoryUsage();
-  std::cout << std::endl;
-}
-#endif
 }  // end namespace mdf::test

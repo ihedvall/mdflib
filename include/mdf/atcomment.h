@@ -12,6 +12,8 @@ namespace mdf {
 class AtComment : public MdComment {
  public:
   AtComment();
+  [[nodiscard]] std::string ToXml() const;
+  void FromXml(const std::string& xml_snippet);
  private:
 };
 

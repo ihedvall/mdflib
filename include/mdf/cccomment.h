@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "mdf/mdComment.h"
+#include "mdf/mdcomment.h"
 #include "mdf/hocompumethod.h"
 
 namespace mdf {

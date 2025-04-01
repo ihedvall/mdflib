@@ -11,6 +11,8 @@
 #include <string>
 #include "mdf/iblock.h"
 #include "mdf/imetadata.h"
+#include "mdf/atcomment.h"
+
 namespace mdf {
 
 /** \brief Interface against an attached file.
@@ -20,7 +22,7 @@ namespace mdf {
  */
 class IAttachment : public IBlock {
  public:
-  virtual ~IAttachment() override = default; ///< Default destructor
+  ~IAttachment() override = default; ///< Default destructor
 
   /** \brief Sets the Creator index. */
   virtual void CreatorIndex(uint16_t creator) = 0;
@@ -90,6 +92,9 @@ class IAttachment : public IBlock {
    * @return Pointer to a IMeteData block or nullptr if it doesn't exists.
    */
   [[nodiscard]] virtual IMetaData* MetaData() const = 0;
+
+  void SetAtComment(const AtComment& at_comment);
+  void GetAtComment(AtComment& at_comment) const;
 };
 
 }  // namespace mdf

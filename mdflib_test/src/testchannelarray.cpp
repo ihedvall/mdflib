@@ -8,9 +8,6 @@
 #include "ca4block.h"
 
 #include <filesystem>
-#include <xtensor/containers/xarray.hpp>
-#include <xtensor/containers/xadapt.hpp>
-#include <xtensor/io/xio.hpp>
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
@@ -511,66 +508,6 @@ TEST_F(TestChannelArray, TestArrayInsertAndRead) {
       }
     }
   }
-}
-
-TEST_F(TestChannelArray, TestXTensor) {
-  const std::string mdf_file(kFixedAxisFile);
-  try {
-    if (!exists(mdf_file)) {
-      GTEST_SKIP() << "Skip test. File doesn't exist" << std::endl;
-    }
-  } catch (const std::exception& err) {
-    GTEST_SKIP() << "Skipping test. Error: " << err.what() << std::endl;
-  }
-
-  MdfReader reader(mdf_file);
-  ASSERT_TRUE(reader.IsOk());
-  ASSERT_TRUE(reader.ReadEverythingButData());
-
-  const auto* file = reader.GetFile();
-  ASSERT_TRUE(file != nullptr);
-
-  const auto* header = file->Header();
-  ASSERT_TRUE(header != nullptr);
-
-  const auto dg_list = header->DataGroups();
-  EXPECT_EQ(dg_list.size(), 1);
-  for (auto* dg4 : dg_list) {
-    ASSERT_TRUE(dg4 != nullptr);
-
-    const auto cg_list = dg4->ChannelGroups();
-    EXPECT_EQ(cg_list.size(), 1);
-
-    for (auto* cg4 : cg_list) {
-      ASSERT_TRUE(cg4 != nullptr);
-      // Set up subscription and read in data
-      ChannelObserverList  observer_list;
-      CreateChannelObserverForChannelGroup(*dg4, *cg4,
-                                             observer_list);
-      EXPECT_TRUE(reader.ReadData(*dg4));
-
-      for (const auto& observer : observer_list) {
-        ASSERT_TRUE(observer);
-        if (!observer->IsArray()) {
-          continue;
-        }
-        const auto array_size = observer->ArraySize();
-        EXPECT_EQ(array_size, 6*8);
-        std::vector<uint64_t> shape = observer->Shape();
-        EXPECT_EQ(shape.size(), 2);
-        std::vector<double> value_array;
-        for (uint64_t sample = 0; sample < observer->NofSamples(); ++sample) {
-            observer->GetEngValues(sample, value_array);
-            EXPECT_EQ(value_array.size(),array_size);
-            const xt::xarray<double> array = xt::adapt(value_array,shape);
-            std::cout << "Array:" << std::endl
-                      << array << std::endl << std::endl;
-          }
-        }
-      }
-    }
-
-
 }
 
 }

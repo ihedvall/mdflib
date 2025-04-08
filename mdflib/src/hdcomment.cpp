@@ -25,7 +25,11 @@ namespace mdf {
 
 HdComment::HdComment()
 : MdComment("HD") {
+}
 
+HdComment::HdComment(std::string comment)
+    : HdComment() {
+  Comment(std::move(comment));
 }
 
 void HdComment::Author(std::string author) {
@@ -143,7 +147,8 @@ std::string HdComment::ToXml() const {
     auto xml_file = CreateXmlFile("FileWriter");
     const bool ho_active = unit_spec_.IsActive();
     auto& root_node = CreateRootNode(*xml_file, ho_active);
-    MdComment::ToXml(root_node);
+    ToTx(root_node);
+
     if (time_source_.IsActive()) {
       time_source_.ToXml(root_node, "time_source");
     }
@@ -168,6 +173,7 @@ std::string HdComment::ToXml() const {
     if (ho_active) {
       unit_spec_.ToXml(root_node);
     }
+    ToCommonProp(root_node);
     return xml_file->WriteString(true);
   } catch (const std::exception& err) {
     MDF_ERROR() << "Failed to create the HD comment. Error: " << err.what();
@@ -224,5 +230,6 @@ void HdComment::FromXml(const std::string& xml_snippet) {
     MDF_ERROR() << "Failed to parse the HD comment. Error: " << err.what();
   }
 }
+
 
 }  // namespace mdf

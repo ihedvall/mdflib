@@ -8,11 +8,14 @@
 #include <cstdint>
 #include <string>
 #include <sstream>
+#include <optional>
 
 #include "mdf/mdstandardattribute.h"
 #include "mdf/mdproperty.h"
 
 namespace mdf {
+
+class IXmlNode;
 
 enum class MdByteOrder {
   LittleEndian,
@@ -22,10 +25,18 @@ enum class MdByteOrder {
 class MdNumber : public MdStandardAttribute {
  public:
   MdNumber() = default;
-  explicit MdNumber(double number, uint64_t history_index = 0,
-                    std::string language = {});
+  explicit MdNumber(double number);
+  explicit MdNumber(uint64_t number, MdDataType data_type);
 
-  operator double() const; // NOLINT(*-explicit-constructor)
+  template<typename T>
+  operator T() const {// NOLINT(*-explicit-constructor)
+    return Number<T>();
+  }
+
+  template<typename T>
+  bool operator == (const T& value) const {
+    return value == Number<T>();
+  }
 
   [[nodiscard]] bool IsActive() const override;
 
@@ -44,20 +55,20 @@ class MdNumber : public MdStandardAttribute {
   void ByteCount(uint64_t byte_count);
   [[nodiscard]] uint64_t ByteCount() const;
 
-  void BitMas(uint64_t bit_mask);
+  void BitMask(uint64_t bit_mask);
   [[nodiscard]] uint64_t BitMask() const;
 
   void ByteOrder(MdByteOrder byte_order);
   [[nodiscard]] MdByteOrder ByteOrder() const;
 
   void Min(double min);
-  [[nodiscard]] double Min() const;
+  [[nodiscard]] const std::optional<double>& Min() const;
 
   void Max(double max);
-  [[nodiscard]] double Max() const;
+  [[nodiscard]] const std::optional<double>& Max() const;
 
   void Average(double average);
-  [[nodiscard]] double Average() const;
+  [[nodiscard]] const std::optional<double>& Average() const;
 
   void Unit(std::string unit);
   [[nodiscard]] const std::string& Unit() const;
@@ -65,32 +76,33 @@ class MdNumber : public MdStandardAttribute {
   void UnitRef(std::string unit_ref);
   [[nodiscard]] const std::string& UnitRef() const;
 
+  virtual void ToXml(IXmlNode& root_node, const std::string& tag_name) const;
+  void FromXml(const IXmlNode& number_node) override;
  private:
   std::string number_;
   bool triggered_ = false;
   MdDataType data_type_ = MdDataType::MdFloat;
-  uint64_t byte_count_ = 0;
-  uint64_t bit_mask_ = 0x00;
+  std::optional<uint64_t> byte_count_;
+  std::optional<uint64_t> bit_mask_;
   MdByteOrder byte_order_ = MdByteOrder::LittleEndian;
-  double min_ = 0.0;
-  double max_ = 0.0;
-  double average_ = 0.0;
+  std::optional<double> min_;
+  std::optional<double> max_;
+  std::optional<double> average_;
   std::string unit_;
   std::string unit_ref_;
-
-
-
-
 };
 
 template <typename T>
 void MdNumber::Number(T value) {
   try {
-    number_ = std__to_string(value);
+    number_ = std::to_string(value);
   } catch (const std::exception&) {
     number_.clear();
   }
 }
+
+template <>
+void MdNumber::Number(uint64_t value);
 
 template <typename T>
 T MdNumber::Number() const {
@@ -99,5 +111,8 @@ T MdNumber::Number() const {
   temp >> value;
   return value;
 }
+
+template <>
+uint64_t MdNumber::Number() const;
 }  // namespace mdf
 

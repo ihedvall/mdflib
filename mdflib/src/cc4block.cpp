@@ -72,7 +72,9 @@ void Cc4Block::Name(const std::string& name) { name_ = name; }
 std::string Cc4Block::Name() const { return name_; }
 
 void Cc4Block::Unit(const std::string& unit) {
-  unit_ = std::make_unique<Md4Block>(unit);
+  CcUnit cc_unit;
+  cc_unit.Comment(MdString(unit));
+  unit_ = std::make_unique<Md4Block>(cc_unit.ToXml());
 }
 
 std::string Cc4Block::Unit() const {
@@ -562,6 +564,16 @@ std::string Cc4Block::Reference(uint16_t index) const {
   }
   return {"Invalid"};
 
+}
+
+void Cc4Block::SetCcUnit(const CcUnit& unit) {
+  unit_ = std::make_unique<Md4Block>(unit.ToXml());
+}
+
+void Cc4Block::GetCcUnit(CcUnit& unit) const {
+  if (unit_) {
+    unit.FromXml(unit_->XmlSnippet());
+  }
 }
 
 }  // namespace mdf::detail

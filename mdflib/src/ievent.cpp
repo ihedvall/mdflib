@@ -132,4 +132,18 @@ std::string IEvent::CauseToString() const {
   return {};
 }
 
+void IEvent::SetEvComment(const EvComment &ev_comment) {
+  if (IMetaData* meta_data = CreateMetaData();
+      meta_data != nullptr ) {
+    meta_data->XmlSnippet(ev_comment.ToXml());
+  }
+}
+
+void IEvent::GetEvComment(EvComment &ev_comment) const {
+  if (const IMetaData* meta_data = MetaData();
+      meta_data != nullptr) {
+    ev_comment.FromXml(meta_data->XmlSnippet());
+  }
+}
+
 }  // namespace mdf

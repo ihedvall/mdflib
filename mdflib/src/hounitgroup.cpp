@@ -46,21 +46,18 @@ void HoUnitGroup::ToXml(IXmlNode& unit_groups_node) const {
       unit_ref_node.SetAttribute("ID-REF", unit_ref);
     }
   }
-
-
-
 }
 
 void HoUnitGroup::FromXml(const IXmlNode& group_node) {
+  HoNameDetails::FromXml(group_node);
   IXmlNode::ChildList node_list;
   group_node.GetChildList(node_list);
   for (const IXmlNode* node : node_list) {
     if (node == nullptr) {
       continue;
     }
-    if (node->IsTagName("NAME-DETAILS")) {
-      HoNameDetails::FromXml(*node);
-    } else if (node->IsTagName("CATEGORY")) {
+
+    if (node->IsTagName("CATEGORY")) {
       category_ = StringToHoUnitGroupCategory(node->Value<std::string>());
     } else if (node->IsTagName("UNIT-REFS")) {
       IXmlNode::ChildList unit_list;

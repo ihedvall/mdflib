@@ -860,7 +860,9 @@ void Cn4Block::Unit(const std::string &unit) {
   if (unit.empty()) {
     unit_.reset();
   } else {
-    unit_ = std::make_unique<Md4Block>(unit);
+    CnUnit cn_unit;
+    cn_unit.Comment(MdString(unit));
+    unit_ = std::make_unique<Md4Block>(cn_unit.ToXml());
   }
 }
 
@@ -1313,6 +1315,19 @@ void Cn4Block::AddAttachmentReference(const IAttachment *attachment) {
 
 std::vector<const IAttachment *> Cn4Block::AttachmentList() const {
   return attachment_list_;
+}
+
+void Cn4Block::SetCnUnit(const CnUnit &unit) {
+  unit_ = std::make_unique<Md4Block>(unit.ToXml());
+}
+
+void Cn4Block::GetCnUnit(CnUnit& unit) const {
+  if (unit_) {
+    if (const std::string xml_snippet = unit_->XmlSnippet();
+        !xml_snippet.empty()) {
+      unit.FromXml(xml_snippet);
+    }
+  }
 }
 
 }  // namespace mdf::detail

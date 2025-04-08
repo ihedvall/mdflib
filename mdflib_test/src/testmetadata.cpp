@@ -56,12 +56,9 @@ void LogFunc(const MdfLocation& location, MdfLogSeverity severity,
 
 /**
  * Function that stops logging of MDF logs
- * @param location Source file and line location
- * @param severity Severity code
- * @param text Log text
  */
-void NoLog(const MdfLocation& location, mdf::MdfLogSeverity severity,
-           const std::string& text) {}
+void NoLog(const MdfLocation& , mdf::MdfLogSeverity ,
+           const std::string& ) {}
 } // end namespace
 
 namespace mdf::test {
@@ -376,7 +373,7 @@ TEST_F(TestMetaData, CommentNg) {
     GTEST_SKIP();
   }
   path mdf_file(kTestDir);
-  mdf_file.append("hd_comment_ng.mf4");
+  mdf_file.append("comment_ng.mf4");
   constexpr std::string_view kTx = "HD Comment Test";
   {
     auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
@@ -385,18 +382,23 @@ TEST_F(TestMetaData, CommentNg) {
     auto* header = writer->Header();
     ASSERT_TRUE(header != nullptr);
 
-    HdComment comment;
-
-    comment.Comment(MdString(kTx));
+    HdComment hd_comment((std::string(kTx)));
+    hd_comment.TimeSource(MdString("PC UTC Time"));
+    hd_comment.AddConstant(MdString("PI"), "3.14");
+    hd_comment.AddProperty("HdKey", "HdValue");
+    auto& unit_spec = hd_comment.UnitSpecification();
+    HoUnit unit;
+    unit.Identity("miles");
+    unit_spec.AddUnit(unit);
 
     MdProperty engine_code;
     engine_code.Name("Engine_Type");
     engine_code.Description("Engine Type");
     engine_code.DataType(MdDataType::MdString);
     engine_code.Value(std::string("DIESEL"));
-    comment.AddProperty(engine_code);
+    hd_comment.AddProperty(engine_code);
 
-    header->SetHdComment(comment);
+    header->SetHdComment(hd_comment);
 
     auto* history = header->CreateFileHistory();
     history->Description("Test MDF Converter");
@@ -405,16 +407,56 @@ TEST_F(TestMetaData, CommentNg) {
     history->ToolVersion("1.0");
     history->UserName("Ingemar Hedvall");
 
+    FhComment fh_comment;
+    fh_comment.Comment(MdString("Test of FH Comment"));
+    fh_comment.ToolId(MdString("ACME MDF Writer"));
+    fh_comment.ToolVendor(MdString("ACME Corporation"));
+    fh_comment.ToolVersion(MdString("1.0"));
+    fh_comment.AddProperty("FhKey", "FhValue");
+    history->SetFhComment(fh_comment);
+
+    auto* attachment = header->CreateAttachment();
+    EXPECT_TRUE(attachment != nullptr);
+    attachment->CreatorIndex(0);
+    attachment->IsEmbedded(false);
+    attachment->IsCompressed(false);
+    attachment->FileName("olle.txt");
+
+    AtComment at_comment("Test of AT Comment");
+    at_comment.AddProperty("File", "olle.txt" );
+    attachment->SetAtComment(at_comment);
+
     writer->PreTrigTime(0.0);
     writer->CompressData(true);
 
     auto* last_dg = header->CreateDataGroup();
     ASSERT_TRUE(last_dg != nullptr);
 
+    DgComment dg_comment("Test of DG Comment");
+    dg_comment.AddProperty("DgKey", "DgValue");
+    last_dg->SetDgComment(dg_comment);
+
     // Note that no master channel added
+    CgComment cg_comment;
+    cg_comment.Comment(MdString("Test of CG Comment"));
+    auto& cg_names = cg_comment.Names();
+    cg_names.AddAlternativeName("CGName");
 
     auto* group1 = last_dg->CreateChannelGroup("Group1");
     ASSERT_TRUE(group1 != nullptr);
+    group1->SetCgComment(cg_comment);
+
+    auto* si1 = group1->CreateSourceInformation();
+    ASSERT_TRUE(si1 != nullptr);
+    si1->Name("Source Info");
+
+    SiComment si_comment("Test of SI Comment");
+    si_comment.Names().AddAlternativeName("SiName");
+    si_comment.Path().AddAlternativeName("SiPath");
+    si_comment.Bus().DefaultName("ACMEBus");
+    si_comment.Bus().AddAlternativeName("SiBus");
+    si_comment.Protocol(MdString("SiProtocol"));
+    si1->SetSiComment(si_comment);
 
     auto* master1 = group1->CreateChannel("Master1");
     ASSERT_TRUE(master1 != nullptr);
@@ -424,13 +466,48 @@ TEST_F(TestMetaData, CommentNg) {
     master1->Unit("s");
     master1->DataBytes(4);
 
+    CnComment cn_comment;
+    cn_comment.Comment(MdString("CN comment test"));
+    auto& cn_names = cn_comment.Names();
+    cn_names.AddAlternativeName("CNName");
+    cn_comment.LinkerName(MdString("ACME Linker"));
+    cn_comment.LinkerAddress(MdNumber(0x1234, MdDataType::MdHex));
+    cn_comment.AxisMonotony(MdMonotony::StrictDecrease);
+    MdNumber cn_raster;
+    cn_raster.Number(123);
+    cn_comment.Raster(cn_raster);
+
+    CnUnit cn_unit("km");
+    // cn_unit.UnitRef(MdString("miles"));
+
     auto* signal1 = group1->CreateChannel("Signal1");
     ASSERT_TRUE(signal1 != nullptr);
     signal1->DataType(ChannelDataType::FloatLe);
     signal1->DataBytes(8);
+    signal1->SetCnComment(cn_comment);
+    signal1->SetCnUnit(cn_unit);
+
+    CcComment cc_comment("CC comment test");
+    cc_comment.AddProperty("Road", "Runner");
+    auto& cc_names = cc_comment.Names();
+    cc_names.AddAlternativeName("CC Alternative");
+    auto& cc_method = cc_comment.CompuMethod();
+    cc_method.ShortName("Formula_1");
+    cc_method.Category(HoComputationMethodCategory::Formula);
+    // cc_method.UnitReference("miles");
+
+    CcUnit cc_unit("km");
+    // cc_unit.UnitRef(MdString("miles"));
+
+    auto* cc1 = signal1->CreateChannelConversion();
+    ASSERT_TRUE(cc1 != nullptr);
+    cc1->Name("Olle");
+    cc1->SetCcComment(cc_comment);
+    cc1->SetCcUnit(cc_unit);
 
     auto* group2 = last_dg->CreateChannelGroup("Group2");
     ASSERT_TRUE(group2 != nullptr);
+    group1->SetCgComment(cg_comment);
 
     auto* master2 = group2->CreateChannel("Master2");
     ASSERT_TRUE(master2 != nullptr);
@@ -444,6 +521,12 @@ TEST_F(TestMetaData, CommentNg) {
     ASSERT_TRUE(signal2 != nullptr);
     signal2->DataType(ChannelDataType::FloatLe);
     signal2->DataBytes(8);
+    signal2->SetCnComment(cn_comment);
+
+    auto* cc2 = signal1->CreateChannelConversion();
+    ASSERT_TRUE(cc2 != nullptr);
+    cc2->Name("Olle");
+    cc2->SetCcComment(cc_comment);
 
     writer->InitMeasurement();
     auto tick_time = TimeStampToNs();
@@ -477,7 +560,14 @@ TEST_F(TestMetaData, CommentNg) {
     std::cout << comment.ToXml() << std::endl;
 
     EXPECT_EQ(comment.Comment(), kTx);
-    EXPECT_EQ(comment.Properties().size(), 1);
+    EXPECT_EQ(comment.Properties().size(), 2);
+
+    ASSERT_EQ(header->Attachments().size(),1);
+    IAttachment* attachment = header->Attachments()[0];
+    EXPECT_TRUE(attachment != nullptr);
+    AtComment at_comment;
+    attachment->GetAtComment(at_comment);
+    EXPECT_FALSE(at_comment.Comment().Text().empty());
 
     const auto dg_list = header->DataGroups();
     EXPECT_EQ(dg_list.size(), 1);

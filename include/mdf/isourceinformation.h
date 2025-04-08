@@ -13,6 +13,7 @@
 
 #include "mdf/imetadata.h"
 #include "mdf/iblock.h"
+#include "mdf/sicomment.h"
 
 namespace mdf {
 
@@ -74,6 +75,9 @@ class ISourceInformation : public IBlock {
   [[nodiscard]] virtual IMetaData* CreateMetaData() = 0;
   /** \brief Returns an existing meta-data (MD) block. */
   [[nodiscard]] virtual const IMetaData* MetaData() const = 0;
+
+  void SetSiComment(const SiComment& si_comment);
+  void GetSiComment(SiComment& si_comment) const;
 };
 
 }  // end namespace mdf

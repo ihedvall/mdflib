@@ -4,18 +4,19 @@
  */
 
 #pragma once
-
 #include <string>
 
-#include "mdf/mdcomment.h"
+#include "mdf/ccunit.h"
+
 
 namespace mdf {
 
-class DgComment : public MdComment {
+class CnUnit : public CcUnit {
  public:
-  DgComment();
-  explicit DgComment(std::string comment);
+  CnUnit();
+  explicit CnUnit(std::string unit);
 };
 
 }  // namespace mdf
+
 

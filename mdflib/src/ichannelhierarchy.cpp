@@ -33,4 +33,17 @@ std::string IChannelHierarchy::TypeToString() const {
   return {};
 }
 
+void IChannelHierarchy::SetChComment(const ChComment &ch_comment) {
+  if (IMetaData* meta_data = CreateMetaData();
+      meta_data != nullptr ) {
+    meta_data->XmlSnippet(ch_comment.ToXml());
+  }
+}
+
+void IChannelHierarchy::GetChComment(ChComment &ch_comment) const {
+  if (const IMetaData* meta_data = MetaData();
+      meta_data != nullptr) {
+    ch_comment.FromXml(meta_data->XmlSnippet());
+  }
+}
 }  // namespace mdf

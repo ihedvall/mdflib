@@ -16,6 +16,7 @@
 
 #include "mdf/iblock.h"
 #include "mdf/imetadata.h"
+#include "mdf/cgcomment.h"
 
 namespace mdf {
 /** \brief Channel group flags. */
@@ -138,6 +139,9 @@ class IChannelGroup : public IBlock {
 
   /** \brief Returns a pointer to data group (DG) block. */
   [[nodiscard]] virtual const IDataGroup* DataGroup() const = 0;
+
+  void SetCgComment(const CgComment& cg_comment);
+  void GetCgComment(CgComment& cg_comment) const;
 
  protected:
   mutable std::vector<uint8_t>

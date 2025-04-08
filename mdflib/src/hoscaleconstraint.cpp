@@ -50,18 +50,42 @@ HoValidity HoScaleConstraint::Validity() const {
   return validity_;
 }
 
-void HoScaleConstraint::ToXML(IXmlNode& root_node) const {
+void HoScaleConstraint::ToXml(IXmlNode& root_node) const {
   // Assume that the ho namespace is set in the MD comment root
   if (!IsActive()) {
     return;
   }
   auto& scale_node = root_node.AddNode(std::string(kScaleConstraint));
-  lower_limit_.ToXml(scale_node, kLowerLimit);
+  if (lower_limit_.IsActive()) {
+    lower_limit_.ToXml(scale_node, kLowerLimit);
+ }
+ if (upper_limit_.IsActive()) {
   upper_limit_.ToXml(scale_node, kUpperLimit);
-
-  if (validity_ != HoValidity::Valid) {
+ }
+ if (validity_ != HoValidity::Valid) {
     scale_node.SetAttribute(std::string(kValidity),
                          std::string(HoValidityToString(validity_)));
+  }
+}
+
+void HoScaleConstraint::FromXml(const IXmlNode& scale_node) {
+  const auto validity_text =
+      scale_node.Attribute<std::string>("VALIDITY", "");
+  if (!validity_text.empty()) {
+    validity_ = StringToHoValidity(validity_text);
+  }
+
+  IXmlNode::ChildList node_list;
+  scale_node.GetChildList(node_list);
+  for (const auto* node : node_list) {
+    if (node == nullptr) {
+      continue;
+    }
+    if (node->IsTagName("LOWER-LIMIT")) {
+      lower_limit_.FromXml(*node);
+    } else if (node->IsTagName("UPPER-LIMIT")) {
+      upper_limit_.FromXml(*node);
+    }
   }
 }
 

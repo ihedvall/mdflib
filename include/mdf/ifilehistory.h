@@ -15,6 +15,7 @@
 #include "itimestamp.h"
 #include "mdf/iblock.h"
 #include "mdf/imetadata.h"
+#include "mdf/fhcomment.h"
 
 namespace mdf {
 
@@ -178,6 +179,9 @@ class IFileHistory : public IBlock {
     const auto* md4 = MetaData();
     return md4 != nullptr ? md4->StringProperty("user_name") : std::string();
   }
+
+  void SetFhComment(const FhComment& fh_comment);
+  void GetFhComment(FhComment& fh_comment) const;
 };
 
 }  // namespace mdf

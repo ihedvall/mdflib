@@ -82,13 +82,36 @@ void MdString::ToXml(IXmlNode& root_node,
     IXmlNode& node = root_node.AddNode(tag_name);
     node.Value(text_);
     MdStandardAttribute::ToXml(node);
+    if (tag_name == "linker_name" &&
+        offset_.has_value() && offset_.value() > 0) {
+      node.SetAttribute("offset", offset_.value());
+    }
   }
 }
 
 
 
 void MdString::FromXml(const IXmlNode& node) {
-  MdStandardAttribute::FromXml(node);
+  const auto attr_list = node.GetAttributeList();
+  for (const auto& [key, value] : attr_list) {
+    if (key == "ci" && !value.empty()) {
+      try {
+        ci_ = std::stoll(value);
+      } catch (const std::exception&) {
+        ci_ = 0;
+      }
+    } else if (key == "xml:lang") {
+      lang_ = value;
+    } else if (key == "offset") {
+      try {
+        offset_ = stoull(value);
+      } catch (const std::exception& ) {
+        offset_.reset();
+      }
+    } else {
+      AddCustomAttribute(key, value);
+    }
+  }
   text_ = node.Value<std::string>();
 }
 }  // namespace mdf

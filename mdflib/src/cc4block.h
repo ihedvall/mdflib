@@ -31,6 +31,8 @@ class Cc4Block : public MdfBlock, public IChannelConversion {
 
   void Unit(const std::string& unit) override;
   [[nodiscard]] std::string Unit() const override;
+  void SetCcUnit(const CcUnit& unit) override;
+  void GetCcUnit(CcUnit& unit) const override;
 
   void Description(const std::string& desc) override;
   [[nodiscard]] std::string Description() const override;

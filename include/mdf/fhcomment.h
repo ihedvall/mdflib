@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include <string>
 
 #include "mdf/mdcomment.h"
 #include "mdf/mdstring.h"
@@ -13,6 +14,7 @@ namespace mdf {
 class FhComment : public MdComment {
  public:
   FhComment();
+  explicit FhComment(std::string comment);
 
   void ToolId(MdString tool_id);
   [[nodiscard]] const MdString& ToolId() const;
@@ -25,6 +27,9 @@ class FhComment : public MdComment {
 
   void UserName(MdString user_name);
   [[nodiscard]] const MdString& UserName() const;
+
+  [[nodiscard]] std::string ToXml() const override;
+  void FromXml(const std::string& xml_snippet) override;
  private:
   MdString tool_id_;
   MdString tool_vendor_;

@@ -17,6 +17,18 @@ bool MdAlternativeName::IsActive() const {
       !vendor_list_.empty() || !description_list_.empty();
 }
 
+void MdAlternativeName::DefaultName(std::string name) {
+  default_name_ = std::move(name);
+}
+
+const std::string& MdAlternativeName::DefaultName() const {
+  return default_name_;
+}
+
+void MdAlternativeName::AddAlternativeName(std::string alternative_name) {
+  AddAlternativeName(MdString(std::move(alternative_name)));
+}
+
 void MdAlternativeName::AddAlternativeName(MdString alternative_name) {
   if (const std::string& name = alternative_name.Text();
      name.empty()) {
@@ -84,6 +96,9 @@ MdStringList& MdAlternativeName::Descriptions() {
 void MdAlternativeName::ToXml(IXmlNode& names_node) const {
 
   MdStandardAttribute::ToXml(names_node);
+  if (!default_name_.empty()) {
+    names_node.SetAttribute("name", default_name_);
+  }
 
   for (const MdString& name : name_list_) {
     name.ToXml(names_node, "name");
@@ -104,6 +119,7 @@ void MdAlternativeName::ToXml(IXmlNode& names_node) const {
 
 void MdAlternativeName::FromXml(const IXmlNode& names_node) {
   MdStandardAttribute::FromXml(names_node);
+  default_name_ = names_node.Attribute<std::string>("name", "");
 
   IXmlNode::ChildList node_list;
   names_node.GetChildList(node_list);
@@ -130,5 +146,6 @@ void MdAlternativeName::FromXml(const IXmlNode& names_node) {
     }
   }
 }
+
 
 }  // namespace mdf

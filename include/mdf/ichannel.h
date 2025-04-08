@@ -20,6 +20,8 @@
 #include "mdf/ichannelarray.h"
 #include "mdf/mdfhelper.h"
 #include "mdf/iattachment.h"
+#include "mdf/cncomment.h"
+#include "mdf/cnunit.h"
 
 namespace mdf {
 
@@ -148,6 +150,8 @@ class IChannel : public IBlock  {
    */
   virtual void Unit(const std::string &unit) = 0;
 
+
+
   /** \brief Returns the unit string or the MIME content type string.
    *
    * The unit describes the engineering/scaled value not the channel value
@@ -161,6 +165,9 @@ class IChannel : public IBlock  {
    * @return Unit or MIME content string.
    */
   [[nodiscard]] virtual std::string Unit() const = 0; ///< Returns the unit
+
+  virtual void SetCnUnit(const CnUnit& unit);
+  virtual void GetCnUnit(CnUnit& unit) const;
 
   /** \brief Sets channel flags. Flags are defined in the CnFlag namespace  */
   virtual void Flags(uint32_t flags);
@@ -186,8 +193,6 @@ class IChannel : public IBlock  {
   virtual void Decimals(uint8_t precision);
   /** \brief Number of decimals (floating points)  */
   [[nodiscard]] virtual uint8_t Decimals() const = 0;
-
-
 
   /** \brief Returns true if decimals is used  */
   [[nodiscard]] virtual bool IsDecimalUsed() const = 0;
@@ -540,6 +545,9 @@ class IChannel : public IBlock  {
    * @return Returns 1 for normal channel and array size for array channels
    */
   [[nodiscard]] uint64_t ArraySize() const {return channel_array_size_;}
+
+  void SetCnComment(const CnComment& cn_comment);
+  void GetCnComment(CnComment& cn_comment) const;
  protected:
 
 

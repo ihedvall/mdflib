@@ -17,11 +17,15 @@ class IXmlNode;
 
 using MdStringList = std::vector<MdString>;
 
-class MdAlternativeName : public MdStandardAttribute{
+class MdAlternativeName : public MdStandardAttribute {
  public:
   [[nodiscard]] bool IsActive() const override;
 
+  void DefaultName(std::string name);
+  [[nodiscard]] const std::string& DefaultName() const;
+
   void AddAlternativeName(MdString alternative_name);
+  void AddAlternativeName(std::string alternative_name);
   void AddDisplayName(MdString display_name);
   void AddVendor(MdString vendor);
   void AddDescription(MdString description);
@@ -42,6 +46,7 @@ class MdAlternativeName : public MdStandardAttribute{
   void FromXml(const IXmlNode& names_node) override;
 
  private:
+  std::string default_name_;
   MdStringList name_list_;
   MdStringList display_list_;
   MdStringList vendor_list_;

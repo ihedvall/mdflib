@@ -51,20 +51,20 @@ void HoNameDetails::ToXml(IXmlNode& root_node) const {
   if (!IsActive()) {
     return;
   }
-  auto& details_node = root_node.AddNode("ho:NAME-DETAILS");
-  details_node.SetProperty("ho:SHORT-NAME", short_name_);
-
+  if (!short_name_.empty()) {
+    root_node.SetProperty("ho:SHORT-NAME", short_name_);
+  }
   for (const MdString& name : long_name_list_) {
-    name.ToXml(details_node, "ho:LONG-NAME");
+    name.ToXml(root_node, "ho:LONG-NAME");
   }
   for (const MdString& desc : description_list_) {
-    desc.ToXml(details_node, "ho:DESC");
+    desc.ToXml(root_node, "ho:DESC");
   }
 }
 
-void HoNameDetails::FromXml(const IXmlNode& details_node) {
+void HoNameDetails::FromXml(const IXmlNode& root_node) {
   IXmlNode::ChildList node_list;
-  details_node.GetChildList(node_list);
+  root_node.GetChildList(node_list);
   for (const IXmlNode* node : node_list) {
     if (node == nullptr) {
       continue;

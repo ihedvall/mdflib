@@ -68,4 +68,17 @@ IChannel *IChannelGroup::GetChannel(const std::string_view &name) const {
   return itr != cn_list.end() ? *itr : nullptr;
 }
 
+void IChannelGroup::SetCgComment(const CgComment &cg_comment) {
+  if (IMetaData* meta_data = CreateMetaData();
+      meta_data != nullptr ) {
+    meta_data->XmlSnippet(cg_comment.ToXml());
+  }
+}
+
+void IChannelGroup::GetCgComment(CgComment &cg_comment) const {
+  if (const IMetaData* meta_data = MetaData();
+      meta_data != nullptr) {
+    cg_comment.FromXml(meta_data->XmlSnippet());
+  }
+}
 }  // namespace mdf

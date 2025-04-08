@@ -197,4 +197,19 @@ void IDataGroup::InitFastObserverList() {
     }
   }
 }
+
+void IDataGroup::SetDgComment(const DgComment &dg_comment) {
+  if (IMetaData* meta_data = CreateMetaData();
+      meta_data != nullptr ) {
+    meta_data->XmlSnippet(dg_comment.ToXml());
+  }
+}
+
+void IDataGroup::GetDgComment(DgComment &dg_comment) const {
+  if (const IMetaData* meta_data = MetaData();
+      meta_data != nullptr) {
+    dg_comment.FromXml(meta_data->XmlSnippet());
+  }
+}
+
 }  // namespace mdf

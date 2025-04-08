@@ -14,6 +14,8 @@ namespace mdf {
 class SiComment : public MdComment {
  public:
   SiComment();
+  explicit SiComment(std::string comment);
+
   [[nodiscard]] const MdAlternativeName& Path() const;
   [[nodiscard]] MdAlternativeName& Path();
 
@@ -23,8 +25,10 @@ class SiComment : public MdComment {
   void Protocol(MdString protocol);
   [[nodiscard]] const MdString& Protocol() const;
 
+  [[nodiscard]] std::string ToXml() const override;
+  void FromXml(const std::string& xml_snippet) override;
  private:
-  // names is define in MdComment
+  // names is defined in MdComment class
   MdAlternativeName path_;
   MdAlternativeName bus_;
   MdString protocol_;

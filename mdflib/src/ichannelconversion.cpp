@@ -387,5 +387,26 @@ std::string IChannelConversion::Reference(uint16_t index) const {
   return {};
 }
 
+void IChannelConversion::SetCcComment(const CcComment &cc_comment) {
+  if (IMetaData* meta_data = CreateMetaData();
+      meta_data != nullptr ) {
+    meta_data->XmlSnippet(cc_comment.ToXml());
+  }
+}
+
+void IChannelConversion::GetCcComment(CcComment &cc_comment) const {
+  if (const IMetaData* meta_data = MetaData();
+      meta_data != nullptr) {
+    cc_comment.FromXml(meta_data->XmlSnippet());
+  }
+}
+
+void IChannelConversion::SetCcUnit(const CcUnit &unit) {
+  Unit(unit.Comment().Text());
+}
+
+void IChannelConversion::GetCcUnit(CcUnit &unit) const {
+  unit.Comment(MdString(Unit()));
+}
 
 }  // end namespace mdf

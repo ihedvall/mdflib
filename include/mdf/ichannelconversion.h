@@ -17,6 +17,8 @@
 #include "mdf/iblock.h"
 #include "mdf/imetadata.h"
 #include "mdf/mdfhelper.h"
+#include "mdf/cccomment.h"
+#include "mdf/ccunit.h"
 
 namespace mdf {
 
@@ -154,6 +156,9 @@ class IChannelConversion : public IBlock {
   [[nodiscard]] virtual std::string Unit() const = 0; ///< Unit of measure.
   [[nodiscard]] virtual bool IsUnitValid() const = 0; ///< True if unit exist.
 
+  virtual void SetCcUnit(const CcUnit& unit);
+  virtual void GetCcUnit(CcUnit& unit) const;
+
   virtual void Type(ConversionType type) = 0; ///< Sets the conversion type.
   [[nodiscard]] virtual ConversionType Type() const = 0; ///< Conversion type.
 
@@ -180,6 +185,9 @@ class IChannelConversion : public IBlock {
 
   /** \brief Returns the meta-data block. */
   [[nodiscard]] virtual IMetaData* MetaData() const;
+
+  void SetCcComment(const CcComment& cc_comment);
+  void GetCcComment(CcComment& cc_comment) const;
 
   /** \brief Sets the formula string. */
   virtual void Formula( const std::string& formula);

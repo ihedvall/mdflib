@@ -306,7 +306,7 @@ void UtcTimestamp::FromIsoDateTime(const std::string &date_time) {
     }
 
 
-#ifdef WIN32
+#ifdef _WIN32
     time_t utc_time = _mkgmtime(&date);
 #else
     time_t utc_time = timegm(&date);

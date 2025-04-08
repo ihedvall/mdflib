@@ -13,6 +13,7 @@
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
 #include "mdf/iblock.h"
+#include "mdf/chcomment.h"
 
 namespace mdf {
 
@@ -76,5 +77,8 @@ class IChannelHierarchy : public IBlock {
   /** \brief Returns a list of CH blocks. */
   [[nodiscard]] virtual std::vector<IChannelHierarchy*> ChannelHierarchies()
       const = 0;
+
+  void SetChComment(const ChComment& ch_comment);
+  void GetChComment(ChComment& ch_comment) const;
 };
 }  // namespace mdf

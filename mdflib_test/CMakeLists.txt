@@ -41,7 +41,12 @@ add_executable(test_mdf
         src/testmultipledgwrite.h
         src/testtimestamp.cpp
         src/testtimestamp.h
-        src/testhdcomment.cpp)
+        src/testhdcomment.cpp
+        src/testcccomment.cpp
+        src/testcncomment.cpp
+        src/testevcomment.cpp
+        src/testfhcomment.cpp
+        src/testsicomment.cpp)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 if(VCPKG)

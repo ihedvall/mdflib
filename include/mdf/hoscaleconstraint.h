@@ -30,10 +30,10 @@ class HoScaleConstraint {
   void Validity(HoValidity validity);
   [[nodiscard]] HoValidity Validity() const;
 
-  virtual void ToXML(IXmlNode& root_node) const;
+  virtual void ToXml(IXmlNode& root_node) const;
+  virtual void FromXml(const IXmlNode& scale_node);
 
-
- private:
+ protected:
   HoInterval lower_limit_;
   HoInterval upper_limit_;
   HoValidity validity_ = HoValidity::Valid;

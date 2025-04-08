@@ -27,10 +27,12 @@ class MdComment {
  public:
   explicit MdComment(std::string block_name);
 
+  void Comment(std::string comment);
   void Comment(MdString comment);
   [[nodiscard]] const MdString& Comment() const;
 
   void AddProperty(MdProperty property);
+  void AddProperty(std::string key, std::string value);
   void AddTree(MdList tree);
   void AddList(MdList list);
   void AddEnumerate(MdEnumerate enumerate);
@@ -65,6 +67,8 @@ class MdComment {
   [[nodiscard]] const MdExtensionList& Extensions() const;
   [[nodiscard]] MdExtensionList& Extensions();
 
+  [[nodiscard]] virtual std::string ToXml() const;
+  virtual void FromXml(const std::string& xml_snippet);
  protected:
   std::string block_name_; ///< Block name as "HD".
   MdString comment_; ///< TX tag in XML
@@ -74,9 +78,13 @@ class MdComment {
   MdExtensionList extension_list_;
   MdExtensionCreator extension_creator_;
 
-  [[nodiscard]] IXmlNode& CreateRootNode(IXmlFile& xml_file,
+  [[nodiscard]] virtual IXmlNode& CreateRootNode(IXmlFile& xml_file,
                                          bool init_ho_namespace) const;
   void ToXml(IXmlNode& root_node) const;
+  void ToTx(IXmlNode& root_node) const;
+  void ToFormula(IXmlNode& root_node) const;
+  void ToNames(IXmlNode& root_node) const;
+  void ToCommonProp(IXmlNode& root_node) const;
   void FromXml(const IXmlNode& root_node);
 
  };

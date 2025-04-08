@@ -99,6 +99,7 @@ void HoUnitSpecification::ToXml(IXmlNode& root_node) const {
   }
 
   auto& node = root_node.AddNode("ho:UNIT-SPEC");
+
   if (admin_data_.IsActive()) {
     admin_data_.ToXml(node);
   }

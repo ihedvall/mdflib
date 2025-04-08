@@ -13,7 +13,7 @@
 #include <map>
 
 #include "mdf/iblock.h"
-
+#include "mdf/dgcomment.h"
 
 namespace mdf {
 
@@ -132,6 +132,10 @@ class IDataGroup : public IBlock {
  * @return True if the observer list subscribe on this channels VLSD raw data  .
  */
   [[nodiscard]] bool IsSubscribingOnChannelVlsd(const IChannel& channel) const;
+
+  void SetDgComment(const DgComment& dg_comment);
+  void GetDgComment(DgComment& dg_comment) const;
+
  protected:
   mutable std::vector<ISampleObserver*> observer_list_; ///< List of observers.
 

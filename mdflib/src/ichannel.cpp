@@ -987,4 +987,27 @@ std::vector<const IAttachment *> IChannel::AttachmentList() const {
   return {};
 }
 
+void IChannel::SetCnComment(const CnComment &cn_comment) {
+  if (IMetaData* meta_data = CreateMetaData();
+      meta_data != nullptr ) {
+    meta_data->XmlSnippet(cn_comment.ToXml());
+  }
+}
+
+void IChannel::GetCnComment(CnComment &cn_comment) const {
+  if (const IMetaData* meta_data = MetaData();
+      meta_data != nullptr) {
+    cn_comment.FromXml(meta_data->XmlSnippet());
+  }
+}
+
+void IChannel::SetCnUnit(const CnUnit &unit) {
+  // MDF 3 can only use the TX tag
+  Unit(unit.Comment());
+}
+
+void IChannel::GetCnUnit(CnUnit& unit) const {
+  unit.Comment(MdString(Unit()));
+}
+
 }  // end namespace mdf

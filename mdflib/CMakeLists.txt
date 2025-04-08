@@ -141,6 +141,10 @@ add_library(mdf
         src/hoscaleconstraint.cpp ../include/mdf/hoscaleconstraint.h
         src/hocompuscale.cpp ../include/mdf/hocompuscale.h
         src/cccomment.cpp ../include/mdf/cccomment.h
+        src/ccunit.cpp
+        ../include/mdf/ccunit.h
+        src/cnunit.cpp
+        ../include/mdf/cnunit.h
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})
@@ -172,9 +176,33 @@ elseif(MSVC)
 endif()
 
 set(MDF_PUBLIC_HEADERS
-    ../include/mdf/cryptoutil.h
+    ../include/mdf/atcomment.h
     ../include/mdf/canmessage.h
+    ../include/mdf/cccomment.h
+    ../include/mdf/ccunit.h
+    ../include/mdf/cgcomment.h
+    ../include/mdf/chcomment.h
+    ../include/mdf/cncomment.h
+    ../include/mdf/cnunit.h
+    ../include/mdf/cryptoutil.h
+    ../include/mdf/dgcomment.h
     ../include/mdf/etag.h
+    ../include/mdf/ethmessage.h
+    ../include/mdf/evcomment.h
+    ../include/mdf/fhcomment.h
+    ../include/mdf/hdcomment.h
+    ../include/mdf/hoadmindata.h
+    ../include/mdf/hocompumethod.h
+    ../include/mdf/hocompuscale.h
+    ../include/mdf/hoenumerate.h
+    ../include/mdf/hointerval.h
+    ../include/mdf/honamedetails.h
+    ../include/mdf/hophysicaldimension.h
+    ../include/mdf/horevision.h
+    ../include/mdf/hoscaleconstraint.h
+    ../include/mdf/hounit.h
+    ../include/mdf/hounitgroup.h
+    ../include/mdf/hounitspecification.h
     ../include/mdf/iattachment.h
     ../include/mdf/iblock.h
     ../include/mdf/ichannel.h
@@ -187,24 +215,36 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/ievent.h
     ../include/mdf/ifilehistory.h
     ../include/mdf/iheader.h
+    ../include/mdf/imdftimestamp.h
     ../include/mdf/imetadata.h
     ../include/mdf/isampleobserver.h
     ../include/mdf/isourceinformation.h
     ../include/mdf/itimestamp.h
-    ../include/mdf/imdftimestamp.h
+    ../include/mdf/linmessage.h
+    ../include/mdf/mdalternativename.h
+    ../include/mdf/mdcomment.h
+    ../include/mdf/mdenumerate.h
+    ../include/mdf/mdextension.h
     ../include/mdf/mdffactory.h
     ../include/mdf/mdffile.h
     ../include/mdf/mdfhelper.h
     ../include/mdf/mdflogstream.h
+    ../include/mdf/mdformula.h
     ../include/mdf/mdfreader.h
     ../include/mdf/mdfwriter.h
+    ../include/mdf/mdlist.h
+    ../include/mdf/mdnumber.h
+    ../include/mdf/mdproperty.h
+    ../include/mdf/mdstandardattribute.h
+    ../include/mdf/mdstring.h
+    ../include/mdf/mdsyntax.h
+    ../include/mdf/mdvariable.h
     ../include/mdf/samplerecord.h
+    ../include/mdf/sicomment.h
     ../include/mdf/zlibutil.h)
 set_target_properties(mdf PROPERTIES PUBLIC_HEADER "${MDF_PUBLIC_HEADERS}")
 get_target_property(PH1 mdf PUBLIC_HEADER)
 message(STATUS "MDF Target Includes: " "${PH1}")
-
-
 
 if(WIN32)
   install(

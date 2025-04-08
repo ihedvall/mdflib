@@ -33,10 +33,10 @@ class MdStandardAttribute {
   [[nodiscard]] const AttributeList& CustomAttributes() const;
   [[nodiscard]] AttributeList& CustomAttributes();
 
- protected:
   virtual void ToXml(IXmlNode& node) const;
   virtual void FromXml(const IXmlNode& node);
- private:
+ protected:
+
   uint64_t ci_ = 0;
   std::string lang_;
   AttributeList custom_attribute_list_;

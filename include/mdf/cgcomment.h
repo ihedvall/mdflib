@@ -12,6 +12,7 @@ namespace mdf {
 class CgComment : public MdComment {
  public:
   CgComment();
+
 };
 
 }  // namespace mdf

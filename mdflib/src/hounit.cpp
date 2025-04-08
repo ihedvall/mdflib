@@ -12,6 +12,9 @@ namespace mdf {
 
 void HoUnit::Identity(std::string identity) {
   identity_ = std::move(identity);
+  if (short_name_.empty()) {
+    short_name_ = identity_;
+  }
 }
 
 const std::string& HoUnit::Identity() const {
@@ -95,5 +98,7 @@ void HoUnit::FromXml(const IXmlNode& unit_node) {
   }
 
 }
+
+
 
 }  // namespace mdf

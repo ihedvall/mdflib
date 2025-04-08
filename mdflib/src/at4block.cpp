@@ -169,31 +169,26 @@ uint64_t At4Block::Write(std::streambuf& buffer) {
   ByteArray data_buffer;
   try {
     path filename = u8path(filename_);
-    if (!fs::exists(filename)) {
+    if (!fs::exists(filename) && IsEmbedded()) {
       MDF_ERROR() << "Attachment File doesn't exist. File: " << filename_;
-      return 0;
     }
-
-    const auto md5 = CreateMd5FileChecksum(filename_, md5_);
-    if (md5) {
-      flags_ |= At4Flags::kUsingMd5;
-    }
-
-    original_size_ = file_size(filename);
-    if (IsEmbedded() && IsCompressed()) {
-      const bool compress = Deflate(filename_, data_buffer);
-      if (!compress) {
-        MDF_ERROR() << "Compress failure. File: " << filename;
-        return 0;
+    if (fs::exists(filename)) {
+      if (const auto md5 = CreateMd5FileChecksum(filename_, md5_); md5) {
+        flags_ |= At4Flags::kUsingMd5;
       }
-    } else if (IsEmbedded()) {
-      const auto read = FileToBuffer(filename_, data_buffer);
-      if (!read) {
-        MDF_ERROR() << "File to buffer failure. File: " << filename;
-        return 0;
+      original_size_ = file_size(filename);
+      if (IsEmbedded() && IsCompressed()) {
+        if (const bool compress = Deflate(filename_, data_buffer); !compress) {
+          MDF_ERROR() << "Compress failure. File: " << filename;
+          return 0;
+        }
+      } else if (IsEmbedded()) {
+        if (const auto read = FileToBuffer(filename_, data_buffer); !read) {
+          MDF_ERROR() << "File to buffer failure. File: " << filename;
+          return 0;
+        }
       }
     }
-
   } catch (const std::exception& err) {
     MDF_ERROR() << "Attachment File error. Error: " << err.what()
                 << ", File: " << filename_;

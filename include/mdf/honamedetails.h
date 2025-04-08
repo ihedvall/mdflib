@@ -15,7 +15,7 @@ class IXmlNode;
 
 class HoNameDetails {
  public:
-  [[nodiscard]] bool IsActive() const;
+  [[nodiscard]] virtual bool IsActive() const;
 
   void ShortName(std::string short_name);
   [[nodiscard]] const std::string& ShortName() const;
@@ -30,7 +30,7 @@ class HoNameDetails {
 
  virtual void ToXml(IXmlNode& root_node) const;
  virtual void FromXml(const IXmlNode& root_node);
- private:
+ protected:
   std::string short_name_;
   MdStringList long_name_list_;
   MdStringList description_list_;

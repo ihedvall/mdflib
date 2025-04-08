@@ -23,7 +23,7 @@ class HoInterval {
   [[nodiscard]] HoIntervalType Type() const;
 
   void ToXml(IXmlNode& root_node, const std::string_view& tag_name) const;
-
+  void FromXml(const IXmlNode& limit_node);
  private:
   std::optional<double> limit_;
   HoIntervalType type_ = HoIntervalType::Closed;

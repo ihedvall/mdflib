@@ -20,6 +20,7 @@ using MdConstantList = std::map<MdString, std::string>;
 class HdComment : public MdComment {
  public:
   HdComment();
+  explicit HdComment(std::string comment);
 
   void Author(std::string author);
   [[nodiscard]] std::string Author() const;
@@ -52,8 +53,8 @@ class HdComment : public MdComment {
   [[nodiscard]] const HoUnitSpecification& UnitSpecification() const;
   [[nodiscard]] HoUnitSpecification& UnitSpecification();
 
-  [[nodiscard]] std::string ToXml() const;
-  void FromXml(const std::string& xml_snippet);
+  [[nodiscard]] std::string ToXml() const override;
+  void FromXml(const std::string& xml_snippet) override;
  protected:
   MdString time_source_;
   MdConstantList constant_list_;

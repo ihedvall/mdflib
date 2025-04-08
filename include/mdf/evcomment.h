@@ -4,7 +4,7 @@
  */
 
 #pragma once
-
+#include <string>
 #include "mdf/mdcomment.h"
 #include "mdf/mdnumber.h"
 
@@ -13,7 +13,7 @@ namespace mdf {
 class EvComment : public MdComment {
  public:
   EvComment();
-
+  explicit EvComment(std::string comment);
   void PreTriggerInterval(MdNumber interval);
   [[nodiscard]] const MdNumber& PreTriggerInterval() const;
 
@@ -22,6 +22,9 @@ class EvComment : public MdComment {
 
   void Timeout(MdNumber timeout);
   [[nodiscard]] const MdNumber& Timeout() const;
+
+  [[nodiscard]] std::string ToXml() const override;
+  void FromXml(const std::string& xml_snippet) override;
 
  private:
   MdNumber pre_trigger_interval_;

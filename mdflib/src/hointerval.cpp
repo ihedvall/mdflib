@@ -52,4 +52,13 @@ void HoInterval::ToXml(IXmlNode& root_node,
 
 }
 
+void HoInterval::FromXml(const IXmlNode& limit_node) {
+  limit_ = limit_node.Value<double>();
+  const auto type_text =
+      limit_node.Attribute<std::string>("INTERVAL-TYPE", "");
+  if (!type_text.empty()) {
+    type_ = StringToHoIntervalType(type_text);
+  }
+}
+
 }  // namespace mdf

@@ -42,6 +42,9 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] std::string Unit() const override;
   [[nodiscard]] bool IsUnitValid() const override;
 
+  void SetCnUnit(const CnUnit& unit) override;
+  void GetCnUnit(CnUnit& unit) const override;
+
   void Flags(uint32_t flags) override;
   uint32_t Flags() const override;
 

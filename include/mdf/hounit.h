@@ -38,6 +38,7 @@ class HoUnit : public HoNameDetails {
 
  private:
   std::string identity_;
+
   std::string display_name_;
   double factor_ = 1.0;
   double offset_ = 0.0;

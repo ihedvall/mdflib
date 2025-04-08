@@ -7,12 +7,15 @@
  * \brief Interface against an event block (EV)
  */
 #pragma once
-#include <mdf/iattachment.h>
-#include <mdf/iblock.h>
 
 #include <cstdint>
 #include <string>
 #include <vector>
+
+#include "mdf/iattachment.h"
+#include "mdf/iblock.h"
+#include "mdf/evcomment.h"
+
 
 namespace mdf {
 /** \brief Type of event. */
@@ -134,6 +137,9 @@ class IEvent : public IBlock {
   void PostTrig(double post_trig); ///< Sets the post-trig value (s)
 
   [[nodiscard]] double PostTrig() const; ///< Returns the post-trig value (s).
+
+  void SetEvComment(const EvComment& ev_comment);
+  void GetEvComment(EvComment& ev_comment) const;
 };
 
 }  // namespace mdf

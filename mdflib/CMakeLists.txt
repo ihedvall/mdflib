@@ -167,7 +167,10 @@ else()
 endif()
 
 target_include_directories(
-  mdf PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
+  mdf PUBLIC
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set_target_properties(mdf PROPERTIES COMPILE_FLAGS "-fPIC")

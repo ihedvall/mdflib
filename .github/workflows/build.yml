@@ -75,7 +75,7 @@
             buildPreset: 'msvc-vcpkg-static-${{ matrix.arch }}-release'
 
             # This is the name of the CMakePresets.json's configuration to test the project with.
-            testPreset: 'msvc-vcpkg-${{ matrix.arch }}'
+            testPreset: 'msvc-vcpkg-static-${{ matrix.arch }}'
 
         - name: Build Shared
           uses: lukka/run-cmake@v10

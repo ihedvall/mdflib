@@ -23,7 +23,7 @@ MdNumber::MdNumber(uint64_t number, MdDataType data_type)
   data_type_(data_type) {
   if (data_type_ == MdDataType::MdHex) {
     char temp[30] = {};
-    sprintf(temp, "0x%llX", static_cast<unsigned long long>(number));
+    std::snprintf(temp, sizeof(temp), "0x%llX", static_cast<unsigned long long>(number));
     number_ = temp;
   }
 }
@@ -118,7 +118,7 @@ void MdNumber::Number(uint64_t value) {
     switch (data_type_) {
       case MdDataType::MdHex: {
         char temp[30] = {};
-        sprintf(temp, "0x%llX", static_cast<unsigned long long>(value));
+        std::snprintf(temp, sizeof(temp), "0x%llX", static_cast<unsigned long long>(value));
         number_ = temp;
         break;
       }
@@ -161,7 +161,7 @@ void MdNumber::ToXml(IXmlNode& root_node, const std::string& tag_name) const {
   }
   if (bit_mask_.has_value()) {
     char temp[30] = {};
-    sprintf(temp, "0x%llX", static_cast<unsigned long long>(bit_mask_.value()));
+    std::snprintf(temp, sizeof(temp), "0x%llX", static_cast<unsigned long long>(bit_mask_.value()));
     node.SetAttribute("bit_mask", temp);
   }
   if (byte_order_ != MdByteOrder::LittleEndian) {

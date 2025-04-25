@@ -842,7 +842,7 @@ EXPORTFEATUREFUNC(mdf::IMetaData*, CreateMetaData) {
          ##__VA_ARGS__)
 EXPORTFEATUREFUNC(int64_t, GetIndex) { return attachment->Index(); }
 EXPORTFEATUREFUNC(uint16_t, GetCreatorIndex) {
-  return attachment->CreatorIndex();
+  return static_cast<uint16_t>(attachment->CreatorIndex());
 }
 EXPORTFEATUREFUNC(void, SetCreatorIndex, uint16_t index) {
   attachment->CreatorIndex(index);
@@ -961,8 +961,8 @@ EXPORTFEATUREFUNC(RangeType, GetRange) { return event->Range(); }
 EXPORTFEATUREFUNC(void, SetRange, RangeType type) { event->Range(type); }
 EXPORTFEATUREFUNC(EventCause, GetCause) { return event->Cause(); }
 EXPORTFEATUREFUNC(void, SetCause, EventCause cause) { event->Cause(cause); }
-EXPORTFEATUREFUNC(int64_t, GetCreatorIndex) { return event->CreatorIndex(); }
-EXPORTFEATUREFUNC(void, SetCreatorIndex, int64_t index) {
+EXPORTFEATUREFUNC(uint16_t, GetCreatorIndex) { return static_cast<uint16_t>(event->CreatorIndex()); }
+EXPORTFEATUREFUNC(void, SetCreatorIndex, uint16_t index) {
   event->CreatorIndex(index);
 }
 EXPORTFEATUREFUNC(int64_t, GetSyncValue) { return event->SyncValue(); }

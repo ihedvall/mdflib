@@ -5,8 +5,9 @@
 #include <filesystem>
 #include <codecvt>
 #define BOOST_LOCALE_HIDE_AUTO_PTR
+#include <boost/asio.hpp>
 #include <boost/process.hpp>
-//#include <boost/filesystem.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/locale.hpp>
 
 #include <wx/wx.h>
@@ -83,7 +84,7 @@ bool MdfViewer::OnInit() {
 
   // Find the path to the 'gnuplot.exe'
   try {
-    auto gp = boost::process::search_path("gnuplot");
+    auto gp = boost::process::environment::find_executable("gnuplot");
     gnuplot_ = gp.string();
     LOG_INFO() << "GnuPlot found. Path: " << gnuplot_;
   } catch(const std::exception& ) {
@@ -183,9 +184,8 @@ void MdfViewer::OnUpdateGnuPlotDownloadPage(wxUpdateUIEvent &event) {
 // utf8
 void MdfViewer::OpenFile(const std::string& filename) const {
   if (!notepad_.empty()) {
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-    const auto utf16 = convert.from_bytes(filename);
-    boost::process::spawn(notepad_, std::wstring(utf16.begin(), utf16.end()));
+    boost::asio::io_context ctx;
+    boost::process::process(ctx, notepad_, {filename});
   }
 }
 

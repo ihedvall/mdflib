@@ -192,7 +192,7 @@ void MdProperty::Name(std::string name) {
       case MdDataType::MdHex: {
         char temp[30] = {};
         const auto tempX = static_cast<long long unsigned int>(value);
-        std::sprintf(temp, "0x%llX",tempX);
+        std::snprintf(temp, sizeof(temp), "0x%llX", tempX);
         value_ = temp;
         break;
       }

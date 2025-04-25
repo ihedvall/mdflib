@@ -12,6 +12,9 @@ set(CMAKE_DEBUG_POSTFIX d)
 message(STATUS  "Compiler Version " ${CMAKE_CXX_COMPILER_VERSION})
 if (MDF_BUILD_SHARED_LIB_NET)
   message(STATUS  "Enable CLR")
+  
+  # error D8016: '/clr' and '/MT' command-line options are incompatible
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
   add_library(mdflibrary SHARED
             # C++ files
             src/MdfExport.cpp ../include/mdflibrary/MdfExport.h

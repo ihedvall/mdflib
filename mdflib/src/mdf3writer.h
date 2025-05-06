@@ -36,6 +36,10 @@ class Mdf3Writer : public MdfWriter {
   void SaveEthMessage(const IDataGroup& data_group,
                       const IChannelGroup& group, uint64_t time,
                       const EthMessage& msg) override;
+
+  void SaveMostMessage(const IDataGroup& data_group,
+                      const IChannelGroup& group, uint64_t time,
+                      const IMostEvent& msg) override;
  protected:
 
   void CreateMdfFile() override;

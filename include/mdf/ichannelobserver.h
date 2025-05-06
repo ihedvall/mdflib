@@ -330,8 +330,10 @@ bool IChannelObserver::GetEngValue(uint64_t sample, V& value, uint64_t array_ind
     case ChannelDataType::UnsignedIntegerLe:
     case ChannelDataType::UnsignedIntegerBe: {
       uint64_t v = 0;
-      valid = GetSampleUnsigned(sample, v, array_index)
-        && conversion->Convert(v, value);
+      valid = GetSampleUnsigned(sample, v, array_index);
+      if (valid) {
+        valid = conversion->Convert(v, value);
+      }
       break;
     }
 

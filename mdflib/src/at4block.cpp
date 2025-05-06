@@ -81,10 +81,12 @@ bool FileToBuffer(const std::string& filename, mdf::ByteArray& dest) {
       } else {
         MDF_ERROR() << "Failed to open file. File: " << filename;
         dest.clear();
+        dest.shrink_to_fit();
         return false;
       }
     } else {
       dest.clear();
+      dest.shrink_to_fit();
     }
 
   } catch (const std::exception& err) {

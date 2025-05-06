@@ -98,6 +98,7 @@ void MdNumber::Number(T value) {
     number_ = std::to_string(value);
   } catch (const std::exception&) {
     number_.clear();
+    number_.shrink_to_fit();
   }
 }
 

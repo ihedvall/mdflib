@@ -47,7 +47,8 @@ class SampleQueue {
                              const LinMessage& msg);
   void SaveEthMessage(const IChannelGroup& group,  uint64_t time,
                      const EthMessage& msg);
-
+  void SaveMostMessage(const IChannelGroup& group,  uint64_t time,
+                      const IMostEvent& msg);
  protected:
   MdfWriter& writer_;
   IDataGroup& data_group_;

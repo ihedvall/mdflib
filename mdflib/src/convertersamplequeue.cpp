@@ -222,6 +222,7 @@ void ConverterSampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lo
         dl4->DataBlockList().push_back(std::move(dz4));
 
         buffer.clear();
+        buffer.shrink_to_fit();
         buffer.reserve(buffer_max);
 
       } else {

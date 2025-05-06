@@ -314,6 +314,7 @@ void CanMessage::Reset() {
   flags_ = 0;
   data_index_ = 0;
   data_bytes_.clear();
+  data_bytes_.shrink_to_fit();
   bit_position_ = 0;
   error_type_ = 0;
 }

@@ -55,6 +55,11 @@ class WriteCache final {
  void SaveEthMessage(const IDataGroup& data_group,
                      const IChannelGroup& channel_group, uint64_t time,
                      const EthMessage& msg);
+
+ void SaveMostMessage(const IDataGroup& data_group,
+                     const IChannelGroup& channel_group,
+                     uint64_t time,
+                     const IMostEvent& msg);
  private:
   MdfWriter& writer_;
 

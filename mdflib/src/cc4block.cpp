@@ -216,6 +216,8 @@ uint64_t Cc4Block::Read(std::streambuf& buffer) {  // NOLINT
   bytes += ReadNumber(buffer, range_max_);
 
   value_list_.clear();
+  value_list_.shrink_to_fit();
+
   for (uint16_t ii = 0; ii < nof_values_; ++ii) {
     if (Type() == ConversionType::BitfieldToText) {
       uint64_t temp = 0;
@@ -364,6 +366,7 @@ bool Cc4Block::ConvertValueToText(double channel_value,
   const auto& block = ref_list_[ref_index];
   if (!block) {
     eng_value.clear();
+    eng_value.shrink_to_fit();
   } else if (block->BlockType() == "TX") {
     const auto* tx = dynamic_cast<const Tx4Block*>(block.get());
     if (tx == nullptr) {
@@ -416,6 +419,7 @@ bool Cc4Block::ConvertValueRangeToText(double channel_value,
   const auto& block = ref_list_[ref_index];
   if (!block) {
     eng_value.clear();
+    eng_value.shrink_to_fit();
   } else if (block->BlockType() == "TX") {
     const auto* tx = dynamic_cast<const Tx4Block*>(block.get());
     if (tx == nullptr) {

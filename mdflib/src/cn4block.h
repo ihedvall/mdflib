@@ -84,7 +84,10 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] const Cc4Block* Cc() const { return cc_block_.get(); }
 
 
-  void ClearData() const { data_list_.clear(); }
+  void ClearData() const {
+    data_list_.clear();
+    data_list_.shrink_to_fit();
+  }
   const std::vector<uint8_t>& DataList() const { return data_list_; }
 
   void UpdateDataLink(std::streambuf& buffer, int64_t position);

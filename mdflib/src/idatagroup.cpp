@@ -112,12 +112,22 @@ IChannelGroup *IDataGroup::CreateChannelGroup(const std::string_view &name) {
 }
 
 IChannelGroup *IDataGroup::GetChannelGroup(const std::string_view &name) const {
-  auto cg_list = ChannelGroups();
+  if (name.empty()) {
+    return nullptr;
+  }
+  const auto cg_list = ChannelGroups();
+  // First search on full name and if this fails, try to find a sub-string;
   auto itr = std::find_if(cg_list.begin(), cg_list.end(),
       [&] (const auto* group) {
     return group != nullptr && group->Name() == name;
   });
-  return itr != cg_list.end() ? *itr : nullptr;
+  if (itr == cg_list.cend() && name.size() > 3) {
+    itr = std::find_if(cg_list.begin(), cg_list.end(),
+        [&] (const auto* group) {
+             return group != nullptr && group->Name().find(name) != std::string::npos;
+        });
+  }
+  return itr != cg_list.cend() ? *itr : nullptr;
 }
 
 IChannelGroup *IDataGroup::GetChannelGroup(uint64_t record_id) const {

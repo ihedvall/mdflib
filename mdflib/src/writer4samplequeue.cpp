@@ -7,6 +7,8 @@
 
 #include <array>
 
+#include "mdf/mdflogstream.h"
+
 #include "dg4block.h"
 #include "hl4block.h"
 #include "dl4block.h"
@@ -74,7 +76,6 @@ void Writer4SampleQueue::SaveQueue(std::unique_lock<std::mutex>& lock) {
   while (!IsEmpty()) {
     // Write a sample last to file
     SampleRecord sample = GetSample();
-
     if (stop_time > 0 && sample.timestamp > stop_time) {
       break;
     }

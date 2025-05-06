@@ -45,7 +45,9 @@ add_executable(test_mdf
         src/testcncomment.cpp
         src/testevcomment.cpp
         src/testfhcomment.cpp
-        src/testsicomment.cpp)
+        src/testsicomment.cpp
+        src/testmostlogger.cpp
+        src/testmostlogger.h)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 if(VCPKG)

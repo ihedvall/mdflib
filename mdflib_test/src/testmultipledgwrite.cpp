@@ -129,7 +129,7 @@ TEST_F(TestMultipleDgWrite, Mdf3WriteSingleDG) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
-  constexpr size_t max_sample = 10'000;
+  size_t max_sample = 10'000'000;
   path mdf_file(kTestDir);
   mdf_file.append("single_dg.mf3");
   {
@@ -178,7 +178,8 @@ TEST_F(TestMultipleDgWrite, Mdf3WriteSingleDG) {
     writer->StartMeasurement(start_time);
     auto old_f_size = file_size(mdf_file);
     size_t file_save = 0;
-    for (size_t sample = 0; sample < max_sample; ++sample) {
+    size_t sample;
+    for (sample = 0; sample < max_sample && file_save <= 1; ++sample) {
       for (auto* data_group : header->DataGroups()) {
         for (auto* channel_group : data_group->ChannelGroups()) {
           auto value =  static_cast<double>(sample);
@@ -190,8 +191,8 @@ TEST_F(TestMultipleDgWrite, Mdf3WriteSingleDG) {
           }
           writer->SaveSample(*channel_group, MdfHelper::NowNs());
         }
-
-        sleep_for(2ms);
+        yield();
+        // sleep_for(2ms);
         auto f_size = file_size(mdf_file);
         if (f_size >old_f_size ) {
           ++file_save;
@@ -199,11 +200,11 @@ TEST_F(TestMultipleDgWrite, Mdf3WriteSingleDG) {
         }
       }
     }
-    EXPECT_GT(file_save, 0);
+    max_sample = sample;
+    EXPECT_GT(file_save, 1);
     auto stop_time = MdfHelper::NowNs();
     writer->StopMeasurement(stop_time);
     writer->FinalizeMeasurement();
-    EXPECT_GT(file_save, 1);
 
     LOG_TRACE() << "File Saved: " << file_save << " times.";
   }
@@ -346,8 +347,8 @@ TEST_F(TestMultipleDgWrite, Mdf3WriteMultiDG) {
           writer->SaveSample(*data_group, *channel_group, MdfHelper::NowNs());
           ++dg_count;
         }
-
-        sleep_for(100ms);
+        yield();
+        //sleep_for(100ms);
       }
     }
     auto stop_time = MdfHelper::NowNs();
@@ -496,8 +497,8 @@ TEST_F(TestMultipleDgWrite, Mdf4WriteMultiDG) {
           writer->SaveSample(*data_group, *channel_group, MdfHelper::NowNs());
           ++dg_count;
         }
-
-        sleep_for(0ms);
+        yield();
+        //sleep_for(0ms);
       }
     }
     auto stop_time = MdfHelper::NowNs();
@@ -646,6 +647,7 @@ TEST_F(TestMultipleDgWrite, Mdf4WConverterMultiDG) {
           ++dg_count;
         }
       }
+      yield();
     }
     auto stop_time = MdfHelper::NowNs();
     writer->StopMeasurement(stop_time);

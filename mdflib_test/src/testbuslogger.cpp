@@ -13,12 +13,14 @@
 
 #include "mdf/mdflogstream.h"
 #include "mdf/mdfhelper.h"
+#include "mdf/linmessage.h"
+#include "mdf/ethmessage.h"
 #include "mdf/mdfwriter.h"
 #include "mdf/mdfreader.h"
 #include "mdf/ifilehistory.h"
-#include "mdf/linmessage.h"
-#include "mdf/ethmessage.h"
+
 #include "mdf/idatagroup.h"
+#include "mdf/canconfigadapter.h"
 
 using namespace util::log;
 using namespace std::filesystem;
@@ -132,7 +134,14 @@ TEST_F(TestBusLogger, Mdf4CanSdStorage ) {
   writer->BusType(MdfBusType::CAN); // Defines the CG/CN names
   writer->StorageType(MdfStorageType::FixedLengthStorage); // Variable length to SD
   writer->MaxLength(8); // No meaning in this type of storage
-  EXPECT_TRUE(writer->CreateBusLogConfiguration()); // Creates all DG/CG/CN
+
+  CanConfigAdapter config_adapter(*writer);
+  config_adapter.NetworkName("IHNET");
+  config_adapter.Protocol("J1939");
+  auto* data_group = writer->CreateDataGroup();
+  ASSERT_TRUE(data_group != nullptr);
+  config_adapter.CreateConfig(*data_group);
+
   writer->PreTrigTime(0.0);
   writer->CompressData(false);
 

@@ -3,16 +3,17 @@
 * SPDX-License-Identifier: MIT
  */
 
-#include "ethconfigadapter.h"
+#include "mdf/ethconfigadapter.h"
 
 #include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
 #include "mdf/mdflogstream.h"
 
 namespace mdf {
 EthConfigAdapter::EthConfigAdapter(const MdfWriter& writer)
-    : BusConfigAdapter(writer) {
-  bus_type_ = MdfBusType::Ethernet;
-  bus_name_ = "ETH";
+    : IConfigAdapter(writer) {
+  BusType(MdfBusType::Ethernet);
+  BusName("ETH");
 }
 
 void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
@@ -29,7 +30,7 @@ void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
 
   // Add a CG-VLSD block that stores the signal data.
   // The FixedLengthStorage is used for SD storage
-  if ( writer_.StorageType() != MdfStorageType::FixedLengthStorage &&
+  if ( StorageType() != MdfStorageType::FixedLengthStorage &&
       cn_data_byte != nullptr) {
     // Need to add a special CG group for the data samples
     if (IChannelGroup* cg_samples = dg_block.CreateChannelGroup("Samples");
@@ -53,7 +54,7 @@ void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
 
   // Add a CG-VLSD block that stores the signal data.
   // The FixedLengthStorage is used for SD storage
-  if ( writer_.StorageType() != MdfStorageType::FixedLengthStorage &&
+  if ( StorageType() != MdfStorageType::FixedLengthStorage &&
       cn_data_byte != nullptr) {
     // Need to add a special CG group for the data samples
     if (IChannelGroup* cg_errors = dg_block.CreateChannelGroup("ChecksumErrors");
@@ -77,7 +78,7 @@ void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
 
   // Add a CG-VLSD block that stores the signal data.
   // The FixedLengthStorage is used for SD storage
-  if ( writer_.StorageType() != MdfStorageType::FixedLengthStorage &&
+  if ( StorageType() != MdfStorageType::FixedLengthStorage &&
     cn_data_byte != nullptr) {
     // Need to add a special CG group for the data samples
     if (IChannelGroup* cg_errors = dg_block.CreateChannelGroup("LengthErrors");
@@ -101,7 +102,7 @@ void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
 
   // Add a CG-VLSD block that stores the signal data.
   // The FixedLengthStorage is used for SD storage
-  if ( writer_.StorageType() != MdfStorageType::FixedLengthStorage &&
+  if ( StorageType() != MdfStorageType::FixedLengthStorage &&
       cn_data_byte != nullptr) {
     // Need to add a special CG group for the data samples
     if (IChannelGroup* cg_errors = dg_block.CreateChannelGroup("ReceiveErrors");

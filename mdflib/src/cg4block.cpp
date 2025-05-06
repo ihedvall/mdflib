@@ -421,6 +421,7 @@ void Cg4Block::PrepareForWriting() {
     // This group does not contain any channels.
     nof_invalid_bytes_ = 0;
     sample_buffer_.clear();
+    sample_buffer_.shrink_to_fit();
     return;
   }
 
@@ -468,6 +469,7 @@ void Cg4Block::PrepareForWriting() {
     sample_buffer_.resize(total_size,0);
   } else {
     sample_buffer_.clear();
+    sample_buffer_.shrink_to_fit();
   }
 }
 

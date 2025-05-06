@@ -374,7 +374,7 @@ void MdfHelper::UnsignedToRaw(bool little_endian, size_t start, size_t length,
   uint64_t mask = 1ULL << (length - 1);
   auto bit = little_endian ? static_cast<int>(start + length - 1)
                            : static_cast<int>(start);
-  auto byte = bit / 8;
+ auto byte = bit / 8;
   bit %= 8;
 
   for (size_t index = 0; index < length; ++index) {

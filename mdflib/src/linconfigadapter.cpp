@@ -3,16 +3,16 @@
 * SPDX-License-Identifier: MIT
  */
 
-#include "linconfigadapter.h"
-
+#include "mdf/linconfigadapter.h"
 #include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
 #include "mdf/mdflogstream.h"
 
 namespace mdf {
 LinConfigAdapter::LinConfigAdapter(const MdfWriter& writer)
-    : BusConfigAdapter(writer) {
-  bus_type_ = MdfBusType::LIN;
-  bus_name_ = "LIN";
+    : IConfigAdapter(writer) {
+  BusType(MdfBusType::LIN);
+  BusName("LIN");
 }
 
 void LinConfigAdapter::CreateConfig(IDataGroup& dg_block) {

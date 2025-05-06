@@ -12,11 +12,12 @@
 #include <memory>
 #include <streambuf>
 
+#include "mdf/mdfenumerates.h"
 #include "mdf/mdffile.h"
 #include "mdf/canmessage.h"
 #include "mdf/linmessage.h"
 #include "mdf/ethmessage.h"
-
+#include "mdf/mostmessage.h"
 /** \file mdfwriter.h
  * \brief Interface against an MDF writer object.
  */
@@ -38,39 +39,7 @@ enum class WriteState : uint8_t {
   Finalize    ///< OK to add new DG and CG blocks
 };
 
-/** \brief Enumerate that defines type of bus. Only relevant for bus logging.
- *
- * Enumerate that is used when doing bus logging. The enumerate is used when
- * creating default channel and channel group names.
- */
-namespace MdfBusType  {
-  constexpr uint16_t CAN = 0x0001;      ///< CAN or CAN-FD bus
-  constexpr uint16_t LIN = 0x0002;      ///< LIN bus
-  constexpr uint16_t FlexRay = 0x0004;  ///< FlexRay bus
-  constexpr uint16_t MOST = 0x0008;     ///< MOST bus
-  constexpr uint16_t Ethernet = 0x0010; ///< Ethernet bus
-};
 
-/** \brief Enumerate that defines how the raw data is stored. By default
- * the fixed length record is stored. Only used when doing bus logging.
- *
- * The fixed length storage is using one SD-block per byte array. The SD block
- * is temporary stored in primary memory instead of store it on disc. This
- * storage type is not recommended for bus logging.
- *
- * The variable length storage uses an extra CG-record for byte array data.
- * The storage type is used for bus logging where payload data is more than 8
- * byte.
- *
- * The maximum length storage shall be used when payload data is 8 bytes or
- * less. It is typically used when logging CAN messages which have 0-8 data
- * payload.
- */
-enum class MdfStorageType : int {
-  FixedLengthStorage, ///< The default is to use fixed length records.
-  VlsdStorage,        ///< Using variable length storage.
-  MlsdStorage,        ///< Using maximum length storage
-};
 
 class IChannelGroup;
 class IChannel;
@@ -196,10 +165,14 @@ class MdfWriter {
 
   [[nodiscard]] IHeader* Header() const; ///< Returns the header block (HD).
 
-  /** \brief Creates all default DG, CG and CN blocks that bus loggers uses.
+  /** \brief Creates a DG, CG, SI and CN blocks that bus loggers uses.
    *
-   * This function create all data groups, channel groups and channels for
-   * a typical bus logger. Before calling this function, set the bus and
+   * This function create all data groups, channel groups, source information
+   * and channels for a typical bus logger.
+   *
+   * Do not use this function unless you updates only the last DG group.
+   * New user should use the IConfigAdapter interface instead.
+   * Before calling this function, set the bus and
    * storage types as this function uses these settings.
    */
   bool CreateBusLogConfiguration();
@@ -231,6 +204,7 @@ class MdfWriter {
    * to the start time, see StartMeasurement() function.
    */
   virtual void SaveSample(const IChannelGroup& group, uint64_t time) = 0;
+
   virtual void SaveSample(const IDataGroup& data_group,
                           const IChannelGroup& channel_group,
                           uint64_t time) = 0;
@@ -278,13 +252,19 @@ class MdfWriter {
   * internal sample buffer. The time shall be absolute time (ns since 1970).
   * @param group  Reference to the channel group (CG).
   * @param time   Absolute time nano-seconds since 1970.
-  * @param msg    The Etnernet message to store.
+  * @param msg    The ethnernet message to store.
                                               */
   virtual void SaveEthMessage(const IChannelGroup& group, uint64_t time,
                      const EthMessage& msg) = 0;
+
   virtual void SaveEthMessage(const IDataGroup& data_group,
                               const IChannelGroup& channel_group, uint64_t time,
                               const EthMessage& msg) = 0;
+
+  virtual void SaveMostMessage(const IDataGroup& data_group,
+                               const IChannelGroup& channel_group,
+                               uint64_t time,
+                               const IMostEvent& msg) = 0;
   /** \brief Starts the measurement. */
   virtual void StartMeasurement(uint64_t start_time);
   
@@ -334,8 +314,8 @@ class MdfWriter {
    * The Variable Length Signal Data (VLSD) is stored in the data block. In
    * practice this option is only used when doing bus logging.
    *
-   * The Maximum Length Signal Data is typicallay used when logging CAN bus
-   * traffic
+   * The Maximum Length Signal Data is typically used when logging CAN bus
+   * traffic.
    * @param type Type of storage.
    */
   void StorageType(MdfStorageType type) { storage_type_ = type; }
@@ -380,8 +360,6 @@ class MdfWriter {
   void MandatoryMembersOnly(bool mandatory_only) {
     mandatory_members_only_ = mandatory_only;
   }
-
-
   [[nodiscard]] bool MandatoryMembersOnly() const {
     return mandatory_members_only_;
   }
@@ -434,79 +412,8 @@ class MdfWriter {
   uint32_t max_length_ = 8; ///< Max data byte storage
   bool mandatory_members_only_ = false;
 
-  void CreateCanConfig(IDataGroup& dg_block) const;
-
-  /** \brief Create the composition channels for a data frame
-  *
-  * The composition layout is as above. Note that the
-  * \verbatim
-  * Byte Remarks
-  * 0:   LSB Message ID 32-bit unsigned
-  * 1:
-  * 2:
-  * 3:   MSB Bit 31 is the IDE (extended bit)
-  * 4:   BusChannel (High 4 bit), DLC (Low 4 bits)
-  * 5:   Flags (8 bits)
-  * 6:   64-bit Index into Signal Data or VLSD block. For MLSD
-  * 7:   this stores the data bytes
-  * ..
-  * N:
-  * \endverbatim
-  * @param group The The CAN Data Frame channel group object.
-  */
-  void CreateCanDataFrameChannel(IChannelGroup& group) const;
-
-  /** \brief Create the composition channels for a remote frame
-  *
-  * The composition layout is as above. Note that the
-  * \verbatim
-  * Byte Remarks
-  * 0:   LSB Message ID 32-bit unsigned
-  * 1:
-  * 2:
-  * 3:   MSB Bit 31 is the IDE (extended bit)
-  * 4:   BusChannel (High 4 bit), DLC (Low 4 bits)
-  * 5:   Flags (8 bits)
-  * \endverbatim
-  * @param group The The CAN Remote Frame channel group object.
-   */
-  void CreateCanRemoteFrameChannel(IChannelGroup& group) const;
-
-  /** \brief Create the composition channels for an error frame
-  *
-  * The composition layout is as above. Note that the
-  * \verbatim
-  * Byte Remarks
-  * 0:   LSB Message ID 32-bit unsigned
-  * 1:
-  * 2:
-  * 3:   MSB Bit 31 is the IDE (extended bit)
-  * 4:   BusChannel (High 4 bit), DLC (Low 4 bits)
-  * 5:   Flags (8 bits)
-  * 6:   Bit position
-  * 7:   Error Type
-  * 8:   64-bit Index into Signal Data or VLSD block. For MLSD
-  * 9:   this stores the data bytes
-  * ..
-  * N:
-  * \endverbatim
-  * @param group The The CAN Error Frame channel group object.
-   */
-  void CreateCanErrorFrameChannel(IChannelGroup& group) const;
-
-  /** \brief Create the composition channels for an error frame
-  *
-  * The composition layout is as above. Note that the
-  * \verbatim
-  * Byte Remarks
-  * 0:   BusChannel (High 4 bit), Flags (Low 4 bits)
-  * \endverbatim
-  * @param group The The CAN Overload Frame channel group object.
-   */
-  static void CreateCanOverloadFrameChannel(IChannelGroup& group);
-
-
   [[nodiscard]] bool IsFirstMeasurement() const;
+
 
 };
 

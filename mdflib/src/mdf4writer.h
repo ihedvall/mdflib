@@ -45,6 +45,10 @@ class Mdf4Writer : public MdfWriter {
                       const IChannelGroup& channel_group, uint64_t time,
                       const EthMessage& msg) override;
 
+  void SaveMostMessage(const IDataGroup& data_group,
+                      const IChannelGroup& channel_group, uint64_t time,
+                      const IMostEvent& msg) override;
+
   void CreateMdfFile() override;
 
   bool PrepareForWriting() override;

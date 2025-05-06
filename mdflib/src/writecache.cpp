@@ -229,6 +229,19 @@ void WriteCache::SaveEthMessage(const IDataGroup& data_group,
   }
 }
 
+void WriteCache::SaveMostMessage(const IDataGroup& data_group,
+                                const IChannelGroup& channel_group, uint64_t time,
+                                const IMostEvent& msg) {
+  msg.DataGroup( &data_group);
+  msg.ChannelGroup(&channel_group);
+
+  if (SampleQueue* queue = GetSampleQueue(data_group);
+      queue != nullptr) {
+    std::lock_guard lock(locker_);
+    queue->SaveMostMessage(channel_group, time, msg);
+  }
+}
+
 SampleQueue* WriteCache::GetSampleQueue(
     const IDataGroup& data_group) const {
   if (auto itr = cache_.find(&data_group);

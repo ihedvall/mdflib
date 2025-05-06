@@ -2,12 +2,16 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+
+#include <cstdio>
+#include <string>
+#include <utility>
+
 #include "dz4block.h"
 
 #include <mdf/zlibutil.h>
 
-#include <cstdio>
-#include <string>
+
 
 namespace {
 
@@ -165,6 +169,7 @@ bool Dz4Block::Data(const std::vector<uint8_t> &uncompressed_data) {
     orig_data_length_ = 0;
     data_length_ = 0;
     data_.clear();
+    data_.shrink_to_fit();
     return compress;
   }
 
@@ -174,6 +179,7 @@ bool Dz4Block::Data(const std::vector<uint8_t> &uncompressed_data) {
       Transpose(temp, static_cast<size_t>(parameter_));
 
       data_.clear();
+      data_.shrink_to_fit();
       data_.reserve(uncompressed_data.size());
 
       compress = Deflate(temp,data_);
@@ -183,6 +189,7 @@ bool Dz4Block::Data(const std::vector<uint8_t> &uncompressed_data) {
     case Dz4ZipType::Deflate:
     default:
       data_.clear();
+      data_.shrink_to_fit();
       data_.reserve(uncompressed_data.size());
       compress = Deflate(uncompressed_data,data_);
       break;

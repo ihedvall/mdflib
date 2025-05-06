@@ -190,11 +190,19 @@ void Mdf4Writer::SaveEthMessage(const IChannelGroup &group, uint64_t time,
                                 const EthMessage &msg) {
   write_cache_.SaveEthMessage(group,time, msg);
 }
+
 void Mdf4Writer::SaveEthMessage(const IDataGroup& data_group,
                                 const IChannelGroup &channel_group,
                                 uint64_t time,
                                 const EthMessage &msg) {
   write_cache_.SaveEthMessage(data_group, channel_group,time, msg);
+}
+
+void Mdf4Writer::SaveMostMessage(const IDataGroup& data_group,
+                                const IChannelGroup &channel_group,
+                                uint64_t time,
+                                const IMostEvent &msg) {
+  write_cache_.SaveMostMessage(data_group, channel_group,time, msg);
 }
 
 void Mdf4Writer::InitWriteCache() {

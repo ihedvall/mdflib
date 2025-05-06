@@ -63,7 +63,14 @@ class IDataGroup : public IBlock {
   [[nodiscard]] IChannelGroup* CreateChannelGroup(
       const std::string_view& name);
 
-  /** \brief Returns the existing group by its name. */
+  /** \brief Returns a channel group by its full name or sub-string.
+   *
+   * The function return a channel group by its full name. If the full name
+   * search fails, it search on a sub-string instead. The sub-string must
+   * be larger than 3 characters.
+   * @param name Full name of the group or a sub-string
+   * @return Pointer to the matching channel group or nullptr at no match.
+   */
   [[nodiscard]] IChannelGroup* GetChannelGroup(const std::string_view& name) const;
 
   /** \brief Return a channel group by its record id. */
@@ -136,6 +143,13 @@ class IDataGroup : public IBlock {
   void SetDgComment(const DgComment& dg_comment);
   void GetDgComment(DgComment& dg_comment) const;
 
+  void MandatoryMembersOnly(bool mandatory_only) const {
+    mandatory_members_only_ = mandatory_only;
+  }
+
+  [[nodiscard]] bool MandatoryMembersOnly() const {
+    return mandatory_members_only_;
+  }
  protected:
   mutable std::vector<ISampleObserver*> observer_list_; ///< List of observers.
 
@@ -156,6 +170,7 @@ class IDataGroup : public IBlock {
 
  private:
   mutable bool mark_as_read_ = false; ///< True if the data block has been read.
+  mutable bool mandatory_members_only_ = false;
 
 
 };

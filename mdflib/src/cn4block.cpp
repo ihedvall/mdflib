@@ -1017,6 +1017,7 @@ void Cn4Block::PrepareForWriting(uint64_t offset) {
   bit_offset_ = 0;
   byte_offset_ = static_cast<uint32_t>(offset);
   data_list_.clear(); // Temporary storage of signal data (SD)
+  data_list_.shrink_to_fit();
   data_map_.clear();
 
   // The bit count may be set by the user.
@@ -1231,6 +1232,7 @@ uint64_t Cn4Block::WriteSignalData(std::streambuf& buffer, bool compress) {
         block_list.push_back(std::move(dz4));
 
         data.clear();
+        data.shrink_to_fit();
         data.reserve(kMaxDataSize);
       }
     }
@@ -1254,6 +1256,7 @@ uint64_t Cn4Block::WriteSignalData(std::streambuf& buffer, bool compress) {
 
 void Cn4Block::ClearData() {
   data_list_.clear();
+  data_list_.shrink_to_fit();
   data_map_.clear();
   DataListBlock::ClearData();
 }

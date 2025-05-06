@@ -67,6 +67,7 @@ void EthMessage::Reset() {
   received_data_byte_count_ = 0;
   data_length_ = 0;
   data_bytes_.clear();
+  data_bytes_.shrink_to_fit();
   crc_ = 0;
   expected_crc_ = 0;
   padding_byte_count_ = 0;

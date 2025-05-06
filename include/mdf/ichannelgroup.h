@@ -11,9 +11,9 @@
 #include <string>
 #include <vector>
 
-#include "ichannel.h"
-#include "samplerecord.h"
-
+#include "mdf/ichannel.h"
+#include "mdf/samplerecord.h"
+#include "mdf/mdfenumerates.h"
 #include "mdf/iblock.h"
 #include "mdf/imetadata.h"
 #include "mdf/cgcomment.h"
@@ -51,6 +51,7 @@ constexpr uint16_t RemoteMaster = 0x0008;
 constexpr uint16_t EventSignal = 0x00010;
 }  // namespace CgFlag
 
+
 class ISourceInformation;
 
 /** \brief Interface against a channel group (CG) block.
@@ -65,6 +66,7 @@ class ISourceInformation;
  * messages.
  */
 class IChannelGroup : public IBlock {
+
  public:
 
   virtual void RecordId(uint64_t record_id) = 0; ///< Sets the record identity.
@@ -143,11 +145,69 @@ class IChannelGroup : public IBlock {
   void SetCgComment(const CgComment& cg_comment);
   void GetCgComment(CgComment& cg_comment) const;
 
+  void StorageType(MdfStorageType storage_type) {
+    storage_type_ = storage_type;
+  }
+  [[nodiscard]] MdfStorageType StorageType() const {
+    return storage_type_;
+  }
+  void MaxLength(uint32_t max_length) {
+    max_length_ = max_length < 8 ? 8 : max_length;
+  }
+
+  [[nodiscard]] uint32_t MaxLength() const {
+    return max_length_;
+  }
+
  protected:
-  mutable std::vector<uint8_t>
-      sample_buffer_;  ///< Temporary record when saving samples.
+  /** \brief Temporary record when saving samples.
+   *
+   * The sample buffer is used internally when reading and writing
+   * a channel group record. The record is of fixed size and the
+   * buffer is sized upon initializing the read or write.
+   */
+  mutable std::vector<uint8_t> sample_buffer_;
+
+  /** \brief The storage type is used when creating MDF files.
+   *
+   * The storage type is mainly used when saving Variable Length Signal Data
+   * (VLSD).
+   *
+   * Normally the channel group uses fixed length storage which means
+   * that the byte arrays are stored in a separate signal data block and
+   * the groups record buffer stores an index into that block where the
+   * byte array is stored.
+   *
+   * If the block is defined as VLSD storage, instead of storing the VLSD
+   * byte array in a separate SD block, a special channel group (CG) VLSD
+   * block is used instead.
+   *
+   * If the block is using the MLSD storage type,instead of storing an 8-byte
+   * index, the maximum length of the byte arraya are stored. The actual length
+   * is stored in a separate channel. This storage type are typical used for
+   * CAN and LIN messages.
+   */
+  MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;
+
+  /** \brief Only used for MLSD storage type. Defines the max number of bytes.
+   *
+   * This value is used when selecting MLSD storage. When using MLSD storage,
+   * this value defines maximum number of data bytes that can be stored.
+   *
+   * This value is default set to 8 bytes and if set to anything else, do not
+   * use MLSD storage.
+   */
+  uint32_t max_length_ = 8;
+
+
+
  private:
-  mutable size_t sample_ = 0;  ///< Support for the OnSample observers
+  /** brief Internally used as sample counter.
+   *
+   * The sample counter is used to indicate how many records of this group
+   * that have been read or written.
+   */
+  mutable size_t sample_ = 0;
 };
 
 }  // namespace mdf

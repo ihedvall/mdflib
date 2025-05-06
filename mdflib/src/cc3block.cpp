@@ -197,9 +197,15 @@ uint64_t Cc3Block::Read(std::streambuf& buffer) {
   }
 
   value_list_.clear();
+  value_list_.shrink_to_fit();
+
   formula_.clear();
   text_conversion_list_.clear();
+  text_conversion_list_.shrink_to_fit();
+
   text_range_conversion_list_.clear();
+  text_range_conversion_list_.shrink_to_fit();
+
   if (nof_values_ > 0) {
     switch (conversion_type_) {
       case 0:  // Parametric
@@ -290,6 +296,7 @@ uint64_t Cc3Block::Write(std::streambuf& buffer) {
   block_size_ = (2 + 2) + 2 + 2 * 8 + 20 + 2 +
                 2;  // Will be updated at the end of the block write
   link_list_.clear();
+  link_list_.shrink_to_fit();
 
   uint64_t bytes = MdfBlock::Write(buffer);
   bytes += WriteBool(buffer, range_valid_);

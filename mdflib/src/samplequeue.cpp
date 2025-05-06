@@ -4,6 +4,7 @@
  */
 
 #include "samplequeue.h"
+#include "mdf/mdflogstream.h"
 
 #include "dg3block.h"
 #include "dg4block.h"
@@ -179,18 +180,21 @@ void SampleQueue::SaveCanMessage(const IChannelGroup& group, uint64_t time,
   // calculated at this point as it have to be calculated before saving the
   // recording to disc. Instead, is the buffer temporary hold by the
   // SampleRecord struct and fixed just before saving to disc.
-  const bool save_index = writer_.StorageType() != MdfStorageType::MlsdStorage;
-  if (group.Name() == "CAN_DataFrame") {
-    msg.ToRaw(MessageType::CAN_DataFrame, sample, writer_.MaxLength(), save_index);
-  } else if (group.Name() == "CAN_RemoteFrame") {
-    msg.ToRaw(MessageType::CAN_RemoteFrame, sample, writer_.MaxLength(), save_index);
-  } else if (group.Name() == "CAN_ErrorFrame") {
-    msg.ToRaw(MessageType::CAN_ErrorFrame, sample, writer_.MaxLength(), save_index);
-  } else if (group.Name() == "CAN_OverloadFrame") {
-    msg.ToRaw(MessageType::CAN_OverloadFrame, sample,writer_. MaxLength(), save_index);
+  const bool save_index = group.StorageType() != MdfStorageType::MlsdStorage;
+  const uint32_t max_length = group.MaxLength();
+  const std::string& group_name = group.Name();
+  // Only checking the part of the group name as it may contain channel
+  // and message ID/Name as well.
+  if (group_name.find("_DataFrame") != std::string::npos)  {
+    msg.ToRaw(MessageType::CAN_DataFrame, sample, max_length, save_index);
+  } else if (group_name.find("_RemoteFrame") != std::string::npos) {
+    msg.ToRaw(MessageType::CAN_RemoteFrame, sample, max_length, save_index);
+  } else if (group_name.find("_ErrorFrame") != std::string::npos) {
+    msg.ToRaw(MessageType::CAN_ErrorFrame, sample, max_length, save_index);
+  } else if (group_name.find("_OverloadFrame") != std::string::npos) {
+    msg.ToRaw(MessageType::CAN_OverloadFrame, sample,max_length, save_index);
   }
   AddSample(std::move(sample));
-
 }
 
 void SampleQueue::SaveLinMessage(const IChannelGroup& group, uint64_t time,
@@ -203,21 +207,21 @@ void SampleQueue::SaveLinMessage(const IChannelGroup& group, uint64_t time,
   // Convert the LIN message to a sample record. Note that LIN always uses the
   // MLSD storage type.
 
-  if (group.Name() == "LIN_Frame") {
+  if (group.Name().find("_Frame") != std::string::npos) {
     msg.ToRaw(LinMessageType::LIN_Frame, sample);
-  } else if (group.Name() == "LIN_WakeUp") {
+  } else if (group.Name().find("_WakeUp") != std::string::npos) {
     msg.ToRaw(LinMessageType::LIN_WakeUp, sample);
-  } else if (group.Name() == "LIN_ChecksumError") {
+  } else if (group.Name().find("_ChecksumError") != std::string::npos) {
     msg.ToRaw(LinMessageType::LIN_ChecksumError, sample);
-  } else if (group.Name() == "LIN_TransmissionError") {
+  } else if (group.Name().find("_TransmissionError") != std::string::npos) {
     msg.ToRaw(LinMessageType::LIN_TransmissionError, sample);
-  } else if (group.Name() == "LIN_SyncError") {
+  } else if (group.Name().find("_SyncError") != std::string::npos) {
     msg.ToRaw(LinMessageType::LIN_SyncError, sample);
-  } else if (group.Name() == "LIN_ReceiveError") {
+  } else if (group.Name().find("_ReceiveError") != std::string::npos) {
     msg.ToRaw(LinMessageType::LIN_ReceiveError, sample);
-  } else if (group.Name() == "LIN_Spike") {
+  } else if (group.Name().find("_Spike") != std::string::npos) {
     msg.ToRaw(LinMessageType::LIN_Spike, sample);
-  } else if (group.Name() == "LIN_LongDom") {
+  } else if (group.Name().find("_LongDom") != std::string::npos) {
     msg.ToRaw(LinMessageType::LIN_LongDominantSignal, sample);
   }
 
@@ -233,15 +237,83 @@ void SampleQueue::SaveEthMessage(const IChannelGroup& group, uint64_t time,
   // Convert the LIN message to a sample record. Note that LIN always uses the
   // MLSD storage type.
 
-  if (group.Name() == "ETH_Frame") {
+  if (group.Name().find( "_Frame") != std::string::npos) {
     msg.ToRaw(EthMessageType::ETH_Frame, sample);
-  } else if (group.Name() == "ETH_ChecksumError") {
+  } else if (group.Name().find( "_ChecksumError") != std::string::npos) {
     msg.ToRaw(EthMessageType::ETH_ChecksumError, sample);
-  } else if (group.Name() == "ETH_LengthError") {
+  } else if (group.Name().find( "_LengthError") != std::string::npos) {
     msg.ToRaw(EthMessageType::ETH_LengthError, sample);
-  } else if (group.Name() == "ETH_ReceiveError") {
+  } else if (group.Name().find("_ReceiveError") != std::string::npos) {
     msg.ToRaw(EthMessageType::ETH_ReceiveError, sample);
   }
+  AddSample(std::move(sample));
+}
+
+void SampleQueue::SaveMostMessage(const IChannelGroup& group, uint64_t time,
+                                 const IMostEvent& msg) {
+  switch (msg.MessageType()) {
+    case MostMessageType::Message:
+      if (group.Name().find("_Message") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case MostMessageType::Packet:
+      if (group.Name().find("_Packet") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case MostMessageType::EthernetPacket:
+       if (group.Name().find("_EthernetPacket") == std::string::npos) {
+         return;
+       }
+       break;
+
+    case MostMessageType::SignalState:
+      if (group.Name().find("_SignalState") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case MostMessageType::MaxPosInfo:
+      if (group.Name().find("_MaxPosInfo") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case MostMessageType::BoundDesc:
+      if (group.Name().find("_BoundDesc") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case MostMessageType::AllocTable:
+      if (group.Name().find("_AllocTable") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case MostMessageType::SysLockState:
+      if (group.Name().find("_SysLockState") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case MostMessageType::ShutdownFlag:
+      if (group.Name().find("_ShutdownFlag") == std::string::npos) {
+        return;
+      }
+      break;
+
+    default:
+      return;
+  }
+
+  SampleRecord sample = group.GetSampleRecord();
+  sample.timestamp = time;
+  RecalculateTime(group.RecordId(), sample);
+  msg.ToRaw(sample);
   AddSample(std::move(sample));
 }
 

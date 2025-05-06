@@ -62,3 +62,21 @@ else()
     target_link_libraries(mdf2csv PRIVATE ${ZLIB_LIBRARIES})
 
 endif()
+
+if(WIN32)
+    install(
+            TARGETS mdf2csv
+            EXPORT MdfViewTargets
+            LIBRARY DESTINATION mdf/lib
+            ARCHIVE DESTINATION mdf/lib
+            RUNTIME DESTINATION mdf/bin
+            PUBLIC_HEADER DESTINATION mdf/include/mdf)
+else()
+    install(
+            TARGETS mdf2csv
+            EXPORT MdfViewTargets
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
+            PUBLIC_HEADER DESTINATION include/mdf)
+endif()

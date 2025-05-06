@@ -66,4 +66,52 @@ TEST(TestQueueSpeed, TestList) {
   std::cout << std::endl;
 }
 
+TEST(TestQueueSpeed, ClearVector) {
+  constexpr size_t max_buffer = 10'000'000;
+  std::vector<uint8_t> buffer;
+  buffer.resize(max_buffer, 0);
+  EXPECT_EQ(buffer.size(), max_buffer);
+  EXPECT_GE(buffer.capacity(), max_buffer);
+
+  // Test that clear doesn't work
+  buffer.clear();
+  EXPECT_TRUE(buffer.empty());
+  EXPECT_GE(buffer.capacity(), max_buffer); // NOT EMPTY
+
+  // Test shrink_to_fit
+  buffer.shrink_to_fit();
+  EXPECT_TRUE(buffer.empty());
+  EXPECT_EQ(buffer.capacity(), 0); // EMPTY
+
+  // Test std::move()
+  buffer.resize(max_buffer, 0);
+  EXPECT_EQ(buffer.size(), max_buffer);
+  EXPECT_GE(buffer.capacity(), max_buffer);
+
+  std::vector<uint8_t> empty_buffer;
+  buffer = std::move(empty_buffer);
+  EXPECT_TRUE(buffer.empty());
+  EXPECT_EQ(buffer.capacity(), 0); // EMPTY
+
+  // Test operator =()
+  buffer.resize(max_buffer, 0);
+  EXPECT_EQ(buffer.size(), max_buffer);
+  EXPECT_GE(buffer.capacity(), max_buffer);
+
+  const std::vector<uint8_t> empty_buffer1;
+  buffer = empty_buffer1;
+  EXPECT_TRUE(buffer.empty());
+  EXPECT_GE(buffer.capacity(), max_buffer); // NOT EMPTY
+
+  // Test std::swap()
+  buffer.resize(max_buffer, 0);
+  EXPECT_EQ(buffer.size(), max_buffer);
+  EXPECT_GE(buffer.capacity(), max_buffer);
+
+  std::vector<uint8_t> empty_buffer2;
+  std::swap(buffer, empty_buffer2);
+  EXPECT_TRUE(buffer.empty());
+  EXPECT_EQ(buffer.capacity(), 0); // EMPTY
+
+}
 } // end namespace mdf::test

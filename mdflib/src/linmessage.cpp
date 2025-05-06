@@ -118,6 +118,7 @@ void LinMessage::Reset() {
   break_length_ = 0;
   delimiter_break_length_ = 0;
   data_bytes_.clear();
+  data_bytes_.shrink_to_fit();
   spare_ = 0;
   total_signal_length_ = 0;
 }

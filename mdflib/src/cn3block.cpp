@@ -51,6 +51,7 @@ void Cn3Block::Name(const std::string &name) {
     long_name_ = name;
   } else {
     long_name_.clear();
+    long_name_.shrink_to_fit();
   }
 }
 

@@ -99,10 +99,9 @@ add_library(mdf
         src/timestamp.cpp  ../include/mdf/imdftimestamp.h
         src/mdf3timestamp.cpp src/mdf3timestamp.h
         src/linmessage.cpp ../include/mdf/linmessage.h
-        src/linconfigadapter.cpp src/linconfigadapter.h
-        src/busconfigadapter.cpp src/busconfigadapter.h
+        src/linconfigadapter.cpp ../include/mdf/linconfigadapter.h
         src/ethmessage.cpp ../include/mdf/ethmessage.h
-        src/ethconfigadapter.cpp src/ethconfigadapter.h
+        src/ethconfigadapter.cpp ../include/mdf/ethconfigadapter.h
         src/writecache.cpp src/writecache.h
         src/samplequeue.cpp src/samplequeue.h
         src/writer4samplequeue.cpp src/writer4samplequeue.h
@@ -145,6 +144,16 @@ add_library(mdf
         ../include/mdf/ccunit.h
         src/cnunit.cpp
         ../include/mdf/cnunit.h
+        src/iconfigadapter.cpp
+        ../include/mdf/iconfigadapter.h
+        src/canconfigadapter.cpp
+        ../include/mdf/canconfigadapter.h
+        ../include/mdf/mdfenumerates.h
+        src/mdfenumerates.cpp
+        src/mostmessage.cpp
+        ../include/mdf/mostmessage.h
+        src/mostconfigadapter.cpp
+        ../include/mdf/mostconfigadapter.h
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})
@@ -180,6 +189,7 @@ endif()
 
 set(MDF_PUBLIC_HEADERS
     ../include/mdf/atcomment.h
+    ../include/mdf/canconfigadapter.h
     ../include/mdf/canmessage.h
     ../include/mdf/cccomment.h
     ../include/mdf/ccunit.h
@@ -190,6 +200,7 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/cryptoutil.h
     ../include/mdf/dgcomment.h
     ../include/mdf/etag.h
+    ../include/mdf/ethconfigadapter.h
     ../include/mdf/ethmessage.h
     ../include/mdf/evcomment.h
     ../include/mdf/fhcomment.h
@@ -214,6 +225,7 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/ichannelgroup.h
     ../include/mdf/ichannelhierarchy.h
     ../include/mdf/ichannelobserver.h
+    ../include/mdf/iconfigadapter.h
     ../include/mdf/idatagroup.h
     ../include/mdf/ievent.h
     ../include/mdf/ifilehistory.h
@@ -223,11 +235,13 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/isampleobserver.h
     ../include/mdf/isourceinformation.h
     ../include/mdf/itimestamp.h
+    ../include/mdf/linconfigadapter.h
     ../include/mdf/linmessage.h
     ../include/mdf/mdalternativename.h
     ../include/mdf/mdcomment.h
     ../include/mdf/mdenumerate.h
     ../include/mdf/mdextension.h
+    ../include/mdf/mdfenumerates.h
     ../include/mdf/mdffactory.h
     ../include/mdf/mdffile.h
     ../include/mdf/mdfhelper.h
@@ -242,6 +256,8 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/mdstring.h
     ../include/mdf/mdsyntax.h
     ../include/mdf/mdvariable.h
+    ../include/mdf/mostconfigadapter.h
+    ../include/mdf/mostmessage.h
     ../include/mdf/isamplereduction.h
     ../include/mdf/samplerecord.h
     ../include/mdf/sicomment.h

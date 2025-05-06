@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include "busconfigadapter.h"
+#include "mdf/iconfigadapter.h"
 
 namespace mdf {
 
-class EthConfigAdapter : public BusConfigAdapter {
+class EthConfigAdapter : public IConfigAdapter {
  public:
   EthConfigAdapter() = delete;
   explicit EthConfigAdapter(const MdfWriter& writer);

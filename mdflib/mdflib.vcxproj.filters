@@ -294,9 +294,6 @@
     <ClCompile Include="src\linmessage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\busconfigadapter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ethconfigadapter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -421,6 +418,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\mdformula.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\canconfigadapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\iconfigadapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mdfenumerates.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mostconfigadapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mostmessage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -704,12 +716,6 @@
     <ClInclude Include="..\include\mdf\linmessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\linconfigadapter.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\busconfigadapter.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\mdf\ethmessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -834,6 +840,27 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\mdf\sicomment.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mdf\canconfigadapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mdf\ethconfigadapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mdf\iconfigadapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mdf\linconfigadapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mdf\mdfenumerates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mdf\mostconfigadapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mdf\mostmessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

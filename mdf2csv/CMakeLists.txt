@@ -39,28 +39,32 @@ target_link_libraries(mdf2csv PRIVATE mdf)
 
 
 if(VCPKG)
-    find_package(expat CONFIG REQUIRED)
-    target_link_libraries(mdf2csv PRIVATE expat::expat)
-
-    find_package(ZLIB REQUIRED)
-    target_link_libraries(mdf2csv PRIVATE ZLIB::ZLIB)
-
-    find_package(boost_program_options CONFIG REQUIRED )
-
+    find_package(boost_program_options CONFIG REQUIRED)
     target_link_libraries(mdf2csv PRIVATE Boost::program_options)
 else()
-    include("../script/zlib.cmake")
-    include("../script/expat.cmake")
     include("../script/boost.cmake")
 
     target_include_directories(mdf2csv PRIVATE ${Boost_INCLUDE_DIRS})
 
-    target_compile_definitions(mdf2csv PRIVATE XML_STATIC)
-
-    target_link_libraries(mdf2csv PRIVATE ${EXPAT_LIBRARIES})
     target_link_libraries(mdf2csv PRIVATE ${Boost_LIBRARIES})
-    target_link_libraries(mdf2csv PRIVATE ${ZLIB_LIBRARIES})
+endif()
 
+if(WIN32)
+  install(
+    TARGETS mdf2csv
+    EXPORT Mdf2CsvTargets
+    LIBRARY DESTINATION mdf2csv/lib
+    ARCHIVE DESTINATION mdf2csv/lib
+    RUNTIME DESTINATION mdf2csv/bin
+    PUBLIC_HEADER DESTINATION mdf2csv/include/mdf2csv)
+else()
+  install(
+    TARGETS mdf2csv
+    EXPORT Mdf2CsvTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    PUBLIC_HEADER DESTINATION include/mdf2csv)
 endif()
 
 if(WIN32)

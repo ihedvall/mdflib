@@ -1,8 +1,9 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
 include(CMakePrintHelpers)
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0074 NEW)
+cmake_policy(SET CMP0091 NEW)
 #cmake_policy(SET CMP0144 NEW)
 if("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
   set(VCPKG OFF)
@@ -21,19 +22,15 @@ option(MDF_BUILD_TEST "Build Google Unit Tests. Requires Google Test." OFF)
 option(MDF_BUILD_PYTHON "Build Python module" OFF)
 
 if(MDF_BUILD_TOOL AND VCPKG)
-# Boost & wxWidgets need /MT for static linking
-  # string(REPLACE "-static" "" VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
   list(APPEND VCPKG_MANIFEST_FEATURES "mdf2csv")
   list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
 endif()
 
 if(MDF_BUILD_TEST AND VCPKG)
-# GTest need /MT for static linking
-  # string(REPLACE "-static" "" VCPKG_TARGET_TRIPLET "${VCPKG_TARGET_TRIPLET}")
   list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
 endif()
 
-
+# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") # for static runtime
 
 project(
   mdflib
@@ -50,7 +47,6 @@ if(MDF_BUILD_SHARED_LIB)
   add_subdirectory(mdflibrary)
 endif()
 
-
 if(MDF_BUILD_TEST)
   enable_testing()
   add_subdirectory(mdflib_test)
@@ -65,8 +61,7 @@ if(MDF_BUILD_TOOL)
   add_subdirectory(mdfviewer)
 endif()
 
-if (MDF_BUILD_PYTHON)  
-
+if (MDF_BUILD_PYTHON)
   find_package(Python3 COMPONENTS Interpreter Development)
   cmake_print_properties(TARGETS Python3::Python PROPERTIES
           NAME

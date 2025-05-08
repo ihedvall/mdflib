@@ -65,7 +65,7 @@ bool MdfReader::Open() {
 
 void MdfReader::Close() {
    if (reader_ != nullptr ) {
-     reader_->Open();
+     reader_->Close();
    }
 }
 

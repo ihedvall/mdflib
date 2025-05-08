@@ -53,11 +53,8 @@ endif()
 target_link_libraries(mdfview PRIVATE mdf)
 
 if(VCPKG)
-  find_package(expat CONFIG REQUIRED)
-  target_link_libraries(mdfview PRIVATE expat::expat)
-
-  find_package(ZLIB REQUIRED)
-  target_link_libraries(mdfview PRIVATE ZLIB::ZLIB)
+  find_package(boost_process REQUIRED CONFIG)
+  target_link_libraries(mdfview PRIVATE Boost::process)
 
   find_package(boost_filesystem REQUIRED CONFIG)
   target_link_libraries(mdfview PRIVATE Boost::filesystem)
@@ -68,21 +65,14 @@ if(VCPKG)
   find_package(wxWidgets CONFIG REQUIRED)
   target_link_libraries(mdfview PRIVATE wx::core wx::base)
 else()
-  include("../script/zlib.cmake")
-  include("../script/expat.cmake")
   include("../script/wxwidgets.cmake")
   include("../script/boost.cmake")
 
   target_include_directories(mdfview PRIVATE ${wxWidgets_INCLUDE_DIRS})
   target_include_directories(mdfview PRIVATE ${Boost_INCLUDE_DIRS})
 
-  target_compile_definitions(mdfview PRIVATE XML_STATIC)
-
-  target_link_libraries(mdfview PRIVATE ${EXPAT_LIBRARIES})
   target_link_libraries(mdfview PRIVATE ${wxWidgets_LIBRARIES})
   target_link_libraries(mdfview PRIVATE ${Boost_LIBRARIES})
-  target_link_libraries(mdfview PRIVATE ${ZLIB_LIBRARIES})
-  # target_link_libraries(mdfview PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
 endif()
 
 

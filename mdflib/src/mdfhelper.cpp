@@ -318,15 +318,33 @@ std::string MdfHelper::Latin1ToUtf8(const std::string &latin1) {
 }
 
 std::string MdfHelper::Utf16ToUtf8(const std::wstring &utf16) {
-  std::u16string u16str(utf16.begin(), utf16.end());
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-  return convert.to_bytes(u16str);
+  if (utf16.empty()) return {};
+
+  std::mbstate_t state = std::mbstate_t();
+  const wchar_t* src = utf16.data();
+  size_t len = std::wcsrtombs(nullptr, &src, 0, &state);
+  if (len == static_cast<size_t>(-1)) {
+    return {};
+  }
+  std::string utf8(len, '\0');
+  src = utf16.data();
+  std::wcsrtombs(&utf8[0], &src, len, &state);
+  return utf8;
 }
 
 std::wstring MdfHelper::Utf8ToUtf16(const std::string &utf8) {
-  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-  const auto utf16 = convert.from_bytes(utf8);
-  return {utf16.begin(), utf16.end()};
+  if (utf8.empty()) return {};
+
+  std::mbstate_t state = std::mbstate_t();
+  const char* src = utf8.data();
+  size_t len = std::mbsrtowcs(nullptr, &src, 0, &state);
+  if (len == static_cast<size_t>(-1)) {
+    return {};
+  }
+  std::wstring utf16(len, L'\0');
+  src = utf8.data();
+  std::mbsrtowcs(&utf16[0], &src, len, &state);
+  return utf16;
 }
 
 bool MdfHelper::ComputerUseLittleEndian() {

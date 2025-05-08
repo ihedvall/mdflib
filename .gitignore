@@ -55,6 +55,7 @@ vcpkg_installed/
 build/
 
 # User-specific files
+.DS_Store
 *.rsuser
 *.suo
 *.user

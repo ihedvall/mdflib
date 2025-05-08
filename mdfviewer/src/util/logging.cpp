@@ -2,8 +2,8 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+#include <boost/asio.hpp>
 #include <boost/process.hpp>
-#include <boost/filesystem.hpp>
 
 #include <filesystem>
 #include <vector>
@@ -78,11 +78,7 @@ std::string FindNotepad() {
   std::string note;
   // 1. Find the path to the 'notepad++.exe'
   try {
-    std::vector<boost::filesystem::path> path_list =
-        ::boost::this_process::path();
-    path_list.emplace_back("c:/program files/notepad++");
-
-    auto notepad = boost::process::search_path("notepad++", path_list);
+    auto notepad = boost::process::environment::find_executable("notepad++");
     if (!notepad.string().empty()) {
       note = notepad.string();
     }
@@ -96,7 +92,7 @@ std::string FindNotepad() {
 
   // 2. Find the path to the 'notepad.exe'
   try {
-    auto notepad = boost::process::search_path("notepad");
+    auto notepad = boost::process::environment::find_executable("notepad");
     if (!notepad.string().empty()) {
       note = notepad.string();
     }
@@ -108,9 +104,9 @@ std::string FindNotepad() {
     return note;
   }
 
-  // 2. Find the path to the 'gedit' GNOME editor
+  // 3. Find the path to the 'gedit' GNOME editor
   try {
-    auto notepad = boost::process::search_path("gedit");
+    auto notepad = boost::process::environment::find_executable("gedit");
     if (!notepad.string().empty()) {
       note = notepad.string();
     }

@@ -50,6 +50,7 @@ add_executable(test_mdf
         src/testmostlogger.h)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
+
 if(VCPKG)
   find_package(boost_endian REQUIRED CONFIG)
   target_link_libraries(test_mdf PRIVATE Boost::endian)
@@ -70,6 +71,7 @@ endif()
 if(MSVC)
   target_compile_definitions(test_mdf PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS _CRT_SECURE_NO_WARNINGS)
 endif()
+
 target_link_libraries(test_mdf PRIVATE mdf)
 
 include(GoogleTest)

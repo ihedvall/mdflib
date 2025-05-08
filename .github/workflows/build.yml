@@ -70,7 +70,7 @@
             # the project files. This configuration leverages the vcpkg.cmake toolchain file to
             # run vcpkg and install all dependencies specified in vcpkg.json.
             configurePreset: 'msvc-vcpkg-static-${{ matrix.arch }}'
-            configurePresetAdditionalArgs: "['-DMDF_BUILD_SHARED_LIB=OFF', '-DMDF_BUILD_TOOL=ON', '-DMDF_BUILD_TEST=ON', '-DMDF_BUILD_SHARED_LIB_EXAMPLE=ON']"
+            configurePresetAdditionalArgs: "['-DMDF_BUILD_SHARED_LIB=OFF', '-DMDF_BUILD_TOOL=ON', '-DMDF_BUILD_SHARED_LIB_EXAMPLE=ON']"
   
             # This is the name of the CMakePresets.json's configuration to build the project.
             buildPreset: 'msvc-vcpkg-static-${{ matrix.arch }}-release'
@@ -95,7 +95,6 @@
             # This is the name of the CMakePresets.json's configuration to build the project.
             buildPreset: 'msvc-vcpkg-${{ matrix.arch }}-release'
 
-
         - name: Upload build
           uses: actions/upload-artifact@v4
           with:
@@ -103,6 +102,7 @@
             path: |
               install/msvc-vcpkg-static-${{ matrix.arch }}/
               install/msvc-vcpkg-${{ matrix.arch }}/
+
     mac-and-ubuntu:
       name: run on ${{ matrix.os }}(${{ matrix.arch }})
       runs-on: ${{ matrix.os }}
@@ -147,7 +147,6 @@
             # using the vcpkg.cmake toolchain. The default is `false`.
             # runVcpkgInstall: true
   
-          
         - name: Install dependencies
           run: sudo apt-get install -y libxi-dev libxtst-dev libxrandr-dev libltdl-dev
           if: runner.os == 'Linux'

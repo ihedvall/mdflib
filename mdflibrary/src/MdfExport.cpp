@@ -1157,10 +1157,7 @@ EXPORTFEATUREFUNC(void, SetDataBytes, const uint8_t* dataList,
                   const size_t size) {
   can->DataBytes(std::vector<uint8_t>(dataList, dataList + size));
 }
-EXPORTFEATUREFUNC(uint64_t, GetDataIndex) { return can->DataIndex(); }
-EXPORTFEATUREFUNC(void, SetDataIndex, const uint64_t index) {
-  can->DataIndex(index);
-}
+
 EXPORTFEATUREFUNC(bool, GetDir) { return can->Dir(); }
 EXPORTFEATUREFUNC(void, SetDir, const bool transmit) { can->Dir(transmit); }
 EXPORTFEATUREFUNC(bool, GetSrr) { return can->Srr(); }

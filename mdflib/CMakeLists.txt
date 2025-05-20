@@ -208,6 +208,8 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/ethmessage.h
     ../include/mdf/evcomment.h
     ../include/mdf/fhcomment.h
+    ../include/mdf/flexrayconfigadapter.h
+    ../include/mdf/flexraymessage.h
     ../include/mdf/hdcomment.h
     ../include/mdf/hoadmindata.h
     ../include/mdf/hocompumethod.h

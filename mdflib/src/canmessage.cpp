@@ -5,22 +5,27 @@
 #include <array>
 
 #include "mdf/canmessage.h"
-#include "mdf/ichannel.h"
 #include "mdf/mdfhelper.h"
+#include "mdf/ichannel.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
+
 
 
 namespace {
 
 constexpr uint32_t kExtendedBit    = 0x80000000;
 constexpr uint32_t k11BitMask      = 0x7FF;
-constexpr uint8_t kDirBit         = 0x01;
-constexpr uint8_t kSrrBit         = 0x02;
-constexpr uint8_t kEdlBit         = 0x04;
-constexpr uint8_t kBrsBit         = 0x08;
-constexpr uint8_t kEsiBit         = 0x10;
-constexpr uint8_t kWakeUpBit      = 0x20;
-constexpr uint8_t kSingleWireBit  = 0x40;
-constexpr uint8_t kRtrBit         = 0x80;
+constexpr size_t kDirBit         = 0;
+constexpr size_t kSrrBit         = 1;
+constexpr size_t kEdlBit         = 2;
+constexpr size_t kBrsBit         = 3;
+constexpr size_t kEsiBit         = 4;
+constexpr size_t kWakeUpBit      = 5;
+constexpr size_t kSingleWireBit  = 6;
+constexpr size_t kRtrBit         = 7;
+constexpr size_t kR0Bit          = 8;
+constexpr size_t kR1Bit          = 9;
 
 constexpr std::array<size_t,16> kDataLengthCode =
     {0,1,2,3,4,5,6,7,8,12,16,20,24,32,48,64};
@@ -54,20 +59,16 @@ bool CanMessage::ExtendedId() const {
 }
 
 void CanMessage::Dlc(uint8_t dlc) {
-  dlc_ &= 0xF0;
-  dlc_ |=  dlc;
-  const auto data_size = kDataLengthCode[dlc_ & 0x0F];
-  if (data_bytes_.size() != data_size) {
-    data_bytes_.resize(data_size);
-  }
+  dlc_ =  dlc;
 }
 
 uint8_t CanMessage::Dlc() const { return dlc_ & 0x0F; }
 
-void CanMessage::DataLength(size_t data_length) {
-  if (data_length > 64) {
-    data_length = 8;
+void CanMessage::DataLength(uint8_t data_length) {
+  if (data_length != data_bytes_.size()) {
+    data_bytes_.resize(data_length);
   }
+
   uint8_t dlc = 0;
   for (const auto data_size : kDataLengthCode) {
     if (data_length <= data_size) {
@@ -78,18 +79,14 @@ void CanMessage::DataLength(size_t data_length) {
   Dlc(dlc);
 }
 
-size_t CanMessage::DataLength() const {
-  return kDataLengthCode[dlc_ & 0x0F];
+uint8_t CanMessage::DataLength() const {
+  return static_cast<uint8_t>(data_bytes_.size());
 }
 
 void CanMessage::DataBytes(const std::vector<uint8_t>& data) {
-  DataLength(data.size()); // This fix the length issue in CAN FD
-  size_t index;
-  for (index = 0; index < data.size() && index < data_bytes_.size(); ++index) {
+  DataLength(static_cast<uint8_t>(data.size()));
+  for (size_t index = 0; index < data.size() && index < data_bytes_.size(); ++index) {
     data_bytes_[index] = data[index];
-  }
-  for (; index < data_bytes_.size(); ++index) {
-    data_bytes_[index] = 0xFF;
   }
 }
 
@@ -98,132 +95,115 @@ const std::vector<uint8_t>& CanMessage::DataBytes() const {
 }
 
 void CanMessage::Dir(bool transmit) {
-  if (transmit) {
-    flags_ |= kDirBit;
-  } else {
-    flags_ &= ~kDirBit;
-  }
+  flags_.set(kDirBit, transmit);
 }
 
 bool CanMessage::Dir() const {
-  return (flags_ & kDirBit) != 0;
+  return flags_.test(kDirBit);
 }
 
 void CanMessage::Srr(bool srr) {
-  if (srr) {
-    flags_ |= kSrrBit;
-  } else {
-    flags_ &= ~kSrrBit;
-  }
+  flags_.set(kSrrBit, srr);
 }
 
 bool CanMessage::Srr() const {
-  return (flags_ & kSrrBit) != 0;
+  return flags_.test(kSrrBit);
 }
 
 void CanMessage::Edl(bool edl) {
-  if (edl) {
-    flags_ |= kEdlBit;
-  } else {
-    flags_ &= ~kEdlBit;
-  }
+  flags_.set(kEdlBit, edl);
 }
 
 bool CanMessage::Edl() const {
-  return (flags_ & kEdlBit) != 0;
+  return flags_.test(kEdlBit);
 }
 
 void CanMessage::Brs(bool brs) {
-  if (brs) {
-    flags_ |= kBrsBit;
-  } else {
-    flags_ &= ~kBrsBit;
-  }
+  flags_.set(kBrsBit, brs);
 }
 
 bool CanMessage::Brs() const {
-  return (flags_ & kBrsBit) != 0;
+  return flags_.test(kBrsBit);
 }
 
 void CanMessage::Esi(bool esi) {
-  if (esi) {
-    flags_ |= kEsiBit;
-  } else {
-    flags_ &= ~kEsiBit;
-  }
+  flags_.set(kEsiBit, esi);
 }
 
 bool CanMessage::Esi() const {
-  return (flags_ & kEsiBit) != 0;
+  return flags_.test(kEsiBit);
 }
 
 void CanMessage::Rtr(bool rtr) {
-  if (rtr) {
-    flags_ |= kRtrBit;
-  } else {
-    flags_ &= ~kRtrBit;
-  }
+  flags_.set(kRtrBit, rtr);
 }
 
 bool CanMessage::Rtr() const {
-  return (flags_ & kRtrBit) != 0;
+  return flags_.test(kRtrBit);
 }
 
 void CanMessage::WakeUp(bool wake_up) {
-  if (wake_up) {
-    flags_ |= kWakeUpBit;
-  } else {
-    flags_ &= ~kWakeUpBit;
-  }
+  flags_.set(kWakeUpBit, wake_up);
 }
 
 bool CanMessage::WakeUp() const {
-  return (flags_ & kWakeUpBit) != 0;
+  return flags_.test( kWakeUpBit);
 }
 
 void CanMessage::SingleWire(bool single_wire) {
-  if (single_wire) {
-    flags_ |= kSingleWireBit;
-  } else {
-    flags_ &= ~kSingleWireBit;
-  }
+  flags_.set(kSingleWireBit, single_wire);
 }
 
 bool CanMessage::SingleWire() const {
-  return (flags_ & kSingleWireBit) != 0;
+  return flags_.test(kSingleWireBit);
 }
 
-void CanMessage::DataIndex(uint64_t index) {
-  data_index_ = index;
+void CanMessage::R0(bool flag) {
+  flags_.set(kR0Bit, flag);
 }
 
-uint64_t CanMessage::DataIndex() const {
-  return data_index_;
+bool CanMessage::R0() const {
+  return flags_.test(kR0Bit);
+}
+
+void CanMessage::R1(bool flag) {
+  flags_.set(kR1Bit, flag);
+}
+
+bool CanMessage::R1() const {
+  return flags_.test(kR1Bit);
 }
 
 void CanMessage::BusChannel(uint8_t channel) {
-  dlc_ &= 0x0F;
-  dlc_ |= channel << 4;
+  bus_channel_ = channel;
 }
 
 uint8_t CanMessage::BusChannel() const {
-  return (dlc_ & 0xF0) >> 4;
+  return bus_channel_;
 }
 
-void CanMessage::BitPosition(uint8_t position) {
+void CanMessage::BitPosition(uint16_t position) {
   bit_position_ = position;
 }
 
-uint8_t CanMessage::BitPosition() const {
+uint16_t CanMessage::BitPosition() const {
   return bit_position_;
 }
 
 void CanMessage::ErrorType(mdf::CanErrorType error_type) {
-  error_type_ = static_cast<uint8_t>(error_type);
+  error_type_ =error_type;
 }
 
 CanErrorType CanMessage::ErrorType() const {
-  return static_cast<CanErrorType>(error_type_);
+  return error_type_;
+}
+
+void CanMessage::FrameDuration(uint32_t length) {
+  frame_duration_ = length;
+}
+
+uint32_t CanMessage::FrameDuration() const {
+  return frame_duration_;
 }
 
 size_t CanMessage::DlcToLength(uint8_t dlc) {
@@ -232,75 +212,144 @@ size_t CanMessage::DlcToLength(uint8_t dlc) {
 
 void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
                        size_t max_data_length, bool save_index ) const {
+  constexpr uint64_t data_index = 0;
+  const bool mandatory_only = data_group_ != nullptr ? data_group_->MandatoryMembersOnly() : false;
   size_t record_size = 0;
+  // Ensure that 8 bytes is added
   if (max_data_length < 8) {
     max_data_length = 8;
   }
+
   auto& record = sample.record_buffer;
   switch (msg_type) {
     case MessageType::CAN_DataFrame:
-      record_size = 8 + 4 + 1 + 1;
+      record_size = mandatory_only ? 23 - 8 : 28 - 8;
       record_size += save_index ? 8 : max_data_length;
       if (record.size() != record_size) {
         record.resize(record_size);
       }
-      MdfHelper::UnsignedToRaw(true, 8*8, 32, message_id_, record.data());
-      record[8+4] =  dlc_;
-      record[8+5] = flags_;
+      record[8] = BusChannel();
+      MdfHelper::UnsignedToRaw(true, 0, 32, MessageId(), record.data() + 9);
+      record[13] =  Dlc();
+      record[14] = static_cast<uint8_t>(DataLength());
+      if (mandatory_only) {
+        if (save_index) {
+          // The data index have in reality not been updated at this point, but
+          // it will be updated when the sample buffer is written to the disc.
+          // We need to save the data bytes to a temp buffer (VLSD data).
+          sample.vlsd_data = true;
+          sample.vlsd_buffer = data_bytes_;
+          MdfHelper::UnsignedToRaw(true, 0, 64, data_index, record.data() + 15);
+        } else {
+          sample.vlsd_data = false;
+          sample.vlsd_buffer.clear();
+          sample.vlsd_buffer.shrink_to_fit();
+          for (size_t index = 0; index < max_data_length; ++index) {
+            record[15 + index] =
+                index < data_bytes_.size() ? data_bytes_[index] : 0xFF;
+          }
+        }
+        break;
+      }
+      record[13] |= (Dir() ? 0x01 : 0x00) << 4;
+      record[13] |= (Srr() ? 0x01 : 0x00) << 5;
+      record[13] |= (Edl() ? 0x01 : 0x00) << 6;
+      record[13] |= (Brs() ? 0x01 : 0x00) << 7;
+      record[15] = Esi() ? 0x01 : 0x00;
+      record[15] |= (WakeUp() ? 0x01 : 0x00) << 1;
+      record[15] |= (SingleWire() ? 0x01 : 0x00) << 2;
+      record[15] |= (R0() ? 0x01 : 0x00) << 3;
+      record[15] |= (R1() ? 0x01 : 0x00) << 4;
+      MdfHelper::UnsignedToRaw(true, 0, 32, FrameDuration(), record.data() + 16);
+
       if (save_index) {
         // The data index have in reality not been updated at this point, but
         // it will be updated when the sample buffer is written to the disc.
         // We need to save the data bytes to a temp buffer (VLSD data).
         sample.vlsd_data = true;
         sample.vlsd_buffer = data_bytes_;
-        MdfHelper::UnsignedToRaw(true, (8+6)*8, 64, data_index_, record.data());
+        MdfHelper::UnsignedToRaw(true, 0, 64, data_index, record.data() + 20);
       } else {
+        sample.vlsd_data = false;
+        sample.vlsd_buffer.clear();
+        sample.vlsd_buffer.shrink_to_fit();
         for (size_t index = 0; index < max_data_length; ++index) {
-          record[14 + index] =
+          record[20 + index] =
               index < data_bytes_.size() ? data_bytes_[index] : 0xFF;
         }
       }
       break;
 
     case MessageType::CAN_RemoteFrame:
-      record_size = 8 + 4 + 1 + 1;
+      record_size = mandatory_only ? 15 : 20 ;
       if (record.size() != record_size) {
         record.resize(record_size);
       }
-      MdfHelper::UnsignedToRaw(true, 8*8, 32, message_id_, record.data());
-      record[8+4] = dlc_;
-      record[8+5] = flags_;
+      record[8] = BusChannel();
+      MdfHelper::UnsignedToRaw(true, 0, 32, MessageId(), record.data() + 9);
+      record[13] = Dlc() & 0x0F;
+      record[14] = static_cast<uint8_t>(DataLength());
+      if (mandatory_only) {
+        break;
+      }
+      record[13] |= (Dir() ? 0x01 : 0x00) << 4;
+      record[13] |= (Srr() ? 0x01 : 0x00) << 5;
+      record[13] |= (WakeUp() ? 0x01 : 0x00) << 6;
+      record[13] |= (SingleWire() ? 0x01 : 0x00) << 7;
+      record[15] = R0() ? 0x01 : 0x00;
+      record[15] |= (R1() ? 0x01 : 0x00) << 1;
+      MdfHelper::UnsignedToRaw(true, 0, 32, FrameDuration(), record.data() + 16);
       break;
 
     case MessageType::CAN_ErrorFrame:
-      record_size = 8 + 4 + 1 + 1 + 1 + 1;
+      record_size = 30 - 8;
       record_size += save_index ? 8 : max_data_length;
       if (record.size() < record_size) {
         record.resize(record_size);
       }
-      MdfHelper::UnsignedToRaw(true, 8*8, 32, message_id_, record.data());
-      record[8+4] =  dlc_;
-      record[8+5] = flags_;
-      record[8+6] = bit_position_;
-      record[8+7] = error_type_;
+      record[8] = BusChannel();
+      MdfHelper::UnsignedToRaw(true, 0, 32, MessageId(), record.data() + 9);
+      record[13] = Dlc() & 0x0F;
+      record[14] = DataLength();
+      record[13] |= (Dir() ? 0x01 : 0x00) << 4;
+      record[13] |= (Srr() ? 0x01 : 0x00) << 5;
+      record[13] |= (Edl() ? 0x01 : 0x00) << 6;
+      record[13] |= (Brs() ? 0x01 : 0x00) << 7;
+      record[15] = Esi() ? 0x01 : 0x00;
+      record[15] |= (WakeUp() ? 0x01 : 0x00) << 1;
+      record[15] |= (SingleWire() ? 0x01 : 0x00) << 2;
+      record[15] |= (R0() ? 0x01 : 0x00) << 3;
+      record[15] |= (R1() ? 0x01 : 0x00) << 4;
+      record[15] |= (static_cast<uint8_t>(ErrorType()) & 0x07) << 5;
+      MdfHelper::UnsignedToRaw(true, 0, 32, FrameDuration(), record.data() + 16);
+      MdfHelper::UnsignedToRaw(true, 0, 16, BitPosition(), record.data() + 20);
+
       if (save_index) {
+        // The data index have in reality not been updated at this point, but
+        // it will be updated when the sample buffer is written to the disc.
+        // We need to save the data bytes to a temp buffer (VLSD data).
         sample.vlsd_data = true;
         sample.vlsd_buffer = data_bytes_;
-        MdfHelper::UnsignedToRaw(true, (8+8)*8, 64, data_index_, record.data());
+        MdfHelper::UnsignedToRaw(true, 0, 64, data_index, record.data() + 22);
       } else {
+        sample.vlsd_data = false;
+        sample.vlsd_buffer.clear();
+        sample.vlsd_buffer.shrink_to_fit();
         for (size_t index = 0; index < max_data_length; ++index) {
-        record[16 + index] = index < data_bytes_.size()
-                                 ? data_bytes_[index] : 0xFF;
+          record[22 + index] =
+              index < data_bytes_.size() ? data_bytes_[index] : 0xFF;
         }
       }
       break;
 
+
     case MessageType::CAN_OverloadFrame:
-      record_size = 8 + 1;
+      record_size = 10;
       if (record.size() != record_size) {
         record.resize(record_size);
       }
-      record[8] = (dlc_ & 0xF0) | (flags_ & 0x01);
+      record[8] = BusChannel();
+      record[9] = Dir() ? 0x01 : 0x00;
       break;
 
     default:
@@ -309,14 +358,17 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
 }
 
 void CanMessage::Reset() {
+  bus_channel_ = 0;
   message_id_ = 0;
   dlc_ = 0;
-  flags_ = 0;
-  data_index_ = 0;
+  flags_.reset();
   data_bytes_.clear();
   data_bytes_.shrink_to_fit();
   bit_position_ = 0;
-  error_type_ = 0;
+  error_type_ = CanErrorType::UNKNOWN_ERROR;
+  frame_duration_ = 0;
+  data_group_ = nullptr;
+  channel_group_ = nullptr;
 }
 
 }  // namespace mdf

@@ -13,12 +13,20 @@ LinConfigAdapter::LinConfigAdapter(const MdfWriter& writer)
     : IConfigAdapter(writer) {
   BusType(MdfBusType::LIN);
   BusName("LIN");
+  StorageType(MdfStorageType::MlsdStorage);
+  MaxLength(8);
 }
 
 void LinConfigAdapter::CreateConfig(IDataGroup& dg_block) {
-  // const bool mandatory = writer_.MandatoryMembersOnly();
+  dg_block.MandatoryMembersOnly(MandatoryMembersOnly());
 
-  if (IChannelGroup* cg_frame = dg_block.CreateChannelGroup("LIN_Frame");
+  if (StorageType() != MdfStorageType::MlsdStorage) {
+    StorageType(MdfStorageType::MlsdStorage);
+    MaxLength(8);
+  }
+
+  if (IChannelGroup* cg_frame = dg_block.CreateChannelGroup(
+          MakeGroupName("Frame"));
     cg_frame != nullptr) {
     cg_frame->PathSeparator('.');
     cg_frame->Flags(CgFlag::PlainBusEvent | CgFlag::BusEvent);
@@ -27,7 +35,8 @@ void LinConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     CreateFrameChannels(*cg_frame);
   }
 
-  if (IChannelGroup* cg_checksum_error = dg_block.CreateChannelGroup("LIN_ChecksumError");
+  if (IChannelGroup* cg_checksum_error = dg_block.CreateChannelGroup(
+          MakeGroupName("ChecksumError"));
       cg_checksum_error != nullptr ) {
     cg_checksum_error->PathSeparator('.');
     cg_checksum_error->Flags(CgFlag::PlainBusEvent | CgFlag::BusEvent);
@@ -36,16 +45,18 @@ void LinConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     CreateChecksumErrorChannels(*cg_checksum_error);
   }
 
-  if (IChannelGroup* cg_receive_error = dg_block.CreateChannelGroup("LIN_ReceiveError");
+  if (IChannelGroup* cg_receive_error = dg_block.CreateChannelGroup(
+          MakeGroupName("ReceiveError"));
       cg_receive_error != nullptr ) {
     cg_receive_error->PathSeparator('.');
     cg_receive_error->Flags(CgFlag::PlainBusEvent | CgFlag::BusEvent);
     CreateSourceInformation(*cg_receive_error);
     CreateTimeChannel(*cg_receive_error, "t");
-    CreateReceiveChannels(*cg_receive_error);
+    CreateReceiveErrorChannels(*cg_receive_error);
   }
 
-  if (IChannelGroup* cg_sync_error = dg_block.CreateChannelGroup("LIN_SyncError");
+  if (IChannelGroup* cg_sync_error = dg_block.CreateChannelGroup(
+          MakeGroupName("SyncError"));
       cg_sync_error != nullptr ) {
     cg_sync_error->PathSeparator('.');
     cg_sync_error->Flags(CgFlag::PlainBusEvent | CgFlag::BusEvent);
@@ -53,8 +64,8 @@ void LinConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     CreateTimeChannel(*cg_sync_error, "t");
     CreateSyncChannels(*cg_sync_error);
   }
-  if (IChannelGroup* cg_transmit_error =
-          dg_block.CreateChannelGroup("LIN_TransmissionError");
+  if (IChannelGroup* cg_transmit_error = dg_block.CreateChannelGroup(
+          MakeGroupName("TransmissionError"));
       cg_transmit_error != nullptr ) {
     cg_transmit_error->PathSeparator('.');
     cg_transmit_error->Flags(CgFlag::PlainBusEvent | CgFlag::BusEvent);
@@ -63,11 +74,8 @@ void LinConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     CreateTransmissionErrorChannels(*cg_transmit_error);
   }
 
-  // if (mandatory) {
-  //  return;
-  // }
-
-  if (IChannelGroup* cg_wakeUp = dg_block.CreateChannelGroup("LIN_WakeUp");
+   if (IChannelGroup* cg_wakeUp = dg_block.CreateChannelGroup(
+          MakeGroupName("WakeUp"));
       cg_wakeUp != nullptr ) {
     cg_wakeUp->PathSeparator('.');
     cg_wakeUp->Flags(CgFlag::PlainBusEvent | CgFlag::BusEvent);
@@ -76,7 +84,8 @@ void LinConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     CreateWakeUpChannels(*cg_wakeUp);
   }
 
-  if (IChannelGroup* cg_spike = dg_block.CreateChannelGroup("LIN_Spike");
+  if (IChannelGroup* cg_spike = dg_block.CreateChannelGroup(
+          MakeGroupName("Spike"));
       cg_spike != nullptr ) {
     cg_spike->PathSeparator('.');
     cg_spike->Flags(CgFlag::PlainBusEvent | CgFlag::BusEvent);
@@ -85,8 +94,8 @@ void LinConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     CreateSpikeChannels(*cg_spike);
   }
 
-  if (IChannelGroup* cg_long_dom =
-          dg_block.CreateChannelGroup("LIN_LongDom");
+  if (IChannelGroup* cg_long_dom = dg_block.CreateChannelGroup(
+          MakeGroupName("LongDom"));
       cg_long_dom != nullptr ) {
     cg_long_dom->PathSeparator('.');
     cg_long_dom->Flags(CgFlag::PlainBusEvent | CgFlag::BusEvent);
@@ -96,49 +105,29 @@ void LinConfigAdapter::CreateConfig(IDataGroup& dg_block) {
   }
 }
 
-void LinConfigAdapter::CreateFrameChannels(IChannelGroup& group) {
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const std::string group_name = group.Name();
-  auto* cn_frame = group.CreateChannel(group_name);
+void LinConfigAdapter::CreateFrameChannels(IChannelGroup& group) const {
+  const bool mandatory_only = MandatoryMembersOnly();
+  IChannel* cn_frame = group.CreateChannel("LIN_Frame");
   if (cn_frame == nullptr) {
-    MDF_ERROR() << "Failed to create the channel. Name :" << group_name;
+    MDF_ERROR() << "Failed to create the LIN_Frame channel.";
     return;
   }
 
   cn_frame->Type(ChannelType::FixedLength);
   cn_frame->Sync(ChannelSyncType::None);
-  cn_frame->DataBytes(mandatory ? 11 : 36);
+  cn_frame->DataBytes(mandatory_only ? 19 - 8 : 45 - 8);
   cn_frame->Flags(CnFlag::BusEvent);
   cn_frame->DataType(ChannelDataType::ByteArray);
-
-  if (IChannel* frame_bus =
-          cn_frame->CreateChannelComposition(group_name + ".BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0, 0x3F);
-    frame_bus->ByteOffset(8 + 0);
-    frame_bus->BitOffset(0);
-    frame_bus->BitCount(6);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_frame);
   }
-
-  if (IChannel* frame_id = cn_frame->CreateChannelComposition(group_name + ".ID");
-      frame_id != nullptr) {
-    frame_id->Type(ChannelType::FixedLength);
-    frame_id->Sync(ChannelSyncType::None);
-    frame_id->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_id->Flags(CnFlag::BusEvent);
-    frame_id->ByteOffset(8 + 1);
-    frame_id->BitOffset(0);
-    frame_id->BitCount(6);
-  }
-
-  if (IChannel* dir = CreateBitChannel(*cn_frame, group_name +".Dir", 8 + 1, 7);
+  CreateBusChannel(*cn_frame);
+  CreateBitsChannel(*cn_frame, "LIN_Frame.ID", 9, 0, 6);
+  if (IChannel* dir = CreateBitChannel(*cn_frame, "LIN_Frame.Dir", 9, 7);
       dir != nullptr) {
     if (IChannelConversion* cc_dir = dir->CreateChannelConversion();
         cc_dir != nullptr) {
+      cc_dir->Name("DirectionEnum");
       cc_dir->Type(ConversionType::ValueToText);
       cc_dir->Parameter(0, 0.0);
       cc_dir->Parameter(1, 1.0);
@@ -148,35 +137,21 @@ void LinConfigAdapter::CreateFrameChannels(IChannelGroup& group) {
     }
   }
 
-  if (IChannel* nof_rec =
-          cn_frame->CreateChannelComposition(group_name + ".ReceivedDataByteCount");
-      nof_rec != nullptr) {
-    nof_rec->Type(ChannelType::FixedLength);
-    nof_rec->Sync(ChannelSyncType::None);
-    nof_rec->DataType(ChannelDataType::UnsignedIntegerLe);
-    nof_rec->Flags(CnFlag::BusEvent);
-    nof_rec->ByteOffset(8 + 2);
-    nof_rec->BitOffset(0);
-    nof_rec->BitCount(4);
+  if (IChannel* count = CreateBitsChannel(*cn_frame,"LIN_Frame.ReceivedDataByteCount", 10, 0, 4);
+    count != nullptr) {
+    count->Unit("B");
   }
 
-  if (IChannel* frame_length =
-          cn_frame->CreateChannelComposition(group_name + ".DataLength");
-      frame_length != nullptr) {
-    frame_length->Type(ChannelType::FixedLength);
-    frame_length->Sync(ChannelSyncType::None);
-    frame_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_length->Flags(CnFlag::BusEvent);
-    frame_length->ByteOffset(8 + 2);
-    frame_length->BitOffset(4);
-    frame_length->BitCount(4);
+  if (IChannel* length = CreateBitsChannel(*cn_frame,"LIN_Frame.DataLength", 10, 4, 4);
+    length != nullptr) {
+    length->Unit("B");
   }
 
   if (IChannel* frame_bytes =
-          cn_frame->CreateChannelComposition(group_name + ".DataBytes");
+          cn_frame->CreateChannelComposition("LIN_Frame.DataBytes");
       frame_bytes != nullptr) {
     frame_bytes->Type(ChannelType::MaxLength);
-    frame_bytes->BitCount(8 * 8);
+    frame_bytes->BitCount(64);
     frame_bytes->Sync(ChannelSyncType::None);
     frame_bytes->DataType(ChannelDataType::ByteArray);
     frame_bytes->Flags(CnFlag::BusEvent);
@@ -184,34 +159,18 @@ void LinConfigAdapter::CreateFrameChannels(IChannelGroup& group) {
     frame_bytes->BitOffset(0);
   }
 
-  if (mandatory) {
+  if (mandatory_only) {
     return;
   }
 
-  if (IChannel* crc = cn_frame->CreateChannelComposition(group_name + ".Checksum");
-      crc != nullptr) {
-    crc->Type(ChannelType::FixedLength);
-    crc->Sync(ChannelSyncType::None);
-    crc->DataType(ChannelDataType::UnsignedIntegerLe);
-    crc->Flags(CnFlag::BusEvent);
-    crc->ByteOffset(19);
-    crc->BitOffset(0);
-    crc->BitCount(8);
-  }
+  CreateBitsChannel(*cn_frame,"LIN_Frame.Checksum", 19, 0, 8);
 
-  if (IChannel* crc_model =
-          cn_frame->CreateChannelComposition(group_name + ".ChecksumModel");
+  if (IChannel* crc_model = CreateBitsChannel(*cn_frame,"LIN_Frame.ChecksumModel", 20, 0, 2);
       crc_model != nullptr) {
-    crc_model->Type(ChannelType::FixedLength);
-    crc_model->Sync(ChannelSyncType::None);
     crc_model->DataType(ChannelDataType::SignedIntegerLe);
-    crc_model->Flags(CnFlag::BusEvent);
-    crc_model->ByteOffset(8 + 0);
-    crc_model->BitOffset(6);
-    crc_model->BitCount(2);
-
     if (IChannelConversion* cc_type = crc_model->CreateChannelConversion();
         cc_type != nullptr) {
+      cc_type->Name("ChecksumModelEnum");
       cc_type->Type(ConversionType::ValueToText);
       cc_type->Parameter(0, -1.0);
       cc_type->Parameter(1, 0.0);
@@ -222,80 +181,145 @@ void LinConfigAdapter::CreateFrameChannels(IChannelGroup& group) {
       cc_type->Reference(3, "");  // Default text
     }
   }
-
-  if (IChannel* sof = cn_frame->CreateChannelComposition(group_name + ".SOF");
+  if ( IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_Frame.SOF", 21, 0, 64);
       sof != nullptr) {
-    sof->Type(ChannelType::FixedLength);
-    sof->Sync(ChannelSyncType::None);
-    sof->DataType(ChannelDataType::UnsignedIntegerLe);
-    sof->Flags(CnFlag::BusEvent);
-    sof->ByteOffset(20);
-    sof->BitOffset(0);
-    sof->BitCount(8 * 8);
-    sof->Unit("ns");
+     sof->Unit("ns");
   }
 
   if (IChannel* baudrate =
-          cn_frame->CreateChannelComposition(group_name + ".Baudrate");
+          CreateBitsChannel(*cn_frame, "LIN_Frame.Baudrate", 29, 0, 32);
       baudrate != nullptr) {
-    baudrate->Type(ChannelType::FixedLength);
-    baudrate->Sync(ChannelSyncType::None);
     baudrate->DataType(ChannelDataType::FloatLe);
-    baudrate->Flags(CnFlag::BusEvent);
-    baudrate->ByteOffset(28);
-    baudrate->BitOffset(0);
-    baudrate->BitCount(8 * 4);
     baudrate->Unit("bits/s");
   }
 
   if (IChannel* resp =
-          cn_frame->CreateChannelComposition(group_name + ".ResponseBaudrate");
+          CreateBitsChannel(*cn_frame,"LIN_Frame.ResponseBaudrate", 33, 0 , 32);
       resp != nullptr) {
-    resp->Type(ChannelType::FixedLength);
-    resp->Sync(ChannelSyncType::None);
     resp->DataType(ChannelDataType::FloatLe);
-    resp->Flags(CnFlag::BusEvent);
-    resp->ByteOffset(32);
-    resp->BitOffset(0);
-    resp->BitCount(8 * 4);
     resp->Unit("bits/s");
   }
 
-  if (IChannel* break_length = cn_frame->CreateChannelComposition(
-          group_name + ".BreakLength");
+  if (IChannel* break_length = CreateBitsChannel(*cn_frame, "LIN_Frame.BreakLength", 37, 0, 32);
       break_length != nullptr) {
-    break_length->Type(ChannelType::FixedLength);
-    break_length->Sync(ChannelSyncType::None);
-    break_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    break_length->Flags(CnFlag::BusEvent);
-    break_length->ByteOffset(36);
-    break_length->BitOffset(0);
-    break_length->BitCount(8 * 4);
     break_length->Unit("ns");
   }
 
-  if (IChannel* break_length =
-          cn_frame->CreateChannelComposition(group_name + ".BreakDelimiterLength");
+  if (IChannel* break_length = CreateBitsChannel(*cn_frame, "LIN_Frame.BreakDelimiterLength", 41, 0, 32);
       break_length != nullptr) {
-    break_length->Type(ChannelType::FixedLength);
-    break_length->Sync(ChannelSyncType::None);
-    break_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    break_length->Flags(CnFlag::BusEvent);
-    break_length->ByteOffset(40);
-    break_length->BitOffset(0);
-    break_length->BitCount(8 * 4);
     break_length->Unit("ns");
   }
 }
 
-void LinConfigAdapter::CreateChecksumErrorChannels(mdf::IChannelGroup& group) {
-  CreateFrameChannels(group);
+void LinConfigAdapter::CreateChecksumErrorChannels(mdf::IChannelGroup& group) const {
+const bool mandatory_only = MandatoryMembersOnly();
+  IChannel* cn_frame = group.CreateChannel("LIN_ChecksumError");
+  if (cn_frame == nullptr) {
+    MDF_ERROR() << "Failed to create the LIN_ChecksumError channel.";
+    return;
+  }
+
+  cn_frame->Type(ChannelType::FixedLength);
+  cn_frame->Sync(ChannelSyncType::None);
+  cn_frame->DataBytes(mandatory_only ? 10 - 8 : 45 - 8);
+  cn_frame->Flags(CnFlag::BusEvent);
+  cn_frame->DataType(ChannelDataType::ByteArray);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_frame);
+  }
+  CreateBusChannel(*cn_frame);
+  CreateBitsChannel(*cn_frame, "LIN_ChecksumError.ID", 9, 0, 6);
+
+  if (IChannel* dir = CreateBitChannel(*cn_frame, "LIN_ChecksumError.Dir", 9, 7);
+      dir != nullptr) {
+    if (IChannelConversion* cc_dir = dir->CreateChannelConversion();
+        cc_dir != nullptr) {
+      cc_dir->Name("DirectionEnum");
+      cc_dir->Type(ConversionType::ValueToText);
+      cc_dir->Parameter(0, 0.0);
+      cc_dir->Parameter(1, 1.0);
+      cc_dir->Reference(0, "Rx");
+      cc_dir->Reference(1, "Tx");
+      cc_dir->Reference(2, "");  // Default text
+    }
+  }
+
+  if (mandatory_only) {
+    return;
+  }
+
+  if (IChannel* count = CreateBitsChannel(*cn_frame,"LIN_ChecksumError.ReceivedDataByteCount", 10, 0, 4);
+    count != nullptr ) {
+    count->Unit("B");
+  }
+  if (IChannel* length = CreateBitsChannel(*cn_frame,"LIN_ChecksumError.DataLength", 10, 4, 4);
+    length != nullptr) {
+    length->Unit("B");
+  }
+
+  if (IChannel* frame_bytes =
+          cn_frame->CreateChannelComposition("LIN_ChecksumError..DataBytes");
+      frame_bytes != nullptr) {
+    frame_bytes->Type(ChannelType::MaxLength);
+    frame_bytes->BitCount(64);
+    frame_bytes->Sync(ChannelSyncType::None);
+    frame_bytes->DataType(ChannelDataType::ByteArray);
+    frame_bytes->Flags(CnFlag::BusEvent);
+    frame_bytes->ByteOffset(11);
+    frame_bytes->BitOffset(0);
+  }
+
+  CreateBitsChannel(*cn_frame,"LIN_ChecksumError.Checksum", 19, 0, 8);
+
+  if (IChannel* crc_model = CreateBitsChannel(*cn_frame,"LIN_ChecksumError.ChecksumModel", 20, 0, 2);
+      crc_model != nullptr) {
+    crc_model->DataType(ChannelDataType::SignedIntegerLe);
+    if (IChannelConversion* cc_type = crc_model->CreateChannelConversion();
+        cc_type != nullptr) {
+      cc_type->Name("ChecksumModelEnum");
+      cc_type->Type(ConversionType::ValueToText);
+      cc_type->Parameter(0, -1.0);
+      cc_type->Parameter(1, 0.0);
+      cc_type->Parameter(2, 1.0);
+      cc_type->Reference(0, "Unknown");
+      cc_type->Reference(1, "Classic");
+      cc_type->Reference(2, "Enhanced");
+      cc_type->Reference(3, "");  // Default text
+    }
+  }
+  if ( IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_ChecksumError..SOF", 21, 0, 64);
+      sof != nullptr) {
+     sof->Unit("ns");
+  }
+
+  if (IChannel* baudrate =
+          CreateBitsChannel(*cn_frame, "LIN_ChecksumError.Baudrate", 29, 0, 32);
+      baudrate != nullptr) {
+    baudrate->DataType(ChannelDataType::FloatLe);
+    baudrate->Unit("bits/s");
+  }
+
+  if (IChannel* resp =
+          CreateBitsChannel(*cn_frame,"LIN_ChecksumError.ResponseBaudrate", 33, 0 , 32);
+      resp != nullptr) {
+    resp->DataType(ChannelDataType::FloatLe);
+    resp->Unit("bits/s");
+  }
+
+  if (IChannel* break_length = CreateBitsChannel(*cn_frame, "LIN_ChecksumError.BreakLength", 37, 0, 32);
+      break_length != nullptr) {
+    break_length->Unit("ns");
+  }
+
+  if (IChannel* break_length = CreateBitsChannel(*cn_frame, "LIN_ChecksumError.BreakDelimiterLength", 41, 0, 32);
+      break_length != nullptr) {
+    break_length->Unit("ns");
+  }
+
 }
 
-void LinConfigAdapter::CreateReceiveChannels(IChannelGroup& group) {
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const std::string group_name = group.Name();
-  auto* cn_frame = group.CreateChannel(group_name);
+void LinConfigAdapter::CreateReceiveErrorChannels(IChannelGroup& group) const {
+  IChannel* cn_frame = group.CreateChannel("LIN_ReceiveError");
   if (cn_frame == nullptr) {
     MDF_ERROR() << "Failed to create the LIN_ReceiveError channel.";
     return;
@@ -303,110 +327,48 @@ void LinConfigAdapter::CreateReceiveChannels(IChannelGroup& group) {
 
   cn_frame->Type(ChannelType::FixedLength);
   cn_frame->Sync(ChannelSyncType::None);
-  cn_frame->DataBytes(mandatory ? 2 : 35);
+  cn_frame->DataBytes(44 - 8);
   cn_frame->Flags(CnFlag::BusEvent);
   cn_frame->DataType(ChannelDataType::ByteArray);
-
-  if (IChannel* frame_bus =
-          cn_frame->CreateChannelComposition(group_name + ".BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0, 0x3F);
-    frame_bus->ByteOffset(8 + 0);
-    frame_bus->BitOffset(0);
-    frame_bus->BitCount(6);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_frame);
   }
 
-  if (IChannel* frame_id = cn_frame->CreateChannelComposition(group_name + ".ID");
-      frame_id != nullptr) {
-    frame_id->Type(ChannelType::FixedLength);
-    frame_id->Sync(ChannelSyncType::None);
-    frame_id->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_id->Flags(CnFlag::BusEvent);
-    frame_id->ByteOffset(8 + 1);
-    frame_id->BitOffset(0);
-    frame_id->BitCount(6);
-  }
-
-  if (mandatory) {
-    return;
-  }
-
-  if (IChannel* nof_spec =
-          cn_frame->CreateChannelComposition(group_name + ".SpecifiedDataByteCount");
+  CreateBusChannel(*cn_frame);
+  CreateBitsChannel(*cn_frame,"LIN_ReceiveError.ID", 9, 0, 6);
+  if (IChannel* nof_spec = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.SpecifiedDataByteCount",10, 4, 4);
       nof_spec != nullptr) {
-    nof_spec->Type(ChannelType::FixedLength);
-    nof_spec->Sync(ChannelSyncType::None);
-    nof_spec->DataType(ChannelDataType::UnsignedIntegerLe);
-    nof_spec->Flags(CnFlag::BusEvent);
-    nof_spec->ByteOffset(8 + 4);
-    nof_spec->BitOffset(0);
-    nof_spec->BitCount(4);
+    nof_spec->Unit("B");
   }
 
-  if (IChannel* nof_rec =
-          cn_frame->CreateChannelComposition(group_name + ".ReceivedDataByteCount");
+  if (IChannel* nof_rec = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.ReceivedDataByteCount", 10, 0, 4);
       nof_rec != nullptr) {
-    nof_rec->Type(ChannelType::FixedLength);
-    nof_rec->Sync(ChannelSyncType::None);
-    nof_rec->DataType(ChannelDataType::UnsignedIntegerLe);
-    nof_rec->Flags(CnFlag::BusEvent);
-    nof_rec->ByteOffset(8 + 2);
-    nof_rec->BitOffset(0);
-    nof_rec->BitCount(4);
+    nof_rec->Unit("B");
   }
 
-  if (IChannel* frame_length =
-          cn_frame->CreateChannelComposition(group_name + ".DataLength");
+  if (IChannel* frame_length = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.DataLength",11,0,4);
       frame_length != nullptr) {
-    frame_length->Type(ChannelType::FixedLength);
-    frame_length->Sync(ChannelSyncType::None);
-    frame_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_length->Flags(CnFlag::BusEvent);
-    frame_length->ByteOffset(8 + 2);
-    frame_length->BitOffset(4);
-    frame_length->BitCount(4);
+    frame_length->Unit("B");
   }
 
   if (IChannel* frame_bytes =
-          cn_frame->CreateChannelComposition(group_name + ".DataBytes");
+          cn_frame->CreateChannelComposition("LIN_ReceiveError.DataBytes");
       frame_bytes != nullptr) {
     frame_bytes->Type(ChannelType::MaxLength);
-    frame_bytes->BitCount(8 * 8);
+    frame_bytes->BitCount(64);
     frame_bytes->Sync(ChannelSyncType::None);
     frame_bytes->DataType(ChannelDataType::ByteArray);
     frame_bytes->Flags(CnFlag::BusEvent);
-    frame_bytes->ByteOffset(13);
+    frame_bytes->ByteOffset(12);
     frame_bytes->BitOffset(0);
   }
 
-  if (IChannel* crc = cn_frame->CreateChannelComposition(group_name + ".Checksum");
-      crc != nullptr) {
-    crc->Type(ChannelType::FixedLength);
-    crc->Sync(ChannelSyncType::None);
-    crc->DataType(ChannelDataType::UnsignedIntegerLe);
-    crc->Flags(CnFlag::BusEvent);
-    crc->ByteOffset(8 + 3);
-    crc->BitOffset(0);
-    crc->BitCount(8);
-  }
-
-  if (IChannel* crc_model =
-          cn_frame->CreateChannelComposition(group_name + ".ChecksumModel");
+  if (IChannel* crc_model = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.ChecksumModel",9, 6, 2);
       crc_model != nullptr) {
-    crc_model->Type(ChannelType::FixedLength);
-    crc_model->Sync(ChannelSyncType::None);
     crc_model->DataType(ChannelDataType::SignedIntegerLe);
-    crc_model->Flags(CnFlag::BusEvent);
-    crc_model->ByteOffset(8 + 0);
-    crc_model->BitOffset(6);
-    crc_model->BitCount(2);
-
     if (IChannelConversion* cc_type = crc_model->CreateChannelConversion();
         cc_type != nullptr) {
+      cc_type->Name("ChecksumModelEnum");
       cc_type->Type(ConversionType::ValueToText);
       cc_type->Parameter(0, -1.0);
       cc_type->Parameter(1, 0.0);
@@ -418,75 +380,37 @@ void LinConfigAdapter::CreateReceiveChannels(IChannelGroup& group) {
     }
   }
 
-  if (IChannel* sof = cn_frame->CreateChannelComposition(group_name + ".SOF");
+  if (IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.SOF", 20, 0, 64);
       sof != nullptr) {
-    sof->Type(ChannelType::FixedLength);
-    sof->Sync(ChannelSyncType::None);
-    sof->DataType(ChannelDataType::UnsignedIntegerLe);
-    sof->Flags(CnFlag::BusEvent);
-    sof->ByteOffset(19);
-    sof->BitOffset(0);
-    sof->BitCount(8 * 8);
     sof->Unit("ns");
   }
 
-  if (IChannel* baudrate =
-          cn_frame->CreateChannelComposition(group_name + ".Baudrate");
+  if (IChannel* baudrate = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.Baudrate", 28, 0, 32);
       baudrate != nullptr) {
-    baudrate->Type(ChannelType::FixedLength);
-    baudrate->Sync(ChannelSyncType::None);
     baudrate->DataType(ChannelDataType::FloatLe);
-    baudrate->Flags(CnFlag::BusEvent);
-    baudrate->ByteOffset(27);
-    baudrate->BitOffset(0);
-    baudrate->BitCount(8 * 4);
     baudrate->Unit("bits/s");
   }
 
-  if (IChannel* resp =
-          cn_frame->CreateChannelComposition(group_name + ".ResponseBaudrate");
+  if (IChannel* resp = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.ResponseBaudrate", 32, 0, 32);
       resp != nullptr) {
-    resp->Type(ChannelType::FixedLength);
-    resp->Sync(ChannelSyncType::None);
     resp->DataType(ChannelDataType::FloatLe);
     resp->Flags(CnFlag::BusEvent);
-    resp->ByteOffset(31);
-    resp->BitOffset(0);
-    resp->BitCount(8 * 4);
     resp->Unit("bits/s");
   }
 
-  if (IChannel* break_length = cn_frame->CreateChannelComposition(
-          group_name + ".BreakLength");
+  if (IChannel* break_length = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.BreakLength", 36, 0, 32);
       break_length != nullptr) {
-    break_length->Type(ChannelType::FixedLength);
-    break_length->Sync(ChannelSyncType::None);
-    break_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    break_length->Flags(CnFlag::BusEvent);
-    break_length->ByteOffset(35);
-    break_length->BitOffset(0);
-    break_length->BitCount(8 * 4);
     break_length->Unit("ns");
   }
 
-  if (IChannel* break_length =
-          cn_frame->CreateChannelComposition(group_name + ".BreakDelimiterLength");
-      break_length != nullptr) {
-    break_length->Type(ChannelType::FixedLength);
-    break_length->Sync(ChannelSyncType::None);
-    break_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    break_length->Flags(CnFlag::BusEvent);
-    break_length->ByteOffset(39);
-    break_length->BitOffset(0);
-    break_length->BitCount(8 * 4);
-    break_length->Unit("ns");
+  if (IChannel* delimiter = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.BreakDelimiterLength", 40, 0, 32);
+      delimiter != nullptr) {
+    delimiter->Unit("ns");
   }
 }
 
-void LinConfigAdapter::CreateSyncChannels(IChannelGroup& group) {
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const std::string group_name = group.Name();
-  auto* cn_frame = group.CreateChannel(group_name);
+void LinConfigAdapter::CreateSyncChannels(IChannelGroup& group) const {
+  IChannel* cn_frame = group.CreateChannel("LIN_SyncError");
   if (cn_frame == nullptr) {
     MDF_ERROR() << "Failed to create the LIN_SyncError channel.";
     return;
@@ -494,205 +418,97 @@ void LinConfigAdapter::CreateSyncChannels(IChannelGroup& group) {
 
   cn_frame->Type(ChannelType::FixedLength);
   cn_frame->Sync(ChannelSyncType::None);
-  cn_frame->DataBytes(mandatory ? 5 : 21);
+  cn_frame->DataBytes(29-8);
   cn_frame->Flags(CnFlag::BusEvent);
   cn_frame->DataType(ChannelDataType::ByteArray);
-
-  if (IChannel* frame_bus =
-          cn_frame->CreateChannelComposition(group_name + ".BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0, 0x3F);
-    frame_bus->ByteOffset(8 + 0);
-    frame_bus->BitOffset(0);
-    frame_bus->BitCount(6);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_frame);
   }
-
-  if (IChannel* baudrate =
-          cn_frame->CreateChannelComposition(group_name + ".Baudrate");
+  CreateBusChannel(*cn_frame);
+  if (IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_SyncError.SOF", 9, 0, 64);
+      sof != nullptr) {
+      sof->Unit("ns");
+  }
+    if (IChannel* baudrate = CreateBitsChannel(*cn_frame, "LIN_SyncError.Baudrate", 17, 0, 32);
       baudrate != nullptr) {
-    baudrate->Type(ChannelType::FixedLength);
-    baudrate->Sync(ChannelSyncType::None);
     baudrate->DataType(ChannelDataType::FloatLe);
-    baudrate->Flags(CnFlag::BusEvent);
-    baudrate->ByteOffset(9);
-    baudrate->BitOffset(0);
-    baudrate->BitCount(8 * 4);
     baudrate->Unit("bits/s");
   }
-
-  if (mandatory) {
-    return;
-  }
-
-  if (IChannel* sof = cn_frame->CreateChannelComposition(group_name + ".SOF");
-      sof != nullptr) {
-    sof->Type(ChannelType::FixedLength);
-    sof->Sync(ChannelSyncType::None);
-    sof->DataType(ChannelDataType::UnsignedIntegerLe);
-    sof->Flags(CnFlag::BusEvent);
-    sof->ByteOffset(13);
-    sof->BitOffset(0);
-    sof->BitCount(8 * 8);
-    sof->Unit("ns");
-  }
-
-  if (IChannel* break_length = cn_frame->CreateChannelComposition(
-          group_name + ".BreakLength");
+  if (IChannel* break_length = CreateBitsChannel(*cn_frame, "LIN_SyncError.BreakLength", 21, 0, 32);
       break_length != nullptr) {
-    break_length->Type(ChannelType::FixedLength);
-    break_length->Sync(ChannelSyncType::None);
-    break_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    break_length->Flags(CnFlag::BusEvent);
-    break_length->ByteOffset(21);
-    break_length->BitOffset(0);
-    break_length->BitCount(8 * 4);
     break_length->Unit("ns");
   }
 
-  if (IChannel* del_break_length =
-          cn_frame->CreateChannelComposition(group_name + ".BreakDelimiterLength");
+  if (IChannel* del_break_length = CreateBitsChannel(*cn_frame, "LIN_SyncError.BreakDelimiterLength", 25, 0, 32);
       del_break_length != nullptr) {
-    del_break_length->Type(ChannelType::FixedLength);
-    del_break_length->Sync(ChannelSyncType::None);
-    del_break_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    del_break_length->Flags(CnFlag::BusEvent);
-    del_break_length->ByteOffset(25);
-    del_break_length->BitOffset(0);
-    del_break_length->BitCount(8 * 4);
     del_break_length->Unit("ns");
   }
 }
 
-void LinConfigAdapter::CreateWakeUpChannels(IChannelGroup& group) {
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const std::string group_name = group.Name();
-  auto* cn_frame = group.CreateChannel(group_name);
+void LinConfigAdapter::CreateWakeUpChannels(IChannelGroup& group) const {
+  IChannel* cn_frame = group.CreateChannel("LIN_WakeUp");
   if (cn_frame == nullptr) {
-    MDF_ERROR() << "Failed to create the LIN_SyncError channel.";
+    MDF_ERROR() << "Failed to create the LIN_WakeUp channel.";
     return;
   }
 
   cn_frame->Type(ChannelType::FixedLength);
   cn_frame->Sync(ChannelSyncType::None);
-  cn_frame->DataBytes(mandatory ? 1 : 13);
+  cn_frame->DataBytes(21 - 8);
   cn_frame->Flags(CnFlag::BusEvent);
   cn_frame->DataType(ChannelDataType::ByteArray);
-
-  if (IChannel* frame_bus =
-          cn_frame->CreateChannelComposition(group_name + ".BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0, 0x3F);
-    frame_bus->ByteOffset(8 + 0);
-    frame_bus->BitOffset(0);
-    frame_bus->BitCount(6);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_frame);
   }
 
-  if (mandatory) {
-    return;
-  }
-
-  if (IChannel* baudrate =
-          cn_frame->CreateChannelComposition(group_name + ".Baudrate");
+  CreateBusChannel(*cn_frame);
+  if (IChannel* baudrate = CreateBitsChannel(*cn_frame, "LIN_WakeUp.Baudrate", 9, 0, 32);
       baudrate != nullptr) {
-    baudrate->Type(ChannelType::FixedLength);
-    baudrate->Sync(ChannelSyncType::None);
     baudrate->DataType(ChannelDataType::FloatLe);
-    baudrate->Flags(CnFlag::BusEvent);
-    baudrate->ByteOffset(9);
-    baudrate->BitOffset(0);
-    baudrate->BitCount(8 * 4);
     baudrate->Unit("bits/s");
   }
 
-  if (IChannel* sof = cn_frame->CreateChannelComposition(group_name + ".SOF");
+  if (IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_WakeUp.SOF", 13, 0, 8);
       sof != nullptr) {
-    sof->Type(ChannelType::FixedLength);
-    sof->Sync(ChannelSyncType::None);
-    sof->DataType(ChannelDataType::UnsignedIntegerLe);
-    sof->Flags(CnFlag::BusEvent);
-    sof->ByteOffset(13);
-    sof->BitOffset(0);
-    sof->BitCount(8 * 8);
     sof->Unit("ns");
   }
 }
 
-void LinConfigAdapter::CreateTransmissionErrorChannels(IChannelGroup& group) {
+void LinConfigAdapter::CreateTransmissionErrorChannels(IChannelGroup& group) const {
   const bool mandatory = writer_.MandatoryMembersOnly();
-  const std::string group_name = group.Name();
-  auto* cn_frame = group.CreateChannel(group_name);
+  IChannel* cn_frame = group.CreateChannel("LIN_TransmissionError");
   if (cn_frame == nullptr) {
-    MDF_ERROR() << "Failed to create the channel. Name: " << group_name;
+    MDF_ERROR() << "Failed to create the channel. Name: " << "LIN_TransmissionError";
     return;
   }
 
   cn_frame->Type(ChannelType::FixedLength);
   cn_frame->Sync(ChannelSyncType::None);
-  cn_frame->DataBytes(mandatory ? 2 : 23);
+  cn_frame->DataBytes(mandatory ? 10 - 8 : 31 - 8);
   cn_frame->Flags(CnFlag::BusEvent);
   cn_frame->DataType(ChannelDataType::ByteArray);
-
-  if (IChannel* frame_bus =
-          cn_frame->CreateChannelComposition(group_name + ".BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0, 0x3F);
-    frame_bus->ByteOffset(8 + 0);
-    frame_bus->BitOffset(0);
-    frame_bus->BitCount(6);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_frame);
   }
-
-  if (IChannel* frame_id = cn_frame->CreateChannelComposition(group_name + ".ID");
-      frame_id != nullptr) {
-    frame_id->Type(ChannelType::FixedLength);
-    frame_id->Sync(ChannelSyncType::None);
-    frame_id->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_id->Flags(CnFlag::BusEvent);
-    frame_id->ByteOffset(8 + 1);
-    frame_id->BitOffset(0);
-    frame_id->BitCount(6);
-  }
+  CreateBusChannel(*cn_frame);
+  CreateBitsChannel(*cn_frame,"LIN_Transmission.ID", 9, 0, 6);
 
   if (mandatory) {
     return;
   }
 
-  if (IChannel* nof_rec =
-      cn_frame->CreateChannelComposition(group_name + ".SpecifiedDataByteCount");
-      nof_rec != nullptr) {
-    nof_rec->Type(ChannelType::FixedLength);
-    nof_rec->Sync(ChannelSyncType::None);
-    nof_rec->DataType(ChannelDataType::UnsignedIntegerLe);
-    nof_rec->Flags(CnFlag::BusEvent);
-    nof_rec->ByteOffset(8 + 2);
-    nof_rec->BitOffset(0);
-    nof_rec->BitCount(4);
+  if (IChannel* specified = CreateBitsChannel(*cn_frame,"LIN_TransmissionError.SpecifiedDataByteCount", 10, 0, 4);
+    specified != nullptr) {
+    specified->Unit("B");
   }
 
-  if (IChannel* crc_model =
-          cn_frame->CreateChannelComposition(group_name + ".ChecksumModel");
+  if (IChannel* crc_model = CreateBitsChannel(*cn_frame, "LIN_TransmissionError.ChecksumModel", 10, 4, 2);
       crc_model != nullptr) {
-    crc_model->Type(ChannelType::FixedLength);
-    crc_model->Sync(ChannelSyncType::None);
     crc_model->DataType(ChannelDataType::SignedIntegerLe);
-    crc_model->Flags(CnFlag::BusEvent);
-    crc_model->ByteOffset(8 + 0);
-    crc_model->BitOffset(6);
-    crc_model->BitCount(2);
 
     if (IChannelConversion* cc_type = crc_model->CreateChannelConversion();
         cc_type != nullptr) {
+      cc_type->Name("ChecksumModelEnum");
       cc_type->Type(ConversionType::ValueToText);
       cc_type->Parameter(0, -1.0);
       cc_type->Parameter(1, 0.0);
@@ -703,102 +519,95 @@ void LinConfigAdapter::CreateTransmissionErrorChannels(IChannelGroup& group) {
       cc_type->Reference(3, "");  // Default text
     }
   }
-
-  if (IChannel* baudrate =
-          cn_frame->CreateChannelComposition(group_name + ".Baudrate");
-      baudrate != nullptr) {
-    baudrate->Type(ChannelType::FixedLength);
-    baudrate->Sync(ChannelSyncType::None);
-    baudrate->DataType(ChannelDataType::FloatLe);
-    baudrate->Flags(CnFlag::BusEvent);
-    baudrate->ByteOffset(11);
-    baudrate->BitOffset(0);
-    baudrate->BitCount(8 * 4);
-    baudrate->Unit("bits/s");
-  }
-
-  if (IChannel* sof = cn_frame->CreateChannelComposition(group_name + ".SOF");
+  if (IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_TransmissionError.SOF", 11, 0, 64);
       sof != nullptr) {
-    sof->Type(ChannelType::FixedLength);
-    sof->Sync(ChannelSyncType::None);
-    sof->DataType(ChannelDataType::UnsignedIntegerLe);
-    sof->Flags(CnFlag::BusEvent);
-    sof->ByteOffset(15);
-    sof->BitOffset(0);
-    sof->BitCount(8 * 8);
     sof->Unit("ns");
   }
 
-  if (IChannel* break_length = cn_frame->CreateChannelComposition(
-          group_name + ".BreakLength");
+  if (IChannel* baudrate = CreateBitsChannel(*cn_frame, "LIN_TransmissionError.Baudrate", 19, 0, 32);
+      baudrate != nullptr) {
+    baudrate->DataType(ChannelDataType::FloatLe);
+    baudrate->Unit("bits/s");
+  }
+
+  if (IChannel* break_length = CreateBitsChannel(*cn_frame, "LIN_TransmissionError.BreakLength", 23, 0, 32);
       break_length != nullptr) {
-    break_length->Type(ChannelType::FixedLength);
-    break_length->Sync(ChannelSyncType::None);
-    break_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    break_length->Flags(CnFlag::BusEvent);
-    break_length->ByteOffset(23);
-    break_length->BitOffset(0);
-    break_length->BitCount(8 * 4);
     break_length->Unit("ns");
   }
 
-  if (IChannel* break_length =
-          cn_frame->CreateChannelComposition(group_name + ".BreakDelimiterLength");
-      break_length != nullptr) {
-    break_length->Type(ChannelType::FixedLength);
-    break_length->Sync(ChannelSyncType::None);
-    break_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    break_length->Flags(CnFlag::BusEvent);
-    break_length->ByteOffset(27);
-    break_length->BitOffset(0);
-    break_length->BitCount(8 * 4);
-    break_length->Unit("ns");
+  if (IChannel* delimiter = CreateBitsChannel(*cn_frame, "LIN_TransmissionError.BreakDelimiterLength", 27, 0, 32);
+      delimiter != nullptr) {
+    delimiter->Unit("ns");
   }
 }
 
-void LinConfigAdapter::CreateSpikeChannels(IChannelGroup& group) {
-  CreateWakeUpChannels(group);
-}
-
-void LinConfigAdapter::CreateLongDominantChannels(mdf::IChannelGroup& group) {
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const std::string group_name = group.Name();
-  auto* cn_frame = group.CreateChannel(group_name);
+void LinConfigAdapter::CreateSpikeChannels(IChannelGroup& group) const {
+  IChannel* cn_frame = group.CreateChannel("LIN_Spike");
   if (cn_frame == nullptr) {
-    MDF_ERROR() << "Failed to create the channel. Name: " << group_name;
+    MDF_ERROR() << "Failed to create the LIN_Spike channel.";
     return;
   }
 
   cn_frame->Type(ChannelType::FixedLength);
   cn_frame->Sync(ChannelSyncType::None);
-  cn_frame->DataBytes(mandatory ? 2 : 18);
+  cn_frame->DataBytes(21 - 8);
   cn_frame->Flags(CnFlag::BusEvent);
   cn_frame->DataType(ChannelDataType::ByteArray);
-
-  if (IChannel* frame_bus =
-          cn_frame->CreateChannelComposition(group_name + ".BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0, 0x3F);
-    frame_bus->ByteOffset(8 + 0);
-    frame_bus->BitOffset(0);
-    frame_bus->BitCount(6);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_frame);
   }
-  if (IChannel* type = cn_frame->CreateChannelComposition(group_name + ".Type");
-      type != nullptr) {
-    type->Type(ChannelType::FixedLength);
-    type->Sync(ChannelSyncType::None);
-    type->DataType(ChannelDataType::UnsignedIntegerLe);
-    type->Flags(CnFlag::BusEvent);
-    type->ByteOffset(8 + 1);
-    type->BitOffset(4);
-    type->BitCount(2);
+
+  CreateBusChannel(*cn_frame);
+  if (IChannel* baudrate = CreateBitsChannel(*cn_frame, "LIN_Spike.Baudrate", 9, 0, 32);
+      baudrate != nullptr) {
+    baudrate->DataType(ChannelDataType::FloatLe);
+    baudrate->Unit("bits/s");
+      }
+
+  if (IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_Spike.SOF", 13, 0, 8);
+      sof != nullptr) {
+    sof->Unit("ns");
+      }
+}
+
+void LinConfigAdapter::CreateLongDominantChannels(mdf::IChannelGroup& group) const {
+  auto* cn_frame = group.CreateChannel("LIN_LongDom");
+  if (cn_frame == nullptr) {
+    MDF_ERROR() << "Failed to create the channel. Name: " << "LIN_LongDom";
+    return;
+  }
+
+  cn_frame->Type(ChannelType::FixedLength);
+  cn_frame->Sync(ChannelSyncType::None);
+  cn_frame->DataBytes(26 - 8);
+  cn_frame->Flags(CnFlag::BusEvent);
+  cn_frame->DataType(ChannelDataType::ByteArray);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_frame);
+  }
+  CreateBusChannel(*cn_frame);
+  if (IChannel* baudrate = CreateBitsChannel(*cn_frame, "LIN_LongDom.Baudrate", 9, 0, 32);
+      baudrate != nullptr) {
+    baudrate->DataType(ChannelDataType::FloatLe);
+    baudrate->Unit("bits/s");
+  }
+
+  if (IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_LongDom.SOF", 13, 0, 64);
+      sof != nullptr) {
+    sof->Unit("ns");
+  }
+
+  if (IChannel* length = CreateBitsChannel(*cn_frame, "LIN_LongDom.Length", 21, 0, 32);
+      length != nullptr) {
+    length->Unit("ns");
+  }
+
+  if (IChannel* type = CreateBitsChannel(*cn_frame, "LIN_LongDom.Type", 25, 0, 2);
+        type != nullptr) {
 
     if (IChannelConversion* cc_type = type->CreateChannelConversion();
         cc_type != nullptr) {
+      cc_type->Name("LongDomTypeEnum");
       cc_type->Type(ConversionType::ValueToText);
       cc_type->Parameter(0, 0.0);
       cc_type->Parameter(1, 1.0);
@@ -809,50 +618,7 @@ void LinConfigAdapter::CreateLongDominantChannels(mdf::IChannelGroup& group) {
       cc_type->Reference(3, "");  // Default text
     }
   }
-
-  if (mandatory) {
-    return;
-  }
-
-  if (IChannel* baudrate =
-          cn_frame->CreateChannelComposition(group_name + ".Baudrate");
-      baudrate != nullptr) {
-    baudrate->Type(ChannelType::FixedLength);
-    baudrate->Sync(ChannelSyncType::None);
-    baudrate->DataType(ChannelDataType::FloatLe);
-    baudrate->Flags(CnFlag::BusEvent);
-    baudrate->ByteOffset(10);
-    baudrate->BitOffset(0);
-    baudrate->BitCount(8 * 4);
-    baudrate->Unit("bits/s");
-  }
-
-  if (IChannel* sof = cn_frame->CreateChannelComposition(group_name + ".SOF");
-      sof != nullptr) {
-    sof->Type(ChannelType::FixedLength);
-    sof->Sync(ChannelSyncType::None);
-    sof->DataType(ChannelDataType::UnsignedIntegerLe);
-    sof->Flags(CnFlag::BusEvent);
-    sof->ByteOffset(14);
-    sof->BitOffset(0);
-    sof->BitCount(8 * 8);
-    sof->Unit("ns");
-  }
-
-  if (IChannel* length = cn_frame->CreateChannelComposition(
-          group_name + ".Length");
-      length != nullptr) {
-    length->Type(ChannelType::FixedLength);
-    length->Sync(ChannelSyncType::None);
-    length->DataType(ChannelDataType::UnsignedIntegerLe);
-    length->Flags(CnFlag::BusEvent);
-    length->ByteOffset(22);
-    length->BitOffset(0);
-    length->BitCount(8 * 4);
-    length->Unit("ns");
-  }
-
-
 }
+
 
 }  // namespace mdf

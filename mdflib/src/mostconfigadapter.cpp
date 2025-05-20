@@ -37,7 +37,7 @@ void MostConfigAdapter::CreateConfig(IDataGroup& dg_block) {
   CreateMostShutdownFlag(dg_block);
 }
 
-void MostConfigAdapter::CreateMostMessage(IDataGroup& data_group) {
+void MostConfigAdapter::CreateMostMessage(IDataGroup& data_group) const {
   const IChannel* cn_data_byte = nullptr;
   if (IChannelGroup* cg_message = data_group.CreateChannelGroup(
           MakeGroupName("Message"));
@@ -63,7 +63,7 @@ void MostConfigAdapter::CreateMostMessage(IDataGroup& data_group) {
   }
 }
 
-void MostConfigAdapter::CreateMostPacket(IDataGroup& data_group) {
+void MostConfigAdapter::CreateMostPacket(IDataGroup& data_group) const {
   const IChannel* cn_data_byte = nullptr;
   if (IChannelGroup* cg_message = data_group.CreateChannelGroup(
           MakeGroupName("Packet"));
@@ -90,7 +90,7 @@ void MostConfigAdapter::CreateMostPacket(IDataGroup& data_group) {
 }
 
 
-void MostConfigAdapter::CreateMostEthernetPacket(IDataGroup& data_group) {
+void MostConfigAdapter::CreateMostEthernetPacket(IDataGroup& data_group) const {
   const IChannel* cn_data_byte = nullptr;
   if (IChannelGroup* cg_message = data_group.CreateChannelGroup(
           MakeGroupName("EthernetPacket"));
@@ -116,7 +116,7 @@ void MostConfigAdapter::CreateMostEthernetPacket(IDataGroup& data_group) {
   }
 }
 
-void MostConfigAdapter::CreateMostSignalState(IDataGroup& data_group) {
+void MostConfigAdapter::CreateMostSignalState(IDataGroup& data_group) const {
   if (IChannelGroup* cg_message = data_group.CreateChannelGroup(
           MakeGroupName("SignalState"));
       cg_message != nullptr) {
@@ -128,7 +128,7 @@ void MostConfigAdapter::CreateMostSignalState(IDataGroup& data_group) {
   }
 }
 
-void MostConfigAdapter::CreateMostMaxPosInfo(IDataGroup& data_group) {
+void MostConfigAdapter::CreateMostMaxPosInfo(IDataGroup& data_group) const {
   if (IChannelGroup* cg_message = data_group.CreateChannelGroup(
           MakeGroupName("MaxPosInfo"));
       cg_message != nullptr) {
@@ -140,7 +140,7 @@ void MostConfigAdapter::CreateMostMaxPosInfo(IDataGroup& data_group) {
   }
 }
 
-void MostConfigAdapter::CreateMostBoundDesc(IDataGroup& data_group) {
+void MostConfigAdapter::CreateMostBoundDesc(IDataGroup& data_group) const {
   if (IChannelGroup* cg_message = data_group.CreateChannelGroup(
           MakeGroupName("BoundDesc"));
       cg_message != nullptr) {
@@ -152,7 +152,7 @@ void MostConfigAdapter::CreateMostBoundDesc(IDataGroup& data_group) {
   }
 }
 
-void MostConfigAdapter::CreateMostAllocTable(IDataGroup& data_group) {
+void MostConfigAdapter::CreateMostAllocTable(IDataGroup& data_group) const {
   const IChannel* cn_data_byte = nullptr;
   if (IChannelGroup* cg_message = data_group.CreateChannelGroup(
           MakeGroupName("AllocTable"));
@@ -179,7 +179,7 @@ void MostConfigAdapter::CreateMostAllocTable(IDataGroup& data_group) {
 }
 
 
-void MostConfigAdapter::CreateMostSysLockState(IDataGroup& data_group) {
+void MostConfigAdapter::CreateMostSysLockState(IDataGroup& data_group) const {
   if (IChannelGroup* cg_message = data_group.CreateChannelGroup(
           MakeGroupName("SysLockState"));
       cg_message != nullptr) {
@@ -191,7 +191,7 @@ void MostConfigAdapter::CreateMostSysLockState(IDataGroup& data_group) {
   }
 }
 
-void MostConfigAdapter::CreateMostShutdownFlag(IDataGroup& data_group) {
+void MostConfigAdapter::CreateMostShutdownFlag(IDataGroup& data_group) const {
   if (IChannelGroup* cg_message = data_group.CreateChannelGroup(
           MakeGroupName("ShutdownFlag"));
       cg_message != nullptr) {
@@ -202,6 +202,7 @@ void MostConfigAdapter::CreateMostShutdownFlag(IDataGroup& data_group) {
     CreateSourceInformation(*cg_message);
   }
 }
+
 void MostConfigAdapter::CreateEthernetPacketChannel(IChannelGroup& channel_group) const {
   const bool mandatory_members_only = MandatoryMembersOnly();
   IChannel* parent_frame = channel_group.CreateChannel("MOST_EthernetPacket");
@@ -514,7 +515,7 @@ void MostConfigAdapter::CreateSbcChannel(IChannel& parent_channel,
                                           byte_offset, 0, 16);
       sbc != nullptr) {
     sbc->Flags(CnFlag::BusEvent);
-    sbc->Unit("bytes");
+    sbc->Unit("B");
 
     CnComment cn_comment("Synchronous Bandwidth Control. Width for synchronous area");
     sbc->SetCnComment(cn_comment);
@@ -543,7 +544,7 @@ void MostConfigAdapter::CreateFreeBytesChannel(IChannel& parent_channel,
       count != nullptr) {
     count->Flags(CnFlag::BusEvent);
 
-    CnUnit unit_comment("bytes");
+    CnUnit unit_comment("B");
     count->SetCnUnit(unit_comment);
 
     CnComment cn_comment("Number of free bytes on the synchronous channel.");
@@ -585,7 +586,7 @@ void MostConfigAdapter::CreateTableLengthChannel(IChannel& parent_channel,
       byte_offset,0, 16);
       length != nullptr ) {
     length->Flags(CnFlag::BusEvent);
-    length->Unit("bytes");
+    length->Unit("B");
   }
 }
 
@@ -737,7 +738,7 @@ void MostConfigAdapter::CreateSpecifiedBytesChannel(IChannel& parent_channel,
         byte_offset,0, 16);
       count != nullptr) {
     count->Flags(CnFlag::BusEvent);
-    count->Unit("bytes");
+    count->Unit("B");
   }
 }
 
@@ -749,7 +750,7 @@ void MostConfigAdapter::CreateReceivedBytesChannel(IChannel& parent_channel,
         byte_offset,0, 16);
       count != nullptr) {
     count->Flags(CnFlag::BusEvent);
-    count->Unit("bytes");
+    count->Unit("B");
   }
 }
 
@@ -761,7 +762,7 @@ void MostConfigAdapter::CreateDataLengthChannel(IChannel& parent_channel,
         byte_offset,0, 16);
       length != nullptr) {
     length->Flags(CnFlag::BusEvent);
-    length->Unit("bytes");
+    length->Unit("B");
   }
 }
 

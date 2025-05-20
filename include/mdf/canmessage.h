@@ -11,6 +11,7 @@
  */
 #pragma once
 
+#include <bitset>
 
 #include "mdf/samplerecord.h"
 
@@ -34,6 +35,8 @@ enum class MessageType : int {
 };
 
 class IChannel;
+class IChannelGroup;
+class IDataGroup;
 
 /** \brief Helper class when logging CAN and CAN FD messages.
  *
@@ -110,8 +113,8 @@ class CanMessage {
    * length and the DLC code so this function is normally not used.
    * @param data_length Number of payload data bytes.
    */
-  void DataLength(size_t data_length);
-  [[nodiscard]] size_t DataLength() const; ///< Returns number of data bytes.
+  void DataLength(uint8_t data_length);
+  [[nodiscard]] uint8_t DataLength() const; ///< Returns number of data bytes.
 
   /** \brief Sets the payload data bytes.
    *
@@ -123,11 +126,6 @@ class CanMessage {
 
   /** \brief Returns a reference to the payload data bytes. */
   [[nodiscard]] const std::vector<uint8_t>& DataBytes() const;
-
-  /** \brief Internal function for storing VLSD data offset. */
-  void DataIndex(uint64_t index);
-  /** \brief Internal function for the VLSD data offset. */
-  [[nodiscard]] uint64_t DataIndex() const;
 
   /** \brief If set true, the message was transmitted. */
   void Dir(bool transmit );
@@ -155,31 +153,51 @@ class CanMessage {
   void SingleWire(bool single_wire ); ///< Indicate a single wire CAN bus
   [[nodiscard]] bool SingleWire() const; ///< Indicate a single wire CAN bus
 
+  void R0(bool flag); ///< Optional R0 flag.
+  [[nodiscard]] bool R0() const; ///< Optional R0 flag
+
+  void R1(bool flag); ///< Optional R1 flag.
+  [[nodiscard]] bool R1() const; ///< Optional R1 flag
+
   void BusChannel(uint8_t channel); ///< Bus channel.
   [[nodiscard]] uint8_t BusChannel() const; ///< Bus channel.
 
-  void BitPosition(uint8_t position); ///< Error bit position (error frame).
-  [[nodiscard]] uint8_t BitPosition() const; ///< Error bit position.
+  void BitPosition(uint16_t position); ///< Error bit position (error frame).
+  [[nodiscard]] uint16_t BitPosition() const; ///< Error bit position.
 
   void ErrorType(CanErrorType error_type); ///< Type of error.
   [[nodiscard]] CanErrorType ErrorType() const; ///< Type of error.
+
+  void FrameDuration(uint32_t duration); ///< Frame duration in nano-seconds.
+  [[nodiscard]] uint32_t FrameDuration() const; ///< Frame duration in nano-seconds.
 
   static size_t DlcToLength(uint8_t dlc); ///< Return the data length by DLC.
 
   void Reset(); ///< Reset all flags an payload data buffers.
 
+  void DataGroup(const IDataGroup* data_group) const {
+    data_group_ = data_group;
+  }
+
+  void ChannelGroup(const IChannelGroup* channel_group) const {
+    channel_group_ = channel_group;
+  }
+
   /** \brief Creates an MDF sample record. Used primarily internally. */
   void ToRaw(MessageType msg_type, SampleRecord& sample,
              size_t max_data_length, bool save_index ) const;
  private:
+  uint8_t bus_channel_ = 0;
   uint32_t message_id_ = 0; ///< Message ID with bit 31 set if extended ID.
   uint8_t  dlc_ = 0; ///< Data length code.
-  uint8_t flags_ = 0; ///< All CAN flags.
-  uint64_t data_index_ = 0; ///< VLSD offset.
+  std::bitset<16> flags_;   ///< All CAN flags.
   std::vector<uint8_t> data_bytes_; ///< Payload data.
-  uint8_t bit_position_ = 0; ///< Error bit position.
-  uint8_t error_type_ = 0; ///< Error type.
+  uint16_t bit_position_ = 0; ///< Error bit position.
+  CanErrorType error_type_ = CanErrorType::UNKNOWN_ERROR; ///< Error type.
+  uint32_t frame_duration_ = 0;
 
+  mutable const IDataGroup* data_group_ = nullptr;
+  mutable const IChannelGroup* channel_group_ = nullptr;
 };
 
 }  // namespace mdf

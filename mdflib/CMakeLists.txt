@@ -154,6 +154,10 @@ add_library(mdf
         ../include/mdf/mostmessage.h
         src/mostconfigadapter.cpp
         ../include/mdf/mostconfigadapter.h
+        src/flexraymessage.cpp
+        ../include/mdf/flexraymessage.h
+        src/flexrayconfigadapter.cpp
+        ../include/mdf/flexrayconfigadapter.h
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})

@@ -9,7 +9,7 @@
 
 namespace mdf::test {
 
-class TestMostLogger : public testing::Test {
+class TestFlexRayLogger : public testing::Test {
  public:
   static void SetUpTestSuite();
   static void TearDownTestSuite();
@@ -17,4 +17,5 @@ class TestMostLogger : public testing::Test {
 };
 
 }  // namespace mdf
+
 

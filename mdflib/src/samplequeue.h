@@ -49,6 +49,8 @@ class SampleQueue {
                      const EthMessage& msg);
   void SaveMostMessage(const IChannelGroup& group,  uint64_t time,
                       const IMostEvent& msg);
+  void SaveFlexRayMessage(const IChannelGroup& group,  uint64_t time,
+                       const IFlexRayEvent& msg);
  protected:
   MdfWriter& writer_;
   IDataGroup& data_group_;

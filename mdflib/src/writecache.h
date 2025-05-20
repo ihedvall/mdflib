@@ -60,6 +60,10 @@ class WriteCache final {
                      const IChannelGroup& channel_group,
                      uint64_t time,
                      const IMostEvent& msg);
+ void SaveFlexRayMessage(const IDataGroup& data_group,
+                      const IChannelGroup& channel_group,
+                      uint64_t time,
+                      const IFlexRayEvent& msg);
  private:
   MdfWriter& writer_;
 

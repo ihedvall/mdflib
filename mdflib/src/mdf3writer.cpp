@@ -123,4 +123,10 @@ void Mdf3Writer::SaveMostMessage(const IDataGroup& data_group,
                                 const IMostEvent &msg) {
   write_cache_.SaveMostMessage(data_group, channel_group,time, msg);
 }
+
+void Mdf3Writer::SaveFlexRayMessage(const IDataGroup& data_group,
+                                 const IChannelGroup &channel_group, uint64_t time,
+                                 const IFlexRayEvent &msg) {
+  write_cache_.SaveFlexRayMessage(data_group, channel_group,time, msg);
+}
 }  // namespace mdf::detail

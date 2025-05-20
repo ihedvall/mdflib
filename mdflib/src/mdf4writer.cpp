@@ -205,6 +205,13 @@ void Mdf4Writer::SaveMostMessage(const IDataGroup& data_group,
   write_cache_.SaveMostMessage(data_group, channel_group,time, msg);
 }
 
+void Mdf4Writer::SaveFlexRayMessage(const IDataGroup& data_group,
+                                 const IChannelGroup &channel_group,
+                                 uint64_t time,
+                                 const IFlexRayEvent &msg) {
+  write_cache_.SaveFlexRayMessage(data_group, channel_group,time, msg);
+}
+
 void Mdf4Writer::InitWriteCache() {
   write_cache_.Init();
 }

@@ -40,6 +40,9 @@ class Mdf3Writer : public MdfWriter {
   void SaveMostMessage(const IDataGroup& data_group,
                       const IChannelGroup& group, uint64_t time,
                       const IMostEvent& msg) override;
+  void SaveFlexRayMessage(const IDataGroup& data_group,
+                       const IChannelGroup& group, uint64_t time,
+                       const IFlexRayEvent& msg) override;
  protected:
 
   void CreateMdfFile() override;

@@ -84,16 +84,6 @@ array<uint8_t>^ CanMessage::DataBytes::get() {
   }
 }
 
-void CanMessage::DataIndex::set(uint64_t index) {
-  if (msg_ != nullptr) {
-    msg_->DataIndex(index);
-  }
-}
-
-uint64_t CanMessage::DataIndex::get() {
-  return msg_ != nullptr ? static_cast<uint64_t>(msg_->DataLength()) : 0;
-}
-
 void CanMessage::Dir::set(bool transmit) {
   if (msg_ != nullptr) {
     msg_->Dir(transmit);

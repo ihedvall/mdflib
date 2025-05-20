@@ -323,13 +323,20 @@ IChannel* IConfigAdapter::CreateBitsChannel(IChannel& parent,
 std::string IConfigAdapter::MakeGroupName(
     const std::string_view& base_name) const {
   std::ostringstream name;
+  std::string bus_name = bus_name_;
+  if (bus_name == "FlexRay" || bus_name == "FlxRay") {
+    bus_name = "FLX";
+  } else if (bus_name.find("CAN") != std::string::npos) {
+    // Filter out any CANFD bus types
+    bus_name = "CAN";
+  }
   switch (filter_type_) {
     case MessageFilter::ChannelFilter:
-      name << bus_name_ << bus_channel_ << "_" << base_name;
+      name << bus_name << bus_channel_ << "_" << base_name;
       break;
 
     case MessageFilter::MessageIdFilter:
-      name << bus_name_;
+      name << bus_name;
       if (bus_channel_ > 0) {
         name << bus_channel_;
       }
@@ -338,7 +345,7 @@ std::string IConfigAdapter::MakeGroupName(
       break;
 
     default:
-      name << bus_name_ << "_" << base_name;
+      name << bus_name << "_" << base_name;
       break;
   }
   return name.str();
@@ -372,5 +379,32 @@ IChannel* IConfigAdapter::CreateBusChannel( IChannel& parent_channel) const {
   return frame_bus;
 }
 
+IChannel* IConfigAdapter::CreateSubChannel(IChannel& parent_channel,
+                                                     const std::string_view& sub_name,
+                                                     uint32_t byte_offset,
+                                                     uint16_t bit_offset,
+                                                     uint32_t nof_bits) const {
+  std::ostringstream name;
+  name << parent_channel.Name() << "." << sub_name;
+  IChannel* sub_channel = nullptr;
+
+  switch (nof_bits) {
+    case 0:
+      break;
+    case 1:
+      sub_channel = CreateBitChannel(parent_channel, name.str(),
+                                     byte_offset,bit_offset);
+      break;
+
+    default:
+      sub_channel = CreateBitsChannel(parent_channel, name.str(),
+                                      byte_offset,bit_offset, nof_bits);
+      break;
+  }
+  if (sub_channel != nullptr ) {
+    sub_channel->Flags(CnFlag::BusEvent);
+  }
+  return sub_channel;
+}
 
 }  // namespace mdf

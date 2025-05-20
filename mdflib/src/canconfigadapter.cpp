@@ -2,6 +2,7 @@
 * Copyright 2025 Ingemar Hedvall
 * SPDX-License-Identifier: MIT
  */
+#include <sstream>
 
 #include "mdf/canconfigadapter.h"
 #include "mdf/ichannelgroup.h"
@@ -19,6 +20,11 @@ CanConfigAdapter::CanConfigAdapter(const MdfWriter& writer)
 
 void CanConfigAdapter::CreateConfig(IDataGroup& dg_block) {
   const bool mandatory_only = MandatoryMembersOnly();
+  dg_block.MandatoryMembersOnly(mandatory_only);
+
+  if (StorageType() == MdfStorageType::MlsdStorage && MaxLength() < 8) {
+    MaxLength(8);
+  }
   // The cn_data_byte points to the channel that defines the raw data bytes.
   // This channel may be updated later to pint to the CG VLSD group.
   const IChannel* cn_data_byte = nullptr;
@@ -31,6 +37,8 @@ void CanConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     CreateCanDataFrameChannel(*cg_data_frame);
     cn_data_byte = cg_data_frame->GetChannel("CAN_DataFrame.DataBytes");
     CreateSourceInformation(*cg_data_frame);
+    cg_data_frame->MaxLength(MaxLength());
+    cg_data_frame->StorageType(StorageType());
   }
 
   if (StorageType() == MdfStorageType::VlsdStorage && cn_data_byte != nullptr) {
@@ -39,14 +47,16 @@ void CanConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     // creates a valid record ID.
     // The VLSD CG group doesn't have any channels.
 
-    if (auto* cg_samples_frame = dg_block.CreateChannelGroup("");
+    if (IChannelGroup* cg_samples_frame = dg_block.CreateChannelGroup("");
         cg_samples_frame != nullptr) {
       cg_samples_frame->Flags(CgFlag::VlsdChannel);
+      cg_samples_frame->MaxLength(MaxLength());
+      cg_samples_frame->StorageType(StorageType());
       cn_data_byte->VlsdRecordId(cg_samples_frame->RecordId());
     }
   }
 
-  if (auto* cg_remote_frame = dg_block.CreateChannelGroup(
+  if (IChannelGroup* cg_remote_frame = dg_block.CreateChannelGroup(
           MakeGroupName("RemoteFrame"));
       cg_remote_frame != nullptr) {
     // The remote frame doesn't store any data bytes.
@@ -55,11 +65,13 @@ void CanConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     CreateTimeChannel(*cg_remote_frame,"t");
     CreateCanRemoteFrameChannel(*cg_remote_frame);
     CreateSourceInformation(*cg_remote_frame);
+    cg_remote_frame->MaxLength(MaxLength());
+    cg_remote_frame->StorageType(StorageType());
   }
 
   // Similar to the data frame, the error frame may store data bytes.
   const IChannel* cn_error_byte = nullptr;
-  if (auto* cg_error_frame = dg_block.CreateChannelGroup(
+  if (IChannelGroup* cg_error_frame = dg_block.CreateChannelGroup(
           MakeGroupName("ErrorFrame"));
       cg_error_frame != nullptr) {
     cg_error_frame->PathSeparator('.');
@@ -68,6 +80,8 @@ void CanConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     CreateCanErrorFrameChannel(*cg_error_frame);
     cn_error_byte = cg_error_frame->GetChannel("CAN_ErrorFrame.DataBytes");
     CreateSourceInformation(*cg_error_frame);
+    cg_error_frame->MaxLength(MaxLength());
+    cg_error_frame->StorageType(StorageType());
   }
 
   if (StorageType() == MdfStorageType::VlsdStorage && cn_error_byte != nullptr) {
@@ -75,6 +89,8 @@ void CanConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     if (auto* cg_errors_frame = dg_block.CreateChannelGroup("");
         cg_errors_frame != nullptr) {
       cg_errors_frame->Flags(CgFlag::VlsdChannel);
+      cg_errors_frame->MaxLength(MaxLength());
+      cg_errors_frame->StorageType(StorageType());
       cn_error_byte->VlsdRecordId(cg_errors_frame->RecordId());
     }
   }
@@ -84,7 +100,7 @@ void CanConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     return;
   }
 
-  if (auto* cg_overload_frame = dg_block.CreateChannelGroup(
+  if (IChannelGroup* cg_overload_frame = dg_block.CreateChannelGroup(
           MakeGroupName("OverloadFrame"));
       cg_overload_frame != nullptr) {
     cg_overload_frame->PathSeparator('.');
@@ -92,11 +108,14 @@ void CanConfigAdapter::CreateConfig(IDataGroup& dg_block) {
     CreateTimeChannel(*cg_overload_frame,"t");
     CreateCanOverloadFrameChannel(*cg_overload_frame);
     CreateSourceInformation(*cg_overload_frame);
+    cg_overload_frame->MaxLength(MaxLength());
+    cg_overload_frame->StorageType(StorageType());
   }
 }
 
 void CanConfigAdapter::CreateCanDataFrameChannel(IChannelGroup& group) const {
-  auto* cn_data_frame = group.CreateChannel("CAN_DataFrame");
+  const bool mandatory_only = MandatoryMembersOnly();
+  IChannel* cn_data_frame = group.CreateChannel("CAN_DataFrame");
   if (cn_data_frame == nullptr) {
     MDF_ERROR() << "Failed to create the CAN_DataFrame channel.";
     return;
@@ -107,13 +126,14 @@ void CanConfigAdapter::CreateCanDataFrameChannel(IChannelGroup& group) const {
   switch (StorageType()) {
     // In reality,  MLSD storage should have max length equal to 8.
     case MdfStorageType::MlsdStorage:
-      cn_data_frame->DataBytes(6 + writer_.MaxLength());
+      cn_data_frame->DataBytes(mandatory_only ? (23 - 16) + writer_.MaxLength() :
+                                (28 - 16) + writer_.MaxLength());
       break;
 
     case MdfStorageType::FixedLengthStorage:
     case MdfStorageType::VlsdStorage:
     default:
-      cn_data_frame->DataBytes(6 + 8); // Index into SD or VLSD
+      cn_data_frame->DataBytes(mandatory_only ? 23 - 8 : 28 - 8); // Index into SD or VLSD
       break;
   }
   cn_data_frame->Flags(CnFlag::BusEvent);
@@ -122,201 +142,77 @@ void CanConfigAdapter::CreateCanDataFrameChannel(IChannelGroup& group) const {
     CreateSourceInformation(*cn_data_frame);
   }
 
-  if (auto* frame_bus = cn_data_frame->CreateChannelComposition("CAN_DataFrame.BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0,15);
-    frame_bus->ByteOffset(8+4);
-    frame_bus->BitOffset(4);
-    frame_bus->BitCount(4);
+  CreateBusChannel(*cn_data_frame);
+  CreateBitsChannel(*cn_data_frame,"CAN_DataFrame.ID", 9,0, 29);
+  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.IDE", 12, 7);
+  CreateBitsChannel(*cn_data_frame, "CAN_DataFrame.DLC", 13, 0, 4);
+  if (IChannel* length = CreateBitsChannel(*cn_data_frame, "CAN_DataFrame.DataLength", 14, 0, 8);
+    length != nullptr) {
+    length->Unit("B");
+  }
+  if (mandatory_only) {
+   CreateDataBytesChannel(*cn_data_frame, 15);
+   return;
   }
 
-  if (auto* frame_id = cn_data_frame->CreateChannelComposition("CAN_DataFrame.ID");
-      frame_id != nullptr) {
-    frame_id->Type(ChannelType::FixedLength);
-    frame_id->Sync(ChannelSyncType::None);
-    frame_id->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_id->Flags(CnFlag::BusEvent);
-    frame_id->ByteOffset(8);
-    frame_id->BitOffset(0);
-    frame_id->BitCount(29);
+  CreateDirChannel(*cn_data_frame, 13, 4);
+  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.SRR", 13, 5);
+  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.EDL", 13, 6);
+  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.BRS", 13, 7);
+  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.ESI", 15, 0);
+  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.WakeUp", 15, 1);
+  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.SingleWire", 15, 2);
+  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.R0", 15, 3);
+  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.R1", 15, 4);
+  if (IChannel* duration = CreateBitsChannel(*cn_data_frame, "CAN_DataFrame.FrameDuration", 16, 0, 32);
+    duration != nullptr) {
+    duration->Unit("ns");
   }
-  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.IDE", 8 + 3, 7);
-
-  if (auto* frame_dlc = cn_data_frame->CreateChannelComposition(
-      "CAN_DataFrame.DLC");
-      frame_dlc != nullptr) {
-    frame_dlc->Type(ChannelType::FixedLength);
-    frame_dlc->Sync(ChannelSyncType::None);
-    frame_dlc->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_dlc->Flags(CnFlag::BusEvent);
-    frame_dlc->ByteOffset(8+4);
-    frame_dlc->BitOffset(0);
-    frame_dlc->BitCount(4);
-  }
-
-  if (auto* frame_length = cn_data_frame->CreateChannelComposition(
-      "CAN_DataFrame.DataLength");
-      frame_length != nullptr) {
-    frame_length->Type(ChannelType::FixedLength);
-    frame_length->Sync(ChannelSyncType::None);
-    frame_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_length->Flags(CnFlag::BusEvent);
-    frame_length->ByteOffset(8+4);
-    frame_length->BitOffset(0);
-    frame_length->BitCount(4);
-
-    if (auto* cc_length = frame_length->CreateChannelConversion();
-        cc_length != nullptr) {
-      cc_length->Type(ConversionType::ValueToValue);
-      uint16_t index = 0;
-      for (uint8_t key = 0; key < 16; ++key) {
-        cc_length->Parameter(index++,static_cast<double>(key));
-        cc_length->Parameter(index++,
-                             static_cast<double>(CanMessage::DlcToLength(key)));
-      }
-    }
-  }
-
-  if (auto* frame_bytes = cn_data_frame->CreateChannelComposition(
-      "CAN_DataFrame.DataBytes");
-      frame_bytes != nullptr) {
-
-    switch(StorageType()) {
-      case MdfStorageType::MlsdStorage:
-        frame_bytes->Type(ChannelType::MaxLength);
-        frame_bytes->BitCount(8 * writer_.MaxLength());
-        break;
-
-      case MdfStorageType::VlsdStorage:
-      default:
-        frame_bytes->Type(ChannelType::VariableLength);
-        frame_bytes->BitCount(8 * 8); // Index to SD or VLSD CG block
-        break;
-    }
-    frame_bytes->Sync(ChannelSyncType::None);
-    frame_bytes->DataType(ChannelDataType::ByteArray);
-    frame_bytes->Flags(CnFlag::BusEvent);
-    frame_bytes->ByteOffset(8+6);
-    frame_bytes->BitOffset(0);
-  }
-
-  if (auto* dir = CreateBitChannel(*cn_data_frame,"CAN_DataFrame.Dir", 8 + 5, 0);
-      dir != nullptr) {
-    // Add Rx(0) Tx(1) CC block
-    if (auto* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, ""); // Default text
-    }
-  }
-
-  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.SRR", 8 + 5, 1);
-  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.EDL", 8 + 5, 2);
-  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.BRS", 8 + 5, 3);
-  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.ESI", 8 + 5, 4);
-  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.WakeUp", 8 + 5, 5);
-  CreateBitChannel(*cn_data_frame,"CAN_DataFrame.SingleWire", 8 + 5, 6);
+  CreateDataBytesChannel(*cn_data_frame, 20 );
 }
 
 void CanConfigAdapter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
-  auto* cn_remote_frame = group.CreateChannel("CAN_RemoteFrame");
+  const bool mandatory_only = MandatoryMembersOnly();
+  IChannel* cn_remote_frame = group.CreateChannel("CAN_RemoteFrame");
   if (cn_remote_frame == nullptr) {
-    MDF_ERROR() << "Failed to create the CAN_DataFrame channel.";
+    MDF_ERROR() << "Failed to create the CAN_RemoteFrame channel.";
     return;
   }
   cn_remote_frame->Type(ChannelType::FixedLength);
   cn_remote_frame->Sync(ChannelSyncType::None);
   cn_remote_frame->DataType(ChannelDataType::ByteArray);
-  cn_remote_frame->DataBytes(6);
+  cn_remote_frame->DataBytes(mandatory_only ? 15 - 8 : 20 - 8);
   cn_remote_frame->Flags(CnFlag::BusEvent);
 
-  if (auto* frame_bus = cn_remote_frame->CreateChannelComposition(
-      "CAN_RemoteFrame.BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->ByteOffset(8+4);
-    frame_bus->BitOffset(4);
-    frame_bus->BitCount(4);
-    frame_bus->Flags(CnFlag::BusEvent);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_remote_frame);
+  }
+  CreateBusChannel(*cn_remote_frame);
+  CreateBitsChannel(*cn_remote_frame,"CAN_RemoteFrame.ID", 9,0, 29);
+  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.IDE", 12, 7);
+  CreateBitsChannel(*cn_remote_frame, "CAN_RemoteFrame.DLC", 13, 0, 4);
+  if (IChannel* length = CreateBitsChannel(*cn_remote_frame, "CAN_RemoteFrame.DataLength", 14, 0, 8);
+    length != nullptr ) {
+    length->Unit("B");
   }
 
-  if (auto* frame_id = cn_remote_frame->CreateChannelComposition(
-      "CAN_RemoteFrame.ID");
-      frame_id != nullptr) {
-    frame_id->Type(ChannelType::FixedLength);
-    frame_id->Sync(ChannelSyncType::None);
-    frame_id->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_id->ByteOffset(8);
-    frame_id->BitOffset(0);
-    frame_id->BitCount(29);
-    frame_id->Flags(CnFlag::BusEvent);
+  if (mandatory_only) {
+    return;
   }
-  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.IDE", 8 + 3, 7);
-
-  if (auto* frame_dlc = cn_remote_frame->CreateChannelComposition(
-      "CAN_RemoteFrame.DLC");
-      frame_dlc != nullptr) {
-    frame_dlc->Type(ChannelType::FixedLength);
-    frame_dlc->Sync(ChannelSyncType::None);
-    frame_dlc->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_dlc->ByteOffset(8+4);
-    frame_dlc->BitOffset(0);
-    frame_dlc->BitCount(4);
-    frame_dlc->Flags(CnFlag::BusEvent);
+  CreateDirChannel(*cn_remote_frame, 13,4);
+  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.SRR", 13, 5);
+  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.WakeUp", 13, 6);
+  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.SingleWire", 13, 7);
+  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.R0", 15, 0);
+  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.R1", 15, 1);
+  if (IChannel* duration = CreateBitsChannel(*cn_remote_frame, "CAN_RemoteFrame.FrameDuration", 16, 0, 32);
+    duration != nullptr) {
+    duration->Unit("ns");
   }
-
-  if (auto* frame_length = cn_remote_frame->CreateChannelComposition(
-      "CAN_RemoteFrame.DataLength");
-      frame_length != nullptr) {
-    frame_length->Type(ChannelType::FixedLength);
-    frame_length->Sync(ChannelSyncType::None);
-    frame_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_length->ByteOffset(8+4);
-    frame_length->BitOffset(0);
-    frame_length->BitCount(4);
-    frame_length->Flags(CnFlag::BusEvent);
-    if (auto* cc_length = frame_length->CreateChannelConversion();
-        cc_length != nullptr) {
-      cc_length->Type(ConversionType::ValueToValue);
-      uint16_t index = 0;
-      for (uint8_t key = 0; key < 16; ++key) {
-        cc_length->Parameter(index++,static_cast<double>(key));
-        cc_length->Parameter(index++,
-                             static_cast<double>(CanMessage::DlcToLength(key)));
-      }
-    }
-  }
-
-  if (auto* dir = CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.Dir", 8 + 5, 0);
-      dir != nullptr) {
-    // Add Rx(0) Tx(1) CC block
-    if (auto* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, "");  // Default text
-    }
-  }
-  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.SRR", 8 + 5, 1);
-  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.WakeUp", 8 + 5, 5);
-  CreateBitChannel(*cn_remote_frame,"CAN_RemoteFrame.SingleWire", 8 + 5, 6);
 }
 
 void CanConfigAdapter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
-  auto* cn_error_frame = group.CreateChannel("CAN_ErrorFrame");
+  IChannel* cn_error_frame = group.CreateChannel("CAN_ErrorFrame");
   if (cn_error_frame == nullptr) {
     MDF_ERROR() << "Failed to create the CAN_ErrorFrame channel.";
     return;
@@ -327,141 +223,39 @@ void CanConfigAdapter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
   cn_error_frame->DataType(ChannelDataType::ByteArray);
 
   if (StorageType() == MdfStorageType::MlsdStorage) {
-    cn_error_frame->DataBytes(8 + writer_.MaxLength());
+    cn_error_frame->DataBytes((30 - 16) + writer_.MaxLength());
   } else {
-    cn_error_frame->DataBytes(8 + 8); // Index into SD or VLSD
+    cn_error_frame->DataBytes(30 - 8); // Index into SD or VLSD
   }
 
-  if (auto* frame_bus = cn_error_frame->CreateChannelComposition(
-      "CAN_ErrorFrame.BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->ByteOffset(8+4);
-    frame_bus->BitOffset(4);
-    frame_bus->BitCount(4);
-    frame_bus->Flags(CnFlag::BusEvent);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_error_frame);
   }
 
-  if (auto* frame_id = cn_error_frame->CreateChannelComposition(
-      "CAN_ErrorFrame.ID");
-      frame_id != nullptr) {
-    frame_id->Type(ChannelType::FixedLength);
-    frame_id->Sync(ChannelSyncType::None);
-    frame_id->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_id->ByteOffset(8);
-    frame_id->BitOffset(0);
-    frame_id->BitCount(29);
-    frame_id->Flags(CnFlag::BusEvent);
+  CreateBusChannel(*cn_error_frame);
+  CreateBitsChannel(*cn_error_frame,"CAN_ErrorFrame.ID", 9,0, 29);
+  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.IDE", 12, 7);
+  CreateBitsChannel(*cn_error_frame, "CAN_ErrorFrame.DLC", 13, 0, 4);
+  if (IChannel* length = CreateBitsChannel(*cn_error_frame, "CAN_ErrorFrame.DataLength", 14, 0, 8);
+    length != nullptr) {
+    length->Unit("B");
   }
-  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.IDE", 8 + 3, 7);
-
-  if (auto* frame_dlc = cn_error_frame->CreateChannelComposition(
-      "CAN_ErrorFrame.DLC");
-      frame_dlc != nullptr) {
-    frame_dlc->Type(ChannelType::FixedLength);
-    frame_dlc->Sync(ChannelSyncType::None);
-    frame_dlc->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_dlc->ByteOffset(8+4);
-    frame_dlc->BitOffset(0);
-    frame_dlc->BitCount(4);
-    frame_dlc->Flags(CnFlag::BusEvent);
+  CreateDirChannel(*cn_error_frame, 13, 4);
+  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.SRR", 13, 5);
+  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.EDL", 13, 6);
+  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.BRS", 13, 7);
+  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.ESI", 15, 0);
+  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.WakeUp", 15, 1);
+  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.SingleWire", 15, 2);
+  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.R0", 15, 3);
+  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.R1", 15, 4);
+  CreateErrorTypeChannel(*cn_error_frame, 15, 5);
+  if (IChannel* duration = CreateBitsChannel(*cn_error_frame, "CAN_ErrorFrame.FrameDuration", 16, 0, 32);
+    duration != nullptr ) {
+    duration->Unit("ns");
   }
-
-  if (auto* frame_length = cn_error_frame->CreateChannelComposition(
-      "CAN_ErrorFrame.DataLength");
-      frame_length != nullptr) {
-    frame_length->Type(ChannelType::FixedLength);
-    frame_length->Sync(ChannelSyncType::None);
-    frame_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_length->ByteOffset(8+4);
-    frame_length->BitOffset(0);
-    frame_length->BitCount(4);
-    frame_length->Flags(CnFlag::BusEvent);
-    if (writer_.MaxLength() > 8) {
-      if (auto* cc_length = frame_length->CreateChannelConversion();
-          cc_length != nullptr) {
-        cc_length->Type(ConversionType::ValueToValue);
-        uint16_t index = 0;
-        for (uint8_t key = 0; key < 16; ++key) {
-          cc_length->Parameter(index++,static_cast<double>(key));
-          cc_length->Parameter(index++,
-                               static_cast<double>(CanMessage::DlcToLength(key)));
-        }
-        cc_length->Parameter(index, 0.0);
-      }
-    }
-  }
-
-  if (auto* frame_bytes = cn_error_frame->CreateChannelComposition(
-      "CAN_ErrorFrame.DataBytes");
-      frame_bytes != nullptr) {
-
-    frame_bytes->Sync(ChannelSyncType::None);
-    frame_bytes->DataType(ChannelDataType::ByteArray);
-    frame_bytes->ByteOffset(8+8);
-    frame_bytes->BitOffset(0);
-    frame_bytes->Flags(CnFlag::BusEvent);
-
-    switch(StorageType()) {
-      case MdfStorageType::MlsdStorage:
-        frame_bytes->Type(ChannelType::MaxLength);
-        frame_bytes->BitCount(8 * writer_.MaxLength());
-        break;
-
-      case MdfStorageType::VlsdStorage:
-      default:
-        frame_bytes->Type(ChannelType::VariableLength);
-        frame_bytes->BitCount(8 * 8); // Index to SD block
-        break;
-    }
-  }
-
-  if (auto* dir = CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.Dir", 8 + 5, 0);
-      dir != nullptr) {
-    // Add Rx(0) Tx(1) CC block
-    if (auto* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, "");  // Default text
-    }
-  }
-  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.RTR", 8 + 5, 7);
-  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.SRR", 8 + 5, 1);
-  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.EDL", 8 + 5, 2);
-  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.BRS", 8 + 5, 3);
-  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.ESI", 8 + 5, 4);
-  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.WakeUp", 8 + 5, 5);
-  CreateBitChannel(*cn_error_frame,"CAN_ErrorFrame.SingleWire", 8 + 5, 6);
-
-  if (auto* frame_bit_position = cn_error_frame->CreateChannelComposition(
-      "CAN_ErrorFrame.BitPosition");
-      frame_bit_position != nullptr) {
-    frame_bit_position->Type(ChannelType::FixedLength);
-    frame_bit_position->Sync(ChannelSyncType::None);
-    frame_bit_position->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bit_position->ByteOffset(8+6);
-    frame_bit_position->BitOffset(0);
-    frame_bit_position->BitCount(8);
-    frame_bit_position->Flags(CnFlag::BusEvent);
-  }
-
-  if (auto* frame_error_type = cn_error_frame->CreateChannelComposition(
-      "CAN_ErrorFrame.ErrorType");
-      frame_error_type != nullptr) {
-    frame_error_type->Type(ChannelType::FixedLength);
-    frame_error_type->Sync(ChannelSyncType::None);
-    frame_error_type->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_error_type->ByteOffset(8+7);
-    frame_error_type->BitOffset(0);
-    frame_error_type->BitCount(8);
-    frame_error_type->Flags(CnFlag::BusEvent);
-  }
+  CreateBitsChannel(*cn_error_frame, "CAN_ErrorFrame.BitPosition", 20, 0, 16);
+  CreateDataBytesChannel(*cn_error_frame, 22 );
 }
 
 void CanConfigAdapter::CreateCanOverloadFrameChannel(IChannelGroup& group) {
@@ -473,37 +267,96 @@ void CanConfigAdapter::CreateCanOverloadFrameChannel(IChannelGroup& group) {
   cn_overload_frame->Type(ChannelType::FixedLength);
   cn_overload_frame->Sync(ChannelSyncType::None);
   cn_overload_frame->DataType(ChannelDataType::ByteArray);
-  cn_overload_frame->DataBytes(1);
+  cn_overload_frame->DataBytes(2);
   cn_overload_frame->Flags(CnFlag::BusEvent);
 
-  if (auto* frame_bus = cn_overload_frame->CreateChannelComposition(
-      "CAN_OverloadFrame.BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->ByteOffset(8);
-    frame_bus->BitOffset(4);
-    frame_bus->BitCount(4);
-    frame_bus->Flags(CnFlag::BusEvent);
+  if (!network_name_.empty()) {
+    CreateSourceInformation(*cn_overload_frame);
   }
+  CreateBusChannel(*cn_overload_frame);
+  CreateDirChannel(*cn_overload_frame, 9, 0);
+}
 
-  if (auto* dir = CreateBitChannel(*cn_overload_frame,"CAN_OverloadFrame.Dir", 8 + 0, 0);
-      dir != nullptr) {
+IChannel* CanConfigAdapter::CreateDataBytesChannel(IChannel& parent_channel,
+                                                   uint16_t byte_offset) const {
+  std::ostringstream name;
+  name << parent_channel.Name() << ".DataBytes";
+  IChannel* frame_bytes = parent_channel.CreateChannelComposition(name.str());
+  if (frame_bytes != nullptr) {
+
+    switch(StorageType()) {
+      case MdfStorageType::MlsdStorage:
+        frame_bytes->Type(ChannelType::MaxLength);
+        frame_bytes->BitCount(8 * writer_.MaxLength());
+        break;
+
+      case MdfStorageType::VlsdStorage:
+      default:
+        frame_bytes->Type(ChannelType::VariableLength);
+        frame_bytes->BitCount(64); // Index to SD or VLSD CG block
+        break;
+    }
+    frame_bytes->Sync(ChannelSyncType::None);
+    frame_bytes->DataType(ChannelDataType::ByteArray);
+    frame_bytes->Flags(CnFlag::BusEvent);
+    frame_bytes->ByteOffset(byte_offset);
+    frame_bytes->BitOffset(0);
+  }
+  return frame_bytes;
+}
+
+IChannel* CanConfigAdapter::CreateDirChannel(IChannel& parent_channel,
+                                             uint16_t byte_offset,
+                                             uint8_t bit_offset) const {
+  std::ostringstream name;
+  name << parent_channel.Name() << ".Dir";
+
+  IChannel* dir = CreateBitChannel(parent_channel,name.str(),
+                                   byte_offset, bit_offset);
+  if ( dir != nullptr) {
     // Add Rx(0) Tx(1) CC block
-    auto* cc_dir = dir->CreateChannelConversion();
-    if (cc_dir != nullptr) {
+    if (IChannelConversion* cc_dir = dir->CreateChannelConversion();
+        cc_dir != nullptr) {
+      cc_dir->Name("DirectionEnum");
       cc_dir->Type(ConversionType::ValueToText);
       cc_dir->Parameter(0, 0.0);
       cc_dir->Parameter(1, 1.0);
       cc_dir->Reference(0, "Rx");
       cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, "");  // Default text
+      cc_dir->Reference(2, ""); // Default text
     }
   }
-
+  return dir;
 }
 
+IChannel* CanConfigAdapter::CreateErrorTypeChannel(IChannel& parent_channel,
+                                             uint16_t byte_offset,
+                                             uint8_t bit_offset) const {
+  std::ostringstream name;
+  name << parent_channel.Name() << ".ErrorType";
 
-
+  IChannel* type = CreateBitsChannel(parent_channel,name.str(),
+                                   byte_offset, bit_offset, 3);
+  if ( type != nullptr) {
+    if (IChannelConversion* cc_type = type->CreateChannelConversion();
+        cc_type != nullptr) {
+      cc_type->Name("ErrorTypeEnum");
+      cc_type->Type(ConversionType::ValueToText);
+      cc_type->Parameter(0, 0.0);
+      cc_type->Parameter(1, 1.0);
+      cc_type->Parameter(2, 2.0);
+      cc_type->Parameter(3, 3.0);
+      cc_type->Parameter(4, 4.0);
+      cc_type->Parameter(5, 5.0);
+      cc_type->Reference(0, "Unknown");
+      cc_type->Reference(1, "Bit");
+      cc_type->Reference(2, "Format");
+      cc_type->Reference(3, "Bit Stuffing");
+      cc_type->Reference(4, "CRC");
+      cc_type->Reference(5, "ACK");
+      cc_type->Reference(6, ""); // Default text
+    }
+  }
+  return type;
+}
 }  // namespace mdf

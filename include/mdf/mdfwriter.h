@@ -17,7 +17,7 @@
 #include "mdf/canmessage.h"
 #include "mdf/linmessage.h"
 #include "mdf/ethmessage.h"
-#include "mdf/mostmessage.h"
+
 /** \file mdfwriter.h
  * \brief Interface against an MDF writer object.
  */
@@ -45,6 +45,8 @@ class IChannelGroup;
 class IChannel;
 class IChannelConversion;
 class IDataGroup;
+class IMostEvent;
+class IFlexRayEvent;
 
 namespace detail {
 class SampleQueue;
@@ -265,6 +267,10 @@ class MdfWriter {
                                const IChannelGroup& channel_group,
                                uint64_t time,
                                const IMostEvent& msg) = 0;
+  virtual void SaveFlexRayMessage(const IDataGroup& data_group,
+                               const IChannelGroup& channel_group,
+                               uint64_t time,
+                               const IFlexRayEvent& msg) = 0;
   /** \brief Starts the measurement. */
   virtual void StartMeasurement(uint64_t start_time);
   

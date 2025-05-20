@@ -4,17 +4,17 @@
  */
 
 #pragma once
-
 #include <gtest/gtest.h>
 
 namespace mdf::test {
 
-class TestMostLogger : public testing::Test {
+class TestLinLogger : public testing::Test {
  public:
   static void SetUpTestSuite();
   static void TearDownTestSuite();
 
 };
 
-}  // namespace mdf
+} // mdf
+
 

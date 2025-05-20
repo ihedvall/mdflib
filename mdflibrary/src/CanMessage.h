@@ -38,7 +38,7 @@ public:
     void set(array<uint8_t>^ dataList);
     array<uint8_t>^ get();
   }
-  property uint64_t DataIndex { void set(uint64_t index); uint64_t get();}
+
   property bool Dir { void set(bool transmit); bool get();}
   property bool Srr { void set(bool srr); bool get();}
   property bool Edl { void set(bool edl); bool get();}

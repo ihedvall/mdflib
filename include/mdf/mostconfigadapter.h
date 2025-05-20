@@ -42,7 +42,7 @@ class MostConfigAdapter : public IConfigAdapter {
   * <tr><td>16-17</td><td>Received Number of Data Bytes (16-bit)</td></tr>
   * <tr><td>18-19</td><td>Number of Data Bytes (16-bit)</td></tr>
   * <tr><td>20-27</td><td>Offset to VLSD/SD (64-bit). Must be last</td></tr>
-  * <tr><td colspan=2>Non-Mandatory Members</td></tr>
+  * <tr><td colspan="2">Non-Mandatory Members</td></tr>
   * <tr><td>20-23</td><td>CRC checksum (32-bit)</td></tr>
   * <tr><td>24:0-2</td><td>Complete ACK (enumerate)</td></tr>
   * <tr><td>24:3-5</td><td>Pre-emptive ACK (enumerate)</td></tr>
@@ -54,7 +54,7 @@ class MostConfigAdapter : public IConfigAdapter {
   * </table>
   * @param data_group Reference to the data group.
   */
-  void CreateMostMessage(IDataGroup& data_group);
+  void CreateMostMessage(IDataGroup& data_group) const;
 
   /** \brief Creates the MOST_EthernetPacket channel group.
  *
@@ -79,7 +79,7 @@ class MostConfigAdapter : public IConfigAdapter {
  * <tr><td>24-25</td><td>Received Number of Data Bytes (16-bit)</td></tr>
  * <tr><td>26-27</td><td>Number of Data Bytes (16-bit)</td></tr>
  * <tr><td>28-35</td><td>Offset to VLSD/SD (64-bit)</td></tr>
- * <tr><td colspan=2>Non-Mandatory Members</td></tr>
+ * <tr><td colspan="2">Non-Mandatory Members</td></tr>
  * <tr><td>28-31</td><td>CRC checksum (32-bit)</td></tr>
  * <tr><td>32:0-2</td><td>Complete ACK (enumerate)</td></tr>
  * <tr><td>32:3-5</td><td>Pre-emptive ACK (enumerate)</td></tr>
@@ -88,7 +88,7 @@ class MostConfigAdapter : public IConfigAdapter {
  * </table>
  * @param data_group Reference to the data group.
    */
-  void CreateMostEthernetPacket(IDataGroup& data_group);
+  void CreateMostEthernetPacket(IDataGroup& data_group) const;
 
   /** \brief Creates the MOST_Packet channel group.
  *
@@ -110,7 +110,7 @@ class MostConfigAdapter : public IConfigAdapter {
  * <tr><td>16-17</td><td>Received Number of Data Bytes (16-bit)</td></tr>
  * <tr><td>18-19</td><td>Number of Data Bytes (16-bit)</td></tr>
  * <tr><td>20-27</td><td>Offset to VLSD/SD (64-bit)</td></tr>
- * <tr><td colspan=2>Non-Mandatory Members</td></tr>
+ * <tr><td colspan="2">Non-Mandatory Members</td></tr>
  * <tr><td>20-23</td><td>CRC checksum (32-bit)</td></tr>
  * <tr><td>24:0-2</td><td>Complete ACK (enumerate)</td></tr>
  * <tr><td>24:3-5</td><td>Pre-emptive ACK (enumerate)</td></tr>
@@ -120,7 +120,7 @@ class MostConfigAdapter : public IConfigAdapter {
  * </table>
  * @param data_group Reference to the data group.
    */
-  void CreateMostPacket(IDataGroup& data_group);
+  void CreateMostPacket(IDataGroup& data_group) const ;
 
  /** \brief Creates the MOST_SignalState channel group.
  *
@@ -137,7 +137,7 @@ class MostConfigAdapter : public IConfigAdapter {
  * </table>
  * @param data_group Reference to the data group.
    */
-  void CreateMostSignalState(IDataGroup& data_group);
+  void CreateMostSignalState(IDataGroup& data_group) const;
 
   /** \brief Creates the MOST_MaxPosInfo channel group.
  *
@@ -154,7 +154,7 @@ class MostConfigAdapter : public IConfigAdapter {
  * </table>
  * @param data_group Reference to the data group.
    */
-  void CreateMostMaxPosInfo(IDataGroup& data_group);
+  void CreateMostMaxPosInfo(IDataGroup& data_group) const;
 
   /** \brief Creates the MOST_BoundDesc channel group.
  *
@@ -171,7 +171,7 @@ class MostConfigAdapter : public IConfigAdapter {
  * </table>
  * @param data_group Reference to the data group.
    */
-  void CreateMostBoundDesc(IDataGroup& data_group);
+  void CreateMostBoundDesc(IDataGroup& data_group) const ;
 
   /** \brief Creates the MOST_AllocTable channel group.
  *
@@ -191,7 +191,7 @@ class MostConfigAdapter : public IConfigAdapter {
  * </table>
  * @param data_group Reference to the data group.
    */
-  void CreateMostAllocTable(IDataGroup& data_group);
+  void CreateMostAllocTable(IDataGroup& data_group) const ;
 
     /** \brief Creates the MOST_SysLockState channel group.
    *
@@ -208,7 +208,7 @@ class MostConfigAdapter : public IConfigAdapter {
    * </table>
    * @param data_group Reference to the data group.
      */
-    void CreateMostSysLockState(IDataGroup& data_group);
+    void CreateMostSysLockState(IDataGroup& data_group) const;
 
     /** \brief Creates the MOST_ShutdownFlag channel group.
    *
@@ -225,8 +225,9 @@ class MostConfigAdapter : public IConfigAdapter {
    * </table>
    * @param data_group Reference to the data group.
      */
-    void CreateMostShutdownFlag(IDataGroup& data_group);
+    void CreateMostShutdownFlag(IDataGroup& data_group) const;
 
+ private:
   void CreateEthernetPacketChannel(IChannelGroup& channel_group) const;
   void CreatePacketChannel(IChannelGroup& channel_group) const;
   void CreateMessageChannel(IChannelGroup& channel_group) const;
@@ -239,57 +240,55 @@ class MostConfigAdapter : public IConfigAdapter {
   void CreateMandatoryMembers(IChannel& parent_frame) const;
 
   void CreateSpeedChannel(IChannel& parent_channel,
-                                  uint32_t byte_offset) const;
+                          uint32_t byte_offset) const;
   void CreateStateChannel(IChannel& parent_channel,
                           uint32_t byte_offset) const;
   void CreateDeviceCountChannel(IChannel& parent_channel,
-                          uint32_t byte_offset) const;
+                                uint32_t byte_offset) const;
   void CreateSbcChannel(IChannel& parent_channel,
                         uint32_t byte_offset) const;
   void CreateFreeBytesChannel(IChannel& parent_channel,
-                        uint32_t byte_offset) const;
-  void CreateTableLayoutChannel(IChannel& parent_channel,
                               uint32_t byte_offset) const;
+  void CreateTableLayoutChannel(IChannel& parent_channel,
+                                uint32_t byte_offset) const;
   void CreateTableLengthChannel(IChannel& parent_channel,
                                 uint32_t byte_offset) const;
   void CreateTableDataChannel(IChannel& parent_channel,
-                                uint32_t byte_offset) const;
-  void CreateLockStateChannel(IChannel& parent_channel,
-                                uint32_t byte_offset) const;
-  void CreateShutdownChannel(IChannel& parent_channel,
                               uint32_t byte_offset) const;
+  void CreateLockStateChannel(IChannel& parent_channel,
+                              uint32_t byte_offset) const;
+  void CreateShutdownChannel(IChannel& parent_channel,
+                             uint32_t byte_offset) const;
   void CreateTransferTypeChannel(IChannel& parent_channel,
-                                         uint32_t byte_offset) const;
+                                 uint32_t byte_offset) const;
   void CreateDirectionChannel(IChannel& parent_channel,
-                                      uint32_t byte_offset) const;
+                              uint32_t byte_offset) const;
   void CreateSourceChannel(IChannel& parent_channel,
-                            uint32_t byte_offset, uint32_t nof_bits) const;
+                           uint32_t byte_offset, uint32_t nof_bits) const;
   void CreateDestinationChannel(IChannel& parent_channel,
                                 uint32_t byte_offset, uint32_t nof_bits) const;
   void CreateSpecifiedBytesChannel(IChannel& parent_channel,
-                                           uint32_t byte_offset) const;
+                                   uint32_t byte_offset) const;
   void CreateReceivedBytesChannel(IChannel& parent_channel,
-                                          uint32_t byte_offset) const;
-  void CreateDataLengthChannel(IChannel& parent_channel,
-                                          uint32_t byte_offset) const;
-  void CreateDataBytesChannel(IChannel& parent_channel,
-                                       uint32_t byte_offset) const;
-  virtual void CreateTxFailedChannel(IChannel& parent_channel,
-                                uint32_t byte_offset) const;
-  virtual void CreateCrcChannel(IChannel& parent_channel,
-                                uint32_t byte_offset, uint32_t nof_bits) const;
-  virtual void CreateCompleteAckChannel(IChannel& parent_channel,
-                                uint32_t byte_offset) const;
-  virtual void CreatePreemptiveAckChannel(IChannel& parent_channel,
-                                        uint32_t byte_offset) const;
-  virtual void CreateTxAckChannel(IChannel& parent_channel,
-                                          uint32_t byte_offset) const;
-  virtual void CreatePacketIndexChannel(IChannel& parent_channel,
                                   uint32_t byte_offset) const;
-  virtual void CreatePacketTypeChannel(IChannel& parent_channel,
-                                        uint32_t byte_offset) const;
-
- private:
+  void CreateDataLengthChannel(IChannel& parent_channel,
+                               uint32_t byte_offset) const;
+  void CreateDataBytesChannel(IChannel& parent_channel,
+                              uint32_t byte_offset) const;
+  void CreateTxFailedChannel(IChannel& parent_channel,
+                             uint32_t byte_offset) const;
+  void CreateCrcChannel(IChannel& parent_channel,
+                        uint32_t byte_offset, uint32_t nof_bits) const;
+  void CreateCompleteAckChannel(IChannel& parent_channel,
+                                uint32_t byte_offset) const;
+  void CreatePreemptiveAckChannel(IChannel& parent_channel,
+                                  uint32_t byte_offset) const;
+  void CreateTxAckChannel(IChannel& parent_channel,
+                          uint32_t byte_offset) const;
+  void CreatePacketIndexChannel(IChannel& parent_channel,
+                                uint32_t byte_offset) const;
+  void CreatePacketTypeChannel(IChannel& parent_channel,
+                               uint32_t byte_offset) const;
 };
 
 }  // namespace mdf

@@ -47,7 +47,13 @@ add_executable(test_mdf
         src/testfhcomment.cpp
         src/testsicomment.cpp
         src/testmostlogger.cpp
-        src/testmostlogger.h)
+        src/testmostlogger.h
+        src/testflexraylogger.cpp
+        src/testflexraylogger.h
+        src/testlinlogger.cpp
+        src/testlinlogger.h
+        src/testethlogger.cpp
+        src/testethlogger.h)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 

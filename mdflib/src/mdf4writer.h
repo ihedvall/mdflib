@@ -49,6 +49,9 @@ class Mdf4Writer : public MdfWriter {
                       const IChannelGroup& channel_group, uint64_t time,
                       const IMostEvent& msg) override;
 
+  void SaveFlexRayMessage(const IDataGroup& data_group,
+                       const IChannelGroup& channel_group, uint64_t time,
+                       const IFlexRayEvent& msg) override;
   void CreateMdfFile() override;
 
   bool PrepareForWriting() override;

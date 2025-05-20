@@ -93,10 +93,9 @@ enum class MostTableLayout : uint8_t {
 };
 
 class IMostEvent {
-
  public:
-
   IMostEvent() = delete;
+  virtual ~IMostEvent() = default;
 
   void BusChannel(uint8_t bus_channel) {bus_channel_ = bus_channel;}
   [[nodiscard]] uint8_t BusChannel() const {return bus_channel_;}

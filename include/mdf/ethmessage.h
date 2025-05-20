@@ -8,12 +8,15 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+#include <algorithm>
 
 #include "mdf/samplerecord.h"
 
 namespace mdf {
 
 class MdfWriter;
+class IDataGroup;
+class IChannelGroup;
 
 enum class EthMessageType : int {
   ETH_Frame,
@@ -29,26 +32,28 @@ enum class EthErrorType : int {
 
 class EthMessage {
  public:
-  EthMessage() = delete;
+  EthMessage() = default;
+
+  [[deprecated("Use the default EthMessage() constructor instead.")]]
   explicit EthMessage(const MdfWriter& writer);
 
-  void BusChannel(uint8_t channel);
-  [[nodiscard]] uint8_t BusChannel() const;
+  void BusChannel(uint8_t channel) {bus_channel_ = channel;};
+  [[nodiscard]] uint8_t BusChannel() const {return bus_channel_;};
 
-  void Dir(bool transmit);
-  [[nodiscard]] bool Dir() const;
+  void Dir(bool transmit) { dir_ = transmit;};
+  [[nodiscard]] bool Dir() const {return dir_;};
 
-  void ErrorType(EthErrorType type);
-  [[nodiscard]] EthErrorType ErrorType() const;
+  void ErrorType(EthErrorType type) {error_type_ = type;};
+  [[nodiscard]] EthErrorType ErrorType() const {return error_type_;};
 
   void Source(const uint8_t source[6]) {
-    std::copy( source , source + source_.size(), source_.data() );
+    std::copy_n( source , source_.size(), source_.data() );
   }
   void Source(const std::array<uint8_t,6>& source) { source_ = source; }
   [[nodiscard]] const std::array<uint8_t, 6>& Source() const { return source_;}
 
   void Destination(const uint8_t destination[6]) {
-    std::copy( destination , destination + destination_.size(), destination_.data() );
+    std::copy_n( destination , destination_.size(), destination_.data() );
   }
   void Destination(const std::array<uint8_t,6>& destination) {
     destination_ = destination;
@@ -108,8 +113,18 @@ class EthMessage {
 
   void ToRaw(EthMessageType msg_type, SampleRecord& sample) const;
 
+  void DataGroup(const IDataGroup* data_group) const {
+    data_group_ = data_group;
+  }
+
+  void ChannelGroup(const IChannelGroup* channel_group) const {
+    channel_group_ = channel_group;
+  }
+
  private:
-  uint8_t bus_channel_ = 0; ///< Dir bit 7, Error Type bit 4-6, Bus channel bit 0-3
+  uint8_t bus_channel_ = 0;
+  bool dir_ = false;
+  EthErrorType error_type_ = EthErrorType::Unknown;
   std::array<uint8_t,6> source_ = {};
   std::array<uint8_t,6> destination_ = {};
   uint16_t eth_type_ = 0x0800; ///< IPv4 as default
@@ -120,7 +135,8 @@ class EthMessage {
   uint32_t expected_crc_ = 0;
   uint16_t padding_byte_count_ = 0;
 
-  const MdfWriter& writer_;
+  mutable const IDataGroup* data_group_ = nullptr;
+  mutable const IChannelGroup* channel_group_ = nullptr;
 
   void MakeDataFrame(SampleRecord& sample) const;
   void MakeChecksumError(SampleRecord& sample) const;

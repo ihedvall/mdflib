@@ -8,8 +8,11 @@
 #include <chrono>
 
 #include "mdf/mdflogstream.h"
+#include "mdf/mostmessage.h"
+#include "mdf/flexraymessage.h"
 #include "writer4samplequeue.h"
 #include "convertersamplequeue.h"
+
 
 using namespace std::chrono_literals;
 
@@ -111,18 +114,15 @@ void WriteCache::WorkThread() {
       switch (writer_.State()) {
         case WriteState::Init: {
           sample_queue->TrimQueue();  // Purge the queue using pre-trig time
-          MDF_TRACE() << "Trim";
-          break;
+            break;
         }
         case WriteState::StartMeas: {
           sample_queue->SaveQueue(lock);  // Save the contents of the queue to file
-          MDF_TRACE() << "Save";
           break;
         }
 
         case WriteState::StopMeas: {
           sample_queue->CleanQueue(lock);
-          MDF_TRACE() << "Clean";
           break;
         }
 
@@ -137,7 +137,6 @@ void WriteCache::WorkThread() {
     for (auto& [channel_group, sample_queue] : cache_) {
       if (sample_queue) {
         sample_queue->CleanQueue(lock);
-        MDF_TRACE() << "Finalize";
       }
     }
   }
@@ -172,6 +171,8 @@ void WriteCache::SaveSample(const IDataGroup& data_group,
 
 void WriteCache::SaveCanMessage(const IChannelGroup& channel_group, uint64_t time,
                     const CanMessage& msg) {
+  msg.DataGroup(channel_group.DataGroup());
+  msg.ChannelGroup(&channel_group);
   if (SampleQueue* queue = GetSampleQueue(channel_group);
       queue != nullptr) {
     std::lock_guard lock(locker_);
@@ -182,6 +183,8 @@ void WriteCache::SaveCanMessage(const IChannelGroup& channel_group, uint64_t tim
 void WriteCache::SaveCanMessage(const IDataGroup& data_group,
                                 const IChannelGroup& channel_group, uint64_t time,
                                 const CanMessage& msg) {
+  msg.DataGroup(&data_group);
+  msg.ChannelGroup(&channel_group);
   if (SampleQueue* queue = GetSampleQueue(data_group);
       queue != nullptr) {
     std::lock_guard lock(locker_);
@@ -191,6 +194,8 @@ void WriteCache::SaveCanMessage(const IDataGroup& data_group,
 
 void WriteCache::SaveLinMessage(const IChannelGroup& channel_group, uint64_t time,
                                 const LinMessage& msg) {
+  msg.DataGroup(channel_group.DataGroup());
+  msg.ChannelGroup(&channel_group);
   if (SampleQueue* queue = GetSampleQueue(channel_group);
       queue != nullptr) {
     std::lock_guard lock(locker_);
@@ -203,6 +208,8 @@ void WriteCache::SaveLinMessage(const IChannelGroup& channel_group, uint64_t tim
 void WriteCache::SaveLinMessage(const IDataGroup& data_group,
                                 const IChannelGroup& channel_group, uint64_t time,
                                 const LinMessage& msg) {
+  msg.DataGroup(&data_group);
+  msg.ChannelGroup(&channel_group);
   if (SampleQueue* queue = GetSampleQueue(data_group);
       queue != nullptr) {
     std::lock_guard lock(locker_);
@@ -212,6 +219,8 @@ void WriteCache::SaveLinMessage(const IDataGroup& data_group,
 
 void WriteCache::SaveEthMessage(const IChannelGroup& channel_group, uint64_t time,
                                 const EthMessage& msg) {
+  msg.DataGroup(channel_group.DataGroup());
+  msg.ChannelGroup(&channel_group);
   if (SampleQueue* queue = GetSampleQueue(channel_group);
       queue != nullptr) {
     std::lock_guard lock(locker_);
@@ -222,6 +231,8 @@ void WriteCache::SaveEthMessage(const IChannelGroup& channel_group, uint64_t tim
 void WriteCache::SaveEthMessage(const IDataGroup& data_group,
                                 const IChannelGroup& channel_group, uint64_t time,
                                 const EthMessage& msg) {
+  msg.DataGroup(&data_group);
+  msg.ChannelGroup(&channel_group);
   if (SampleQueue* queue = GetSampleQueue(data_group);
       queue != nullptr) {
     std::lock_guard lock(locker_);
@@ -242,6 +253,18 @@ void WriteCache::SaveMostMessage(const IDataGroup& data_group,
   }
 }
 
+void WriteCache::SaveFlexRayMessage(const IDataGroup& data_group,
+                                 const IChannelGroup& channel_group, uint64_t time,
+                                 const IFlexRayEvent& msg) {
+  msg.DataGroup( &data_group);
+  msg.ChannelGroup(&channel_group);
+
+  if (SampleQueue* queue = GetSampleQueue(data_group);
+      queue != nullptr) {
+    std::lock_guard lock(locker_);
+    queue->SaveFlexRayMessage(channel_group, time, msg);
+  }
+}
 SampleQueue* WriteCache::GetSampleQueue(
     const IDataGroup& data_group) const {
   if (auto itr = cache_.find(&data_group);

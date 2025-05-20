@@ -231,6 +231,8 @@
     <ClCompile Include="src\expatxml.cpp" />
     <ClCompile Include="src\fh4block.cpp" />
     <ClCompile Include="src\fhcomment.cpp" />
+    <ClCompile Include="src\flexrayconfigadapter.cpp" />
+    <ClCompile Include="src\flexraymessage.cpp" />
     <ClCompile Include="src\hd3block.cpp" />
     <ClCompile Include="src\hd4block.cpp" />
     <ClCompile Include="src\hdcomment.cpp" />
@@ -342,6 +344,8 @@
     <ClInclude Include="..\include\mdf\ethmessage.h" />
     <ClInclude Include="..\include\mdf\evcomment.h" />
     <ClInclude Include="..\include\mdf\fhcomment.h" />
+    <ClInclude Include="..\include\mdf\flexrayconfigadapter.h" />
+    <ClInclude Include="..\include\mdf\flexraymessage.h" />
     <ClInclude Include="..\include\mdf\hdcomment.h" />
     <ClInclude Include="..\include\mdf\hoadmindata.h" />
     <ClInclude Include="..\include\mdf\hocompumethod.h" />

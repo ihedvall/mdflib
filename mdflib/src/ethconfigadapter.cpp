@@ -5,9 +5,86 @@
 
 #include "mdf/ethconfigadapter.h"
 
+#include <sstream>
+
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
 #include "mdf/mdflogstream.h"
+
+namespace {
+
+void CreateDirectionEnum(mdf::IChannel& dir) {
+  if (mdf::IChannelConversion* cc_dir = dir.CreateChannelConversion();
+      cc_dir != nullptr) {
+    cc_dir->Name("DirectionEnum");
+    cc_dir->Type(mdf::ConversionType::ValueToText);
+    cc_dir->Parameter(0, 0.0);
+    cc_dir->Parameter(1, 1.0);
+    cc_dir->Reference(0, "Rx");
+    cc_dir->Reference(1, "Tx");
+    cc_dir->Reference(2, "");  // Default text
+  }
+}
+
+void CreateErrorTypeEnum(mdf::IChannel& type) {
+  if (mdf::IChannelConversion* cc_type= type.CreateChannelConversion();
+      cc_type != nullptr) {
+    cc_type->Name("ErrorTypeEnum");
+    cc_type->Type(mdf::ConversionType::ValueToText);
+    cc_type->Parameter(0, 0.0);
+    cc_type->Parameter(1, 1.0);
+    cc_type->Reference(0, "Unknown");
+    cc_type->Reference(1, "Collision");
+    cc_type->Reference(2, "");  // Default text
+  }
+}
+
+void CreateSource(mdf::IChannel& cn_frame) {
+  std::ostringstream name;
+  name << cn_frame.Name() << ".Source";
+  if (mdf::IChannel* source = cn_frame.CreateChannelComposition(name.str());
+    source != nullptr) {
+    source->Type(mdf::ChannelType::FixedLength);
+    source->BitCount(48);
+    source->Sync(mdf::ChannelSyncType::None);
+    source->DataType(mdf::ChannelDataType::ByteArray);
+    source->Flags(mdf::CnFlag::BusEvent);
+    source->ByteOffset(9);
+    source->BitOffset(0);
+    }
+}
+
+void CreateDestination(mdf::IChannel& cn_frame) {
+  std::ostringstream name;
+  name << cn_frame.Name() << ".Destination";
+  if (mdf::IChannel* source = cn_frame.CreateChannelComposition(name.str());
+    source != nullptr) {
+    source->Type(mdf::ChannelType::FixedLength);
+    source->BitCount(48);
+    source->Sync(mdf::ChannelSyncType::None);
+    source->DataType(mdf::ChannelDataType::ByteArray);
+    source->Flags(mdf::CnFlag::BusEvent);
+    source->ByteOffset(15);
+    source->BitOffset(0);
+    }
+}
+void CreateDataBytes(mdf::IChannel& cn_frame,uint16_t byte_offset) {
+  std::ostringstream name;
+  name << cn_frame.Name() << ".DataBytes";
+  if (mdf::IChannel* frame_bytes = cn_frame.CreateChannelComposition(name.str());
+    frame_bytes != nullptr) {
+    frame_bytes->Type(mdf::ChannelType::VariableLength);
+    frame_bytes->BitCount(64);
+    frame_bytes->Sync(mdf::ChannelSyncType::None);
+    frame_bytes->DataType(mdf::ChannelDataType::ByteArray);
+    frame_bytes->Flags(mdf::CnFlag::BusEvent);
+    frame_bytes->ByteOffset(byte_offset);
+    frame_bytes->BitOffset(0);
+  }
+
+}
+
+} //end namespace
 
 namespace mdf {
 EthConfigAdapter::EthConfigAdapter(const MdfWriter& writer)
@@ -17,6 +94,7 @@ EthConfigAdapter::EthConfigAdapter(const MdfWriter& writer)
 }
 
 void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
+  dg_block.MandatoryMembersOnly(MandatoryMembersOnly());
   const IChannel* cn_data_byte = nullptr; // Need to update the VLSD Record ID
   if (IChannelGroup* cg_frame = dg_block.CreateChannelGroup("ETH_Frame");
       cg_frame != nullptr) {
@@ -33,7 +111,7 @@ void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
   if ( StorageType() != MdfStorageType::FixedLengthStorage &&
       cn_data_byte != nullptr) {
     // Need to add a special CG group for the data samples
-    if (IChannelGroup* cg_samples = dg_block.CreateChannelGroup("Samples");
+    if (IChannelGroup* cg_samples = dg_block.CreateChannelGroup("");
      cg_samples != nullptr) {
       cg_samples->Flags(CgFlag::VlsdChannel);
       cn_data_byte->VlsdRecordId(cg_samples->RecordId());
@@ -57,7 +135,7 @@ void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
   if ( StorageType() != MdfStorageType::FixedLengthStorage &&
       cn_data_byte != nullptr) {
     // Need to add a special CG group for the data samples
-    if (IChannelGroup* cg_errors = dg_block.CreateChannelGroup("ChecksumErrors");
+    if (IChannelGroup* cg_errors = dg_block.CreateChannelGroup("");
         cg_errors != nullptr) {
       cg_errors->Flags(CgFlag::VlsdChannel);
       cn_data_byte->VlsdRecordId(cg_errors->RecordId());
@@ -81,7 +159,7 @@ void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
   if ( StorageType() != MdfStorageType::FixedLengthStorage &&
     cn_data_byte != nullptr) {
     // Need to add a special CG group for the data samples
-    if (IChannelGroup* cg_errors = dg_block.CreateChannelGroup("LengthErrors");
+    if (IChannelGroup* cg_errors = dg_block.CreateChannelGroup("");
        cg_errors != nullptr) {
      cg_errors->Flags(CgFlag::VlsdChannel);
      cn_data_byte->VlsdRecordId(cg_errors->RecordId());
@@ -105,7 +183,7 @@ void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
   if ( StorageType() != MdfStorageType::FixedLengthStorage &&
       cn_data_byte != nullptr) {
     // Need to add a special CG group for the data samples
-    if (IChannelGroup* cg_errors = dg_block.CreateChannelGroup("ReceiveErrors");
+    if (IChannelGroup* cg_errors = dg_block.CreateChannelGroup("");
         cg_errors != nullptr) {
       cg_errors->Flags(CgFlag::VlsdChannel);
       cn_data_byte->VlsdRecordId(cg_errors->RecordId());
@@ -114,610 +192,188 @@ void EthConfigAdapter::CreateConfig(IDataGroup& dg_block) {
 
 }
 
-void EthConfigAdapter::CreateFrameChannels(IChannelGroup& group) {
+void EthConfigAdapter::CreateFrameChannels(IChannelGroup& group) const {
   const bool mandatory = writer_.MandatoryMembersOnly();
-  const std::string group_name = group.Name();
-  auto* cn_frame = group.CreateChannel(group_name);
+  auto* cn_frame = group.CreateChannel("ETH_Frame");
   if (cn_frame == nullptr) {
-    MDF_ERROR() << "Failed to create the channel. Name :" << group_name;
+    MDF_ERROR() << "Failed to create the channel. Name :" << "ETH_Frame";
     return;
   }
 
   cn_frame->Type(ChannelType::FixedLength);
   cn_frame->Sync(ChannelSyncType::None);
-  cn_frame->DataBytes(mandatory ? 27 : 33);
+  cn_frame->DataBytes(mandatory ? 35 - 8 : 42 - 8);
   cn_frame->Flags(CnFlag::BusEvent);
   cn_frame->DataType(ChannelDataType::ByteArray);
 
-  if (IChannel* frame_bus =
-          cn_frame->CreateChannelComposition(group_name + ".BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0, 0x3F);
-    frame_bus->ByteOffset(8 + 0);
-    frame_bus->BitOffset(0);
-    frame_bus->BitCount(4);
-  }
-  if (IChannel* dir = CreateBitChannel(*cn_frame, group_name +".Dir", 8 + 0, 7);
-      dir != nullptr) {
-    if (IChannelConversion* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, "");  // Default text
-    }
-  }
-
-  if (IChannel* source =
-          cn_frame->CreateChannelComposition(group_name + ".Source");
-      source != nullptr) {
-    source->Type(ChannelType::FixedLength);
-    source->Sync(ChannelSyncType::None);
-    source->DataType(ChannelDataType::ByteArray);
-    source->Flags(CnFlag::BusEvent);
-    source->ByteOffset(8 + 1);
-    source->BitOffset(0);
-    source->BitCount(48);
-  }
-
-  if (IChannel* destination =
-          cn_frame->CreateChannelComposition(group_name + ".Destination");
-      destination != nullptr) {
-    destination->Type(ChannelType::FixedLength);
-    destination->Sync(ChannelSyncType::None);
-    destination->DataType(ChannelDataType::ByteArray);
-    destination->Flags(CnFlag::BusEvent);
-    destination->ByteOffset(8 + 7);
-    destination->BitOffset(0);
-    destination->BitCount(48);
-  }
-
-  if (IChannel* type =
-          cn_frame->CreateChannelComposition(group_name + ".EthType");
-      type != nullptr) {
-    type->Type(ChannelType::FixedLength);
-    type->Sync(ChannelSyncType::None);
-    type->DataType(ChannelDataType::UnsignedIntegerLe);
-    type->Flags(CnFlag::BusEvent);
-    type->ByteOffset(8 + 13);
-    type->BitOffset(0);
-    type->BitCount(16);
-  }
-
-  if (IChannel* nof_rec =
-          cn_frame->CreateChannelComposition(group_name + ".ReceivedDataByteCount");
+  CreateBusChannel(*cn_frame);
+  CreateSource(*cn_frame);
+  CreateDestination(*cn_frame);
+  CreateBitsChannel(*cn_frame, "ETH_Frame.EtherType", 21, 0 , 16);
+  if (IChannel* nof_rec = CreateBitsChannel(*cn_frame, "ETH_Frame.ReceivedDataByteCount", 23, 0 , 16);
       nof_rec != nullptr) {
-    nof_rec->Type(ChannelType::FixedLength);
-    nof_rec->Sync(ChannelSyncType::None);
-    nof_rec->DataType(ChannelDataType::UnsignedIntegerLe);
-    nof_rec->Flags(CnFlag::BusEvent);
-    nof_rec->ByteOffset(8 + 15);
-    nof_rec->BitOffset(0);
-    nof_rec->BitCount(16);
+      nof_rec->Unit("B");
   }
-
-  if (IChannel* frame_length =
-          cn_frame->CreateChannelComposition(group_name + ".DataLength");
-      frame_length != nullptr) {
-    frame_length->Type(ChannelType::FixedLength);
-    frame_length->Sync(ChannelSyncType::None);
-    frame_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_length->Flags(CnFlag::BusEvent);
-    frame_length->ByteOffset(8 + 17);
-    frame_length->BitOffset(0);
-    frame_length->BitCount(16);
-  }
-
-  // In reality the VSLD-CG storage is the only possible solution. The
-  // SD storage is possible in theory only.
-  if (IChannel* frame_bytes =
-          cn_frame->CreateChannelComposition(group_name + ".DataBytes");
-      frame_bytes != nullptr) {
-     frame_bytes->Type(ChannelType::VariableLength);
-    frame_bytes->BitCount(8 * 8);
-    frame_bytes->Sync(ChannelSyncType::None);
-    frame_bytes->DataType(ChannelDataType::ByteArray);
-    frame_bytes->Flags(CnFlag::BusEvent);
-    frame_bytes->ByteOffset(8 + 19);
-    frame_bytes->BitOffset(0);
+  if (IChannel* frame_length = CreateBitsChannel(*cn_frame, "ETH_Frame.DataLength",25, 0 , 16 );
+    frame_length != nullptr) {
+    frame_length->Unit("B");
   }
 
   if (mandatory) {
+    // In reality the VSLD-CG storage is the only possible solution. The
+    // SD storage is possible in theory only.
+    CreateDataBytes(*cn_frame, 27);
     return;
   }
-
-  if (IChannel* crc = cn_frame->CreateChannelComposition(group_name + ".CRC");
-      crc != nullptr) {
-    crc->Type(ChannelType::FixedLength);
-    crc->Sync(ChannelSyncType::None);
-    crc->DataType(ChannelDataType::UnsignedIntegerLe);
-    crc->Flags(CnFlag::BusEvent);
-    crc->ByteOffset(8 + 27);
-    crc->BitOffset(0);
-    crc->BitCount(32);
-  }
-  if (IChannel* padding_bytes =
-          cn_frame->CreateChannelComposition(group_name + ".PadByteCount");
-      padding_bytes != nullptr) {
-    padding_bytes->Type(ChannelType::FixedLength);
-    padding_bytes->Sync(ChannelSyncType::None);
-    padding_bytes->DataType(ChannelDataType::UnsignedIntegerLe);
-    padding_bytes->Flags(CnFlag::BusEvent);
-    padding_bytes->ByteOffset(8 + 31);
-    padding_bytes->BitOffset(0);
-    padding_bytes->BitCount(16);
-  }
- }
-
-
-void EthConfigAdapter::CreateChecksumErrorChannels(IChannelGroup& group) {
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const std::string group_name = group.Name();
-  auto* cn_frame = group.CreateChannel(group_name);
-  if (cn_frame == nullptr) {
-    MDF_ERROR() << "Failed to create the channel. Name :" << group_name;
-    return;
-  }
-
-  cn_frame->Type(ChannelType::FixedLength);
-  cn_frame->Sync(ChannelSyncType::None);
-  cn_frame->DataBytes(mandatory ? 25 : 37);
-  cn_frame->Flags(CnFlag::BusEvent);
-  cn_frame->DataType(ChannelDataType::ByteArray);
-
-  if (IChannel* frame_bus =
-          cn_frame->CreateChannelComposition(group_name + ".BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0, 0x3F);
-    frame_bus->ByteOffset(8 + 0);
-    frame_bus->BitOffset(0);
-    frame_bus->BitCount(4);
-  }
-
-  if (IChannel* dir = CreateBitChannel(*cn_frame, group_name +".Dir", 8 + 0, 7);
+  CreateBitsChannel(*cn_frame, "ETH_Frame.CRC", 27, 0 , 32);
+  if (IChannel* dir = CreateBitChannel(*cn_frame, "ETH_Frame.Dir",31 , 0);
       dir != nullptr) {
-    if (IChannelConversion* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, "");  // Default text
-    }
+    CreateDirectionEnum(*dir);
   }
-
-  if (IChannel* source =
-          cn_frame->CreateChannelComposition(group_name + ".Source");
-      source != nullptr) {
-    source->Type(ChannelType::FixedLength);
-    source->Sync(ChannelSyncType::None);
-    source->DataType(ChannelDataType::ByteArray);
-    source->Flags(CnFlag::BusEvent);
-    source->ByteOffset(8 + 1);
-    source->BitOffset(0);
-    source->BitCount(48);
+  if (IChannel* padding_bytes = CreateBitsChannel(*cn_frame, "ETH_Frame.PadByteCount", 32, 0 , 16);
+    padding_bytes != nullptr) {
+    padding_bytes->Unit("B");
   }
-
-  if (IChannel* destination =
-          cn_frame->CreateChannelComposition(group_name + ".Destination");
-      destination != nullptr) {
-    destination->Type(ChannelType::FixedLength);
-    destination->Sync(ChannelSyncType::None);
-    destination->DataType(ChannelDataType::ByteArray);
-    destination->Flags(CnFlag::BusEvent);
-    destination->ByteOffset(8 + 7);
-    destination->BitOffset(0);
-    destination->BitCount(48);
-  }
-
-  if (IChannel* type =
-          cn_frame->CreateChannelComposition(group_name + ".EthType");
-      type != nullptr) {
-    type->Type(ChannelType::FixedLength);
-    type->Sync(ChannelSyncType::None);
-    type->DataType(ChannelDataType::UnsignedIntegerLe);
-    type->Flags(CnFlag::BusEvent);
-    type->ByteOffset(8 + 13);
-    type->BitOffset(0);
-    type->BitCount(16);
-  }
-
-  if (IChannel* frame_length =
-          cn_frame->CreateChannelComposition(group_name + ".DataLength");
-      frame_length != nullptr) {
-    frame_length->Type(ChannelType::FixedLength);
-    frame_length->Sync(ChannelSyncType::None);
-    frame_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_length->Flags(CnFlag::BusEvent);
-    frame_length->ByteOffset(8 + 15);
-    frame_length->BitOffset(0);
-    frame_length->BitCount(16);
-  }
-
-  if (IChannel* crc = cn_frame->CreateChannelComposition(group_name + ".CRC");
-      crc != nullptr) {
-    crc->Type(ChannelType::FixedLength);
-    crc->Sync(ChannelSyncType::None);
-    crc->DataType(ChannelDataType::UnsignedIntegerLe);
-    crc->Flags(CnFlag::BusEvent);
-    crc->ByteOffset(8 + 17);
-    crc->BitOffset(0);
-    crc->BitCount(32);
-  }
-
-  if (IChannel* expected_crc = cn_frame->CreateChannelComposition(group_name + ".ExpectedCRC");
-      expected_crc != nullptr) {
-    expected_crc->Type(ChannelType::FixedLength);
-    expected_crc->Sync(ChannelSyncType::None);
-    expected_crc->DataType(ChannelDataType::UnsignedIntegerLe);
-    expected_crc->Flags(CnFlag::BusEvent);
-    expected_crc->ByteOffset(8 + 21);
-    expected_crc->BitOffset(0);
-    expected_crc->BitCount(32);
-  }
-
-  if (mandatory) {
-    return;
-  }
-
-  // In reality the VSLD-CG storage is the only possible solution. The
-  // SD storage is possible in theory only.
-  if (IChannel* frame_bytes =
-          cn_frame->CreateChannelComposition(group_name + ".DataBytes");
-      frame_bytes != nullptr) {
-    frame_bytes->Type(ChannelType::VariableLength);
-    frame_bytes->BitCount(8 * 8);
-    frame_bytes->Sync(ChannelSyncType::None);
-    frame_bytes->DataType(ChannelDataType::ByteArray);
-    frame_bytes->Flags(CnFlag::BusEvent);
-    frame_bytes->ByteOffset(8 + 25);
-    frame_bytes->BitOffset(0);
-  }
-
-  if (IChannel* nof_rec =
-          cn_frame->CreateChannelComposition(group_name + ".ReceivedDataByteCount");
-      nof_rec != nullptr) {
-    nof_rec->Type(ChannelType::FixedLength);
-    nof_rec->Sync(ChannelSyncType::None);
-    nof_rec->DataType(ChannelDataType::UnsignedIntegerLe);
-    nof_rec->Flags(CnFlag::BusEvent);
-    nof_rec->ByteOffset(8 + 33);
-    nof_rec->BitOffset(0);
-    nof_rec->BitCount(16);
-  }
-
-
-  if (IChannel* padding_bytes =
-          cn_frame->CreateChannelComposition(group_name + ".PadByteCount");
-      padding_bytes != nullptr) {
-    padding_bytes->Type(ChannelType::FixedLength);
-    padding_bytes->Sync(ChannelSyncType::None);
-    padding_bytes->DataType(ChannelDataType::UnsignedIntegerLe);
-    padding_bytes->Flags(CnFlag::BusEvent);
-    padding_bytes->ByteOffset(8 + 35);
-    padding_bytes->BitOffset(0);
-    padding_bytes->BitCount(16);
-  }
-
+  CreateDataBytes(*cn_frame, 34);
 }
 
-void EthConfigAdapter::CreateLengthErrorChannels(IChannelGroup& group) {
+void EthConfigAdapter::CreateChecksumErrorChannels(IChannelGroup& group) const {
   const bool mandatory = writer_.MandatoryMembersOnly();
-  const std::string group_name = group.Name();
-  auto* cn_frame = group.CreateChannel(group_name);
+
+  IChannel* cn_frame = group.CreateChannel("ETH_ChecksumError");
   if (cn_frame == nullptr) {
-    MDF_ERROR() << "Failed to create the channel. Name :" << group_name;
+    MDF_ERROR() << "Failed to create the channel. Name :" << "ETH_ChecksumError";
     return;
   }
 
   cn_frame->Type(ChannelType::FixedLength);
   cn_frame->Sync(ChannelSyncType::None);
-  cn_frame->DataBytes(mandatory ? 17 : 33);
+  cn_frame->DataBytes(mandatory ? 33 - 8 : 46 - 8);
   cn_frame->Flags(CnFlag::BusEvent);
   cn_frame->DataType(ChannelDataType::ByteArray);
 
-  if (IChannel* frame_bus =
-          cn_frame->CreateChannelComposition(group_name + ".BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0, 0x3F);
-    frame_bus->ByteOffset(8 + 0);
-    frame_bus->BitOffset(0);
-    frame_bus->BitCount(4);
+  CreateBusChannel(*cn_frame);
+  CreateSource(*cn_frame);
+  CreateDestination(*cn_frame);
+  CreateBitsChannel(*cn_frame, "ETH_ChecksumError.EtherType", 21, 0 , 16);
+  if (IChannel* frame_length = CreateBitsChannel(*cn_frame, "ETH_ChecksumError.DataLength", 23, 0 , 16 );
+      frame_length != nullptr) {
+    frame_length->Unit("B");
   }
-  if (IChannel* dir = CreateBitChannel(*cn_frame, group_name +".Dir", 8 + 0, 7);
-      dir != nullptr) {
-    if (IChannelConversion* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, "");  // Default text
-    }
-  }
-
-  if (IChannel* source =
-          cn_frame->CreateChannelComposition(group_name + ".Source");
-      source != nullptr) {
-    source->Type(ChannelType::FixedLength);
-    source->Sync(ChannelSyncType::None);
-    source->DataType(ChannelDataType::ByteArray);
-    source->Flags(CnFlag::BusEvent);
-    source->ByteOffset(8 + 1);
-    source->BitOffset(0);
-    source->BitCount(48);
-  }
-
-  if (IChannel* destination =
-          cn_frame->CreateChannelComposition(group_name + ".Destination");
-      destination != nullptr) {
-    destination->Type(ChannelType::FixedLength);
-    destination->Sync(ChannelSyncType::None);
-    destination->DataType(ChannelDataType::ByteArray);
-    destination->Flags(CnFlag::BusEvent);
-    destination->ByteOffset(8 + 7);
-    destination->BitOffset(0);
-    destination->BitCount(48);
-  }
-
-  if (IChannel* type =
-          cn_frame->CreateChannelComposition(group_name + ".EthType");
-      type != nullptr) {
-    type->Type(ChannelType::FixedLength);
-    type->Sync(ChannelSyncType::None);
-    type->DataType(ChannelDataType::UnsignedIntegerLe);
-    type->Flags(CnFlag::BusEvent);
-    type->ByteOffset(8 + 13);
-    type->BitOffset(0);
-    type->BitCount(16);
-  }
-
-  if (IChannel* nof_rec =
-          cn_frame->CreateChannelComposition(group_name + ".ReceivedDataByteCount");
-      nof_rec != nullptr) {
-    nof_rec->Type(ChannelType::FixedLength);
-    nof_rec->Sync(ChannelSyncType::None);
-    nof_rec->DataType(ChannelDataType::UnsignedIntegerLe);
-    nof_rec->Flags(CnFlag::BusEvent);
-    nof_rec->ByteOffset(8 + 15);
-    nof_rec->BitOffset(0);
-    nof_rec->BitCount(16);
-  }
+  CreateBitsChannel(*cn_frame, "ETH_ChecksumError.ReceivedCRC", 25, 0 , 32);
+  CreateBitsChannel(*cn_frame, "ETH_ChecksumError.ExpectedCRC", 29, 0 , 32);
 
   if (mandatory) {
     return;
   }
-
-  if (IChannel* frame_length =
-          cn_frame->CreateChannelComposition(group_name + ".DataLength");
-      frame_length != nullptr) {
-    frame_length->Type(ChannelType::FixedLength);
-    frame_length->Sync(ChannelSyncType::None);
-    frame_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_length->Flags(CnFlag::BusEvent);
-    frame_length->ByteOffset(8 + 17);
-    frame_length->BitOffset(0);
-    frame_length->BitCount(16);
+  if (IChannel* nof_rec = CreateBitsChannel(*cn_frame, "ETH_ChecksumError.ReceivedDataByteCount", 33, 0 , 16);
+      nof_rec != nullptr) {
+    nof_rec->Unit("B");
   }
-
+  if (IChannel* dir = CreateBitChannel(*cn_frame, "ETH_ChecksumError.Dir", 35, 0);
+      dir != nullptr) {
+    CreateDirectionEnum(*dir);
+  }
+  if (IChannel* padding_bytes = CreateBitsChannel(*cn_frame, "ETH_ChecksumError.PadByteCount", 36, 0 , 16);
+        padding_bytes != nullptr) {
+    padding_bytes->Unit("B");
+  }
   // In reality the VSLD-CG storage is the only possible solution. The
   // SD storage is possible in theory only.
-  if (IChannel* frame_bytes =
-          cn_frame->CreateChannelComposition(group_name + ".DataBytes");
-      frame_bytes != nullptr) {
-    frame_bytes->Type(ChannelType::VariableLength);
-    frame_bytes->BitCount(8 * 8);
-    frame_bytes->Sync(ChannelSyncType::None);
-    frame_bytes->DataType(ChannelDataType::ByteArray);
-    frame_bytes->Flags(CnFlag::BusEvent);
-    frame_bytes->ByteOffset(8 + 19);
-    frame_bytes->BitOffset(0);
-  }
-
-
-  if (IChannel* crc = cn_frame->CreateChannelComposition(group_name + ".CRC");
-      crc != nullptr) {
-    crc->Type(ChannelType::FixedLength);
-    crc->Sync(ChannelSyncType::None);
-    crc->DataType(ChannelDataType::UnsignedIntegerLe);
-    crc->Flags(CnFlag::BusEvent);
-    crc->ByteOffset(8 + 27);
-    crc->BitOffset(0);
-    crc->BitCount(32);
-  }
-
-  if (IChannel* padding_bytes =
-          cn_frame->CreateChannelComposition(group_name + ".PadByteCount");
-      padding_bytes != nullptr) {
-    padding_bytes->Type(ChannelType::FixedLength);
-    padding_bytes->Sync(ChannelSyncType::None);
-    padding_bytes->DataType(ChannelDataType::UnsignedIntegerLe);
-    padding_bytes->Flags(CnFlag::BusEvent);
-    padding_bytes->ByteOffset(8 + 31);
-    padding_bytes->BitOffset(0);
-    padding_bytes->BitCount(16);
-  }
+  CreateDataBytes(*cn_frame, 38);
 }
 
-void EthConfigAdapter::CreateReceiveErrorChannels(IChannelGroup& group) {
+void EthConfigAdapter::CreateLengthErrorChannels(IChannelGroup& group) const {
   const bool mandatory = writer_.MandatoryMembersOnly();
-  const std::string group_name = group.Name();
-  auto* cn_frame = group.CreateChannel(group_name);
+  auto* cn_frame = group.CreateChannel("ETH_LengthError");
   if (cn_frame == nullptr) {
-    MDF_ERROR() << "Failed to create the channel. Name :" << group_name;
+    MDF_ERROR() << "Failed to create the channel. Name :" << "ETH_LengthError";
     return;
   }
 
   cn_frame->Type(ChannelType::FixedLength);
   cn_frame->Sync(ChannelSyncType::None);
-  cn_frame->DataBytes(mandatory ? 17 : 33);
+  cn_frame->DataBytes(mandatory ? 25 - 8 : 42 - 8);
   cn_frame->Flags(CnFlag::BusEvent);
   cn_frame->DataType(ChannelDataType::ByteArray);
 
-  if (IChannel* frame_bus =
-          cn_frame->CreateChannelComposition(group_name + ".BusChannel");
-      frame_bus != nullptr) {
-    frame_bus->Type(ChannelType::FixedLength);
-    frame_bus->Sync(ChannelSyncType::None);
-    frame_bus->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_bus->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
-    frame_bus->Range(0, 0x3F);
-    frame_bus->ByteOffset(8 + 0);
-    frame_bus->BitOffset(0);
-    frame_bus->BitCount(4);
-  }
-
-  if (IChannel* dir = CreateBitChannel(*cn_frame, group_name +".Dir", 8 + 0, 7);
-      dir != nullptr) {
-    if (IChannelConversion* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, "");  // Default text
-    }
-  }
-
-  if (IChannel* error_type =
-          cn_frame->CreateChannelComposition(group_name + ".ErrorType");
-      error_type != nullptr) {
-    error_type->Type(ChannelType::FixedLength);
-    error_type->Sync(ChannelSyncType::None);
-    error_type->DataType(ChannelDataType::UnsignedIntegerLe);
-    error_type->Flags(CnFlag::BusEvent);
-    error_type->ByteOffset(8 + 0);
-    error_type->BitOffset(4);
-    error_type->BitCount(3);
-    if (IChannelConversion* cc_type = error_type->CreateChannelConversion();
-        cc_type != nullptr) {
-      cc_type->Type(ConversionType::ValueToText);
-      cc_type->Parameter(0, 0.0);
-      cc_type->Parameter(1, 1.0);
-      cc_type->Reference(0, "Unknown");
-      cc_type->Reference(1, "Collision Error");
-      cc_type->Reference(2, "");  // Default text
-    }
-  }
-
-  if (IChannel* source =
-          cn_frame->CreateChannelComposition(group_name + ".Source");
-      source != nullptr) {
-    source->Type(ChannelType::FixedLength);
-    source->Sync(ChannelSyncType::None);
-    source->DataType(ChannelDataType::ByteArray);
-    source->Flags(CnFlag::BusEvent);
-    source->ByteOffset(8 + 1);
-    source->BitOffset(0);
-    source->BitCount(6 * 8);
-  }
-
-  if (IChannel* destination =
-          cn_frame->CreateChannelComposition(group_name + ".Destination");
-      destination != nullptr) {
-    destination->Type(ChannelType::FixedLength);
-    destination->Sync(ChannelSyncType::None);
-    destination->DataType(ChannelDataType::ByteArray);
-    destination->Flags(CnFlag::BusEvent);
-    destination->ByteOffset(8 + 7);
-    destination->BitOffset(0);
-    destination->BitCount(6*8);
-  }
-
-  if (IChannel* type =
-          cn_frame->CreateChannelComposition(group_name + ".EthType");
-      type != nullptr) {
-    type->Type(ChannelType::FixedLength);
-    type->Sync(ChannelSyncType::None);
-    type->DataType(ChannelDataType::UnsignedIntegerLe);
-    type->Flags(CnFlag::BusEvent);
-    type->ByteOffset(8 + 13);
-    type->BitOffset(0);
-    type->BitCount(16);
-  }
-
-  if (IChannel* nof_rec =
-          cn_frame->CreateChannelComposition(group_name + ".ReceivedDataByteCount");
+  CreateBusChannel(*cn_frame);
+  CreateSource(*cn_frame);
+  CreateDestination(*cn_frame);
+  CreateBitsChannel(*cn_frame, "ETH_LengthError.EtherType", 21, 0 , 16);
+  if (IChannel* nof_rec = CreateBitsChannel(*cn_frame, "ETH_LengthError.ReceivedDataByteCount", 23, 0 , 16);
       nof_rec != nullptr) {
-    nof_rec->Type(ChannelType::FixedLength);
-    nof_rec->Sync(ChannelSyncType::None);
-    nof_rec->DataType(ChannelDataType::UnsignedIntegerLe);
-    nof_rec->Flags(CnFlag::BusEvent);
-    nof_rec->ByteOffset(8 + 15);
-    nof_rec->BitOffset(0);
-    nof_rec->BitCount(16);
+    nof_rec->Unit("B");
   }
 
   if (mandatory) {
     return;
   }
 
-  if (IChannel* frame_length =
-          cn_frame->CreateChannelComposition(group_name + ".DataLength");
+  if (IChannel* frame_length = CreateBitsChannel(*cn_frame, "ETH_LengthError.DataLength", 25, 0 , 16 );
       frame_length != nullptr) {
-    frame_length->Type(ChannelType::FixedLength);
-    frame_length->Sync(ChannelSyncType::None);
-    frame_length->DataType(ChannelDataType::UnsignedIntegerLe);
-    frame_length->Flags(CnFlag::BusEvent);
-    frame_length->ByteOffset(8 + 17);
-    frame_length->BitOffset(0);
-    frame_length->BitCount(16);
+    frame_length->Unit("B");
+  }
+  CreateBitsChannel(*cn_frame, "ETH_LengthError.CRC", 27, 0 , 32);
+
+  if (IChannel* dir = CreateBitChannel(*cn_frame, "ETH_LengthError.Dir", 31, 0);
+        dir != nullptr) {
+    CreateDirectionEnum(*dir);
   }
 
-  // In reality the VSLD-CG storage is the only possible solution. The
-  // SD storage is possible in theory only.
-  if (IChannel* frame_bytes =
-          cn_frame->CreateChannelComposition(group_name + ".DataBytes");
-      frame_bytes != nullptr) {
-    frame_bytes->Type(ChannelType::VariableLength);
-    frame_bytes->BitCount(8 * 8);
-    frame_bytes->Sync(ChannelSyncType::None);
-    frame_bytes->DataType(ChannelDataType::ByteArray);
-    frame_bytes->Flags(CnFlag::BusEvent);
-    frame_bytes->ByteOffset(8 + 19);
-    frame_bytes->BitOffset(0);
+  if (IChannel* padding_bytes = CreateBitsChannel(*cn_frame, "ETH_LengthError.PadByteCount", 32, 0 , 16);
+        padding_bytes != nullptr) {
+    padding_bytes->Unit("B");
+  }
+  CreateDataBytes(*cn_frame, 34);
+}
+
+void EthConfigAdapter::CreateReceiveErrorChannels(IChannelGroup& group) const {
+  const bool mandatory = writer_.MandatoryMembersOnly();
+  auto* cn_frame = group.CreateChannel("ETH_ReceiveError");
+  if (cn_frame == nullptr) {
+    MDF_ERROR() << "Failed to create the channel. Name :" << "ETH_ReceiveError";
+    return;
   }
 
+  cn_frame->Type(ChannelType::FixedLength);
+  cn_frame->Sync(ChannelSyncType::None);
+  cn_frame->DataBytes(mandatory ? 25 - 8 : 42 - 8);
+  cn_frame->Flags(CnFlag::BusEvent);
+  cn_frame->DataType(ChannelDataType::ByteArray);
 
-  if (IChannel* crc = cn_frame->CreateChannelComposition(group_name + ".CRC");
-      crc != nullptr) {
-    crc->Type(ChannelType::FixedLength);
-    crc->Sync(ChannelSyncType::None);
-    crc->DataType(ChannelDataType::UnsignedIntegerLe);
-    crc->Flags(CnFlag::BusEvent);
-    crc->ByteOffset(8 + 27);
-    crc->BitOffset(0);
-    crc->BitCount(32);
+  CreateBusChannel(*cn_frame);
+  CreateSource(*cn_frame);
+  CreateDestination(*cn_frame);
+  CreateBitsChannel(*cn_frame, "ETH_ReceiveError.EtherType", 21, 0 , 16);
+  if (IChannel* nof_rec = CreateBitsChannel(*cn_frame, "ETH_ReceiveError.ReceivedDataByteCount", 23, 0 , 16);
+      nof_rec != nullptr) {
+    nof_rec->Unit("B");
   }
 
-  if (IChannel* padding_bytes =
-          cn_frame->CreateChannelComposition(group_name + ".PadByteCount");
-      padding_bytes != nullptr) {
-    padding_bytes->Type(ChannelType::FixedLength);
-    padding_bytes->Sync(ChannelSyncType::None);
-    padding_bytes->DataType(ChannelDataType::UnsignedIntegerLe);
-    padding_bytes->Flags(CnFlag::BusEvent);
-    padding_bytes->ByteOffset(8 + 31);
-    padding_bytes->BitOffset(0);
-    padding_bytes->BitCount(16);
+  if (mandatory) {
+    return;
   }
+
+  if (IChannel* frame_length = CreateBitsChannel(*cn_frame, "ETH_ReceiveError.DataLength", 25, 0 , 16 );
+      frame_length != nullptr) {
+    frame_length->Unit("B");
+  }
+  CreateBitsChannel(*cn_frame, "ETH_ReceiveError.CRC", 27, 0 , 32);
+
+  if (IChannel* dir = CreateBitChannel(*cn_frame, "ETH_ReceiveError.Dir", 31, 0);
+        dir != nullptr) {
+    CreateDirectionEnum(*dir);
+  }
+  if (IChannel* error = CreateBitChannel(*cn_frame, "ETH_ReceiveError.ErrorType", 31, 1);
+      error != nullptr) {
+    CreateErrorTypeEnum(*error);
+  }
+  if (IChannel* padding_bytes = CreateBitsChannel(*cn_frame, "ETH_ReceiveError.PadByteCount", 32, 0 , 16);
+        padding_bytes != nullptr) {
+    padding_bytes->Unit("B");
+  }
+  CreateDataBytes(*cn_frame, 34);
 }
 
 }  // namespace mdf

@@ -27,7 +27,8 @@ enum class MessageFilter : int {
 
 class IConfigAdapter {
  public:
-  IConfigAdapter() = delete;
+    virtual ~IConfigAdapter() = default;
+    IConfigAdapter() = delete;
   explicit IConfigAdapter(const MdfWriter& writer);
 
   void BusType(uint16_t bus_type);
@@ -81,11 +82,12 @@ class IConfigAdapter {
      * The Maximum Length Signal Data is used when the raw data bytes doesn't
      * exceed 8 bytes. Instead of storing an 64-bit offset, it stores the raw
      * bytes and the number of bytes in a separate channel.
-     * @param type Type of storage.
+     * @param storage_type Type of storage.
      */
   void StorageType(MdfStorageType storage_type) {
     storage_type_ = storage_type;
   }
+
   /** \brief Define only mandatory members.
    *
    * This option defines if only mandatory members should be automatic
@@ -160,6 +162,25 @@ class IConfigAdapter {
                                      uint32_t nof_bits ) const;
 
   virtual IChannel* CreateBusChannel(IChannel& parent_channel) const;
+
+  /** \brief Creates a sub-channel (composite) channel (unsigned)
+   *
+   * This support function can be used when creating unsigned integer
+   * composite also known as sub-channel. The function creates a
+   * channel name based upon the parent channel name with the sub-name
+   * appended ("parent-nqme.sub-name").
+   * @param parent_channel Reference to the parent channel.
+   * @param sub_name Sub-name without the dot.
+   * @param byte_offset Byte offset into the channel group record
+   * @param bit_offset Bit offset relative the byte offset.
+   * @param nof_bits Number of bits
+   * @return Returns a pointer to the created channel or null on failure.
+   */
+  IChannel* CreateSubChannel(IChannel& parent_channel,
+                             const std::string_view& sub_name,
+                             uint32_t byte_offset,
+                             uint16_t bit_offset,
+                             uint32_t nof_bits) const;
 
   /** brief Creates a channel group name.
    *

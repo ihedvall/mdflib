@@ -13,6 +13,8 @@
 namespace mdf {
 
 class MdfWriter;
+class IDataGroup;
+class IChannelGroup;
 
 enum class LinMessageType : int {
   LIN_Frame,
@@ -39,8 +41,10 @@ enum class LinTypeOfLongDominantSignal : int {
 
 class LinMessage {
  public:
-  LinMessage() = delete;
-  explicit LinMessage(const MdfWriter& writer);
+  LinMessage() = default;
+
+  [[deprecated("Use the default LinMessage() constructor instead.")]]
+  explicit LinMessage(const MdfWriter&);
 
   void BusChannel(uint8_t channel);
   [[nodiscard]] uint8_t BusChannel() const;
@@ -57,7 +61,7 @@ class LinMessage {
   void DataLength(uint8_t nof_bytes);
   [[nodiscard]] uint8_t DataLength() const;
 
-  void DataBytes(std::vector<uint8_t>& data_bytes);
+  void DataBytes(std::vector<uint8_t> data_bytes);
 
   [[nodiscard]] const std::vector<uint8_t>& DataBytes() const {
     return data_bytes_;
@@ -100,6 +104,14 @@ class LinMessage {
     return total_signal_length_;
   }
 
+  void DataGroup( const IDataGroup* data_group ) const {
+    data_group_ = data_group;
+  }
+
+  void ChannelGroup( const IChannelGroup* channel_group ) const {
+    channel_group_ = channel_group;
+  }
+
   void Reset();
 
   void ToRaw(LinMessageType msg_type, SampleRecord& sample) const;
@@ -111,7 +123,7 @@ class LinMessage {
    * The lower 6 bits are the channel while
    * the 2 high bits are used as a 2 bit integer.
    */
-  uint8_t bus_channel_ = 0xC0;
+  uint8_t bus_channel_ = 0;
 
   /** \brief LIN ID and direction
    *
@@ -140,6 +152,8 @@ class LinMessage {
    * Note that these 8 bytes are not mandatory..
    */
   uint64_t sof_ = 0;
+
+  LinChecksumModel checksum_model_ = LinChecksumModel::Unknown;
 
   /** \brief Baud rate (bits/s)
    *
@@ -181,7 +195,8 @@ class LinMessage {
 
   uint32_t total_signal_length_ = 0;
 
-  const MdfWriter& writer_;
+  mutable const IDataGroup* data_group_ = nullptr;
+  mutable const IChannelGroup* channel_group_ = nullptr;
 
   void MakeDataFrame(SampleRecord& sample) const;
   void MakeWakeUp(SampleRecord& sample) const;

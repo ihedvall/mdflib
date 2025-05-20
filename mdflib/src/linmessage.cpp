@@ -3,38 +3,52 @@
 * SPDX-License-Identifier: MIT
  */
 
-#include "mdf/linmessage.h"
+#include <algorithm>
 
+#include "mdf/linmessage.h"
 #include "mdf/mdfwriter.h"
+#include "mdf/mdfhelper.h"
+#include "mdf/idatagroup.h"
 
 #include "littlebuffer.h"
 
 namespace {
-  constexpr uint8_t kChecksumModelMask = 0xC0; ///< Checksum model 2-bit
-  constexpr uint8_t kChannelMask = 0x3F; ///< Channel 6-bit
-
   constexpr uint8_t kLinIdMask = 0x3F; ///< 6 bit mask
   constexpr uint8_t kDirMask = 0x80;   ///< High bit mask
   constexpr uint8_t kReceivedMask = 0x0F; ///< Low 4 bit
   constexpr uint8_t kLengthMask = 0xF0;   ///< High 4 bit
   constexpr uint8_t kExpectedLength = 0x0F;
   constexpr uint8_t kDominantTypeMask = 0x30;
+
+  void FillDataBytes(std::vector<uint8_t>& record, uint16_t offset,
+                     const std::vector<uint8_t>& data_bytes) {
+    constexpr uint16_t kMaxDataBytes = 8;
+    const uint16_t copy_size = std::min(static_cast<uint16_t>(data_bytes.size()),
+      kMaxDataBytes);
+    std::copy_n(data_bytes.begin(), copy_size, record.begin() + offset);
+
+    if (copy_size < kMaxDataBytes) {
+      constexpr uint8_t kPaddingByte = 0xFF;
+      std::fill_n(record.begin() + offset + copy_size,
+                  kMaxDataBytes - copy_size, kPaddingByte);
+    }
+  }
+
 }
 
 namespace mdf {
 
-LinMessage::LinMessage(const MdfWriter& writer)
-: writer_(writer) {
-
+LinMessage::LinMessage(const MdfWriter&r)
+: LinMessage() {
 }
 
+
 void LinMessage::BusChannel(uint8_t channel) {
-  bus_channel_ &= ~kChannelMask;
-  bus_channel_ |= channel & kChannelMask;
+  bus_channel_  = channel;
 }
 
 uint8_t LinMessage::BusChannel() const {
-  return bus_channel_ & kChannelMask;
+  return bus_channel_;
 }
 
 void LinMessage::LinId(uint8_t id) {
@@ -77,40 +91,18 @@ uint8_t LinMessage::DataLength() const {
 }
 
 void LinMessage::ChecksumModel(LinChecksumModel model) {
-  uint8_t val;
-  switch (model) {
-    case LinChecksumModel::Classic:
-      val = 0;
-      break;
-
-    case LinChecksumModel::Enhanced:
-      val = 0x01 << 6;
-      break;
-
-    default:
-      val = kChecksumModelMask; // -1
-      break;
-
-  }
-  bus_channel_ &= ~kChecksumModelMask;
-  bus_channel_ |= val;
+  checksum_model_ = model;
 }
 
 LinChecksumModel LinMessage::ChecksumModel() const {
-  const uint8_t val = (bus_channel_ & kChecksumModelMask) >> 6;
-  switch (val) {
-    case 0: return LinChecksumModel::Classic;
-    case 1: return LinChecksumModel::Enhanced;
-    default:
-      break;
-  }
-  return LinChecksumModel::Unknown;
+  return checksum_model_;
 }
 
 void LinMessage::Reset() {
-  bus_channel_ = 0xC0;
+  bus_channel_ = 0x00;
   lin_id_ = 0;
   data_length_ = 0;
+  checksum_model_ = LinChecksumModel::Unknown;
   crc_ = 0;
   sof_ = 0;
   baudrate_ = 0.0;
@@ -165,27 +157,176 @@ void LinMessage::ToRaw( LinMessageType msg_type, SampleRecord& sample) const {
 
 void LinMessage::MakeDataFrame(SampleRecord& sample) const {
   auto& record = sample.record_buffer;
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const size_t record_size = mandatory ? 19 : 44;
+  const bool mandatory = data_group_ != nullptr ? data_group_->MandatoryMembersOnly() : false;
+  const size_t record_size = mandatory ? 19 : 45;
 
   if (record.size() != record_size) {
     record.resize(record_size);
   }
-  // First 8 byte is time in seconds (double)
-  record[8 + 0] = bus_channel_;
-  record[8 + 1] = lin_id_;
-  record[8 + 2] = data_length_;
+  // First 8 bytes are time in seconds (double)
+  record[8] = BusChannel();
+  record[9] = LinId() & kLinIdMask;
+  record[9] |= (Dir() ? 0x01 : 0x00) << 6;
+  record[10] = ReceivedDataByteCount();
+  record[10] |= (DataLength() & 0x0F) << 4;
+  FillDataBytes(record, 11, data_bytes_);// The MLSD storage is fixed in LIN.
 
-  // The MLSD storage is fixed in LIN.
-  for (size_t index = 0; index < 8; ++index) {
-    record[11 + index] =
-        index < data_bytes_.size() ? data_bytes_[index] : 0xFF;
-  }
   if (mandatory) {
     return;
   }
 
   record[19] = crc_;
+  record[20] = static_cast<int8_t>(ChecksumModel()) & 0x03;
+  LittleBuffer sof(sof_);
+  std::copy(sof.cbegin(), sof.cend(),
+            record.begin() + 21);
+
+  LittleBuffer baudrate(baudrate_);
+  std::copy(baudrate.cbegin(), baudrate.cend(),
+            record.begin() + 29);
+
+  LittleBuffer response_baudrate(response_baudrate_);
+  std::copy(response_baudrate.cbegin(), response_baudrate.cend(),
+            record.begin() + 33);
+
+  LittleBuffer break_length(break_length_);
+  std::copy(break_length.cbegin(), break_length.cend(),
+            record.begin() + 37);
+
+  LittleBuffer delimiter_break_length(delimiter_break_length_);
+  std::copy(delimiter_break_length.cbegin(), delimiter_break_length.cend(),
+            record.begin() + 41);
+}
+
+void LinMessage::MakeWakeUp(SampleRecord& sample) const {
+  auto& record = sample.record_buffer;
+  constexpr size_t record_size = 21;
+  if (record.size() != record_size) {
+    record.resize(record_size);
+  }
+  // First 8 byte is time in seconds (double)
+  record[8 + 0] = BusChannel();
+  LittleBuffer baudrate(baudrate_);
+  std::copy(baudrate.cbegin(), baudrate.cend(), record.begin() + 9);
+
+  LittleBuffer sof(sof_);
+  std::copy(sof.cbegin(), sof.cend(), record.begin() + 13);
+}
+
+void LinMessage::MakeChecksumError(SampleRecord& sample) const {
+  auto& record = sample.record_buffer;
+  const bool mandatory = data_group_ != nullptr ?
+    data_group_->MandatoryMembersOnly() : false;
+  const size_t record_size = mandatory ? 10 : 45;
+
+  if (record.size() != record_size) {
+    record.resize(record_size);
+  }
+  // First 8 bytes are time in seconds (double)
+  record[8] = BusChannel();
+  record[9] = LinId() & kLinIdMask;
+  if (mandatory) {
+    return;
+  }
+  record[9] |= (Dir() ? 0x01 : 0x00) << 6;
+  record[10] = ReceivedDataByteCount();
+  record[10] |= (DataLength() & 0x0F) << 4;
+  FillDataBytes(record, 11, data_bytes_);// The MLSD storage is fixed in LIN.
+  record[19] = crc_;
+  record[20] = static_cast<int8_t>(ChecksumModel()) & 0x03;
+  LittleBuffer sof(sof_);
+  std::copy(sof.cbegin(), sof.cend(),
+            record.begin() + 21);
+
+  LittleBuffer baudrate(baudrate_);
+  std::copy(baudrate.cbegin(), baudrate.cend(),
+            record.begin() + 29);
+
+  LittleBuffer response_baudrate(response_baudrate_);
+  std::copy(response_baudrate.cbegin(), response_baudrate.cend(),
+            record.begin() + 33);
+
+  LittleBuffer break_length(break_length_);
+  std::copy(break_length.cbegin(), break_length.cend(),
+            record.begin() + 37);
+
+  LittleBuffer delimiter_break_length(delimiter_break_length_);
+  std::copy(delimiter_break_length.cbegin(), delimiter_break_length.cend(),
+            record.begin() + 41);
+}
+
+void LinMessage::MakeTransmissionError(SampleRecord& sample) const {
+  auto& record = sample.record_buffer;
+  const bool mandatory = data_group_ != nullptr ?
+    data_group_->MandatoryMembersOnly() : false;
+  const size_t record_size = mandatory ? 10 : 31;
+  if (record.size() != record_size) {
+    record.resize(record_size);
+  }
+  // First 8 byte is time in seconds (double)
+  record[8] = BusChannel();
+  record[9] = lin_id_ & kLinIdMask;
+
+  if (mandatory) {
+    return;
+  }
+
+  record[10] = ExpectedDataByteCount() & 0x0F;
+  record[10] |= (static_cast<int8_t>(ChecksumModel()) & 0x03) << 4;
+
+  LittleBuffer sof(sof_);
+  std::copy(sof.cbegin(), sof.cend(), record.begin() + 11);
+
+  LittleBuffer baudrate(baudrate_);
+  std::copy(baudrate.cbegin(), baudrate.cend(), record.begin() + 19);
+
+  LittleBuffer break_length(break_length_);
+  std::copy(break_length.cbegin(), break_length.cend(),
+            record.begin() + 23);
+
+  LittleBuffer delimiter_break_length(delimiter_break_length_);
+  std::copy(delimiter_break_length.cbegin(), delimiter_break_length.cend(),
+            record.begin() + 27);
+}
+
+void LinMessage::MakeSyncError(SampleRecord& sample) const {
+  auto& record = sample.record_buffer;
+  constexpr size_t record_size = 29;
+  if (record.size() != record_size) {
+    record.resize(record_size);
+  }
+  // First 8 byte is time in seconds (double)
+  record[8] = BusChannel();
+
+  LittleBuffer sof(sof_);
+  std::copy(sof.cbegin(), sof.cend(), record.begin() + 9);
+
+  LittleBuffer baudrate(baudrate_);
+  std::copy(baudrate.cbegin(), baudrate.cend(), record.begin() + 17);
+
+  LittleBuffer break_length(break_length_);
+  std::copy(break_length.cbegin(), break_length.cend(),
+            record.begin() + 21);
+
+  LittleBuffer delimiter_break_length(delimiter_break_length_);
+  std::copy(delimiter_break_length.cbegin(), delimiter_break_length.cend(),
+            record.begin() + 25);
+}
+
+void LinMessage::MakeReceiveError(SampleRecord& sample) const {
+  auto& record = sample.record_buffer;
+  constexpr size_t record_size = 44;
+  if (record.size() != record_size) {
+    record.resize(record_size);
+  }
+  // First 8 byte is time in seconds (double)
+  record[8] = BusChannel();
+  record[9] = LinId() & kLinIdMask;
+  record[10] = ReceivedDataByteCount() & 0x0F;
+  record[10] |= (ExpectedDataByteCount() & 0x0F ) << 4;
+  record[11] = DataLength() & 0x0F;
+  record[11] |= (static_cast<int8_t>(ChecksumModel()) & 0x03) << 4;
+  FillDataBytes(record, 12, data_bytes_);// The MLSD storage is fixed in LIN.
 
   LittleBuffer sof(sof_);
   std::copy(sof.cbegin(), sof.cend(),
@@ -208,165 +349,43 @@ void LinMessage::MakeDataFrame(SampleRecord& sample) const {
             record.begin() + 40);
 }
 
-void LinMessage::MakeWakeUp(SampleRecord& sample) const {
+void LinMessage::MakeSpike(SampleRecord& sample) const {
   auto& record = sample.record_buffer;
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const size_t record_size = mandatory ? 9 : 21;
+  constexpr size_t record_size = 21;
   if (record.size() != record_size) {
     record.resize(record_size);
   }
   // First 8 byte is time in seconds (double)
-  record[8 + 0] = bus_channel_;
-
-  if (mandatory) {
-    return;
-  }
-
-  LittleBuffer baudrate(baudrate_);
-  std::copy(baudrate.cbegin(), baudrate.cend(), record.begin() + 9);
-
-  LittleBuffer sof(sof_);
-  std::copy(sof.cbegin(), sof.cend(), record.begin() + 13);
-}
-
-void LinMessage::MakeChecksumError(SampleRecord& sample) const {
-  MakeDataFrame(sample);
-}
-
-void LinMessage::MakeTransmissionError(SampleRecord& sample) const {
-  auto& record = sample.record_buffer;
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const size_t record_size = mandatory ? 10 : 31;
-  if (record.size() != record_size) {
-    record.resize(record_size);
-  }
-  // First 8 byte is time in seconds (double)
-  record[8 + 0] = bus_channel_;
-  record[8 + 1] = lin_id_;
-
-  if (mandatory) {
-    return;
-  }
-
-  record[8 + 2] = spare_;
-
-  LittleBuffer baudrate(baudrate_);
-  std::copy(baudrate.cbegin(), baudrate.cend(), record.begin() + 11);
-
-  LittleBuffer sof(sof_);
-  std::copy(sof.cbegin(), sof.cend(), record.begin() + 15);
-
-  LittleBuffer break_length(break_length_);
-  std::copy(break_length.cbegin(), break_length.cend(),
-            record.begin() + 23);
-
-  LittleBuffer delimiter_break_length(delimiter_break_length_);
-  std::copy(delimiter_break_length.cbegin(), delimiter_break_length.cend(),
-            record.begin() + 27);
-}
-
-void LinMessage::MakeSyncError(SampleRecord& sample) const {
-  auto& record = sample.record_buffer;
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const size_t record_size = mandatory ? 13 : 29;
-  if (record.size() != record_size) {
-    record.resize(record_size);
-  }
-  // First 8 byte is time in seconds (double)
-  record[8 + 0] = bus_channel_;
-
-  LittleBuffer baudrate(baudrate_);
-  std::copy(baudrate.cbegin(), baudrate.cend(), record.begin() + 9);
-
-  if (mandatory) {
-    return;
-  }
-
-  LittleBuffer sof(sof_);
-  std::copy(sof.cbegin(), sof.cend(), record.begin() + 13);
-
-  LittleBuffer break_length(break_length_);
-  std::copy(break_length.cbegin(), break_length.cend(),
-            record.begin() + 21);
-
-  LittleBuffer delimiter_break_length(delimiter_break_length_);
-  std::copy(delimiter_break_length.cbegin(), delimiter_break_length.cend(),
-            record.begin() + 25);
-}
-
-void LinMessage::MakeReceiveError(SampleRecord& sample) const {
-  auto& record = sample.record_buffer;
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const size_t record_size = mandatory ? 10 : 43;
-  if (record.size() != record_size) {
-    record.resize(record_size);
-  }
-  // First 8 byte is time in seconds (double)
-  record[8 + 0] = bus_channel_;
-  record[8 + 1] = lin_id_;
-
-  if (mandatory) {
-    return;
-  }
-
-  record[8 + 2] = data_length_;
-  record[8 + 3] = crc_;
-  record[8 + 4] = spare_;
-
-  for (size_t index = 0; index < 8; ++index) {
-    record[13 + index] =
-        index < data_bytes_.size() ? data_bytes_[index] : 0xFF;
-  }
-
-  LittleBuffer sof(sof_);
-  std::copy(sof.cbegin(), sof.cend(),
-            record.begin() + 19);
+  record[8] = BusChannel();
 
   LittleBuffer baudrate(baudrate_);
   std::copy(baudrate.cbegin(), baudrate.cend(),
-            record.begin() + 27);
+            record.begin() + 9);
 
-  LittleBuffer response_baudrate(response_baudrate_);
-  std::copy(response_baudrate.cbegin(), response_baudrate.cend(),
-            record.begin() + 31);
-
-  LittleBuffer break_length(break_length_);
-  std::copy(break_length.cbegin(), break_length.cend(),
-            record.begin() + 35);
-
-  LittleBuffer delimiter_break_length(delimiter_break_length_);
-  std::copy(delimiter_break_length.cbegin(), delimiter_break_length.cend(),
-            record.begin() + 39);
-}
-
-void LinMessage::MakeSpike(SampleRecord& sample) const {
-  MakeWakeUp(sample);
+  LittleBuffer sof(sof_);
+  std::copy(sof.cbegin(), sof.cend(),
+            record.begin() + 13);
 }
 
 void LinMessage::MakeLongDominantSignal(SampleRecord& sample) const {
   auto& record = sample.record_buffer;
-  const bool mandatory = writer_.MandatoryMembersOnly();
-  const size_t record_size = mandatory ? 10 : 26;
+  constexpr size_t record_size = 26;
   if (record.size() != record_size) {
     record.resize(record_size);
   }
   // First 8 byte is time in seconds (double)
-  record[8 + 0] = bus_channel_;
-  record[8 + 1] = spare_;
-
-  if (mandatory) {
-    return;
-  }
+  record[8] = BusChannel();
 
   LittleBuffer baudrate(baudrate_);
-  std::copy(baudrate.cbegin(), baudrate.cend(), record.begin() + 10);
+  std::copy(baudrate.cbegin(), baudrate.cend(), record.begin() + 9);
 
   LittleBuffer sof(sof_);
-  std::copy(sof.cbegin(), sof.cend(), record.begin() + 14);
+  std::copy(sof.cbegin(), sof.cend(), record.begin() + 13);
 
   LittleBuffer length(total_signal_length_);
-  std::copy(length.cbegin(), length.cend(), record.begin() + 22);
+  std::copy(length.cbegin(), length.cend(), record.begin() + 21);
 
+  record[25] = static_cast<uint8_t>(TypeOfLongDominantSignal());
 }
 
 void LinMessage::ExpectedDataByteCount(uint8_t nof_bytes) {
@@ -389,9 +408,9 @@ LinTypeOfLongDominantSignal LinMessage::TypeOfLongDominantSignal() const {
   return static_cast<LinTypeOfLongDominantSignal>((spare_ & kDominantTypeMask) >>4);
 }
 
-void LinMessage::DataBytes(std::vector<uint8_t>& data_bytes) {
-  data_bytes_ = data_bytes;
+void LinMessage::DataBytes(std::vector<uint8_t> data_bytes) {
   DataLength(static_cast<uint8_t>(data_bytes.size()));
+  data_bytes_ = std::move(data_bytes);
 }
 
 }  // namespace mdf

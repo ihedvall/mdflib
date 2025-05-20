@@ -4,7 +4,10 @@
  */
 
 #include "samplequeue.h"
+
 #include "mdf/mdflogstream.h"
+#include "mdf/mostmessage.h"
+#include "mdf/flexraymessage.h"
 
 #include "dg3block.h"
 #include "dg4block.h"
@@ -302,6 +305,56 @@ void SampleQueue::SaveMostMessage(const IChannelGroup& group, uint64_t time,
 
     case MostMessageType::ShutdownFlag:
       if (group.Name().find("_ShutdownFlag") == std::string::npos) {
+        return;
+      }
+      break;
+
+    default:
+      return;
+  }
+
+  SampleRecord sample = group.GetSampleRecord();
+  sample.timestamp = time;
+  RecalculateTime(group.RecordId(), sample);
+  msg.ToRaw(sample);
+  AddSample(std::move(sample));
+}
+
+void SampleQueue::SaveFlexRayMessage(const IChannelGroup& group, uint64_t time,
+                                  const IFlexRayEvent& msg) {
+  switch (msg.MessageType()) {
+    case FlexRayMessageType::Frame:
+      if (group.Name().find("_Frame") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case FlexRayMessageType::Pdu:
+      if (group.Name().find("_Pdu") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case FlexRayMessageType::FrameHeader:
+      if (group.Name().find("_FrameHeader") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case FlexRayMessageType::NullFrame:
+      if (group.Name().find("_NullFrame") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case FlexRayMessageType::ErrorFrame:
+      if (group.Name().find("_ErrorFrame") == std::string::npos) {
+        return;
+      }
+      break;
+
+    case FlexRayMessageType::Symbol:
+      if (group.Name().find("_Symbol") == std::string::npos) {
         return;
       }
       break;

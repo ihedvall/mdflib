@@ -22,10 +22,11 @@ class IXmlNode;
 
 using MdExtensionCreator = std::function<MdExtensionPtr()>;
 
-
 class MdComment {
  public:
+
   explicit MdComment(std::string block_name);
+  virtual ~MdComment() = default;
 
   void Comment(std::string comment);
   void Comment(MdString comment);

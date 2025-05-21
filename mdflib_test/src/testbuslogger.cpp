@@ -229,6 +229,8 @@ TEST_F(TestBusLogger, Mdf4CanSdStorage ) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
+  constexpr size_t max_samples = 10'000;
+
   path mdf_file(kTestDir);
   mdf_file.append("can_sd_storage.mf4");
 
@@ -273,7 +275,7 @@ TEST_F(TestBusLogger, Mdf4CanSdStorage ) {
   auto tick_time = TimeStampToNs();
   writer->StartMeasurement(tick_time);
   size_t sample;
-  for (sample = 0; sample < 10; ++sample) {
+  for (sample = 0; sample < max_samples; ++sample) {
     // Assigned some dummy data
     std::vector<uint8_t> data;
     data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
@@ -316,17 +318,31 @@ TEST_F(TestBusLogger, Mdf4CanSdStorage ) {
   }
   reader.Close();
 
+  bool sample_valid = false;
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
-    EXPECT_EQ(observer->NofSamples(), 10);
+    EXPECT_EQ(observer->NofSamples(), max_samples);
+    if (observer->Name().find("DataBytes") != std::string::npos) {
+      for (size_t sample1 = 0; sample1 < max_samples; ++sample1) {
+        std::vector<uint8_t> reference_data;
+        reference_data.assign(sample1 < 8 ? sample1 + 1 : 8,
+          static_cast<uint8_t>(sample1 + 1));
+        std::vector<uint8_t> data;
+        const bool valid = observer->GetChannelValue(sample1, data);
+        EXPECT_TRUE(valid);
+        ASSERT_EQ(reference_data, data);
+        sample_valid = true;
+     }
+    }
   }
-
+  EXPECT_TRUE(sample_valid);
 }
 
 TEST_F(TestBusLogger, Mdf4VlsdCanConfig) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
+  constexpr size_t max_samples = 22'000;
   path mdf_file(kTestDir);
   mdf_file.append("can_vlsd_storage.mf4");
 
@@ -363,7 +379,7 @@ TEST_F(TestBusLogger, Mdf4VlsdCanConfig) {
   writer->InitMeasurement();
   auto tick_time = TimeStampToNs();
   writer->StartMeasurement(tick_time);
-  for (size_t sample = 0; sample < 100'000; ++sample) {
+  for (size_t sample = 0; sample < max_samples; ++sample) {
 
     std::vector<uint8_t> data;
     data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
@@ -416,28 +432,32 @@ TEST_F(TestBusLogger, Mdf4VlsdCanConfig) {
   reader.Close();
 
 
-
+  bool sample_valid = false;
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
-    EXPECT_EQ(observer->NofSamples(), 100'000);
-    if (observer->Name() == "CAN_DataFrame" ) {
-      for (uint64_t sample1 = 0;
-           sample1 < 5 && sample1 < observer->NofSamples();
-           ++sample1) {
+    EXPECT_EQ(observer->NofSamples(), max_samples);
+
+    if (observer->Name().find("DataBytes") != std::string::npos ) {
+      for (uint64_t sample1 = 0; sample1 < observer->NofSamples(); ++sample1) {
+        std::vector<uint8_t> reference_data;
+        reference_data.assign(sample1 < 8 ? sample1 + 1 : 8,
+          static_cast<uint8_t>(sample1 + 1));
         std::vector<uint8_t> frame_data;
-        observer->GetEngValue(sample1,frame_data);
-        std::cout << "Sample: " << sample1
-                  << ", Size: " << frame_data.size() << std::endl;
+        const bool valid = observer->GetEngValue(sample1,frame_data);
+        EXPECT_TRUE(valid);
+        ASSERT_EQ(reference_data, frame_data);
+        sample_valid = true;
       }
     }
   }
-
+  EXPECT_TRUE(sample_valid);
 }
 
 TEST_F(TestBusLogger, Mdf4MlsdCanConfig) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
+  constexpr size_t max_samples = 30'000;
   path mdf_file(kTestDir);
   mdf_file.append("can_mlsd_storage.mf4");
 
@@ -474,7 +494,7 @@ TEST_F(TestBusLogger, Mdf4MlsdCanConfig) {
   writer->InitMeasurement();
   auto tick_time = TimeStampToNs();
   writer->StartMeasurement(tick_time);
-  for (size_t sample = 0; sample < 100'000; ++sample) {
+  for (size_t sample = 0; sample < max_samples; ++sample) {
 
     std::vector<uint8_t> data;
     data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
@@ -518,10 +538,10 @@ TEST_F(TestBusLogger, Mdf4MlsdCanConfig) {
   reader.Close();
 
   std::set<std::string> unique_list;
-
+  bool sample_valid = false;
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
-    EXPECT_EQ(observer->NofSamples(), 100'000);
+    EXPECT_EQ(observer->NofSamples(), max_samples);
 
     // Verify that the CAN_RemoteFrame.DLC exist
     const auto name = observer->Name();
@@ -530,8 +550,21 @@ TEST_F(TestBusLogger, Mdf4MlsdCanConfig) {
     } else if (name != "t")  {
       EXPECT_TRUE(false) << "Duplicate: " << name;
     }
-  }
 
+    if (observer->Name().find("DataBytes") != std::string::npos ) {
+      for (uint64_t sample = 0; sample < observer->NofSamples(); ++sample) {
+        std::vector<uint8_t> reference_data;
+        reference_data.assign(sample < 8 ? sample + 1 : 8,
+          static_cast<uint8_t>(sample + 1));
+        std::vector<uint8_t> frame_data;
+        const bool valid = observer->GetEngValue(sample,frame_data);
+        EXPECT_TRUE(valid);
+        ASSERT_EQ(reference_data, frame_data);
+        sample_valid = true;
+      }
+    }
+  }
+  EXPECT_TRUE(sample_valid);
 }
 
 TEST_F(TestBusLogger, Mdf4CompressedCanSdStorage ) {
@@ -828,6 +861,7 @@ TEST_F(TestBusLogger, Mdf4CompressedMlsdCanConfig) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
+  constexpr size_t max_samples = 10'000;
   path mdf_file(kTestDir);
   mdf_file.append("compressed_can_mlsd_storage.mf4");
 
@@ -864,7 +898,7 @@ TEST_F(TestBusLogger, Mdf4CompressedMlsdCanConfig) {
   writer->InitMeasurement();
   auto tick_time = TimeStampToNs();
   writer->StartMeasurement(tick_time);
-  for (size_t sample = 0; sample < 100'000; ++sample) {
+  for (size_t sample = 0; sample < max_samples; ++sample) {
 
     std::vector<uint8_t> data;
     data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
@@ -907,11 +941,26 @@ TEST_F(TestBusLogger, Mdf4CompressedMlsdCanConfig) {
   }
   reader.Close();
 
+  bool sample_valid = false;
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
-    EXPECT_EQ(observer->NofSamples(), 100'000);
-  }
+    EXPECT_EQ(observer->NofSamples(), max_samples);
 
+    if (observer->Name().find("DataBytes") != std::string::npos) {
+      for (size_t sample = 0; sample < max_samples; ++sample) {
+        std::vector<uint8_t> reference_data;
+        reference_data.assign(sample < 8 ? sample + 1 : 8,
+          static_cast<uint8_t>(sample + 1));
+        std::vector<uint8_t> data;
+        const bool valid = observer->GetEngValue(sample, data);
+        EXPECT_TRUE(valid);
+        EXPECT_EQ(data.size(), reference_data.size());
+        ASSERT_EQ(data, reference_data);
+        sample_valid = true;
+      }
+    }
+  }
+  EXPECT_TRUE(sample_valid);
 }
 
 TEST_F(TestBusLogger, Mdf4SampleObserver ) {
@@ -932,7 +981,7 @@ TEST_F(TestBusLogger, Mdf4SampleObserver ) {
   history->UserName("Ingemar Hedvall");
 
   writer->BusType(MdfBusType::CAN); // Defines the CG/CN names
-  writer->StorageType(MdfStorageType::FixedLengthStorage); // Variable length to SD
+  writer->StorageType(MdfStorageType::FixedLengthStorage);
   writer->MaxLength(8); // No meaning in this type of storage
   EXPECT_TRUE(writer->CreateBusLogConfiguration()); // Creates all DG/CG/CN
   writer->PreTrigTime(0.0);
@@ -985,31 +1034,39 @@ TEST_F(TestBusLogger, Mdf4SampleObserver ) {
   auto* last_dg1 = header1->LastDataGroup();
   ASSERT_TRUE(last_dg1 != nullptr);
 
-  const auto* channel_group1 = last_dg1->GetChannelGroup("CAN_DataFrame");
+  const IChannelGroup* channel_group1 = last_dg1->GetChannelGroup("CAN_DataFrame");
   ASSERT_TRUE(channel_group1 != nullptr);
 
-  const auto* channel1 = channel_group1->GetChannel("CAN_DataFrame.DataBytes");
+  const IChannel* channel1 = channel_group1->GetChannel("CAN_DataFrame.DataBytes");
   ASSERT_TRUE(channel1 != nullptr);
 
   uint64_t nof_sample_read = 0; // Testing abort of reading just 10 samples
   ISampleObserver sample_observer(*last_dg1);
   sample_observer.DoOnSample = [&] (uint64_t sample1, uint64_t record_id,
                                    const std::vector<uint8_t>& record ) -> bool {
-    bool valid = true;
-    std::string values;
+    bool eng_valid = true;
+    std::string eng_value;
+    bool channel_valid = true;
+    std::string channel_value;
+
     if (channel1->RecordId() == record_id) {
-      valid = sample_observer.GetEngValue(*channel1,sample1,
-                                          record, values );
-      std::cout << "Sample: " << sample1
-                << ", Record: " << record_id
-                << ", Values: " << values << std::endl;
-      ++nof_sample_read;
-      if (sample1 >= 9) {
+      eng_valid = sample_observer.GetEngValue(*channel1,sample1,
+                                          record, eng_value );
+      channel_valid = sample_observer.GetChannelValue(*channel1, sample1,
+            record, channel_value);
+
+      if (sample1 > 9) {
         return false;
       }
-
+      std::cout << "Sample: " << sample1
+          << ", Record: " << record_id
+          << ", Channel Value: " << channel_value
+          << ", Eng Value: " << eng_value
+          << std::endl;
+      ++nof_sample_read;
     }
-    EXPECT_TRUE(valid);
+    EXPECT_TRUE(channel_valid);
+    EXPECT_TRUE(eng_valid);
     return true;
   };
   reader.ReadData(*last_dg1);

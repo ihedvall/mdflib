@@ -116,11 +116,15 @@ class ISampleObserver {
       case ChannelType::VariableLength:
         if (channel.VlsdRecordId() == 0) {
           // If variable length, the value is an index into an SD block.
-          // Value should be in the channels data list (SD). The channels
+          // Value should be in the channels data list (SD or MLSD). The channels
+          // GetChannelValue handle this situation
+          valid = channel.GetChannelValue(record, value, array_index);
+        } else {
+          // If variable length, the value is an index into an SD block.
+          // Value should be in the channels data list (VLSD CG). The channels
           // GetChannelValue handle this situation
           valid = channel.GetChannelValue(record, value, array_index);
         }
-        // VLSD CG records cannot be handled without some sort of cache.
         break;
 
       case ChannelType::MaxLength:

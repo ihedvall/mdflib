@@ -662,14 +662,22 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::MimeStream:
     case ChannelDataType::MimeSample:
     case ChannelDataType::ByteArray: {
-      std::vector<uint8_t> list;
-      valid = GetByteArrayValue(record_buffer, list);
-      std::ostringstream s;
-      for (const auto byte : list) {
-        s << std::setfill('0') << std::setw(2) << std::hex << std::uppercase
-          << static_cast<uint16_t>(byte);
+      if (Type() == ChannelType::VariableLength && VlsdRecordId() != 0) {
+        // This is an offset.
+        uint64_t offset = 0;
+        valid = GetUnsignedValue(record_buffer, offset);
+        dest = std::to_string(offset);
+      } else {
+        std::vector<uint8_t> list;
+        valid = GetByteArrayValue(record_buffer, list);
+        std::ostringstream s;
+        for (const auto byte : list) {
+          s << std::setfill('0') << std::setw(2) << std::hex << std::uppercase
+            << static_cast<uint16_t>(byte);
+        }
+        dest = s.str();
       }
-      dest = s.str();
+
       break;
     }
 

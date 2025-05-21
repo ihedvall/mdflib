@@ -145,13 +145,14 @@ void Cg4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Flags", MakeFlagString(flags_));
 
   const wchar_t path_separator[2] = {static_cast<wchar_t>(path_separator_),0};
+  const wchar_t* path_ptr = path_separator;
 
   std::string utf8_path_separator;
   {
     char mbstr[MB_LEN_MAX * 2] = {0};
     std::mbstate_t state = std::mbstate_t();
     size_t len = std::wcsrtombs(mbstr, 
-                                (const wchar_t**)&path_separator, 
+                                &path_ptr,
                                 sizeof(mbstr), 
                                 &state);
     if (len != static_cast<size_t>(-1)) {

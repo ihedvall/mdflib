@@ -650,9 +650,15 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::MimeStream:
     case ChannelDataType::MimeSample:
     case ChannelDataType::ByteArray: {
-      std::vector<uint8_t> list;
-      valid = GetByteArrayValue(record_buffer, list);
-      dest = list.empty() ? T{} : list[0];
+      if (Type() ==ChannelType::VariableLength && VlsdRecordId() != 0) {
+        uint64_t offset = 0;
+        valid = GetUnsignedValue(record_buffer, offset);
+        dest = static_cast<T>(offset);
+      } else {
+        std::vector<uint8_t> list;
+        valid = GetByteArrayValue(record_buffer, list);
+        dest = list.empty() ? T{} : list[0];
+      }
       break;
     }
 

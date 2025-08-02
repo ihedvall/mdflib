@@ -12,12 +12,9 @@
 #include "mdf/idatagroup.h"
 #include "mdfblock.h"
 #include "si4block.h"
-
-
+#include "cn4block.h"
+#include "sr4block.h"
 namespace mdf::detail {
-
-class Cn4Block;
-class Sr4Block;
 
 class Cg4Block : public MdfBlock, public IChannelGroup {
  public:

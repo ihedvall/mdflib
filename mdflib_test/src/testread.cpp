@@ -629,6 +629,7 @@ TEST_F(TestRead, TestCssSampleObserver) {
       continue;
     }
     ISampleObserver observer(*data_group);
+
     reader.ReadData(*data_group);
   }
   reader.Close();

@@ -15,6 +15,7 @@
 #include <wx/config.h>
 #include <wx/utils.h>
 
+
 #include "util/logconfig.h"
 #include "util/logstream.h"
 
@@ -57,6 +58,7 @@ wxBEGIN_EVENT_TABLE(MdfViewer, wxApp)
 wxEND_EVENT_TABLE()
 
 bool MdfViewer::OnInit() {
+
   if (!wxApp::OnInit()) {
     return false;
   }
@@ -119,6 +121,7 @@ bool MdfViewer::OnInit() {
   new wxDocTemplate(doc_manager, "MDF File","*.mf4;*.mdf;*.mf3;*.dat","",
                                          "mf4;mdf;mf3;dat","MDFViewer","MDF Viewer",
                                          wxCLASSINFO(MdfDocument), wxCLASSINFO(MdfView));
+
   auto* frame = new MainFrame(GetAppDisplayName(), start_pos, start_size, maximized);
 
   frame->Show(true);

@@ -17,6 +17,7 @@
 #include "mdf/iblock.h"
 #include "mdf/imetadata.h"
 #include "mdf/cgcomment.h"
+#include "mdf/isourceinformation.h"
 
 namespace mdf {
 /** \brief Channel group flags. */
@@ -52,7 +53,7 @@ constexpr uint16_t EventSignal = 0x00010;
 }  // namespace CgFlag
 
 
-class ISourceInformation;
+
 
 /** \brief Interface against a channel group (CG) block.
  *
@@ -106,6 +107,7 @@ class IChannelGroup : public IBlock {
    * the name instead of the full name */
   [[nodiscard]] virtual IChannel* GetChannel(const std::string_view& name) const;
 
+    [[nodiscard]] virtual IChannel* GetMasterChannel() const;
 
   /** \brief Returns an external reference channel. */
   [[nodiscard]] virtual const IChannel* GetXChannel(
@@ -121,6 +123,16 @@ class IChannelGroup : public IBlock {
 
   [[nodiscard]] virtual ISourceInformation* SourceInformation()
       const; ///< Returns the source information (SI) block if it exist.
+
+  /** \brief Returns the type of bus messages this channel group contains.
+   *
+   * Returns what type bus message this channel group contains.
+   * The function check this in the source information block belonging
+   * to this block.
+   * @return The type of bus. Note that it returns 'None' if it isn't a bus
+   * channel group.
+   */
+  [[nodiscard]] BusType GetBusType() const;
 
   /** \brief Support function that creates a sample record. */
   [[nodiscard]] SampleRecord GetSampleRecord() const;

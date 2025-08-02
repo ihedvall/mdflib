@@ -122,8 +122,8 @@ class Hd4Block : public MdfBlock, public IHeader {
       const override;
   IDataGroup *CreateDataGroup() override;
 
-  bool FinalizeDtBlocks(std::streambuf& buffer);
-  bool FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg, bool update_vlsd);
+  bool FinalizeDtBlocks(std::streambuf& buffer) const;
+  bool FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg, bool update_vlsd) const;
   bool UpdateVlsdBlocks(std::streambuf& buffer);
  private:
   Mdf4Timestamp timestamp_;

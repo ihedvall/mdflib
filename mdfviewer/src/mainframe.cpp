@@ -32,7 +32,8 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxDocMDIParentFrame)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(const wxString& title, const wxPoint& start_pos, const wxSize& start_size, bool maximized)
-    : wxDocMDIParentFrame(wxDocManager::GetDocumentManager(), nullptr, wxID_ANY, title, start_pos, start_size) {
+    : wxDocMDIParentFrame(wxDocManager::GetDocumentManager(), nullptr, wxID_ANY, title,
+      start_pos, start_size) {
 #ifdef _WIN32
   wxIcon app("APP_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
 #else

@@ -12,6 +12,7 @@
 #include <memory>
 
 #include "mdf/mdfwriter.h"
+#include "mdf/ichannelobserver.h"
 
 namespace mdf {
 
@@ -41,6 +42,7 @@ using MdfLogFunction2 = std::function<void(MdfLogSeverity severity,
 
 class MdfWriter;
 class MdfFile;
+class IChannelObserver;
 
 /** \brief MDF factory class. */
 class MdfFactory {
@@ -57,6 +59,11 @@ class MdfFactory {
 
   /** \brief Sets the log function. */
   static void SetLogFunction2(const MdfLogFunction2& func);
+
+  static std::unique_ptr<IChannelObserver> CreateChannelObserver(
+    const IDataGroup& data_group, const IChannelGroup& channel_group,
+    const IChannel& channel);
+
 };
 
 }  // namespace mdf

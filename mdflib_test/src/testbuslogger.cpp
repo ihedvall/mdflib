@@ -6,6 +6,8 @@
 #include "testbuslogger.h"
 
 #include <filesystem>
+#include <algorithm>
+#include <ranges>
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
@@ -16,9 +18,10 @@
 #include "mdf/mdflogstream.h"
 #include "mdf/mdfreader.h"
 #include "mdf/ifilehistory.h"
-
+#include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
 #include "mdf/canconfigadapter.h"
-
+#include "mdf/canbusobserver.h"
 
 using namespace util::log;
 using namespace std::filesystem;
@@ -322,7 +325,14 @@ TEST_F(TestBusLogger, Mdf4CanSdStorage ) {
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
     EXPECT_EQ(observer->NofSamples(), max_samples);
+
     if (observer->Name().find("DataBytes") != std::string::npos) {
+      // Check that storage type is fixed length i.e SD storage.
+      const IChannel& channel = observer->Channel();
+      const IChannelGroup* channel_group  = channel.ChannelGroup();
+      ASSERT_TRUE(channel_group != nullptr);
+      EXPECT_EQ(channel_group->StorageType(), MdfStorageType::FixedLengthStorage);
+
       for (size_t sample1 = 0; sample1 < max_samples; ++sample1) {
         std::vector<uint8_t> reference_data;
         reference_data.assign(sample1 < 8 ? sample1 + 1 : 8,
@@ -438,6 +448,12 @@ TEST_F(TestBusLogger, Mdf4VlsdCanConfig) {
     EXPECT_EQ(observer->NofSamples(), max_samples);
 
     if (observer->Name().find("DataBytes") != std::string::npos ) {
+      // Check that storage type is VLSD CG storage.
+      const IChannel& channel = observer->Channel();
+      const IChannelGroup* channel_group  = channel.ChannelGroup();
+      ASSERT_TRUE(channel_group != nullptr);
+      EXPECT_EQ(channel_group->StorageType(), MdfStorageType::VlsdStorage);
+
       for (uint64_t sample1 = 0; sample1 < observer->NofSamples(); ++sample1) {
         std::vector<uint8_t> reference_data;
         reference_data.assign(sample1 < 8 ? sample1 + 1 : 8,
@@ -545,13 +561,20 @@ TEST_F(TestBusLogger, Mdf4MlsdCanConfig) {
 
     // Verify that the CAN_RemoteFrame.DLC exist
     const auto name = observer->Name();
-    if (unique_list.find(name) == unique_list.cend()) {
+    if (!unique_list.contains(name)) {
       unique_list.emplace(name);
     } else if (name != "t")  {
       EXPECT_TRUE(false) << "Duplicate: " << name;
     }
 
     if (observer->Name().find("DataBytes") != std::string::npos ) {
+      // Check that storage type is VLSD CG storage.
+      const IChannel& channel = observer->Channel();
+      const IChannelGroup* channel_group  = channel.ChannelGroup();
+      ASSERT_TRUE(channel_group != nullptr);
+      EXPECT_EQ(channel_group->StorageType(), MdfStorageType::MlsdStorage);
+      EXPECT_EQ(channel_group->MaxLength(), channel.DataBytes());
+
       for (uint64_t sample = 0; sample < observer->NofSamples(); ++sample) {
         std::vector<uint8_t> reference_data;
         reference_data.assign(sample < 8 ? sample + 1 : 8,
@@ -849,7 +872,7 @@ TEST_F(TestBusLogger, Mdf4MandatoryCanConfig) {
     ASSERT_TRUE(observer);
     EXPECT_EQ(observer->NofSamples(), max_samples);
     const auto& valid_list = observer->GetValidList();
-    const bool all_valid = std::all_of(valid_list.cbegin() , valid_list.cend(), [](bool valid) {
+    const bool all_valid = std::ranges::all_of(valid_list, [](bool valid) -> bool {
       return valid;
     });
     EXPECT_TRUE(all_valid);
@@ -1045,11 +1068,13 @@ TEST_F(TestBusLogger, Mdf4SampleObserver ) {
   sample_observer.DoOnSample = [&] (uint64_t sample1, uint64_t record_id,
                                    const std::vector<uint8_t>& record ) -> bool {
     bool eng_valid = true;
-    std::string eng_value;
+
     bool channel_valid = true;
-    std::string channel_value;
+
 
     if (channel1->RecordId() == record_id) {
+      std::string eng_value;
+      std::string channel_value;
       eng_valid = sample_observer.GetEngValue(*channel1,sample1,
                                           record, eng_value );
       channel_valid = sample_observer.GetChannelValue(*channel1, sample1,
@@ -1072,6 +1097,128 @@ TEST_F(TestBusLogger, Mdf4SampleObserver ) {
   reader.ReadData(*last_dg1);
   EXPECT_EQ(nof_sample_read, 10); // The read should be interrupted after
                                    // 10 samples
+  sample_observer.DetachObserver();
+  reader.Close();
+}
+
+TEST_F(TestBusLogger, Mdf4CanObserver ) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  constexpr size_t max_samples = 10'000;
+
+  path mdf_file(kTestDir);
+  mdf_file.append("can_observer.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test data types");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  writer->BusType(MdfBusType::CAN); // Defines the CG/CN names
+  writer->StorageType(MdfStorageType::VlsdStorage);
+  writer->MaxLength(8); // No meaning in this type of storage
+  writer->PreTrigTime(0.0);
+  writer->CompressData(true);
+
+  auto* last_dg = header->CreateDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
+
+  CanConfigAdapter config(*writer);
+  config.CreateConfig(*last_dg);
+
+  auto* can_data_frame = last_dg->GetChannelGroup("CAN_DataFrame");
+  auto* can_remote_frame = last_dg->GetChannelGroup("CAN_RemoteFrame");
+  auto* can_error_frame = last_dg->GetChannelGroup("CAN_ErrorFrame");
+  auto* can_overload_frame = last_dg->GetChannelGroup("CAN_OverloadFrame");
+
+  ASSERT_TRUE(can_data_frame != nullptr);
+  ASSERT_TRUE(can_remote_frame != nullptr);
+  ASSERT_TRUE(can_error_frame != nullptr);
+  ASSERT_TRUE(can_overload_frame != nullptr);
+
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  size_t sample;
+  for (sample = 0; sample < max_samples; ++sample) {
+
+    std::vector<uint8_t> data;
+    data.assign(sample < 8 ? sample + 1 : 8, static_cast<uint8_t>(sample + 1));
+
+    CanMessage msg;
+    msg.MessageId(123);
+    msg.ExtendedId(true);
+    msg.BusChannel(11);
+    EXPECT_EQ(msg.BusChannel(), 11);
+    msg.DataBytes(data);
+
+    // Add dummy message to all for message types. Not realistic
+    // but makes the test simpler.
+    writer->SaveCanMessage(*can_data_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_remote_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_error_frame, tick_time, msg);
+    writer->SaveCanMessage(*can_overload_frame, tick_time, msg);
+    tick_time += 1'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* header1 = reader.GetHeader();
+  ASSERT_TRUE(header1 != nullptr);
+
+  auto* last_dg1 = header1->LastDataGroup();
+  ASSERT_TRUE(last_dg1 != nullptr);
+
+  const IChannelGroup* channel_group1 = last_dg1->GetChannelGroup("_DataFrame");
+  ASSERT_TRUE(channel_group1 != nullptr);
+
+  EXPECT_EQ(channel_group1->NofSamples(), max_samples);
+
+  CanBusObserver sample_observer(*last_dg1, *channel_group1);
+  EXPECT_EQ(sample_observer.NofSamples(), max_samples);
+
+  /*
+  sample_observer.OnCanMessage = [&] (uint64_t sample1, uint64_t record_id,
+                                   const std::vector<uint8_t>& record ) -> bool {
+    bool eng_valid = true;
+
+    bool channel_valid = true;
+
+
+    if (channel1->RecordId() == record_id) {
+      std::string eng_value;
+      std::string channel_value;
+      eng_valid = sample_observer.GetEngValue(*channel1,sample1,
+                                          record, eng_value );
+      channel_valid = sample_observer.GetChannelValue(*channel1, sample1,
+            record, channel_value);
+
+      if (sample1 > 9) {
+        return false;
+      }
+      std::cout << "Sample: " << sample1
+          << ", Record: " << record_id
+          << ", Channel Value: " << channel_value
+          << ", Eng Value: " << eng_value
+          << std::endl;
+      ++nof_sample_read;
+    }
+    EXPECT_TRUE(channel_valid);
+    EXPECT_TRUE(eng_valid);
+    return true;
+  };
+  */
+
+  reader.ReadData(*last_dg1);
   sample_observer.DetachObserver();
   reader.Close();
 }

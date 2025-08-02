@@ -189,12 +189,16 @@ void SampleQueue::SaveCanMessage(const IChannelGroup& group, uint64_t time,
   // Only checking the part of the group name as it may contain channel
   // and message ID/Name as well.
   if (group_name.find("_DataFrame") != std::string::npos)  {
+    msg.TypeOfMessage(MessageType::CAN_DataFrame);
     msg.ToRaw(MessageType::CAN_DataFrame, sample, max_length, save_index);
   } else if (group_name.find("_RemoteFrame") != std::string::npos) {
+    msg.TypeOfMessage(MessageType::CAN_RemoteFrame);
     msg.ToRaw(MessageType::CAN_RemoteFrame, sample, max_length, save_index);
   } else if (group_name.find("_ErrorFrame") != std::string::npos) {
+    msg.TypeOfMessage(MessageType::CAN_ErrorFrame);
     msg.ToRaw(MessageType::CAN_ErrorFrame, sample, max_length, save_index);
   } else if (group_name.find("_OverloadFrame") != std::string::npos) {
+    msg.TypeOfMessage(MessageType::CAN_OverloadFrame);
     msg.ToRaw(MessageType::CAN_OverloadFrame, sample,max_length, save_index);
   }
   AddSample(std::move(sample));
@@ -211,20 +215,28 @@ void SampleQueue::SaveLinMessage(const IChannelGroup& group, uint64_t time,
   // MLSD storage type.
 
   if (group.Name().find("_Frame") != std::string::npos) {
+    msg.MessageType(LinMessageType::LIN_Frame);
     msg.ToRaw(LinMessageType::LIN_Frame, sample);
   } else if (group.Name().find("_WakeUp") != std::string::npos) {
+    msg.MessageType(LinMessageType::LIN_WakeUp);
     msg.ToRaw(LinMessageType::LIN_WakeUp, sample);
   } else if (group.Name().find("_ChecksumError") != std::string::npos) {
+    msg.MessageType(LinMessageType::LIN_ChecksumError);
     msg.ToRaw(LinMessageType::LIN_ChecksumError, sample);
   } else if (group.Name().find("_TransmissionError") != std::string::npos) {
+    msg.MessageType(LinMessageType::LIN_TransmissionError);
     msg.ToRaw(LinMessageType::LIN_TransmissionError, sample);
   } else if (group.Name().find("_SyncError") != std::string::npos) {
+    msg.MessageType(LinMessageType::LIN_SyncError);
     msg.ToRaw(LinMessageType::LIN_SyncError, sample);
   } else if (group.Name().find("_ReceiveError") != std::string::npos) {
+    msg.MessageType(LinMessageType::LIN_ReceiveError);
     msg.ToRaw(LinMessageType::LIN_ReceiveError, sample);
   } else if (group.Name().find("_Spike") != std::string::npos) {
+    msg.MessageType(LinMessageType::LIN_Spike);
     msg.ToRaw(LinMessageType::LIN_Spike, sample);
   } else if (group.Name().find("_LongDom") != std::string::npos) {
+    msg.MessageType(LinMessageType::LIN_LongDominantSignal);
     msg.ToRaw(LinMessageType::LIN_LongDominantSignal, sample);
   }
 
@@ -241,12 +253,16 @@ void SampleQueue::SaveEthMessage(const IChannelGroup& group, uint64_t time,
   // MLSD storage type.
 
   if (group.Name().find( "_Frame") != std::string::npos) {
+    msg.MessageType(EthMessageType::ETH_Frame);
     msg.ToRaw(EthMessageType::ETH_Frame, sample);
   } else if (group.Name().find( "_ChecksumError") != std::string::npos) {
+    msg.MessageType(EthMessageType::ETH_ChecksumError);
     msg.ToRaw(EthMessageType::ETH_ChecksumError, sample);
   } else if (group.Name().find( "_LengthError") != std::string::npos) {
+    msg.MessageType(EthMessageType::ETH_LengthError);
     msg.ToRaw(EthMessageType::ETH_LengthError, sample);
   } else if (group.Name().find("_ReceiveError") != std::string::npos) {
+    msg.MessageType(EthMessageType::ETH_ReceiveError);
     msg.ToRaw(EthMessageType::ETH_ReceiveError, sample);
   }
   AddSample(std::move(sample));

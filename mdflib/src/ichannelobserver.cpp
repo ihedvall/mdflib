@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 #include "mdf/ichannelobserver.h"
+#include "mdf/idatagroup.h"
 
 namespace {
 std::string FormatArray(const mdf::IChannelArray& array, uint16_t dimension) {

@@ -4,11 +4,13 @@
  */
 
 #include "mdf/isampleobserver.h"
+#include "mdf/idatagroup.h"
+#include "mdf/ichannelgroup.h"
 
 namespace mdf {
 
 ISampleObserver::ISampleObserver(const IDataGroup &data_group)
-: data_group_(data_group) {
+: data_group_(&data_group) {
   ISampleObserver::AttachObserver();
   // Subscribe on all channel groups
   const auto cg_list = data_group.ChannelGroups();
@@ -25,16 +27,15 @@ ISampleObserver::~ISampleObserver() {
 }
 
 void ISampleObserver::AttachObserver() {
-  if (!attached_) {
-    attached_ = true;
-    data_group_.AttachSampleObserver(this);
+  if (data_group_ != nullptr) {
+     data_group_->AttachSampleObserver(this);
   }
 }
 
 void ISampleObserver::DetachObserver() {
-  if (attached_) {
-    data_group_.DetachSampleObserver(this);
-    attached_ = false;
+  if (data_group_ != nullptr) {
+    data_group_->DetachSampleObserver(this);
+    data_group_ = nullptr;
   }
 }
 

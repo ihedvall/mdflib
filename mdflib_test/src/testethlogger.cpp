@@ -5,16 +5,21 @@
 
 #include "testethlogger.h"
 
-#include <boost/iostreams/device/array.hpp>
 #include <filesystem>
+#include <ranges>
+
+#include <boost/iostreams/device/array.hpp>
+
+#include "util/logconfig.h"
+#include "util/logstream.h"
+#include "util/timestamp.h"
 
 #include "mdf/ifilehistory.h"
 #include "mdf/mdflogstream.h"
 #include "mdf/mdfreader.h"
 #include "mdf/mdfwriter.h"
-#include "util/logconfig.h"
-#include "util/logstream.h"
-#include "util/timestamp.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
 
 using namespace util::log;
 using namespace std::filesystem;
@@ -249,7 +254,7 @@ TEST_F(TestEthLogger, Mdf4EthConfig) {
     ASSERT_TRUE(observer);
     EXPECT_EQ(observer->NofSamples(), max_samples);
     const auto& valid_list = observer->GetValidList();
-    const bool all_valid =  std::all_of(valid_list.cbegin(), valid_list.cend(),
+    const bool all_valid =  std::ranges::all_of(valid_list,
       [] (const bool& valid) -> bool {
       return valid;
     });
@@ -257,7 +262,7 @@ TEST_F(TestEthLogger, Mdf4EthConfig) {
 
     // Verify that the CAN_RemoteFrame.DLC exist
     const auto name = observer->Name();
-    if (unique_list.find(name) == unique_list.cend()) {
+    if (!unique_list.contains(name)) {
       unique_list.emplace(name);
     } else if (name != "t")  {
       EXPECT_TRUE(false) << "Duplicate: " << name;
@@ -356,8 +361,7 @@ TEST_F(TestEthLogger, Mdf4EthMandatory) {
     ASSERT_TRUE(observer);
     EXPECT_EQ(observer->NofSamples(), 100'000);
     const auto& valid_list = observer->GetValidList();
-    const bool all_valid =  std::all_of(valid_list.cbegin(), valid_list.cend(),
-                                       [] (const bool& valid) -> bool {
+    const bool all_valid =  std::ranges::all_of(valid_list, [] (const bool& valid) -> bool {
                                          return valid;
                                        });
 
@@ -365,7 +369,7 @@ TEST_F(TestEthLogger, Mdf4EthMandatory) {
 
     // Verify that the CAN_RemoteFrame.DLC exist
     const auto name = observer->Name();
-    if (unique_list.find(name) == unique_list.cend()) {
+    if (!unique_list.contains(name)) {
       unique_list.emplace(name);
     } else if (name != "t")  {
       EXPECT_TRUE(false) << "Duplicate: " << name;

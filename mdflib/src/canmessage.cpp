@@ -83,11 +83,9 @@ uint8_t CanMessage::DataLength() const {
   return static_cast<uint8_t>(data_bytes_.size());
 }
 
-void CanMessage::DataBytes(const std::vector<uint8_t>& data) {
+void CanMessage::DataBytes(std::vector<uint8_t> data) {
   DataLength(static_cast<uint8_t>(data.size()));
-  for (size_t index = 0; index < data.size() && index < data_bytes_.size(); ++index) {
-    data_bytes_[index] = data[index];
-  }
+  data_bytes_ = std::move(data);
 }
 
 const std::vector<uint8_t>& CanMessage::DataBytes() const {
@@ -204,6 +202,22 @@ void CanMessage::FrameDuration(uint32_t length) {
 
 uint32_t CanMessage::FrameDuration() const {
   return frame_duration_;
+}
+
+void CanMessage::Crc(uint32_t crc) {
+  crc_ = crc;
+}
+
+uint32_t CanMessage::Crc() const {
+  return crc_;
+}
+
+void CanMessage::Timestamp(double timestamp) {
+  timestamp_ = timestamp;
+}
+
+double CanMessage::Timestamp() const {
+  return timestamp_;
 }
 
 size_t CanMessage::DlcToLength(uint8_t dlc) {

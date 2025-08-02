@@ -16,6 +16,8 @@
 #include "mdf/ifilehistory.h"
 #include "mdf/flexrayconfigadapter.h"
 #include "mdf/mdfreader.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
 
 using namespace util::log;
 using namespace std::filesystem;

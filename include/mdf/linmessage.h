@@ -46,6 +46,9 @@ class LinMessage {
   [[deprecated("Use the default LinMessage() constructor instead.")]]
   explicit LinMessage(const MdfWriter&);
 
+  void MessageType(LinMessageType type) const { message_type_ = type; }
+  [[nodiscard]] LinMessageType MessageType() const { return message_type_; }
+
   void BusChannel(uint8_t channel);
   [[nodiscard]] uint8_t BusChannel() const;
 
@@ -195,6 +198,7 @@ class LinMessage {
 
   uint32_t total_signal_length_ = 0;
 
+  mutable LinMessageType message_type_ = LinMessageType::LIN_Frame;
   mutable const IDataGroup* data_group_ = nullptr;
   mutable const IChannelGroup* channel_group_ = nullptr;
 

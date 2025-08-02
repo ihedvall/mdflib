@@ -49,6 +49,9 @@ class IDataGroup;
  */
 class CanMessage {
  public:
+    void TypeOfMessage(MessageType type) const { message_type_ = type; }
+    [[nodiscard]] MessageType TypeOfMessage() const { return message_type_; };
+
   /** \brief DBC message ID. Note that bit 31 indicate extended ID.
    *
    * The message ID is the CAN ID + highest bit 31 set if the CAN ID
@@ -122,7 +125,7 @@ class CanMessage {
    * function also set the data length and DLC code.
    * @param data
    */
-  void DataBytes(const std::vector<uint8_t>& data);
+  void DataBytes(std::vector<uint8_t> data);
 
   /** \brief Returns a reference to the payload data bytes. */
   [[nodiscard]] const std::vector<uint8_t>& DataBytes() const;
@@ -171,6 +174,12 @@ class CanMessage {
   void FrameDuration(uint32_t duration); ///< Frame duration in nano-seconds.
   [[nodiscard]] uint32_t FrameDuration() const; ///< Frame duration in nano-seconds.
 
+  void Crc(uint32_t crc); ///< CRC checksum
+  [[nodiscard]] uint32_t Crc() const; ///< Frame duration in nano-seconds.
+
+  void Timestamp(double timestamp); ///< Relative Timestamp (s)
+  [[nodiscard]] double Timestamp() const; ///< Relative timestamp (s).
+
   static size_t DlcToLength(uint8_t dlc); ///< Return the data length by DLC.
 
   void Reset(); ///< Reset all flags an payload data buffers.
@@ -187,6 +196,7 @@ class CanMessage {
   void ToRaw(MessageType msg_type, SampleRecord& sample,
              size_t max_data_length, bool save_index ) const;
  private:
+  double timestamp_ = 0.0;
   uint8_t bus_channel_ = 0;
   uint32_t message_id_ = 0; ///< Message ID with bit 31 set if extended ID.
   uint8_t  dlc_ = 0; ///< Data length code.
@@ -195,7 +205,9 @@ class CanMessage {
   uint16_t bit_position_ = 0; ///< Error bit position.
   CanErrorType error_type_ = CanErrorType::UNKNOWN_ERROR; ///< Error type.
   uint32_t frame_duration_ = 0;
+  uint32_t crc_ = 0; ///< CRC message checksum.
 
+  mutable MessageType message_type_ = MessageType::CAN_DataFrame;
   mutable const IDataGroup* data_group_ = nullptr;
   mutable const IChannelGroup* channel_group_ = nullptr;
 };

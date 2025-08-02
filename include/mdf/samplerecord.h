@@ -30,6 +30,17 @@ struct SampleRecord {
     // Fixed record length + VLSD data + VLSD length
     return record_buffer.size() + vlsd_buffer.size() + 4;
   }
+
+  void Clear() {
+    timestamp = 0;
+    record_id = 0;
+    record_buffer.clear();
+    record_buffer.shrink_to_fit();
+    vlsd_data = false;
+    vlsd_buffer.clear();
+    vlsd_buffer.shrink_to_fit();
+  }
+
 };
 
 }  // namespace mdf

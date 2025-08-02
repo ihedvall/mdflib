@@ -30,7 +30,15 @@ void IDataGroup::DetachSampleObserver(const ISampleObserver *observer) const {
   }
 }
 
-void IDataGroup::DetachAllSampleObservers() const { observer_list_.clear(); }
+void IDataGroup::DetachAllSampleObservers() const {
+  std::for_each(observer_list_.begin(), observer_list_.end(),
+    [] (auto *observer) {
+      if (observer != nullptr) {
+        observer->DataGroup(nullptr);
+      }
+    });
+  observer_list_.clear();
+}
 
 bool IDataGroup::NotifySampleObservers(uint64_t sample, uint64_t record_id,
     const std::vector<uint8_t> &record) const {

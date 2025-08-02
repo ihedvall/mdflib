@@ -5,15 +5,15 @@
 
 #include "mdf/mdffactory.h"
 
+#include "mdf/mdflogstream.h"
+#include "mdf/mdfreader.h"
+
 #include "mdf3file.h"
 #include "mdf3writer.h"
 #include "mdf4file.h"
 #include "mdf4writer.h"
 #include "mdfbuslogger.h"
 #include "mdfconverter.h"
-
-#include "mdf/mdflogstream.h"
-#include "cn4block.h"
 #include "sr4block.h"
 
 using namespace mdf::detail;
@@ -127,6 +127,12 @@ MdfFile* MdfFactory::CreateMdfFileEx(MdfFileType type) {
 
 void MdfFactory::SetLogFunction2(const MdfLogFunction2& func) {
   MdfLogStream::SetLogFunction2(func);
+}
+
+std::unique_ptr<IChannelObserver> MdfFactory::CreateChannelObserver(
+    const IDataGroup& data_group, const IChannelGroup& group,
+    const IChannel& channel) {
+  return mdf::CreateChannelObserver(data_group, group, channel);
 }
 
 }  // namespace mdf

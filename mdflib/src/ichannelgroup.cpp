@@ -68,6 +68,17 @@ IChannel *IChannelGroup::GetChannel(const std::string_view &name) const {
   return itr != cn_list.end() ? *itr : nullptr;
 }
 
+IChannel *IChannelGroup::GetMasterChannel() const {
+  auto cn_list = Channels(); // The list contains the composition channels as
+  // well as the ordinary channels.
+  auto itr = std::find_if(cn_list.begin(), cn_list.end(),
+                  [] (const auto* channel) -> bool {
+                    return (channel != nullptr &&
+                      (channel->Type() == ChannelType::Master || channel->Type() == ChannelType::VirtualMaster));
+              });
+  return itr != cn_list.end() ? *itr : nullptr;
+}
+
 void IChannelGroup::SetCgComment(const CgComment &cg_comment) {
   if (IMetaData* meta_data = CreateMetaData();
       meta_data != nullptr ) {
@@ -81,4 +92,77 @@ void IChannelGroup::GetCgComment(CgComment &cg_comment) const {
     cg_comment.FromXml(meta_data->XmlSnippet());
   }
 }
+
+BusType IChannelGroup::GetBusType() const {
+  // Check if this block is a bus type block.
+  if ((Flags() & CgFlag::BusEvent) == 0) {
+    return BusType::None;
+  }
+
+  // Normally the SI block holds the bus type.
+  if (const auto* si_block = SourceInformation(); si_block != nullptr) {
+    return si_block->Bus();
+  }
+
+  // The CG block name should hold the bus type.
+  const std::string group_name = Name();
+  if (group_name.size() >= 3) {
+    const std::string bus_name = group_name.substr(0, 3);
+    if (bus_name == "CAN") {
+      return BusType::Can;
+    }
+    if (bus_name == "LIN") {
+      return BusType::Lin;
+    }
+    if (bus_name == "CAN") {
+      return BusType::Can;
+    }
+    if (bus_name == "Fle") {
+      return BusType::FlexRay;
+    }
+    if (bus_name == "MOS") {
+      return BusType::Most;
+    }
+    if (bus_name == "ETH") {
+      return BusType::Ethernet;
+    }
+  }
+
+  // Some implementation uses unique names on the group name.
+  // So better check for the bus type in the channel names.
+  for (const IChannel* channel : Channels()) {
+    if (channel == nullptr) {
+      continue;
+    }
+    const std::string channel_name = channel->Name();
+    if (channel_name.find("_DataFrame") == std::string::npos) {
+      continue;
+    }
+
+    if (channel_name.size() >= 3) {
+      const std::string bus_name = channel_name.substr(0, 3);
+      if (bus_name == "CAN") {
+        return BusType::Can;
+      }
+      if (bus_name == "LIN") {
+        return BusType::Lin;
+      }
+      if (bus_name == "CAN") {
+        return BusType::Can;
+      }
+      if (bus_name == "Fle") {
+        return BusType::FlexRay;
+      }
+      if (bus_name == "MOS") {
+        return BusType::Most;
+      }
+      if (bus_name == "ETH") {
+        return BusType::Ethernet;
+      }
+    }
+  }
+
+  return BusType::None;
+}
+
 }  // namespace mdf

@@ -11,10 +11,11 @@
 
 #include "mdf/mostmessage.h"
 #include "mdf/mdflogstream.h"
-#include "mdf/mdfhelper.h"
 #include "mdf/ifilehistory.h"
 #include "mdf/mostconfigadapter.h"
 #include "mdf/mdfreader.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
 
 using namespace util::log;
 using namespace std::filesystem;
@@ -32,7 +33,7 @@ bool kSkipTest = false; ///< Set to true if the output dir is missing
  * @param severity Severity code
  * @param text Log text
  */
-void LogFunc(const MdfLocation& , mdf::MdfLogSeverity severity,
+void LogFunc(const MdfLocation& location , mdf::MdfLogSeverity severity,
              const std::string& text) {
   const auto &log_config = LogConfig::Instance();
   LogMessage message;
@@ -47,8 +48,8 @@ void LogFunc(const MdfLocation& , mdf::MdfLogSeverity severity,
  * @param severity Severity code
  * @param text Log text
  */
-void NoLog(const MdfLocation& , mdf::MdfLogSeverity ,
-           const std::string& ) {
+void NoLog(const MdfLocation& location , mdf::MdfLogSeverity severity ,
+           const std::string& text) {
 }
 
 }

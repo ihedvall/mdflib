@@ -37,6 +37,9 @@ class EthMessage {
   [[deprecated("Use the default EthMessage() constructor instead.")]]
   explicit EthMessage(const MdfWriter& writer);
 
+  void MessageType(EthMessageType type) const { message_type_ = type; }
+  [[nodiscard]] EthMessageType MessageType() const { return message_type_; };
+
   void BusChannel(uint8_t channel) {bus_channel_ = channel;};
   [[nodiscard]] uint8_t BusChannel() const {return bus_channel_;};
 
@@ -135,6 +138,7 @@ class EthMessage {
   uint32_t expected_crc_ = 0;
   uint16_t padding_byte_count_ = 0;
 
+  mutable EthMessageType message_type_ = EthMessageType::ETH_Frame;
   mutable const IDataGroup* data_group_ = nullptr;
   mutable const IChannelGroup* channel_group_ = nullptr;
 

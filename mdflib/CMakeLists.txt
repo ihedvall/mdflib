@@ -158,6 +158,8 @@ add_library(mdf
         ../include/mdf/flexraymessage.h
         src/flexrayconfigadapter.cpp
         ../include/mdf/flexrayconfigadapter.h
+        src/canbusobserver.cpp
+        ../include/mdf/canbusobserver.h
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})

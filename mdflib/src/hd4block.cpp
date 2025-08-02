@@ -20,7 +20,7 @@ constexpr size_t kIndexCh = 2;
 constexpr size_t kIndexAt = 3;
 constexpr size_t kIndexEv = 4;
 constexpr size_t kIndexMd = 5;
-constexpr size_t kIndexNext = 0;
+// constexpr size_t kIndexNext = 0;
 
 template <typename T>
 T GetCommonProperty(const mdf::detail::Hd4Block& block,
@@ -48,7 +48,7 @@ void SetCommonProperty(mdf::detail::Hd4Block& block, const std::string& key,
     xml_file->ParseString(md4->Text());
   }
   auto& root = xml_file->RootName("HDcomment");
-  auto& tx_node = root.AddUniqueNode("TX");  // Must be first in XML ???
+  root.AddUniqueNode("TX");  // Must be first in XML ???
   auto& common = root.AddUniqueNode("common_properties");
   auto& key_node = common.AddUniqueNode("e", "name", key);
   if (typeid(T) == typeid(int64_t)) {
@@ -213,24 +213,35 @@ void Hd4Block::ReadEverythingButData(std::streambuf& buffer) {
       continue;
     }
     for (auto& cg4 : dg4->Cg4()) {
+      if (!cg4) {
+        continue;
+      }
       cg4->ReadCnList(buffer);
       cg4->ReadSrList(buffer);
 
       // Update the VLSD record id reference on all channels
       // and fix the MSLD channel as well
+      // Update the storage type for the CG block.
+      MdfStorageType storage_type = MdfStorageType::FixedLengthStorage;
+      uint64_t max_length = 8;
       const auto channel_list = cg4->Channels();
       for (auto *channel : channel_list) {
         const auto *cn4 = dynamic_cast<const Cn4Block *>(channel);
         if (cn4 == nullptr || cn4->DataLink() == 0) {
-          // Nothing to set
+          // Nothing to more of interest
           continue;
         }
         // Search for the block within the DG block
         const auto *block = Find(cn4->DataLink());
         if (block != nullptr && block->BlockType() == "CG"
             && cn4->Type() == ChannelType::VariableLength) {
+          // VLSD CG Storage
           const auto *ref_cg = dynamic_cast<const Cg4Block *>(block);
           cn4->VlsdRecordId(ref_cg == nullptr ? 0 : ref_cg->RecordId());
+          if (cn4->VlsdRecordId() > 0) {
+            storage_type = MdfStorageType::VlsdStorage;
+            max_length = 8;
+          }
         } else if (block != nullptr && block->BlockType() == "CN") {
           // Point to the length of byte array channel
           if (const auto *mlsd_channel = dynamic_cast<const Cn4Block *>(block);
@@ -258,11 +269,16 @@ void Hd4Block::ReadEverythingButData(std::streambuf& buffer) {
                 mlsd_channel = dynamic_cast<const Cn4Block*>(data_length_channel);
               }
             }
+            storage_type = MdfStorageType::MlsdStorage;
+            max_length = cn4->DataBytes();
             cn4->MlsdChannel(mlsd_channel);
           }
         }
       }
+      cg4->StorageType(storage_type);
+      cg4->MaxLength(static_cast<uint32_t>(max_length));
     }
+
   }
   // Must read in all channels before creating CH block that references the CN
   // blocks
@@ -525,7 +541,7 @@ uint64_t Hd4Block::Write(std::streambuf& buffer) {
   return bytes;
 }
 
-bool Hd4Block::FinalizeDtBlocks(std::streambuf& buffer) {
+bool Hd4Block::FinalizeDtBlocks(std::streambuf& buffer) const {
   if (dg_list_.empty()) {
     return true;
   }
@@ -534,7 +550,7 @@ bool Hd4Block::FinalizeDtBlocks(std::streambuf& buffer) {
 }
 
 bool Hd4Block::FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg,
-                                     bool update_vlsd) {
+                                     bool update_vlsd) const {
   if (dg_list_.empty()) {
     return true;
   }

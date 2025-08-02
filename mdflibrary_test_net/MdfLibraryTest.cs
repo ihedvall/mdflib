@@ -18,7 +18,7 @@ public class MdfLibraryTest
     private const string TestFile3 = @"test3.mf4";
     private const string InvalidFile = @"testi.mf4";
 
-    private const string TestFile4 = @"中文.mf4";
+    private const string TestFile4 = "K:/test/mdf/TP00_2020-01-01_001_TAS_1579018256.mf4"; // @"中文.mf4";
     private const string TestFile5 = @"test5.mf4";
     private static string _testDirectory = "";
     private static bool _skipTest = false;

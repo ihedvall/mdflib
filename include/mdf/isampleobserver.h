@@ -8,15 +8,16 @@
  */
 #pragma once
 #include <cstdint>
+#include <string>
 #include <vector>
 #include <set>
 #include <functional>
 
-#include "mdf/ichannelgroup.h"
-#include "mdf/idatagroup.h"
+#include "mdf/ichannel.h"
 namespace mdf {
 
-
+class IDataGroup;
+class IChannelGroup;
 
 /** \brief Interface to a sample observer that handle incoming samples events.
  */
@@ -28,6 +29,10 @@ class ISampleObserver {
   explicit ISampleObserver(const IDataGroup& data_group);
 
   virtual ~ISampleObserver(); ///< Destructor
+
+  void DataGroup(const IDataGroup* data_group) const {
+    data_group_ = data_group;
+  };
 
   /** \brief Attach the observer to an observer list (publisher).
    *
@@ -103,8 +108,14 @@ class ISampleObserver {
       const std::vector<uint8_t>& record,
       V& value,
       uint64_t array_index = 0) const {
+
     bool valid = false;
     value = {};
+    if (data_group_ == nullptr) {
+      // If the data group is null, it means that the channel reference is
+      // invalid.
+      return valid;
+    }
 
     switch (channel.Type()) {
       case ChannelType::VirtualMaster:
@@ -215,9 +226,10 @@ class ISampleObserver {
 
  protected:
   std::set<uint64_t> record_id_list_; ///< List of subscribed channel groups.
-  const IDataGroup& data_group_;  ///< Reference to the data group (DG) block.
+
+  const IDataGroup* DataGroup() const { return data_group_; } ///< Returns the data group.
  private:
-  bool attached_ = false; ///< True if the observer is active
+  mutable const IDataGroup* data_group_;  ///< Reference to the data group (DG) block.
 };
 
 

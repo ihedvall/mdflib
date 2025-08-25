@@ -14,13 +14,15 @@
 #include <boost/iostreams/device/back_inserter.hpp>
 
 #include "mdf/mdfreader.h"
+#include "mdf/mdflogstream.h"
+
 #include "mdf3file.h"
 #include "mdf4file.h"
-#include "cn4block.h"
 
-#include "util/logconfig.h"
-#include "util/logstream.h"
-#include "util/stringutil.h"
+#include <util/logconfig.h>
+#include <util/logstream.h>
+#include <util/stringutil.h>
+
 using namespace std::filesystem;
 using namespace util::string;
 using namespace mdf;
@@ -67,6 +69,18 @@ double ConvertToSec(uint64_t diff) {
   temp /= 1'000'000'000;
   return temp;
 }
+
+void MdfLogFunction(const MdfLocation& location, MdfLogSeverity severity,
+                    const std::string& text) {
+  LogStringEx(location.line, location.column, location.file, location.function,
+              static_cast<LogSeverity>(severity), text);
+}
+
+void MdfNoLogFunction(const MdfLocation&, MdfLogSeverity,
+                    const std::string& ) {
+
+}
+
 }  // namespace
 
 namespace mdf::test {
@@ -76,6 +90,8 @@ void TestRead::SetUpTestSuite() {
   util::log::LogConfig &log_config = util::log::LogConfig::Instance();
   log_config.Type(util::log::LogType::LogToConsole);
   log_config.CreateDefaultLogger();
+
+  MdfLogStream::SetLogFunction1(MdfLogFunction);
 
   kMdfList.clear();
   try {
@@ -97,6 +113,7 @@ void TestRead::SetUpTestSuite() {
 }
 
 void TestRead::TearDownTestSuite() {
+  MdfLogStream::SetLogFunction1(MdfNoLogFunction);
   util::log::LogConfig &log_config = util::log::LogConfig::Instance();
   log_config.DeleteLogChain();
 }
@@ -788,8 +805,42 @@ TEST_F(TestRead, TestCanFd) {
     }
 
   }
+}
 
+TEST_F(TestRead, TestReadData) {
+  if (kMdfList.empty()) {
+    GTEST_SKIP_("No MDF files.");
+  }
+  size_t read_count = 0;
+  for (const auto& [name, test_file]: kMdfList) {
+    MdfReader reader(test_file);
+    const bool read_config = reader.ReadEverythingButData();
+    ASSERT_TRUE(read_config) << name;
 
+    const MdfFile* mf4_file = reader.GetFile();
+    ASSERT_TRUE(mf4_file != nullptr);
+
+    std::vector<IDataGroup*> dg_list;
+    mf4_file->DataGroups(dg_list);
+    if (dg_list.empty()) {
+      LOG_TRACE() << "No data groups in the test file. File: " << test_file;
+      continue;
+    }
+    const auto test_file_size = file_size(test_file);
+    if (test_file_size > 10'000'000) {
+     // LOG_TRACE() << "Skipped file due to size. File: " << name
+     //     << ", Size: " << static_cast<double>(test_file_size)/ 1E6 << "MB";
+      continue;
+    }
+    for (IDataGroup* data_group : dg_list) {
+      ASSERT_TRUE(data_group != nullptr);
+      ChannelObserverList observers;
+      CreateChannelObserverForDataGroup(*data_group, observers);
+      EXPECT_TRUE(reader.ReadData(*data_group)) << test_file;
+    }
+    ++read_count;
+  }
+  std::cout << "Tested " << read_count << " files." << std::endl;
 }
 
 }  // namespace mdf::test

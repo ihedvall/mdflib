@@ -16,11 +16,17 @@ MdfWriter::MdfWriter(MdfWriterType writer_type) {
 
 MdfWriter::~MdfWriter() { this->!MdfWriter(); }
 
+
 MdfWriter::!MdfWriter() {
   if (writer_ != nullptr) {
     delete writer_;
     writer_ = nullptr;
   }
+}
+
+String^ MdfWriter::Name::get() {
+  return writer_ == nullptr ? String::Empty :
+    MdfLibrary::Utf8Conversion(writer_->Name());
 }
 
 MdfFile^ MdfWriter::File::get() {

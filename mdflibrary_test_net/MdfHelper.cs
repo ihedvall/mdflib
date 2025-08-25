@@ -1,4 +1,5 @@
-﻿namespace mdflibrary_test;
+﻿
+namespace mdflibrary_test;
 
 public static class MdfHelper
 {
@@ -14,5 +15,7 @@ public static class MdfHelper
         var localTime = time.ToLocalTime();
         return (ulong)(localTime.Subtract(epoch).Ticks * 100);
     }
+
+
 
 }

@@ -30,6 +30,8 @@ if(MDF_BUILD_TEST AND VCPKG)
   list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
 endif()
 
+
+
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") # for static runtime
 
 project(

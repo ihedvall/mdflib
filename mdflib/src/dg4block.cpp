@@ -206,6 +206,12 @@ void Dg4Block::ReadData(std::streambuf& buffer) {
       }
       const auto* block = Find(data_link);
       if (block == nullptr) {
+        if (const auto* header = HeaderBlock(); header != nullptr) {
+          block = header->Find(data_link);
+        }
+      }
+
+      if (block == nullptr) {
         MDF_DEBUG() << "Missing data block in channel. Channel :"
                     << cn_block->Name()
                     << ", Data Link: " << data_link;

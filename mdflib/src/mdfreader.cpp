@@ -512,7 +512,7 @@ bool MdfReader::ReadData(IDataGroup &data_group) {
 
   bool shall_close = !IsOpen() && Open();
   if (!IsOpen()) {
-    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    MDF_ERROR() << "Didn't open the file. File: " << filename_;
     return false;
   }
 
@@ -526,8 +526,8 @@ bool MdfReader::ReadData(IDataGroup &data_group) {
       dg3.ReadData(*file_);
     }
   } catch (const std::exception &err) {
-    MDF_ERROR() << "Failed to read the file information blocks. Error: "
-                << err.what();
+    MDF_ERROR() << "Didn't read the file information blocks. Error: "
+                << err.what() << ", File: " << filename_;
     error = true;
   }
 

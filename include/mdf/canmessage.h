@@ -28,7 +28,7 @@ enum class CanErrorType : uint8_t {
 
 /** \brief Enumerate that defines type of CAN messages. */
 enum class MessageType : int {
-  CAN_DataFrame, ///< Normal CAN message
+  CAN_DataFrame = 0, ///< Normal CAN message
   CAN_RemoteFrame, ///< Remote frame message.
   CAN_ErrorFrame, ///< Error message.
   CAN_OverloadFrame, ///< Overload frame message.

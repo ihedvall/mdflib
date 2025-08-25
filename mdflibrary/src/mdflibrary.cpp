@@ -8,6 +8,7 @@
 
 #include <mdf/mdffactory.h>
 #include <mdf/mdfreader.h>
+#include <mdf/mdfhelper.h>
 #include <msclr/marshal_cppstd.h>
 
 #include "mdflibrary.h"
@@ -95,19 +96,36 @@ MdfChannelObserver^ MdfLibrary::CreateChannelObserverByChannelName(
 
 array<MdfChannelObserver^>^ MdfLibrary::CreateChannelObserverForChannelGroup(
     MdfDataGroup^ data_group, MdfChannelGroup^ channel_group) {
-  if (data_group == nullptr || channel_group == nullptr ) {
-    return nullptr;
+  if (data_group == nullptr || channel_group == nullptr
+    || data_group->group_ == nullptr || channel_group->group_ == nullptr) {
+    return gcnew array<MdfChannelObserver^>(0);
   }
-  if (data_group->group_ == nullptr || channel_group->group_ == nullptr) {
-    return nullptr;
-  }
+
   mdf::ChannelObserverList list;
   mdf::CreateChannelObserverForChannelGroup(*data_group->group_,
     *channel_group->group_, list);
-  auto temp = gcnew array<MdfChannelObserver^>(static_cast<int>(list.size()));
-  for (size_t index = 0; index < list.size(); ++index) {
-    temp[static_cast<int>(index)] =
-      gcnew MdfChannelObserver(list[index].release());
+  array<MdfChannelObserver^> ^temp = 
+      gcnew array<MdfChannelObserver^>(static_cast<int>(list.size()));
+  for (int index = 0; index < static_cast<int>(list.size()); ++index) {
+    auto& observer = list[index];
+    temp[index] = gcnew MdfChannelObserver(observer.release());
+  }
+  return temp;  
+}
+
+array<MdfChannelObserver^>^ MdfLibrary::CreateChannelObserverForDataGroup(
+    MdfDataGroup^ data_group) {
+  if (data_group == nullptr || data_group->group_ == nullptr) {
+    return gcnew array<MdfChannelObserver^>(0);
+  }
+ 
+  mdf::ChannelObserverList list;
+  mdf::CreateChannelObserverForDataGroup(*data_group->group_, list);
+  array<MdfChannelObserver^> ^temp = 
+      gcnew array<MdfChannelObserver^>(static_cast<int>(list.size()));
+  for (int index = 0; index < static_cast<int>(list.size()); ++index) {
+    auto& observer = list[index];
+    temp[index] = gcnew MdfChannelObserver(observer.release());
   }
   return temp;  
 }
@@ -132,6 +150,15 @@ std::string MdfLibrary::Utf8Conversion(String^ text) {
   for (int i = 0; i < c_array->Length; i++) utf8_string[i] = c_array[i];
   return utf8_string;
  
+}
+
+void MdfLibrary::AddLog(MdfLogSeverity severity, String ^ function,
+                             String ^ message) {
+  FireLogEvent(severity, function, message);
+}
+
+uint64_t MdfLibrary::NowNs() {
+  return mdf::MdfHelper::NowNs();
 }
 
 void MdfLibrary::FireLogEvent(MdfLogSeverity severity, String^ function,

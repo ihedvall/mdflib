@@ -5,6 +5,7 @@
 #pragma once
 #include <string>
 #include <wx/wx.h>
+#include <boost/asio.hpp>
 
 #if !wxUSE_DOC_VIEW_ARCHITECTURE
 #error You must set wxUSE_DOC_VIEW_ARCHITECTURE to 1 in setup.h!
@@ -18,7 +19,7 @@ class MdfViewer : public wxApp {
   bool OnInit() override;
   int OnExit() override;
 
-  void OpenFile(const std::string& filename) const;
+  void OpenFile(const std::string& filename);
 
   // ANSI coding
   const std::string& GetMyTempDir() const {
@@ -28,6 +29,7 @@ class MdfViewer : public wxApp {
   const std::string& GnuPlot() const {
     return gnuplot_;
   }
+  boost::asio::io_context ctx_;
  private:
   std::string notepad_; ///< Path to notepad.exe if it exist
   std::string gnuplot_; ///< Path to gnuplot.exe if it exist

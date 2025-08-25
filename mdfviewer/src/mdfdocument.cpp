@@ -639,15 +639,16 @@ void MdfDocument::OnPlotChannelData(wxCommandEvent &) {
   }
 
   // Produce a CSV file with the data for later use with the gnuplot script
-  auto csv_file = CreateCsvFile(*observer_list);
-  auto gp_file = CreateGnuPlotFile(*observer_list, csv_file, title.str());
+  const auto csv_file = CreateCsvFile(*observer_list);
+  const auto gp_file = CreateGnuPlotFile(*observer_list, csv_file, title.str());
   if (csv_file.empty() || gp_file.empty()) {
     wxMessageBox("Failed to create CSV or GP files.\nMore information in log file.");
     return;
   }
 
-  boost::asio::io_context ctx;
-  boost::process::process(ctx, app.GnuPlot(), {"--persist", gp_file});
+  std::vector<std::string> args {"--persist", gp_file};
+  boost::process::process proc(app.ctx_, app.GnuPlot(), args);
+  proc.detach();
 }
 
 void MdfDocument::OnUpdatePlotChannelData(wxUpdateUIEvent &event) {

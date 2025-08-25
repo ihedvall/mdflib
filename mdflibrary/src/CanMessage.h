@@ -17,17 +17,18 @@ public enum class CanErrorType : uint8_t {
   ACK_ERROR = 5 ///< Acknowledgement error.
 };
 
-enum class MessageType : int {
-  CAN_DataFrame, ///< Normal CAN message
-  CAN_RemoteFrame, ///< Remote frame message.
-  CAN_ErrorFrame, ///< Error message.
-  CAN_OverloadFrame, ///< Overload frame message.
+public enum class CanMessageType : int {
+  Can_DataFrame = 0, ///< Normal CAN message
+  Can_RemoteFrame, ///< Remote frame message.
+  Can_ErrorFrame, ///< Error message.
+  Can_OverloadFrame, ///< Overload frame message.
 };
 
 public ref class CanMessage {
 public:
   CanMessage();
   virtual ~CanMessage();
+  property CanMessageType TypeOfMessage {void set(CanMessageType type); CanMessageType get(); }
 
   property uint32_t MessageId { void set(uint32_t msgId); uint32_t get();}
   property uint32_t CanId { uint32_t get();}
@@ -47,11 +48,35 @@ public:
   property bool Rtr { void set(bool rtr); bool get();}
   property bool WakeUp { void set(bool wakeUp); bool get();}
   property bool SingleWire { void set(bool singleWire); bool get();}
+  property bool R0 { void set(bool r0Bit); bool get();}
+  property bool R1 { void set(bool r1Bit); bool get();}
+
   property uint8_t BusChannel { void set(uint8_t channel); uint8_t get();}
-  property uint8_t BitPosition { void set(uint8_t position); uint8_t get();}
+  property uint16_t BitPosition { void set(uint16_t position); uint16_t get();}
   property CanErrorType ErrorType {
     void set(CanErrorType type);
     CanErrorType get();
+  }
+
+  property uint32_t FrameDuration {
+    void set(uint32_t duration) {
+      if (msg_ != nullptr ) { msg_->FrameDuration(duration);}
+    }
+    uint32_t get() {return msg_ != nullptr ? msg_->FrameDuration() : 0; }
+  }
+
+  property uint32_t Crc {
+    void set(uint32_t crc) {
+      if (msg_ != nullptr ) { msg_->Crc(crc);}
+    }
+    uint32_t get() {return msg_ != nullptr ? msg_->Crc() : 0; }
+  }
+
+  property double Timestamp {
+    void set(double timestamp) {
+      if (msg_ != nullptr ) { msg_->Timestamp(timestamp);}
+    }
+    double get() {return msg_ != nullptr ? msg_->Timestamp() : 0.0; }
   }
 
   void Reset();

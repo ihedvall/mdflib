@@ -44,7 +44,7 @@ uint64_t DataBlock::CopyDataToBuffer(std::streambuf& buffer,
   if (data_size == 0) {
     return 0;
   }
-  if (dest.size() > (buffer_index + data_size)) {
+  if (dest.size() < (buffer_index + data_size)) {
     throw std::runtime_error("Buffer overflow detected.");
   }
 

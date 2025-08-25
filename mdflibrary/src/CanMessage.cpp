@@ -15,6 +15,18 @@ CanMessage::!CanMessage() {
   }
 }
 
+void CanMessage::TypeOfMessage::set(CanMessageType type) {
+  if (msg_ != nullptr) {
+    msg_->TypeOfMessage(static_cast<mdf::MessageType>(type));
+  }
+}
+
+CanMessageType CanMessage::TypeOfMessage::get() {
+  return msg_ != nullptr ?
+    static_cast<CanMessageType>(msg_->TypeOfMessage())
+  : CanMessageType::Can_DataFrame;
+}
+
 void CanMessage::MessageId::set(uint32_t msgId) {
   if (msg_ != nullptr) {
     msg_->MessageId(msgId);
@@ -164,6 +176,26 @@ bool CanMessage::SingleWire::get() {
   return msg_ != nullptr ? msg_->SingleWire() : false;
 }
 
+void CanMessage::R0::set(bool r0Bit) {
+  if (msg_ != nullptr) {
+    msg_->R0(r0Bit);
+  }
+}
+
+bool CanMessage::R0::get() {
+  return msg_ != nullptr ? msg_->R0() : false;
+}
+
+void CanMessage::R1::set(bool r1Bit) {
+  if (msg_ != nullptr) {
+    msg_->R1(r1Bit);
+  }
+}
+
+bool CanMessage::R1::get() {
+  return msg_ != nullptr ? msg_->R1() : false;
+}
+
 void CanMessage::BusChannel::set(uint8_t channel) {
   if (msg_ != nullptr) {
     msg_->BusChannel(channel);
@@ -174,13 +206,13 @@ uint8_t CanMessage::BusChannel::get() {
   return msg_ != nullptr ? msg_->BusChannel() : 0;
 }
 
-void CanMessage::BitPosition::set(uint8_t position) {
+void CanMessage::BitPosition::set(uint16_t position) {
   if (msg_ != nullptr) {
     msg_->BitPosition(position);
   }
 }
 
-uint8_t CanMessage::BitPosition::get() {
+uint16_t CanMessage::BitPosition::get() {
   return msg_ != nullptr ? msg_->BitPosition() : 0;
 }
 
@@ -205,4 +237,6 @@ uint8_t CanMessage::DlcToLength(uint8_t dlc) {
   return static_cast<uint8_t>(mdf::CanMessage::DlcToLength(dlc));
 }
 
-}
+
+
+}  // namespace MdfLibrary

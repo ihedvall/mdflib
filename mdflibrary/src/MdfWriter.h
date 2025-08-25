@@ -104,10 +104,31 @@ public ref class MdfWriter {
   MdfWriter(MdfWriterType writer_type);
   virtual ~MdfWriter();
 
+  property String^ Name { String ^ get(); };
+  property MdfWriterType TypeOfWriter {
+    MdfWriterType get() {
+      return writer_ != nullptr ?
+                 static_cast<MdfWriterType>(writer_->TypeOfWriter())
+                 : MdfWriterType::Mdf4Basic;
+    }
+  }
+
   property MdfFile^ File { MdfFile^ get(); };
   property MdfHeader^ Header { MdfHeader^ get(); };
   property bool IsFileNew { bool get(); };
   property bool CompressData {void set(bool compress); bool get(); }
+
+  property bool MandatoryMemberOnly {
+    void set(bool mandatory) {
+      if (writer_ != nullptr) {
+        writer_->MandatoryMembersOnly(mandatory);
+      }
+    }
+    bool get() {
+      return writer_ != nullptr ? writer_->MandatoryMembersOnly() : false;
+    }
+  }
+
   property double PreTrigTime {	void set(double preTrigTime);double get(); }
   property uint64_t StartTime {	uint64_t get(); }
   property uint64_t StopTime { uint64_t get(); }

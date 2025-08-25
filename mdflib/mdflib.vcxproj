@@ -329,6 +329,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\mdf\atcomment.h" />
+    <ClInclude Include="..\include\mdf\canbusobserver.h" />
     <ClInclude Include="..\include\mdf\canconfigadapter.h" />
     <ClInclude Include="..\include\mdf\canmessage.h" />
     <ClInclude Include="..\include\mdf\cccomment.h" />
@@ -372,6 +373,7 @@
     <ClInclude Include="..\include\mdf\ievent.h" />
     <ClInclude Include="..\include\mdf\ifilehistory.h" />
     <ClInclude Include="..\include\mdf\iheader.h" />
+    <ClInclude Include="..\include\mdf\imdftimestamp.h" />
     <ClInclude Include="..\include\mdf\imetadata.h" />
     <ClInclude Include="..\include\mdf\isampleobserver.h" />
     <ClInclude Include="..\include\mdf\isamplereduction.h" />

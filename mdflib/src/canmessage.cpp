@@ -196,8 +196,8 @@ CanErrorType CanMessage::ErrorType() const {
   return error_type_;
 }
 
-void CanMessage::FrameDuration(uint32_t length) {
-  frame_duration_ = length;
+void CanMessage::FrameDuration(uint32_t duration) {
+  frame_duration_ = duration;
 }
 
 uint32_t CanMessage::FrameDuration() const {

@@ -875,5 +875,11 @@
     <ClInclude Include="..\include\mdf\flexraymessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\mdf\canbusobserver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mdf\imdftimestamp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

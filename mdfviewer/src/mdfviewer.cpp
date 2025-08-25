@@ -5,10 +5,11 @@
 #include <filesystem>
 #include <codecvt>
 #define BOOST_LOCALE_HIDE_AUTO_PTR
-#include <boost/asio.hpp>
-#include <boost/process.hpp>
+
 #include <boost/filesystem.hpp>
 #include <boost/locale.hpp>
+#include <boost/asio.hpp>
+#include <boost/process.hpp>
 
 #include <wx/wx.h>
 #include <wx/docview.h>
@@ -94,7 +95,7 @@ bool MdfViewer::OnInit() {
     LOG_INFO() << "GnuPlot was not found.";
   }
 
-  // Create a temporary directory for this application
+  // Create a temporary directory for this app
   try {
     auto temp_dir = std::filesystem::temp_directory_path();
     auto unique = boost::filesystem::unique_path("MdfViewer%%%%");
@@ -102,7 +103,7 @@ bool MdfViewer::OnInit() {
     std::filesystem::remove_all(temp_dir);
     std::filesystem::create_directories(temp_dir);
     my_temp_dir_ = temp_dir.string();
-    LOG_INFO() << "Created a temporary directory. Path: " << my_temp_dir_;
+    LOG_INFO() << "Create a temporary directory. Path: " << my_temp_dir_;
   } catch (const std::exception& error) {
     LOG_ERROR() << "Error when creating temporary directory. Error:" << error.what();
   }
@@ -184,11 +185,12 @@ void MdfViewer::OnUpdateGnuPlotDownloadPage(wxUpdateUIEvent &event) {
    event.Enable( true /* gnuplot_.empty() */ );
 }
 
-// utf8
-void MdfViewer::OpenFile(const std::string& filename) const {
+
+void MdfViewer::OpenFile(const std::string& filename) {
   if (!notepad_.empty()) {
-    boost::asio::io_context ctx;
-    boost::process::process(ctx, notepad_, {filename});
+     std::vector<std::string> args = { filename };
+     boost::process::process proc(ctx_, notepad_, args);
+     proc.detach();
   }
 }
 

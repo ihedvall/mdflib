@@ -1,0 +1,29 @@
+---
+name: MSBuild of the C++ Assembly
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build MDF C++ Lib
+        run: > 
+          msbuild mdflib.sln 
+              -t:rebuild 
+              -verbosity:diag 
+              -property:Configuration=Release
+
+...

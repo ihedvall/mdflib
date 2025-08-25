@@ -10,6 +10,8 @@ project(
 
 set(CMAKE_CXX_STANDARD 20)
 
+include(../script/utillib.cmake)
+
 add_executable(test_mdf
         src/main.cpp
         src/testcrypto.cpp
@@ -18,15 +20,6 @@ add_executable(test_mdf
         src/testmdffile.cpp
         src/testmetadata.cpp src/testmetadata.h
         src/testzlib.cpp src/testzlib.h
-        src/util/ilogger.cpp src/util/ilogger.h
-        src/util/logconfig.cpp src/util/logconfig.h
-        src/util/logconsole.cpp src/util/logconsole.h
-        src/util/logfile.cpp src/util/logfile.h
-        src/util/logging.cpp src/util/logging.h
-        src/util/logmessage.cpp src/util/logmessage.h
-        src/util/logstream.cpp src/util/logstream.h
-        src/util/stringutil.cpp src/util/stringutil.h
-        src/util/timestamp.cpp src/util/timestamp.h
         src/testhelper.cpp
         src/testchannel.cpp
         src/testchannelarray.cpp
@@ -58,10 +51,11 @@ add_executable(test_mdf
         src/testcanbusobserver.h)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
+target_include_directories(test_mdf PRIVATE ${utillib_SOURCE_DIR}/include)
 
 if(VCPKG)
   find_package(boost_endian REQUIRED CONFIG)
-  target_link_libraries(test_mdf PRIVATE Boost::endian)
+  target_link_libraries(test_mdf PRIVATE Boost::endian util)
 
   find_package(GTest CONFIG REQUIRED)
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
@@ -71,7 +65,7 @@ else()
   include("../script/boost.cmake")
   target_include_directories(test_mdf PRIVATE ${Boost_INCLUDE_DIRS})
 
-  target_link_libraries(test_mdf PRIVATE ${Boost_LIBRARIES})
+  target_link_libraries(test_mdf PRIVATE util ${Boost_LIBRARIES})
 
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main)
 endif()

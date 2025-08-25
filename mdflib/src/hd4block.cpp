@@ -261,12 +261,16 @@ void Hd4Block::ReadEverythingButData(std::streambuf& buffer) {
                 break;
             }
             if (!mlsd_valid) {
-              MDF_ERROR() << "Invalid MLSD data channel referenced. Data Channel: "
-                          << mlsd_channel->Name();
+
                // Try to recover with data length channel
               if (const auto* data_length_channel = cg4->GetChannel(".DataLength");
                   data_length_channel != nullptr ) {
                 mlsd_channel = dynamic_cast<const Cn4Block*>(data_length_channel);
+                MDF_TRACE() << "Invalid MLSD data channel referenced. Changed to Data Channel: "
+                            << data_length_channel->Name();
+              } else {
+                MDF_ERROR() << "Invalid MLSD data channel referenced. Data Channel: "
+                            << mlsd_channel->Name();
               }
             }
             storage_type = MdfStorageType::MlsdStorage;

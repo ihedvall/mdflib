@@ -18,12 +18,14 @@ jobs:
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
 
       - name: Build MDF C++ Lib
         run: > 
           msbuild mdflib.sln 
               -t:rebuild 
-              -verbosity:diag 
+              -property:Platform=x64 
               -property:Configuration=Release
 
 ...

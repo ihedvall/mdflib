@@ -10,6 +10,8 @@
 #include <array>
 #include <mdf/mdfreader.h>
 #include <mdf/mdflogstream.h>
+#include <mdf/idatagroup.h>
+#include <mdf/ichannelgroup.h>
 #include "csvwriter.h"
 #include "programargument.h"
 

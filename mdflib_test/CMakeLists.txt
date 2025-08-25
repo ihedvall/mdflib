@@ -54,8 +54,13 @@ target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 target_include_directories(test_mdf PRIVATE ${utillib_SOURCE_DIR}/include)
 
 if(VCPKG)
-  find_package(boost_endian REQUIRED CONFIG)
-  target_link_libraries(test_mdf PRIVATE Boost::endian util)
+  find_package(Boost REQUIRED CONFIG COMPONENTS endian filesystem system process)
+  target_link_libraries(test_mdf PRIVATE
+          Boost::endian
+          Boost::filesystem
+          Boost::system
+          Boost::process
+          util)
 
   find_package(GTest CONFIG REQUIRED)
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main

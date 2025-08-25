@@ -39,7 +39,7 @@ target_link_libraries(mdf2csv PRIVATE mdf)
 
 
 if(VCPKG)
-    find_package(boost_program_options CONFIG REQUIRED)
+    find_package(Boost CONFIG REQUIRED COMPONENTS program_options)
     target_link_libraries(mdf2csv PRIVATE Boost::program_options)
 else()
     include("../script/boost.cmake")

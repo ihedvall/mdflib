@@ -26,6 +26,9 @@
       "dependencies": [
         "boost-endian",
         "boost-iostreams",
+        "boost-interprocess",
+        "boost-filesystem",
+        "boost-system",
         "xtensor",
         "gtest"
       ]

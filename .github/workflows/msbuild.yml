@@ -26,7 +26,7 @@ jobs:
 
       - name: Restore DOTNET
         run: dotnet restore
-        
+
       - name: Build MDF C++ Lib
         run: msbuild mdflib.sln -t:rebuild -t:Restore -property:Platform=x64 -property:Configuration=Release
 

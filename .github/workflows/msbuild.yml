@@ -20,6 +20,9 @@ jobs:
         uses: microsoft/setup-msbuild@v2
         with:
           msbuild-architecture: x64
+          
+      - name: Enable VCPKG for msbuild
+        run: vcpkg integrate install
 
       - name: Build MDF C++ Lib
         run: msbuild mdflib.sln -t:rebuild -property:Platform=x64 -property:Configuration=Release

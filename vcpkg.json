@@ -30,6 +30,7 @@
         "boost-filesystem",
         "boost-system",
         "boost-process",
+        "boost-locale",
         "xtensor",
         "gtest"
       ]

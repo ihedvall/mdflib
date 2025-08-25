@@ -13,7 +13,7 @@ if (NOT Boost_FOUND)
         set(Boost_ROOT ${COMP_DIR}/boost/latest)
     endif()
 
-    find_package(Boost REQUIRED COMPONENTS filesystem system locale program_options iostreams process)
+    find_package(Boost REQUIRED CONFIG COMPONENTS filesystem system locale program_options iostreams process)
     message(STATUS "Boost Found : " ${Boost_FOUND})
     message(STATUS "Boost Version: " ${Boost_VERSION_STRING})
     message(STATUS "Boost Include Dirs: " ${Boost_INCLUDE_DIRS})

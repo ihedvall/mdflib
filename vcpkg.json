@@ -29,6 +29,7 @@
         "boost-interprocess",
         "boost-filesystem",
         "boost-system",
+        "boost-process",
         "xtensor",
         "gtest"
       ]

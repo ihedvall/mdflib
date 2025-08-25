@@ -81,6 +81,8 @@ if(MSVC)
   target_compile_definitions(test_mdf PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS _CRT_SECURE_NO_WARNINGS)
 endif()
 
+target_link_libraries(test_mdf PRIVATE Boost::filesystem)
+target_link_libraries(test_mdf PRIVATE Boost::process)
 target_link_libraries(test_mdf PRIVATE sago::platform_folders)
 target_link_libraries(test_mdf PRIVATE mdf)
 

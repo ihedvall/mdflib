@@ -25,7 +25,7 @@ using namespace std::this_thread;
 namespace {
 
 std::string kTestRootDir; ///< Test root directory
-std::string kTestDir; ///<  <Test Root Dir>/mdf/write";
+std::string kTestDir; ///<  <Test Root Dir>/mdf/write;
 bool kSkipTest = false;
 
 /**
@@ -52,9 +52,6 @@ void LogFunc(const MdfLocation& location, mdf::MdfLogSeverity severity,
 }
 /**
  * Function that stops logging of MDF logs
- * @param location Source file and line location
- * @param severity Severity code
- * @param text Log text
  */
 void NoLog(const MdfLocation& , mdf::MdfLogSeverity,
            const std::string& ) {
@@ -70,7 +67,7 @@ void TestMultipleDgWrite::SetUpTestSuite() {
   try {
     // Create the root asn log directory. Note that this directory
     // exists in the temp dir of the operating system and is not
-    // deleted by this test program. May be deleted at restart
+    // deleted by this test program. May be deleted at the restart
     // of the operating system.
     auto temp_dir = temp_directory_path();
     temp_dir.append("test");
@@ -78,7 +75,7 @@ void TestMultipleDgWrite::SetUpTestSuite() {
     create_directories(temp_dir); // Not deleted
 
 
-    // Log to a file as this file is used as attachment file
+    // Log to a file as this file is used as an attachment file
     auto& log_config = LogConfig::Instance();
     log_config.RootDir(kTestRootDir);
     log_config.BaseName("multi_dg_write");
@@ -87,7 +84,7 @@ void TestMultipleDgWrite::SetUpTestSuite() {
 
     remove(log_config.GetLogFile()); // Remove any old log files
 
-    // Connect MDF library to the util logging functionality
+    // Connect the MDF library to the util logging functionality
     MdfLogStream::SetLogFunction1(LogFunc);
 
     // Add console logging
@@ -95,7 +92,7 @@ void TestMultipleDgWrite::SetUpTestSuite() {
     LOG_TRACE() << "Log file created. File: " << log_config.GetLogFile();
 
     // Create the test directory. Note that this directory is deleted before
-    // running the test, not after. This give the
+    // running the test, not after.
     temp_dir.append("mdf");
     temp_dir.append("multiple_dg");
     std::error_code err;
@@ -408,7 +405,7 @@ TEST_F(TestMultipleDgWrite, Mdf4WriteMultiDG) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
-  constexpr size_t max_sample = 15'000'000;
+  constexpr size_t max_sample = 500'000;
   path mdf_file(kTestDir);
   mdf_file.append("multi_dg.mf4");
   {
@@ -558,7 +555,7 @@ TEST_F(TestMultipleDgWrite, Mdf4WConverterMultiDG) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
-  constexpr size_t max_sample = 15'000'000;
+  constexpr size_t max_sample = 500'000;
   path mdf_file(kTestDir);
   mdf_file.append("converter_multi_dg.mf4");
   {

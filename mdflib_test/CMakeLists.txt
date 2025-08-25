@@ -66,6 +66,7 @@ if(VCPKG)
   find_package(GTest CONFIG REQUIRED)
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
                                         GTest::gmock GTest::gmock_main)
+
 else()
   include("../script/googletest.cmake")
   include("../script/boost.cmake")
@@ -80,6 +81,7 @@ if(MSVC)
   target_compile_definitions(test_mdf PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS _CRT_SECURE_NO_WARNINGS)
 endif()
 
+target_link_libraries(test_mdf PRIVATE sago::platform_folders)
 target_link_libraries(test_mdf PRIVATE mdf)
 
 include(GoogleTest)

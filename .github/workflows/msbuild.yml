@@ -22,10 +22,6 @@ jobs:
           msbuild-architecture: x64
 
       - name: Build MDF C++ Lib
-        run: > 
-          msbuild mdflib.sln 
-              -t:rebuild 
-              -property:Platform=x64 
-              -property:Configuration=Release
+        run: msbuild mdflib.sln -t:rebuild -property:Platform=x64 -property:Configuration=Release
 
 ...

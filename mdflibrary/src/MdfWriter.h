@@ -129,6 +129,17 @@ public ref class MdfWriter {
     }
   }
 
+  property bool SavePeriodic {
+    void set(bool periodic) {
+      if (writer_ != nullptr) {
+        writer_->SavePeriodic(periodic);
+      }
+    }
+    bool get() {
+      return writer_ != nullptr ? writer_->IsSavePeriodic() : true;
+    }
+  }
+
   property double PreTrigTime {	void set(double preTrigTime);double get(); }
   property uint64_t StartTime {	uint64_t get(); }
   property uint64_t StopTime { uint64_t get(); }
@@ -145,9 +156,17 @@ public ref class MdfWriter {
   bool CreateBusLogConfiguration();
   
   bool InitMeasurement();
+
   void SaveSample(MdfChannelGroup^ group, uint64_t time);
+  void SaveSample(MdfDataGroup^ data_group, 
+                  MdfChannelGroup^ channel_group, uint64_t time);
+
   void SaveCanMessage(MdfChannelGroup^ group, uint64_t time,
     const CanMessage^ message);
+  void SaveCanMessage(MdfDataGroup^ data_group, 
+                      MdfChannelGroup^ channel_group, 
+                      uint64_t time,
+                      const CanMessage^ message);
   void StartMeasurement(uint64_t start_time);
   void StartMeasurement(DateTime start_time);
   void StartMeasurement(IMdfTimeStamp^ start_time);

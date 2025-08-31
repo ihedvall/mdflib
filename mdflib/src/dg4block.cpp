@@ -154,6 +154,48 @@ uint64_t Dg4Block::Write(std::streambuf& buffer) {
 
 uint64_t Dg4Block::DataSize() const { return DataListBlock::DataSize(); }
 
+Hl4Block* Dg4Block::CreateOrGetHl4() {
+  if (DataBlockList().empty()) {
+    auto& hl4_list = DataBlockList();
+    // Add a HL4 block
+    auto hl_block = std::make_unique<Hl4Block>();
+    hl_block->Init(*this);
+    hl_block->Flags(0);
+    hl_block->Type(Hl4ZipType::Deflate);
+    hl4_list.push_back(std::move(hl_block));
+  }
+  return dynamic_cast<Hl4Block*>(DataBlockList().back().get());
+}
+
+Dt4Block *Dg4Block::CreateOrGetDt4(std::streambuf& buffer) {
+  // The data block list should include a DT block that we later will append
+  // samples (buffers) to.
+  auto& block_list = DataBlockList();
+  if (block_list.empty()) {
+    auto dt4 = std::make_unique<Dt4Block>();
+    dt4->Init(*this);
+    //buffer.pubseekoff(0, std::ios_base::end);
+
+    //if (Link(2) > 0) {
+    //  return nullptr;
+    //}
+    if (Link(kIndexData) == 0 && FilePosition() > 0) {
+      SetLastFilePosition(buffer);
+      dt4->Write(buffer);
+      UpdateLink(buffer, kIndexData, dt4->FilePosition());
+      dt4->DataPosition( 24 + dt4->FilePosition());
+    }
+
+/*const auto position = GetFilePosition(buffer);
+    SetLastFilePosition(buffer);
+    const int64_t data_position = GetFilePosition(buffer);
+    dt4->DataPosition(data_position);
+*/
+    block_list.push_back(std::move(dt4));
+  }
+  return dynamic_cast<Dt4Block*>(block_list.back().get());
+
+}
 void Dg4Block::ReadCgList(std::streambuf& buffer) {
   ReadLink4List(buffer, cg_list_, kIndexCg);
 }

@@ -48,7 +48,8 @@ add_executable(test_mdf
         src/testethlogger.cpp
         src/testethlogger.h
         src/testcanbusobserver.cpp
-        src/testcanbusobserver.h)
+        src/testcanbusobserver.h
+        src/testmdfwriter.cpp)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 target_include_directories(test_mdf PRIVATE ${utillib_SOURCE_DIR}/include)

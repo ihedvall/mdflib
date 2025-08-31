@@ -251,7 +251,7 @@ bool MdfWriter::InitMeasurement() {
 
   const bool write = mdf_file_->Write(*file_);
 
-  SetDataPosition();  // Set up data position to end of file
+  //SetDataPosition();  // Set up data position to end of file
   Close();
   start_time_ = 0;  // Zero indicate not started
   stop_time_ = 0;   // Zero indicate not stopped
@@ -424,7 +424,7 @@ bool MdfWriter::IsFirstMeasurement() const {
   }
   return true;
 }
-
+/*
 void MdfWriter::SetDataPosition() {
   if (CompressData() || !file_) {
     return;
@@ -483,11 +483,11 @@ void MdfWriter::SetDataPosition() {
     dg4->SetLastFilePosition(*file_);
 
     const int64_t data_position = detail::GetFilePosition(*file_);
-    dt4->DataPosition(data_position);
+    dt4->DataPosition(0); //data_position);
 
   }
 }
-
+*/
 /** \brief Checks if the compression is required
  *
  * The function checks if the compression is required to be enabled.

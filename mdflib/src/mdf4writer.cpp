@@ -67,7 +67,7 @@ bool Mdf4Writer::PrepareForWriting() {
     }
   }
   // Check if compression is required
-  if (active_list.size() > 1 && !CompressData()) {
+  if (active_list.size() > 1 && IsSavePeriodic() && !CompressData()) {
     CompressData(true);
   }
   // Only the last DG block is updated. So go to the last
@@ -79,6 +79,7 @@ bool Mdf4Writer::PrepareForWriting() {
       MDF_ERROR() << "Invalid DG block type detected.";
       return false;
     }
+    /*
     if (CompressData()) {
       auto hl4 = std::make_unique<Hl4Block>();
       hl4->Init(*dg4);
@@ -90,9 +91,8 @@ bool Mdf4Writer::PrepareForWriting() {
       dt4->Init(*dg4);
       block_list.push_back(std::move(dt4));
     }
-
+    */
     // Size the sample buffers for each CG block
-    auto cg_list = dg4->ChannelGroups();
     for (auto& cg4 : dg4->Cg4()) {
       if (!cg4) {
         continue;
@@ -153,6 +153,8 @@ Dg4Block* Mdf4Writer::GetLastDg4() {
   }
   return dynamic_cast<Dg4Block*>(last_dg);
 }
+
+
 
 void Mdf4Writer::SaveSample(const IChannelGroup &group, uint64_t time) {
   write_cache_.SaveSample(group, time);

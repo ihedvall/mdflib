@@ -33,28 +33,25 @@ void ConverterSampleQueue::SaveQueue(std::unique_lock<std::mutex>& lock) {
     SaveQueueCompressed(lock);
     return;
   }
-  lock.unlock(); // OK to add samples to the queue
-  // Save uncompressed data in last DG/DT block
   auto* dg4 = dynamic_cast<Dg4Block*>(&data_group_);
   if (dg4 == nullptr) {
     return;
   }
-  auto& block_list = dg4->DataBlockList();
-  if (block_list.empty()) {
-    return;
-  }
-  auto* dt4 = dynamic_cast<Dt4Block*>(block_list.back().get());
-  if (dt4 == nullptr) {
-    return;
-  }
-  const auto data_position = dt4->DataPosition();
-  if (data_position <= 0) {
-    return;
-  }
+
+  lock.unlock(); // OK to add samples to the queue
+  // Save uncompressed data in last DG/DT block
 
   // File should be open at this point
   if (!IsOpen()) {
     lock.lock();
+    return;
+  }
+  if (dg4->FilePosition() <= 0) {
+    dg4->Write(*writer_.file_); // Flush out data
+  }
+
+  auto* dt4 = dg4->CreateOrGetDt4(*writer_.file_);
+  if (dt4 == nullptr) {
     return;
   }
 
@@ -73,7 +70,6 @@ void ConverterSampleQueue::SaveQueue(std::unique_lock<std::mutex>& lock) {
       continue;
     }
     lock.unlock();
-
 
     auto* vlsd_group = sample.vlsd_data ?
                                         dg4->FindCgRecordId(sample.record_id + 1) : nullptr;
@@ -118,15 +114,18 @@ void ConverterSampleQueue::SaveQueue(std::unique_lock<std::mutex>& lock) {
   }
 
   lock.unlock();
+  // Save cuurent (last) byte position
   const auto last_position = GetFilePosition(*writer_.file_);
-  uint64_t block_length = 24 + (last_position - data_position);
-  dt4->UpdateBlockSize(*writer_.file_, block_length);
   dg4->Write(*writer_.file_); // Flush out data
+
+  const uint64_t block_length = last_position - dt4->FilePosition();
+  dt4->UpdateBlockSize(*writer_.file_, block_length);
 
   lock.lock();
 }
 
 void ConverterSampleQueue::CleanQueue(std::unique_lock<std::mutex>& lock) {
+
   if (writer_.CompressData()) {
     CleanQueueCompressed(lock, true);
     return;
@@ -157,16 +156,7 @@ void ConverterSampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lo
     return;
   }
 
-  if (dg4->DataBlockList().empty()) {
-    auto& hl4_list = dg4->DataBlockList();
-    // Add a HL4 block
-    auto hl_block = std::make_unique<Hl4Block>();
-    hl_block->Flags(0);
-    hl_block->Type(Hl4ZipType::Deflate);
-    hl4_list.push_back(std::move(hl_block));
-  }
-
-  auto* hl4 = dynamic_cast<Hl4Block*>(dg4->DataBlockList().back().get());
+  auto* hl4 = dg4->CreateOrGetHl4();
   if (hl4 == nullptr) {
     return;
   }

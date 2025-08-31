@@ -61,7 +61,7 @@ bool MdfConverter::InitMeasurement() {
 
   // Save the configuration to disc
   const bool write = mdf_file_->Write(*file_);
-  SetDataPosition();  // Set up data position to end of file
+  //SetDataPosition();  // Set up data position to end of file
 
   // Keep the file open to save conversion time
 

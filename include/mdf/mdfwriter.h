@@ -39,8 +39,6 @@ enum class WriteState : uint8_t {
   Finalize    ///< OK to add new DG and CG blocks
 };
 
-
-
 class IChannelGroup;
 class IChannel;
 class IChannelConversion;
@@ -351,6 +349,9 @@ class MdfWriter {
   /** \brief Returns true if the data block is compressed. */
   [[nodiscard]] bool CompressData() const { return compress_data_;}
 
+  void SavePeriodic(bool periodic) { periodic_save_ = periodic; }
+  [[nodiscard]] bool IsSavePeriodic() const { return periodic_save_; }
+
   /** \brief Define only mandatory members.
    *
    * This option defines if only mandatory members should be automatic
@@ -409,10 +410,11 @@ class MdfWriter {
   virtual void RecalculateTimeMaster() = 0;
   virtual void NotifySample() = 0;
 
-  void SetDataPosition();
- private:
+  //void SetDataPosition();
 
+ private:
   bool compress_data_ = false; ///< True if the data shall be compressed.
+  bool periodic_save_ = true; ///< If set to false, save first at stop.
   uint16_t bus_type_ = 0; ///< Defines protocols.
   MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;
   uint32_t max_length_ = 8; ///< Max data byte storage

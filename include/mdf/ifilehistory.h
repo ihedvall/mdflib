@@ -51,7 +51,7 @@ class IFileHistory : public IBlock {
    * @return Nanoseconds since 1970.
    */
   [[nodiscard]] virtual uint64_t Time() const = 0;
-  
+
   /** \brief Returns the start timestamp of the measurement.
    *
    * This function returns the start timestamp of the measurement as a pointer

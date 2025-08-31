@@ -44,24 +44,20 @@ void Writer4SampleQueue::SaveQueue(std::unique_lock<std::mutex>& lock) {
   if (dg4 == nullptr) {
     return;
   }
-  auto& block_list = dg4->DataBlockList();
-  if (block_list.empty()) {
+
+  lock.unlock();
+
+  writer_.Open( std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+  if (!writer_.IsOpen()) {
+    lock.lock();
     return;
   }
-  auto* dt4 = dynamic_cast<Dt4Block*>(block_list.back().get());
+  auto* dt4 = dg4->CreateOrGetDt4(*writer_.file_);
   if (dt4 == nullptr) {
     return;
   }
   const auto data_position = dt4->DataPosition();
   if (data_position <= 0) {
-    return;
-  }
-  lock.unlock();
-
-
-  writer_.Open( std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-  if (!writer_.IsOpen()) {
-    lock.lock();
     return;
   }
 
@@ -129,10 +125,12 @@ void Writer4SampleQueue::SaveQueue(std::unique_lock<std::mutex>& lock) {
   }
 
   lock.unlock();
-  const int64_t last_position = GetFilePosition(*writer_.file_);
-  uint64_t block_length = 24 + (last_position - data_position);
-  dt4->UpdateBlockSize(*writer_.file_, block_length);
+  const int64_t last_position = GetLastFilePosition(*writer_.file_);
   dg4->Write(*writer_.file_); // Flush out data
+
+  const uint64_t block_length = last_position - dt4->FilePosition();
+  dt4->UpdateBlockSize(*writer_.file_, block_length);
+
   writer_.Close();
   lock.lock();
 
@@ -169,16 +167,7 @@ void Writer4SampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lock
   if (dg4 == nullptr) {
     return;
   }
-
-  if (dg4->DataBlockList().empty()) {
-    auto& hl4_list = dg4->DataBlockList();
-    // Add a HL4 block
-    auto hl_block = std::make_unique<Hl4Block>();
-    hl_block->Flags(0);
-    hl_block->Type(Hl4ZipType::Deflate);
-    hl4_list.push_back(std::move(hl_block));
-  }
-  auto* hl4 = dynamic_cast<Hl4Block*>(dg4->DataBlockList().back().get());
+  auto* hl4 = dg4->CreateOrGetHl4();;
   if (hl4 == nullptr) {
     return;
   }
@@ -199,6 +188,7 @@ void Writer4SampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lock
 
   // Create DL block
   auto dl4 = std::make_unique<Dl4Block>();
+  dl4->Init(*hl4);
   dl4->Flags(0);
   size_t dz_count = 0;
   dl4->Offset(dz_count, offset_);
@@ -234,6 +224,7 @@ void Writer4SampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lock
       if (finalize || QueueSize() > buffer_max) {
         // Purge the buffer to a DZ block and add it to the last DL block
         auto dz4 = std::make_unique<Dz4Block>();
+        dz4->Init(*dl4);
         dz4->OrigBlockType("DT");
         dz4->Type(Dz4ZipType::Deflate);
         dz4->Data(buffer);
@@ -312,6 +303,7 @@ void Writer4SampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lock
   if (!buffer.empty()) {
     if (buffer.size() > 100) {
       auto dz4 = std::make_unique<Dz4Block>();
+      dz4->Init(*dl4);
       dz4->OrigBlockType("DT");
       dz4->Type(Dz4ZipType::Deflate);
       dz4->Data(buffer);
@@ -319,6 +311,7 @@ void Writer4SampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lock
       block_list.emplace_back(std::move(dz4));
     } else {
       auto dt4 = std::make_unique<Dt4Block>();
+      dt4->Init(*dl4);
       dt4->Data(buffer);
       auto& block_list = dl4->DataBlockList();
       block_list.emplace_back(std::move(dt4));

@@ -5,13 +5,13 @@
 
 #pragma once
 
+#include "hl4block.h"
 #include "mdf/mdfwriter.h"
-
 #include "writecache.h"
 
 namespace mdf::detail {
 class Dg4Block;
-
+class Dt4Block;
 class Mdf4Writer : public MdfWriter {
  public:
   Mdf4Writer();

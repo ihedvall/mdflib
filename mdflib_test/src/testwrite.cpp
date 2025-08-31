@@ -626,108 +626,111 @@ TEST_F(TestWrite, Mdf4WriteDG_CG_SI) {
   }
   path mdf_file(kTestDir);
   mdf_file.append("dg4.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* header = writer->Header();
+    ASSERT_TRUE(header != nullptr);
 
-  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
-  ASSERT_TRUE(writer->Init(mdf_file.string()));
-  auto* header = writer->Header();
-  ASSERT_TRUE(header != nullptr);
+    auto* history = header->CreateFileHistory();
+    ASSERT_TRUE(history != nullptr);
+    history->Description("Created");
+    history->ToolName("MdfWrite");
+    history->ToolVendor("ACME Road Runner Company");
+    history->ToolVersion("1.0");
+    history->UserName("Ingemar Hedvall");
 
-  auto* history = header->CreateFileHistory();
-  ASSERT_TRUE(history != nullptr);
-  history->Description("Created");
-  history->ToolName("MdfWrite");
-  history->ToolVendor("ACME Road Runner Company");
-  history->ToolVersion("1.0");
-  history->UserName("Ingemar Hedvall");
+    auto* data_group = header->CreateDataGroup();
+    ASSERT_TRUE(data_group != nullptr);
+    EXPECT_EQ(data_group->Index(), 0);
+    data_group->Description("DG-Desc");
+    EXPECT_STREQ(data_group->Description().c_str(), "DG-Desc");
+    EXPECT_EQ(data_group->RecordIdSize(),0);
+    EXPECT_FALSE(data_group->IsRead());
 
-  auto* data_group = header->CreateDataGroup();
-  ASSERT_TRUE(data_group != nullptr);
-  EXPECT_EQ(data_group->Index(), 0);
-  data_group->Description("DG-Desc");
-  EXPECT_STREQ(data_group->Description().c_str(), "DG-Desc");
-  EXPECT_EQ(data_group->RecordIdSize(),0);
-  EXPECT_FALSE(data_group->IsRead());
+    // Test CG4 block
+    auto* channel_group = data_group->CreateChannelGroup();
+    ASSERT_TRUE(channel_group != nullptr);
+    EXPECT_EQ(channel_group->Index(), 0);
+    EXPECT_STREQ(channel_group->BlockType().c_str(), "CG");
 
-  // Test CG4 block
-  auto* channel_group = data_group->CreateChannelGroup();
-  ASSERT_TRUE(channel_group != nullptr);
-  EXPECT_EQ(channel_group->Index(), 0);
-  EXPECT_STREQ(channel_group->BlockType().c_str(), "CG");
+    channel_group->Name("Group1");
+    EXPECT_STREQ(channel_group->Name().c_str(), "Group1");
+    channel_group->Description("Group1 desc");
+    EXPECT_STREQ(channel_group->Description().c_str(), "Group1 desc");
 
-  channel_group->Name("Group1");
-  EXPECT_STREQ(channel_group->Name().c_str(), "Group1");
-  channel_group->Description("Group1 desc");
-  EXPECT_STREQ(channel_group->Description().c_str(), "Group1 desc");
+    // Test SI4 block
+    auto* source_info = channel_group->CreateSourceInformation();
+    ASSERT_TRUE(source_info != nullptr);
+    EXPECT_EQ(source_info->Index(), 0);
+    EXPECT_STREQ(source_info->BlockType().c_str(), "SI");
 
-  // Test SI4 block
-  auto* source_info = channel_group->CreateSourceInformation();
-  ASSERT_TRUE(source_info != nullptr);
-  EXPECT_EQ(source_info->Index(), 0);
-  EXPECT_STREQ(source_info->BlockType().c_str(), "SI");
+    source_info->Name("SI-Name");
+    EXPECT_STREQ(source_info->Name().c_str(), "SI-Name");
 
-  source_info->Name("SI-Name");
-  EXPECT_STREQ(source_info->Name().c_str(), "SI-Name");
+    source_info->Path("SI-Path");
+    EXPECT_STREQ(source_info->Path().c_str(), "SI-Path");
 
-  source_info->Path("SI-Path");
-  EXPECT_STREQ(source_info->Path().c_str(), "SI-Path");
+    source_info->Description("SI-Desc");
+    EXPECT_STREQ(source_info->Description().c_str(), "SI-Desc");
 
-  source_info->Description("SI-Desc");
-  EXPECT_STREQ(source_info->Description().c_str(), "SI-Desc");
+    source_info->Type(SourceType::Bus);
+    EXPECT_EQ(source_info->Type(), SourceType::Bus);
 
-  source_info->Type(SourceType::Bus);
-  EXPECT_EQ(source_info->Type(), SourceType::Bus);
+    source_info->Bus(BusType::Can);
+    EXPECT_EQ(source_info->Bus(), BusType::Can);
 
-  source_info->Bus(BusType::Can);
-  EXPECT_EQ(source_info->Bus(), BusType::Can);
+    writer->InitMeasurement();
+    writer->FinalizeMeasurement();
 
-  writer->InitMeasurement();
-  writer->FinalizeMeasurement();
+    EXPECT_GT(header->Index(), 0);
 
-  EXPECT_GT(header->Index(), 0);
+  }
+  {
+    MdfReader reader(mdf_file.string());
+    ASSERT_TRUE(reader.IsOk());
+    ASSERT_TRUE(reader.ReadEverythingButData());
+    const auto* file1 = reader.GetFile();
+    ASSERT_TRUE(file1 != nullptr);
 
-  MdfReader reader(mdf_file.string());
-  ASSERT_TRUE(reader.IsOk());
-  ASSERT_TRUE(reader.ReadEverythingButData());
-  const auto* file1 = reader.GetFile();
-  ASSERT_TRUE(file1 != nullptr);
+    const auto* header1 = file1->Header();
+    ASSERT_TRUE(header1 != nullptr);
+    EXPECT_GT(header1->Index(), 0);
 
-  const auto* header1 = file1->Header();
-  ASSERT_TRUE(header1 != nullptr);
-  EXPECT_GT(header1->Index(), 0);
+    const auto dg_list = header1->DataGroups();
+    EXPECT_EQ(dg_list.size(), 1);
+    for (auto* dg4 : dg_list) {
+      ASSERT_TRUE(dg4 != nullptr);
+      EXPECT_GT(dg4->Index(),0);
+      EXPECT_STREQ(dg4->BlockType().c_str(), "DG");
+      EXPECT_STREQ(dg4->Description().c_str(), "DG-Desc");
+      EXPECT_EQ(dg4->RecordIdSize(), 0);
+      EXPECT_TRUE(dg4->MetaData() != nullptr); // Description in MD block
+      EXPECT_FALSE(dg4->IsRead());  // Check if data is read
 
-  const auto dg_list = header1->DataGroups();
-  EXPECT_EQ(dg_list.size(), 1);
-  for (auto* dg4 : dg_list) {
-    ASSERT_TRUE(dg4 != nullptr);
-    EXPECT_GT(dg4->Index(),0);
-    EXPECT_STREQ(dg4->BlockType().c_str(), "DG");
-    EXPECT_STREQ(dg4->Description().c_str(), "DG-Desc");
-    EXPECT_EQ(dg4->RecordIdSize(), 0);
-    EXPECT_TRUE(dg4->MetaData() != nullptr); // Description in MD block
-    EXPECT_FALSE(dg4->IsRead());  // Check if data is read
+      const auto cg_list = dg4->ChannelGroups();
+      EXPECT_EQ(cg_list.size(), 1);
+      for (auto* cg4 : cg_list) {
+        ASSERT_TRUE(cg4 != nullptr);
+        EXPECT_GT(cg4->Index(), 0);
+        EXPECT_STREQ(cg4->BlockType().c_str(),"CG");
+        EXPECT_STREQ(cg4->Name().c_str(), "Group1");
+        EXPECT_STREQ(cg4->Description().c_str(), "Group1 desc");
+        EXPECT_TRUE(cg4->MetaData() != nullptr); // Description in MD block
 
-    const auto cg_list = dg4->ChannelGroups();
-    EXPECT_EQ(cg_list.size(), 1);
-    for (auto* cg4 : cg_list) {
-      ASSERT_TRUE(cg4 != nullptr);
-      EXPECT_GT(cg4->Index(), 0);
-      EXPECT_STREQ(cg4->BlockType().c_str(),"CG");
-      EXPECT_STREQ(cg4->Name().c_str(), "Group1");
-      EXPECT_STREQ(cg4->Description().c_str(), "Group1 desc");
-      EXPECT_TRUE(cg4->MetaData() != nullptr); // Description in MD block
+        const auto* si4 = cg4->SourceInformation();
+        ASSERT_TRUE(si4 != nullptr);
+        EXPECT_GT(si4->Index(), 0);
+        EXPECT_STREQ(si4->BlockType().c_str(),"SI");
+        EXPECT_STREQ(si4->Name().c_str(), "SI-Name");
+        EXPECT_STREQ(si4->Path().c_str(), "SI-Path");
+        EXPECT_STREQ(si4->Description().c_str(), "SI-Desc"); // Desc in MD block
+        EXPECT_EQ(si4->Type(), SourceType::Bus);
+        EXPECT_EQ(si4->Bus(), BusType::Can);
+        EXPECT_EQ(si4->Flags(), 0);
+        EXPECT_TRUE(si4->MetaData() != nullptr); // Desc in MD block
 
-      const auto* si4 = cg4->SourceInformation();
-      ASSERT_TRUE(si4 != nullptr);
-      EXPECT_GT(si4->Index(), 0);
-      EXPECT_STREQ(si4->BlockType().c_str(),"SI");
-      EXPECT_STREQ(si4->Name().c_str(), "SI-Name");
-      EXPECT_STREQ(si4->Path().c_str(), "SI-Path");
-      EXPECT_STREQ(si4->Description().c_str(), "SI-Desc"); // Desc in MD block
-      EXPECT_EQ(si4->Type(), SourceType::Bus);
-      EXPECT_EQ(si4->Bus(), BusType::Can);
-      EXPECT_EQ(si4->Flags(), 0);
-      EXPECT_TRUE(si4->MetaData() != nullptr); // Desc in MD block
-
+      }
     }
   }
 }
@@ -2595,13 +2598,13 @@ TEST_F(TestWrite, MultiCGWithoutMasterChannel) {
   }
 }
 
-TEST_F(TestWrite, MdfConverter) {
+TEST_F(TestWrite, MdfCompressConverter) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
   const auto start_write = TimeStampToNs();
   path mdf_file(kTestDir);
-  mdf_file.append("mdf_converter.mf4");
+  mdf_file.append("mdf_compress_converter.mf4");
 
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfConverter);
   writer->Init(mdf_file.string());
@@ -2704,6 +2707,129 @@ TEST_F(TestWrite, MdfConverter) {
         double value = -1.0;
         const bool valid = observer->GetChannelValue(sample, value);
         EXPECT_TRUE(valid);
+        if (sample > 0 ) {
+          EXPECT_GT(value, 0.0);
+        }
+      } else {
+        double value = -1.0;
+        const bool valid = observer->GetChannelValue(sample, value);
+        EXPECT_TRUE(valid);
+        EXPECT_DOUBLE_EQ(value, static_cast<double>(sample));
+      }
+    }
+  }
+}
+
+
+TEST_F(TestWrite, MdfNotCompressConverter) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  const auto start_write = TimeStampToNs();
+  path mdf_file(kTestDir);
+  mdf_file.append("mdf_nocompress_converter.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfConverter);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* history = header->CreateFileHistory();
+  history->Description("Test MDF Converter");
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME Road Runner Company");
+  history->ToolVersion("1.0");
+  history->UserName("Ingemar Hedvall");
+
+  writer->PreTrigTime(0.0);
+  writer->CompressData(false);
+
+  auto* last_dg = header->CreateDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
+
+  // Note that no master channel added
+
+  auto* group1 = last_dg->CreateChannelGroup("Group1");
+  ASSERT_TRUE(group1 != nullptr);
+
+  auto* master1 = group1->CreateChannel("Master1");
+  ASSERT_TRUE(master1 != nullptr);
+  master1->DataType(ChannelDataType::FloatLe);
+  master1->Type(ChannelType::Master);
+  master1->Sync(ChannelSyncType::Time);
+  master1->Unit("s");
+  master1->DataBytes(4);
+
+  auto* signal1 = group1->CreateChannel("Signal1");
+  ASSERT_TRUE(signal1 != nullptr);
+  signal1->DataType(ChannelDataType::FloatLe);
+  signal1->DataBytes(8);
+
+  auto* group2 = last_dg->CreateChannelGroup("Group2");
+  ASSERT_TRUE(group2 != nullptr);
+
+  auto* master2 = group2->CreateChannel("Master2");
+  ASSERT_TRUE(master2 != nullptr);
+  master2->DataType(ChannelDataType::FloatLe);
+  master2->Type(ChannelType::Master);
+  master2->Sync(ChannelSyncType::Time);
+  master2->Unit("s");
+  master2->DataBytes(4);
+
+  auto* signal2 = group2->CreateChannel("Signal2");
+  ASSERT_TRUE(signal2 != nullptr);
+  signal2->DataType(ChannelDataType::FloatLe);
+  signal2->DataBytes(8);
+
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  for (size_t sample = 0; sample < 1'000'000; ++sample) {
+    const auto value = static_cast<double>(sample);
+    signal1->SetChannelValue(value, true);
+    writer->SaveSample(*group1, tick_time);
+
+    signal2->SetChannelValue(value, true);
+    writer->SaveSample(*group2, tick_time);
+    tick_time += 1'000'000; // 1 ms period
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+  const auto stop_write = TimeStampToNs();
+  std::cout << "Write Time (2MS) [s]: " <<
+      static_cast<double>(stop_write - start_write) / 1'000'000'000
+            << std::endl;
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* file1 = reader.GetFile();
+  const auto* header1 = file1->Header();
+  const auto dg_list = header1->DataGroups();
+  EXPECT_EQ(dg_list.size(), 1);
+
+  for (auto* dg4 : dg_list) {
+    const auto cg_list = dg4->ChannelGroups();
+    EXPECT_EQ(cg_list.size(), 2);
+    for (auto* cg4 : cg_list) {
+      CreateChannelObserverForChannelGroup(*dg4, *cg4, observer_list);
+    }
+    reader.ReadData(*dg4);
+  }
+  reader.Close();
+
+  std::set<std::string> unique_list;
+
+  for (auto& observer : observer_list) {
+    ASSERT_TRUE(observer);
+    EXPECT_EQ(observer->NofSamples(), 1'000'000);
+    // Verify only signal data
+
+    // Verify that the values are correct. Only checking first 10 values.
+    for (size_t sample = 0; sample < 10; ++sample ) {
+      if (observer->IsMaster()) {
+        double value = -1.0;
+        const bool valid = observer->GetChannelValue(sample, value);
+        EXPECT_TRUE(valid) << sample;
         if (sample > 0 ) {
           EXPECT_GT(value, 0.0);
         }

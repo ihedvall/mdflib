@@ -123,19 +123,41 @@ bool MdfWriter::InitMeasurement() {
 }
 
 void MdfWriter::SaveSample(MdfChannelGroup^ group, uint64_t time) {
-  if (writer_ != nullptr && group != nullptr) {
+  if (writer_ != nullptr && group != nullptr && group->group_ != nullptr) {
     writer_->SaveSample(*group->group_, time);
+  }
+}
+void MdfWriter::SaveSample(MdfDataGroup^ data_group, 
+                           MdfChannelGroup^ channel_group, uint64_t time) {
+  if (writer_ != nullptr && data_group != nullptr && channel_group != nullptr 
+        && data_group->group_ != nullptr && channel_group->group_ != nullptr) {
+    writer_->SaveSample(*data_group->group_, *channel_group->group_, time);
   }
 }
 
 void MdfWriter::SaveCanMessage(MdfChannelGroup^ group, uint64_t time,
     const CanMessage^ message) {
-  if (writer_ != nullptr && group != nullptr && message != nullptr) {
+  if (writer_ != nullptr && group != nullptr && group->group_ != nullptr 
+      && message != nullptr && message->msg_ != nullptr) {
     writer_->SaveCanMessage(*group->group_, time,*message->msg_);
   }
-  
+ 
 }
-
+void MdfWriter::SaveCanMessage(MdfDataGroup^ data_group, 
+                               MdfChannelGroup^ channel_group, 
+                               uint64_t time,
+                               const CanMessage^ message) {
+  if (writer_ != nullptr 
+      && data_group != nullptr && data_group->group_ != nullptr 
+      && channel_group != nullptr && channel_group->group_ != nullptr 
+      && message != nullptr && message->msg_ != nullptr) {
+    writer_->SaveCanMessage(*data_group->group_, 
+                            *channel_group->group_, 
+                            time,
+                            *message->msg_);
+  }
+ 
+}
 void MdfWriter::StartMeasurement(uint64_t start_time) {
   if (writer_ != nullptr) {
     writer_->StartMeasurement(start_time);

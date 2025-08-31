@@ -56,7 +56,7 @@ uint64_t Dt4Block::Write(std::streambuf& buffer) {
   uint64_t bytes = update ? MdfBlock::Update(buffer) : MdfBlock::Write(buffer);
 
   if (!update) {
-    data_position_ = GetLastFilePosition(buffer);
+    data_position_ = GetFilePosition(buffer);
     bytes += WriteByte(buffer, data_);
   } else {
     bytes = block_length_;

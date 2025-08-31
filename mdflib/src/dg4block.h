@@ -9,6 +9,8 @@
 #include <functional>
 
 #include "cg4block.h"
+#include "hl4block.h"
+#include "dt4block.h"
 #include "datalistblock.h"
 #include "mdf/idatagroup.h"
 #include "dgrange.h"
@@ -53,6 +55,8 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   uint64_t Write(std::streambuf& buffer) override;
   uint64_t DataSize() const override;
 
+  Hl4Block* CreateOrGetHl4();
+  Dt4Block* CreateOrGetDt4(std::streambuf& buffer);
   bool FinalizeDtBlocks(std::streambuf& buffer);
   bool FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg, bool update_vlsd);
 

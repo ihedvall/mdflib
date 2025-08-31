@@ -78,13 +78,11 @@ void WriteCache::Init() {
       sample_queue1->NofDgBlocks(active_list.size());
     }
   }
-  if (const MdfFile* mdf_file = writer_.GetFile();
-      mdf_file != nullptr && mdf_file->IsMdf4() && active_list.size() > 1) {
-    writer_.CompressData(true);
-  }
+
   // Start the working thread that handles the samples
   writer_.State(WriteState::Init);  // Waits for new samples
   work_thread_ = std::thread(&WriteCache::WorkThread, this);
+
 }
 
 void WriteCache::Exit() {
@@ -106,6 +104,9 @@ void WriteCache::WorkThread() {
     std::unique_lock lock(locker_);
     sample_event_.wait_for(lock, 10s,
                            [&]() -> bool { return stop_thread_.load(); });
+    if (stop_thread_) {
+      break;
+    }
     for (auto& [channel_group, sample_queue] : cache_) {
       if (!sample_queue) {
         continue;
@@ -117,7 +118,9 @@ void WriteCache::WorkThread() {
             break;
         }
         case WriteState::StartMeas: {
-          sample_queue->SaveQueue(lock);  // Save the contents of the queue to file
+          if (writer_.IsSavePeriodic()) {
+            sample_queue->SaveQueue(lock);  // Save the contents of the queue to file
+          }
           break;
         }
 

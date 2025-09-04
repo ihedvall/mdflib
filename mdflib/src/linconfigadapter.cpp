@@ -123,19 +123,7 @@ void LinConfigAdapter::CreateFrameChannels(IChannelGroup& group) const {
   }
   CreateBusChannel(*cn_frame);
   CreateBitsChannel(*cn_frame, "LIN_Frame.ID", 9, 0, 6);
-  if (IChannel* dir = CreateBitChannel(*cn_frame, "LIN_Frame.Dir", 9, 7);
-      dir != nullptr) {
-    if (IChannelConversion* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Name("DirectionEnum");
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, "");  // Default text
-    }
-  }
+  CreateBitChannel(*cn_frame, "LIN_Frame.Dir", 9, 7);
 
   if (IChannel* count = CreateBitsChannel(*cn_frame,"LIN_Frame.ReceivedDataByteCount", 10, 0, 4);
     count != nullptr) {
@@ -168,18 +156,6 @@ void LinConfigAdapter::CreateFrameChannels(IChannelGroup& group) const {
   if (IChannel* crc_model = CreateBitsChannel(*cn_frame,"LIN_Frame.ChecksumModel", 20, 0, 2);
       crc_model != nullptr) {
     crc_model->DataType(ChannelDataType::SignedIntegerLe);
-    if (IChannelConversion* cc_type = crc_model->CreateChannelConversion();
-        cc_type != nullptr) {
-      cc_type->Name("ChecksumModelEnum");
-      cc_type->Type(ConversionType::ValueToText);
-      cc_type->Parameter(0, -1.0);
-      cc_type->Parameter(1, 0.0);
-      cc_type->Parameter(2, 1.0);
-      cc_type->Reference(0, "Unknown");
-      cc_type->Reference(1, "Classic");
-      cc_type->Reference(2, "Enhanced");
-      cc_type->Reference(3, "");  // Default text
-    }
   }
   if ( IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_Frame.SOF", 21, 0, 64);
       sof != nullptr) {
@@ -230,19 +206,7 @@ const bool mandatory_only = MandatoryMembersOnly();
   CreateBusChannel(*cn_frame);
   CreateBitsChannel(*cn_frame, "LIN_ChecksumError.ID", 9, 0, 6);
 
-  if (IChannel* dir = CreateBitChannel(*cn_frame, "LIN_ChecksumError.Dir", 9, 7);
-      dir != nullptr) {
-    if (IChannelConversion* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Name("DirectionEnum");
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, "");  // Default text
-    }
-  }
+  CreateBitChannel(*cn_frame, "LIN_ChecksumError.Dir", 9, 7);
 
   if (mandatory_only) {
     return;
@@ -274,18 +238,6 @@ const bool mandatory_only = MandatoryMembersOnly();
   if (IChannel* crc_model = CreateBitsChannel(*cn_frame,"LIN_ChecksumError.ChecksumModel", 20, 0, 2);
       crc_model != nullptr) {
     crc_model->DataType(ChannelDataType::SignedIntegerLe);
-    if (IChannelConversion* cc_type = crc_model->CreateChannelConversion();
-        cc_type != nullptr) {
-      cc_type->Name("ChecksumModelEnum");
-      cc_type->Type(ConversionType::ValueToText);
-      cc_type->Parameter(0, -1.0);
-      cc_type->Parameter(1, 0.0);
-      cc_type->Parameter(2, 1.0);
-      cc_type->Reference(0, "Unknown");
-      cc_type->Reference(1, "Classic");
-      cc_type->Reference(2, "Enhanced");
-      cc_type->Reference(3, "");  // Default text
-    }
   }
   if ( IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_ChecksumError..SOF", 21, 0, 64);
       sof != nullptr) {
@@ -366,18 +318,6 @@ void LinConfigAdapter::CreateReceiveErrorChannels(IChannelGroup& group) const {
   if (IChannel* crc_model = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.ChecksumModel",9, 6, 2);
       crc_model != nullptr) {
     crc_model->DataType(ChannelDataType::SignedIntegerLe);
-    if (IChannelConversion* cc_type = crc_model->CreateChannelConversion();
-        cc_type != nullptr) {
-      cc_type->Name("ChecksumModelEnum");
-      cc_type->Type(ConversionType::ValueToText);
-      cc_type->Parameter(0, -1.0);
-      cc_type->Parameter(1, 0.0);
-      cc_type->Parameter(2, 1.0);
-      cc_type->Reference(0, "Unknown");
-      cc_type->Reference(1, "Classic");
-      cc_type->Reference(2, "Enhanced");
-      cc_type->Reference(3, "");  // Default text
-    }
   }
 
   if (IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_ReceiveError.SOF", 20, 0, 64);
@@ -505,19 +445,6 @@ void LinConfigAdapter::CreateTransmissionErrorChannels(IChannelGroup& group) con
   if (IChannel* crc_model = CreateBitsChannel(*cn_frame, "LIN_TransmissionError.ChecksumModel", 10, 4, 2);
       crc_model != nullptr) {
     crc_model->DataType(ChannelDataType::SignedIntegerLe);
-
-    if (IChannelConversion* cc_type = crc_model->CreateChannelConversion();
-        cc_type != nullptr) {
-      cc_type->Name("ChecksumModelEnum");
-      cc_type->Type(ConversionType::ValueToText);
-      cc_type->Parameter(0, -1.0);
-      cc_type->Parameter(1, 0.0);
-      cc_type->Parameter(2, 1.0);
-      cc_type->Reference(0, "Unknown");
-      cc_type->Reference(1, "Classic");
-      cc_type->Reference(2, "Enhanced");
-      cc_type->Reference(3, "");  // Default text
-    }
   }
   if (IChannel* sof = CreateBitsChannel(*cn_frame, "LIN_TransmissionError.SOF", 11, 0, 64);
       sof != nullptr) {
@@ -602,22 +529,8 @@ void LinConfigAdapter::CreateLongDominantChannels(mdf::IChannelGroup& group) con
     length->Unit("ns");
   }
 
-  if (IChannel* type = CreateBitsChannel(*cn_frame, "LIN_LongDom.Type", 25, 0, 2);
-        type != nullptr) {
+  CreateBitsChannel(*cn_frame, "LIN_LongDom.Type", 25, 0, 2);
 
-    if (IChannelConversion* cc_type = type->CreateChannelConversion();
-        cc_type != nullptr) {
-      cc_type->Name("LongDomTypeEnum");
-      cc_type->Type(ConversionType::ValueToText);
-      cc_type->Parameter(0, 0.0);
-      cc_type->Parameter(1, 1.0);
-      cc_type->Parameter(2, 2.0);
-      cc_type->Reference(0, "First Detection");
-      cc_type->Reference(1, "Cyclic Report");
-      cc_type->Reference(2, "End of Detection");
-      cc_type->Reference(3, "");  // Default text
-    }
-  }
 }
 
 

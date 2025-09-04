@@ -127,13 +127,13 @@ void CanConfigAdapter::CreateCanDataFrameChannel(IChannelGroup& group) const {
     // In reality,  MLSD storage should have max length equal to 8.
     case MdfStorageType::MlsdStorage:
       cn_data_frame->DataBytes(mandatory_only ? (23 - 16) + writer_.MaxLength() :
-                                (28 - 16) + writer_.MaxLength());
+                                (32 - 16) + writer_.MaxLength());
       break;
 
     case MdfStorageType::FixedLengthStorage:
     case MdfStorageType::VlsdStorage:
     default:
-      cn_data_frame->DataBytes(mandatory_only ? 23 - 8 : 28 - 8); // Index into SD or VLSD
+      cn_data_frame->DataBytes(mandatory_only ? 23 - 8 : 32 - 8); // Index into SD or VLSD
       break;
   }
   cn_data_frame->Flags(CnFlag::BusEvent);
@@ -168,7 +168,8 @@ void CanConfigAdapter::CreateCanDataFrameChannel(IChannelGroup& group) const {
     duration != nullptr) {
     duration->Unit("ns");
   }
-  CreateDataBytesChannel(*cn_data_frame, 20 );
+  CreateBitsChannel(*cn_data_frame, "CAN_DataFrame.CRC", 20, 0, 32);
+  CreateDataBytesChannel(*cn_data_frame, 24 );
 }
 
 void CanConfigAdapter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
@@ -181,7 +182,7 @@ void CanConfigAdapter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
   cn_remote_frame->Type(ChannelType::FixedLength);
   cn_remote_frame->Sync(ChannelSyncType::None);
   cn_remote_frame->DataType(ChannelDataType::ByteArray);
-  cn_remote_frame->DataBytes(mandatory_only ? 15 - 8 : 20 - 8);
+  cn_remote_frame->DataBytes(mandatory_only ? 15 - 8 : 24 - 8);
   cn_remote_frame->Flags(CnFlag::BusEvent);
 
   if (!network_name_.empty()) {
@@ -209,6 +210,7 @@ void CanConfigAdapter::CreateCanRemoteFrameChannel(IChannelGroup& group) const {
     duration != nullptr) {
     duration->Unit("ns");
   }
+  CreateBitsChannel(*cn_remote_frame, "CAN_RemoteFrame.CRC", 20, 0, 32);
 }
 
 void CanConfigAdapter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
@@ -223,9 +225,9 @@ void CanConfigAdapter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
   cn_error_frame->DataType(ChannelDataType::ByteArray);
 
   if (StorageType() == MdfStorageType::MlsdStorage) {
-    cn_error_frame->DataBytes((30 - 16) + writer_.MaxLength());
+    cn_error_frame->DataBytes((34 - 16) + writer_.MaxLength());
   } else {
-    cn_error_frame->DataBytes(30 - 8); // Index into SD or VLSD
+    cn_error_frame->DataBytes(34 - 8); // Index into SD or VLSD
   }
 
   if (!network_name_.empty()) {
@@ -255,7 +257,8 @@ void CanConfigAdapter::CreateCanErrorFrameChannel(IChannelGroup& group) const {
     duration->Unit("ns");
   }
   CreateBitsChannel(*cn_error_frame, "CAN_ErrorFrame.BitPosition", 20, 0, 16);
-  CreateDataBytesChannel(*cn_error_frame, 22 );
+  CreateBitsChannel(*cn_error_frame, "CAN_ErrorFrame.CRC", 22, 0, 32);
+  CreateDataBytesChannel(*cn_error_frame, 26 );
 }
 
 void CanConfigAdapter::CreateCanOverloadFrameChannel(IChannelGroup& group) {
@@ -311,22 +314,8 @@ IChannel* CanConfigAdapter::CreateDirChannel(IChannel& parent_channel,
   std::ostringstream name;
   name << parent_channel.Name() << ".Dir";
 
-  IChannel* dir = CreateBitChannel(parent_channel,name.str(),
+  return CreateBitChannel(parent_channel,name.str(),
                                    byte_offset, bit_offset);
-  if ( dir != nullptr) {
-    // Add Rx(0) Tx(1) CC block
-    if (IChannelConversion* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Name("DirectionEnum");
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, ""); // Default text
-    }
-  }
-  return dir;
 }
 
 IChannel* CanConfigAdapter::CreateErrorTypeChannel(IChannel& parent_channel,
@@ -337,26 +326,6 @@ IChannel* CanConfigAdapter::CreateErrorTypeChannel(IChannel& parent_channel,
 
   IChannel* type = CreateBitsChannel(parent_channel,name.str(),
                                    byte_offset, bit_offset, 3);
-  if ( type != nullptr) {
-    if (IChannelConversion* cc_type = type->CreateChannelConversion();
-        cc_type != nullptr) {
-      cc_type->Name("ErrorTypeEnum");
-      cc_type->Type(ConversionType::ValueToText);
-      cc_type->Parameter(0, 0.0);
-      cc_type->Parameter(1, 1.0);
-      cc_type->Parameter(2, 2.0);
-      cc_type->Parameter(3, 3.0);
-      cc_type->Parameter(4, 4.0);
-      cc_type->Parameter(5, 5.0);
-      cc_type->Reference(0, "Unknown");
-      cc_type->Reference(1, "Bit");
-      cc_type->Reference(2, "Format");
-      cc_type->Reference(3, "Bit Stuffing");
-      cc_type->Reference(4, "CRC");
-      cc_type->Reference(5, "ACK");
-      cc_type->Reference(6, ""); // Default text
-    }
-  }
   return type;
 }
 }  // namespace mdf

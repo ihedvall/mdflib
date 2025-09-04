@@ -488,20 +488,6 @@ void FlexRayConfigAdapter::CreateFlxChannelChannel(IChannel& parent_channel,
                                        byte_offset,bit_offset);
       flx != nullptr) {
     flx->Flags(CnFlag::BusEvent);
-
-    if (auto* cc_flx = flx->CreateChannelConversion();
-        cc_flx != nullptr) {
-      cc_flx->Type(ConversionType::ValueToText);
-      cc_flx->Name("FlxChannelEnum");
-      cc_flx->Parameter(0, 0.0);
-      cc_flx->Parameter(1, 1.0);
-      cc_flx->Reference(0, "A");
-      cc_flx->Reference(1, "B");
-      cc_flx->Reference(2, ""); // Default text
-
-      CcComment cc_comment("FlexRay Channel Enumerate");
-      cc_flx->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -515,22 +501,6 @@ void FlexRayConfigAdapter::CreateFlxChannelMaskChannel(IChannel& parent_channel,
                                        byte_offset,bit_offset, 2);
       flx != nullptr) {
     flx->Flags(CnFlag::BusEvent);
-
-    if (auto* cc_flx = flx->CreateChannelConversion();
-        cc_flx != nullptr) {
-      cc_flx->Type(ConversionType::ValueToText);
-      cc_flx->Name("FlxChannelMaskEnum");
-      cc_flx->Parameter(0, 0.0);
-      cc_flx->Parameter(1, 1.0);
-      cc_flx->Parameter(2, 2.0);
-      cc_flx->Reference(0, "A");
-      cc_flx->Reference(1, "B");
-      cc_flx->Reference(2, "A+B");
-      cc_flx->Reference(3, ""); // Default text
-
-      CcComment cc_comment("FlexRay Channel Mask Enumerate");
-      cc_flx->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -544,24 +514,6 @@ void FlexRayConfigAdapter::CreateSymbolTypeChannel(IChannel& parent_channel,
                                         byte_offset,bit_offset, 2);
       type != nullptr) {
     type->Flags(CnFlag::BusEvent);
-
-    if (auto* cc_type = type->CreateChannelConversion();
-        cc_type != nullptr) {
-      cc_type->Type(ConversionType::ValueToText);
-      cc_type->Name("SymbolTypeEnum");
-      cc_type->Parameter(0, 0.0);
-      cc_type->Parameter(1, 1.0);
-      cc_type->Parameter(2, 2.0);
-      cc_type->Parameter(3, 3.0);
-      cc_type->Reference(0, "Unknown");
-      cc_type->Reference(1, "CAS");
-      cc_type->Reference(2, "MTS");
-      cc_type->Reference(3, "WUS");
-      cc_type->Reference(4, ""); // Default text
-
-      CcComment cc_comment("Symbol Type Enumerate");
-      cc_type->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -575,20 +527,6 @@ void FlexRayConfigAdapter::CreateDirectionChannel(IChannel& parent_channel,
                                        byte_offset,bit_offset);
       dir != nullptr) {
     dir->Flags(CnFlag::BusEvent);
-
-    if (auto* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Name("DirEnum");
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, ""); // Default text
-
-      CcComment cc_comment("Transmit or Receive Enumerate");
-      cc_dir->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -602,20 +540,6 @@ void FlexRayConfigAdapter::CreateNullFrameChannel(IChannel& parent_channel,
                                        byte_offset,bit_offset);
       null_frame != nullptr) {
     null_frame->Flags(CnFlag::BusEvent);
-
-    if (auto* cc_null = null_frame->CreateChannelConversion();
-        cc_null != nullptr) {
-      cc_null->Type(ConversionType::ValueToText);
-      cc_null->Name("NullFrameEnum");
-      cc_null->Parameter(0, 0.0);
-      cc_null->Parameter(1, 1.0);
-      cc_null->Reference(0, "NULL");
-      cc_null->Reference(1, "Normal");
-      cc_null->Reference(2, ""); // Default text
-
-      CcComment cc_comment("NULL Frame Enumerate");
-      cc_null->SetCcComment(cc_comment);
-    }
   }
 }
 

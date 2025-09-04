@@ -13,32 +13,6 @@
 
 namespace {
 
-void CreateDirectionEnum(mdf::IChannel& dir) {
-  if (mdf::IChannelConversion* cc_dir = dir.CreateChannelConversion();
-      cc_dir != nullptr) {
-    cc_dir->Name("DirectionEnum");
-    cc_dir->Type(mdf::ConversionType::ValueToText);
-    cc_dir->Parameter(0, 0.0);
-    cc_dir->Parameter(1, 1.0);
-    cc_dir->Reference(0, "Rx");
-    cc_dir->Reference(1, "Tx");
-    cc_dir->Reference(2, "");  // Default text
-  }
-}
-
-void CreateErrorTypeEnum(mdf::IChannel& type) {
-  if (mdf::IChannelConversion* cc_type= type.CreateChannelConversion();
-      cc_type != nullptr) {
-    cc_type->Name("ErrorTypeEnum");
-    cc_type->Type(mdf::ConversionType::ValueToText);
-    cc_type->Parameter(0, 0.0);
-    cc_type->Parameter(1, 1.0);
-    cc_type->Reference(0, "Unknown");
-    cc_type->Reference(1, "Collision");
-    cc_type->Reference(2, "");  // Default text
-  }
-}
-
 void CreateSource(mdf::IChannel& cn_frame) {
   std::ostringstream name;
   name << cn_frame.Name() << ".Source";
@@ -226,10 +200,8 @@ void EthConfigAdapter::CreateFrameChannels(IChannelGroup& group) const {
     return;
   }
   CreateBitsChannel(*cn_frame, "ETH_Frame.CRC", 27, 0 , 32);
-  if (IChannel* dir = CreateBitChannel(*cn_frame, "ETH_Frame.Dir",31 , 0);
-      dir != nullptr) {
-    CreateDirectionEnum(*dir);
-  }
+  CreateBitChannel(*cn_frame, "ETH_Frame.Dir",31 , 0);
+
   if (IChannel* padding_bytes = CreateBitsChannel(*cn_frame, "ETH_Frame.PadByteCount", 32, 0 , 16);
     padding_bytes != nullptr) {
     padding_bytes->Unit("B");
@@ -270,10 +242,8 @@ void EthConfigAdapter::CreateChecksumErrorChannels(IChannelGroup& group) const {
       nof_rec != nullptr) {
     nof_rec->Unit("B");
   }
-  if (IChannel* dir = CreateBitChannel(*cn_frame, "ETH_ChecksumError.Dir", 35, 0);
-      dir != nullptr) {
-    CreateDirectionEnum(*dir);
-  }
+  CreateBitChannel(*cn_frame, "ETH_ChecksumError.Dir", 35, 0);
+
   if (IChannel* padding_bytes = CreateBitsChannel(*cn_frame, "ETH_ChecksumError.PadByteCount", 36, 0 , 16);
         padding_bytes != nullptr) {
     padding_bytes->Unit("B");
@@ -316,10 +286,7 @@ void EthConfigAdapter::CreateLengthErrorChannels(IChannelGroup& group) const {
   }
   CreateBitsChannel(*cn_frame, "ETH_LengthError.CRC", 27, 0 , 32);
 
-  if (IChannel* dir = CreateBitChannel(*cn_frame, "ETH_LengthError.Dir", 31, 0);
-        dir != nullptr) {
-    CreateDirectionEnum(*dir);
-  }
+  CreateBitChannel(*cn_frame, "ETH_LengthError.Dir", 31, 0);
 
   if (IChannel* padding_bytes = CreateBitsChannel(*cn_frame, "ETH_LengthError.PadByteCount", 32, 0 , 16);
         padding_bytes != nullptr) {
@@ -361,14 +328,10 @@ void EthConfigAdapter::CreateReceiveErrorChannels(IChannelGroup& group) const {
   }
   CreateBitsChannel(*cn_frame, "ETH_ReceiveError.CRC", 27, 0 , 32);
 
-  if (IChannel* dir = CreateBitChannel(*cn_frame, "ETH_ReceiveError.Dir", 31, 0);
-        dir != nullptr) {
-    CreateDirectionEnum(*dir);
-  }
-  if (IChannel* error = CreateBitChannel(*cn_frame, "ETH_ReceiveError.ErrorType", 31, 1);
-      error != nullptr) {
-    CreateErrorTypeEnum(*error);
-  }
+  CreateBitChannel(*cn_frame, "ETH_ReceiveError.Dir", 31, 0);
+
+  CreateBitChannel(*cn_frame, "ETH_ReceiveError.ErrorType", 31, 1);
+
   if (IChannel* padding_bytes = CreateBitsChannel(*cn_frame, "ETH_ReceiveError.PadByteCount", 32, 0 , 16);
         padding_bytes != nullptr) {
     padding_bytes->Unit("B");

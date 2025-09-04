@@ -279,7 +279,6 @@ const IChannel* CanBusObserver::GetChannel(
 /** \brief Converts the record and VLSD record to a CAN message.
  *
  * The function convert a CanSample byte buffer, to a CAN message.
- * @param sample CAN byte array
  * @param msg Returning bus message
  */
 void CanBusObserver::ParseCanMessage(CanMessage& msg) const {

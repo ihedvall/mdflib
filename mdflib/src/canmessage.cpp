@@ -237,7 +237,7 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
   auto& record = sample.record_buffer;
   switch (msg_type) {
     case MessageType::CAN_DataFrame:
-      record_size = mandatory_only ? 23 - 8 : 28 - 8;
+      record_size = mandatory_only ? 23 - 8 : 32 - 8;
       record_size += save_index ? 8 : max_data_length;
       if (record.size() != record_size) {
         record.resize(record_size);
@@ -275,27 +275,27 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
       record[15] |= (R0() ? 0x01 : 0x00) << 3;
       record[15] |= (R1() ? 0x01 : 0x00) << 4;
       MdfHelper::UnsignedToRaw(true, 0, 32, FrameDuration(), record.data() + 16);
-
+      MdfHelper::UnsignedToRaw(true, 0, 32, Crc(), record.data() + 20);
       if (save_index) {
         // The data index have in reality not been updated at this point, but
         // it will be updated when the sample buffer is written to the disc.
         // We need to save the data bytes to a temp buffer (VLSD data).
         sample.vlsd_data = true;
         sample.vlsd_buffer = data_bytes_;
-        MdfHelper::UnsignedToRaw(true, 0, 64, data_index, record.data() + 20);
+        MdfHelper::UnsignedToRaw(true, 0, 64, data_index, record.data() + 24);
       } else {
         sample.vlsd_data = false;
         sample.vlsd_buffer.clear();
         sample.vlsd_buffer.shrink_to_fit();
         for (size_t index = 0; index < max_data_length; ++index) {
-          record[20 + index] =
+          record[24 + index] =
               index < data_bytes_.size() ? data_bytes_[index] : 0xFF;
         }
       }
       break;
 
     case MessageType::CAN_RemoteFrame:
-      record_size = mandatory_only ? 15 : 20 ;
+      record_size = mandatory_only ? 15 : 24 ;
       if (record.size() != record_size) {
         record.resize(record_size);
       }
@@ -313,10 +313,11 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
       record[15] = R0() ? 0x01 : 0x00;
       record[15] |= (R1() ? 0x01 : 0x00) << 1;
       MdfHelper::UnsignedToRaw(true, 0, 32, FrameDuration(), record.data() + 16);
+      MdfHelper::UnsignedToRaw(true, 0, 32, Crc(), record.data() + 20);
       break;
 
     case MessageType::CAN_ErrorFrame:
-      record_size = 30 - 8;
+      record_size = 34 - 8;
       record_size += save_index ? 8 : max_data_length;
       if (record.size() < record_size) {
         record.resize(record_size);
@@ -337,20 +338,20 @@ void CanMessage::ToRaw( MessageType msg_type, SampleRecord& sample,
       record[15] |= (static_cast<uint8_t>(ErrorType()) & 0x07) << 5;
       MdfHelper::UnsignedToRaw(true, 0, 32, FrameDuration(), record.data() + 16);
       MdfHelper::UnsignedToRaw(true, 0, 16, BitPosition(), record.data() + 20);
-
+      MdfHelper::UnsignedToRaw(true, 0, 32, Crc(), record.data() + 22);
       if (save_index) {
         // The data index have in reality not been updated at this point, but
         // it will be updated when the sample buffer is written to the disc.
         // We need to save the data bytes to a temp buffer (VLSD data).
         sample.vlsd_data = true;
         sample.vlsd_buffer = data_bytes_;
-        MdfHelper::UnsignedToRaw(true, 0, 64, data_index, record.data() + 22);
+        MdfHelper::UnsignedToRaw(true, 0, 64, data_index, record.data() + 26);
       } else {
         sample.vlsd_data = false;
         sample.vlsd_buffer.clear();
         sample.vlsd_buffer.shrink_to_fit();
         for (size_t index = 0; index < max_data_length; ++index) {
-          record[22 + index] =
+          record[26 + index] =
               index < data_bytes_.size() ? data_bytes_[index] : 0xFF;
         }
       }

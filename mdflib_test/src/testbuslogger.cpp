@@ -1157,6 +1157,7 @@ TEST_F(TestBusLogger, Mdf4CanObserver ) {
     msg.BusChannel(11);
     EXPECT_EQ(msg.BusChannel(), 11);
     msg.DataBytes(data);
+    msg.Crc(3421);
 
     // Add dummy message to all for message types. Not realistic
     // but makes the test simpler.

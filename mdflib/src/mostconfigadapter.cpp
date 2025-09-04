@@ -452,22 +452,6 @@ void MostConfigAdapter::CreateSpeedChannel(IChannel& parent_channel,
       speed != nullptr) {
     speed->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
     speed->Range(0,2);
-
-    if (IChannelConversion* cc_speed = speed->CreateChannelConversion();
-        cc_speed != nullptr) {
-      cc_speed->Type(ConversionType::ValueToText);
-      cc_speed->Name("SpeedEnum");
-      cc_speed->Parameter(0, 0.0);
-      cc_speed->Parameter(1, 1.0);
-      cc_speed->Parameter(2, 2.0);
-      cc_speed->Reference(0, "MOST25");
-      cc_speed->Reference(1, "MOST50");
-      cc_speed->Reference(2, "MOST150");
-      cc_speed->Reference(3, ""); // Default text
-
-      CcComment cc_comment("MOST Speed Enumerate");
-      cc_speed->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -481,28 +465,6 @@ void MostConfigAdapter::CreateStateChannel(IChannel& parent_channel,
       state != nullptr) {
     state->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
     state->Range(0,32);
-
-    if (IChannelConversion* cc_state = state->CreateChannelConversion();
-        cc_state != nullptr) {
-      cc_state->Type(ConversionType::ValueToText);
-      cc_state->Name("SignalStateEnum");
-      cc_state->Parameter(0, 0.0);
-      cc_state->Parameter(1, 1.0);
-      cc_state->Parameter(2, 2.0);
-      cc_state->Parameter(3, 3.0);
-      cc_state->Parameter(4, 16.0);
-      cc_state->Parameter(5, 32.0);
-      cc_state->Reference(0, "Unknown");
-      cc_state->Reference(1, "On Lock");
-      cc_state->Reference(2, "Off");
-      cc_state->Reference(3, "On No Lock");
-      cc_state->Reference(4, "Stable Lock");
-      cc_state->Reference(5, "Critical Unlock");
-      cc_state->Reference(6, ""); // Default text
-
-      CcComment cc_comment("MOST Signal State Enumerate");
-      cc_state->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -561,20 +523,6 @@ void MostConfigAdapter::CreateTableLayoutChannel(IChannel& parent_channel,
                                         byte_offset,0, 8);
       layout != nullptr) {
     layout->Flags(CnFlag::BusEvent);
-
-    if (auto* cc_layout = layout->CreateChannelConversion();
-        cc_layout != nullptr) {
-      cc_layout->Type(ConversionType::ValueToText);
-      cc_layout->Name("TableLayoutEnum");
-      cc_layout->Parameter(0, 0.0);
-      cc_layout->Parameter(1, 1.0);
-      cc_layout->Reference(0, "Channel Resource Allocation Table");
-      cc_layout->Reference(1, "Label List");
-      cc_layout->Reference(2, ""); // Default text
-
-      CcComment cc_comment("Table Layout Enumerate");
-      cc_layout->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -612,20 +560,6 @@ void MostConfigAdapter::CreateLockStateChannel(IChannel& parent_channel,
                                            byte_offset,0);
       state != nullptr) {
     state->Flags(CnFlag::BusEvent);
-
-    if (IChannelConversion* cc_state = state->CreateChannelConversion();
-        cc_state != nullptr) {
-      cc_state->Type(ConversionType::ValueToText);
-      cc_state->Name("RingStateEnum");
-      cc_state->Parameter(0, 0.0);
-      cc_state->Parameter(1, 1.0);
-      cc_state->Reference(0, "Ring is Open");
-      cc_state->Reference(1, "Ring is Closed");
-      cc_state->Reference(2, ""); // Default text
-
-      CcComment cc_comment("Ring Open/Closed Enumerate");
-      cc_state->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -638,20 +572,6 @@ void MostConfigAdapter::CreateShutdownChannel(IChannel& parent_channel,
                                          byte_offset,0);
       state != nullptr) {
     state->Flags(CnFlag::BusEvent);
-
-    if (IChannelConversion* cc_state = state->CreateChannelConversion();
-        cc_state != nullptr) {
-      cc_state->Type(ConversionType::ValueToText);
-      cc_state->Name("ShutdownEnum");
-      cc_state->Parameter(0, 0.0);
-      cc_state->Parameter(1, 1.0);
-      cc_state->Reference(0, "No Shutdown");
-      cc_state->Reference(1, "Shutdown");
-      cc_state->Reference(2, ""); // Default text
-
-      CcComment cc_comment("Shutdown Flag Enumerate");
-      cc_state->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -665,20 +585,6 @@ void MostConfigAdapter::CreateTransferTypeChannel(IChannel& parent_channel,
                                         byte_offset,2);
       type != nullptr) {
       type->Flags(CnFlag::BusEvent);
-
-    if (auto* cc_type = type->CreateChannelConversion();
-        cc_type != nullptr) {
-      cc_type->Type(ConversionType::ValueToText);
-      cc_type->Name("TransferTypeEnum");
-      cc_type->Parameter(0, 0.0);
-      cc_type->Parameter(1, 1.0);
-      cc_type->Reference(0, "Spy");
-      cc_type->Reference(1, "Node");
-      cc_type->Reference(2, ""); // Default text
-
-      CcComment cc_comment("Transfer Type Enumerate");
-      cc_type->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -691,20 +597,6 @@ void MostConfigAdapter::CreateDirectionChannel(IChannel& parent_channel,
                                        byte_offset,3);
       dir != nullptr) {
     dir->Flags(CnFlag::BusEvent);
-
-    if (auto* cc_dir = dir->CreateChannelConversion();
-        cc_dir != nullptr) {
-      cc_dir->Type(ConversionType::ValueToText);
-      cc_dir->Name("DirEnum");
-      cc_dir->Parameter(0, 0.0);
-      cc_dir->Parameter(1, 1.0);
-      cc_dir->Reference(0, "Rx");
-      cc_dir->Reference(1, "Tx");
-      cc_dir->Reference(2, ""); // Default text
-
-      CcComment cc_comment("Transmit or Receive Enumerate");
-      cc_dir->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -811,21 +703,6 @@ void MostConfigAdapter::CreateCompleteAckChannel(IChannel& parent_channel,
       c_ack != nullptr) {
     c_ack->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
     c_ack->Range(0,4);
-    if (auto* cc_ack = c_ack->CreateChannelConversion();
-        cc_ack != nullptr) {
-      cc_ack->Type(ConversionType::ValueToText);
-      cc_ack->Name("CompleteAckEnum");
-      cc_ack->Parameter(0, 0.0);
-      cc_ack->Parameter(1, 1.0);
-      cc_ack->Parameter(2, 4.0);
-      cc_ack->Reference(0, "No Response");
-      cc_ack->Reference(1, "CRC Error");
-      cc_ack->Reference(2, "OK");
-      cc_ack->Reference(3, "Unknown"); // Default text
-
-      CcComment cc_comment("Complete ACK Enumerate");
-      cc_ack->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -839,21 +716,6 @@ void MostConfigAdapter::CreatePreemptiveAckChannel(IChannel& parent_channel,
       p_ack != nullptr) {
     p_ack->Flags(CnFlag::BusEvent | CnFlag::RangeValid);
     p_ack->Range(0,4);
-    if (auto* cc_ack = p_ack->CreateChannelConversion();
-        cc_ack != nullptr) {
-      cc_ack->Type(ConversionType::ValueToText);
-      cc_ack->Name("PreemptiveAckEnum");
-      cc_ack->Parameter(0, 0.0);
-      cc_ack->Parameter(1, 1.0);
-      cc_ack->Parameter(2, 4.0);
-      cc_ack->Reference(0, "No Response");
-      cc_ack->Reference(1, "Buffer Full");
-      cc_ack->Reference(2, "OK");
-      cc_ack->Reference(3, "Unknown"); // Default text
-
-      CcComment cc_comment("Pre-emptive ACK Enumerate");
-      cc_ack->SetCcComment(cc_comment);
-    }
   }
 }
 
@@ -887,27 +749,6 @@ void MostConfigAdapter::CreatePacketTypeChannel(IChannel& parent_channel,
                     byte_offset,4, 4);
       type != nullptr ) {
     type->Flags(CnFlag::BusEvent);
-    if (IChannelConversion* cc_type = type->CreateChannelConversion();
-        cc_type != nullptr) {
-      cc_type->Type(ConversionType::ValueToText);
-      cc_type->Name("Most25MessageType");
-      cc_type->Parameter(0, 0x00);
-      cc_type->Parameter(1, 0x01);
-      cc_type->Parameter(2, 0x02);
-      cc_type->Parameter(3, 0x03);
-      cc_type->Parameter(4, 0x04);
-      cc_type->Parameter(5, 0x05);
-      cc_type->Reference(0, "Normal Message");
-      cc_type->Reference(1, "Remote Read Message");
-      cc_type->Reference(2, "Remote Write Message");
-      cc_type->Reference(3, "Remote Resource Allocate Message");
-      cc_type->Reference(4, "Remote Resource Deallocate Message");
-      cc_type->Reference(5, "Remote Get Source Message");
-      cc_type->Reference(6, "Unknown Message");  // Default text
-
-      CcComment cc_comment("MOST25 message types");
-      cc_type->SetCcComment(cc_comment);
-    }
   }
 
 }

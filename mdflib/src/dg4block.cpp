@@ -490,7 +490,7 @@ void  Dg4Block::ReadVlsdData(std::streambuf& buffer,Cn4Block& channel,
   }
 
   if (read_signal_data) {
-    ReadCache read_cache(block, buffer);
+    ReadCache read_cache(&channel, buffer);
     read_cache.SetOffsetFilter(offset_list);
     read_cache.SetCallback(callback);
 

@@ -143,52 +143,6 @@ void TestWrite::TearDownTestSuite() {
 
 }
 
-TEST_F(TestWrite, Mdf3WriteHD) {
-  if (kSkipTest) {
-    GTEST_SKIP();
-  }
-  path mdf_file(kTestDir);
-  mdf_file.append("hd3.mf3");
-  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf3Basic);
-
-  writer->Init(mdf_file.string());
-
-  auto* header = writer->Header();
-  ASSERT_TRUE(header != nullptr);
-  header->Author("Ingemar Hedvall");
-  header->Department("Home Alone");
-  header->Description("Testing Header");
-  header->Project("Mdf3WriteHD");
-  header->StartTime(TimeStampToNs());
-  header->Subject("PXY");
-
-  for (size_t dg_index = 0; dg_index < 2; ++dg_index) {
-    auto* dg3 = writer->CreateDataGroup();
-    ASSERT_TRUE(dg3 != nullptr);
-    dg3->Description("First Measurement");
-    for (size_t cg_index = 0; cg_index < 2; ++cg_index) {
-      auto* cg3 = mdf::MdfWriter::CreateChannelGroup(dg3);
-      ASSERT_TRUE(cg3 != nullptr);
-      cg3->Description("CG description");
-      for (size_t cn_index = 0; cn_index < 3; ++cn_index) {
-        auto* cn3 = mdf::MdfWriter::CreateChannel(cg3);
-        ASSERT_TRUE(cn3 != nullptr);
-        std::ostringstream name;
-        name << "Channel" << cn_index;
-        cn3->Name(name.str());
-        cn3->Description("Channel description");
-        cn3->Type(cn_index == 0 ? ChannelType::Master
-                                : ChannelType::FixedLength);
-        cn3->DataType(ChannelDataType::FloatBe);
-        cn3->DataBytes(4);
-        cn3->Unit("s");
-      }
-    }
-  }
-  writer->InitMeasurement();
-  writer->FinalizeMeasurement();
-}
-
 TEST_F(TestWrite, Mdf3WriteTest1) {
   if (kSkipTest) {
     GTEST_SKIP();

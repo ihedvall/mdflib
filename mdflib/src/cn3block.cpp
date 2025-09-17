@@ -10,6 +10,7 @@
 #include "mdf/mdfhelper.h"
 
 namespace {
+constexpr uint16_t kBitOffset = 0x2000;
 constexpr size_t kIndexNext = 0;
 constexpr size_t kIndexCc = 1;
 constexpr size_t kIndexCe = 2;
@@ -175,17 +176,17 @@ void Cn3Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Description", description_);
   dest.emplace_back("Start Offset [bits]", std::to_string(start_offset_));
   dest.emplace_back("Number of bits", std::to_string(nof_bits_));
-  dest.emplace_back(
-      "Signal Data Type", std::to_string(signal_type_),
+  dest.emplace_back("Signal Data Type", std::to_string(signal_type_),
       signal_type_ < 17 ? kTypeList[signal_type_].data() : "Unknown Type");
-  dest.emplace_back("Signal Data Type", range_valid_ ? "True" : "False");
+  dest.emplace_back("Range Valid", range_valid_ ? "True" : "False");
   dest.emplace_back("Min Range", MdfHelper::FormatDouble(min_, 6));
   dest.emplace_back("Max Range", MdfHelper::FormatDouble(max_, 6));
   dest.emplace_back("Sampling Rate [s]",
                     MdfHelper::FormatDouble(sample_rate_, 3));
   dest.emplace_back("Long Nane", long_name_);
   dest.emplace_back("Display Nane", display_name_);
-  dest.emplace_back("Byte Offset", std::to_string(byte_offset_));
+  dest.emplace_back("byte Offset", std::to_string(byte_offset_));
+  dest.emplace_back("Byte Offset", std::to_string(ByteOffset()));
 }
 
 uint64_t Cn3Block::Read(std::streambuf& buffer) {
@@ -327,23 +328,27 @@ void Cn3Block::BitCount(uint32_t bits ) {
 
 uint32_t Cn3Block::BitCount() const { return nof_bits_; }
 
+
 void Cn3Block::BitOffset(uint16_t bits ) {
-  start_offset_ = bits;
+  start_offset_ = bits; // Should be 0..7
+
 }
 
 uint16_t Cn3Block::BitOffset() const { return start_offset_ % 8; }
 
 uint32_t Cn3Block::ByteOffset() const {
-  return (static_cast<uint32_t>(start_offset_) / 8) + byte_offset_;
+  return static_cast<uint32_t>(start_offset_/ 8) +
+    (static_cast<uint32_t>(byte_offset_) * kBitOffset);
 }
 
 void Cn3Block::ByteOffset(uint32_t byte_offset) {
-  if (byte_offset < 0x2000) {
+  if (byte_offset < kBitOffset) {
+    //
     start_offset_ = static_cast<uint16_t>(byte_offset * 8);
     byte_offset_ = 0;
   } else {
-    byte_offset_ = byte_offset / 0x2000;
-    start_offset_ = static_cast<uint16_t>((byte_offset % 0x2000) * 8);
+    byte_offset_ = byte_offset / kBitOffset;
+    start_offset_ = static_cast<uint16_t>((byte_offset % kBitOffset) * 8);
   }
 }
 

@@ -641,8 +641,7 @@ void Dg4Block::Description(const std::string& desc) {
   }
 }
 std::string Dg4Block::Description() const {
-  const auto* md4 = MetaData();
-  return md4 == nullptr ? std::string() : md4->StringProperty("TX");
+  return Comment();
 }
 
 void Dg4Block::RecordIdSize(uint8_t id_size) { rec_id_size_ = id_size; }

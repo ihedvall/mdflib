@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 #include "md4block.h"
-
+#include "mdf/mdflogstream.h"
 #include "ixmlfile.h"
 
 namespace {
@@ -265,8 +265,7 @@ Md4Block::Md4Block() {
 }
 
 Md4Block::Md4Block(const std::string &text) {
-  const bool xml = !text.empty() && text[0] == '<';
-  if (xml) {
+  if (const bool xml = !text.empty() && text[0] == '<'; xml) {
     block_type_ = "##MD";
   } else {
     block_type_ = "##TX";
@@ -287,8 +286,16 @@ std::string Md4Block::TxComment() const {
     return Tx4Block::TxComment();
   }
   auto xml = CreateXmlFile();
-  bool parse = xml->ParseString(text_);
-  return parse ? FixCommentToLine(xml->Property<std::string>("TX"), 40) : "";
+  if (!xml) {
+    return {};
+  }
+  if (bool parse = xml->ParseString(text_); !parse) {
+    MDF_ERROR() << "Parse of XML snippet failed. XML: " << text_
+      << ", Block Type: " << BlockType();
+    return text_;
+  };
+  return FixCommentToLine(xml->Property<std::string>("TX"), 40);
+
 }
 
 void Md4Block::GetBlockProperty(BlockPropertyList &dest) const {

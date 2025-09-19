@@ -157,7 +157,7 @@ bool ExpatXml::ParseString(const std::string &input) {
     const auto error = XML_GetErrorCode(p.parser_);
     const auto *error_text = XML_ErrorString(error);
     MDF_ERROR() << "XML parser error.  Line: " << line << ", Column: " << column
-                << ", Error: " << error_text << ", File: " << filename_;
+                << ", Error: " << error_text << ", String: " << input;
     ok = false;
   }
   return ok;

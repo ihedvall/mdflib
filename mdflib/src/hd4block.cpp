@@ -150,6 +150,7 @@ void Hd4Block::GetBlockProperty(BlockPropertyList& dest) const {
   dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
+  dest.emplace_back("Description", Description());
   timestamp_.GetBlockProperty(dest);
   switch (static_cast<Hd4TimeClass>(time_class_)) {
     case Hd4TimeClass::LocalPcTime:

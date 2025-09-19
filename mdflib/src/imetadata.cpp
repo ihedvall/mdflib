@@ -4,6 +4,7 @@
  */
 
 #include "mdf/imetadata.h"
+#include "mdf/mdflogstream.h"
 
 #include "ixmlfile.h"
 
@@ -103,7 +104,16 @@ void IMetaData::StringProperty(const std::string& tag,
 
 std::string IMetaData::StringProperty(const std::string& tag) const {
   auto xml = CreateXmlFile();
-  xml->ParseString(XmlSnippet());
+  if (!xml) {
+    return {};
+  }
+
+  if (const bool parse = xml->ParseString(XmlSnippet()); !parse) {
+    MDF_ERROR() << "Failed to parse XML string. XML: " << XmlSnippet()
+      << ", Block Type: " << BlockType();
+    return {};
+  }
+
   auto value = xml->Property<std::string>(tag);
   return value;
 }

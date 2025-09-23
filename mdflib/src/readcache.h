@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <vector>
 #include <set>
 #include <map>
@@ -23,7 +24,26 @@ class ReadCache {
   bool ParseRecord();
   bool ParseRangeRecord(DgRange& range);
   bool ParseVlsdCgData();
-  bool ParseSignalData(); // Used against SD/DL/DZ blocks
+
+  /** \brief Read in all SD data.
+   *
+   * The function reads in all SD data and optional callback
+   * for each VLSD data block.
+   * @return True if more VLSD can be read.
+   */
+  bool ParseSignalData();
+
+  /** \brief Reads in a range of SD-VLSD data defined by an offset list.
+   *
+   * The function reads in a range of SD stored VLSD data.
+   * The function must be called offset by offset and the offsets be ascending.
+   * This is handled by using the internal sorted offset list.
+   * This method speed up the read of SD stored VLSD data.
+   *
+   * @param offset Offset to read
+   * @return True if more SD data can be read.
+   */
+  bool ParseSignalDataOffset(uint64_t offset);
 
   void SetRecordId(uint64_t record_id) {
     record_id_list_.clear();
@@ -31,8 +51,12 @@ class ReadCache {
   }
 
  void SetOffsetFilter(const std::vector<uint64_t>& offset_list);
+ [[nodiscard]] const std::set<uint64_t>& GetSortedOffsetList() const {
+   return offset_filter_;
+ }
 
- void SetCallback(const std::function<void(uint64_t, const std::vector<uint8_t>&)>& callback );
+ void SetCallback(const std::function<void(uint64_t,
+   const std::vector<uint8_t>&)>& callback );
  private:
 
   std::streambuf& buffer_;
@@ -60,7 +84,7 @@ class ReadCache {
   bool GetNextByte(uint8_t& input);
   void GetArray(std::vector<uint8_t>& buffer);
   void SkipBytes(size_t nof_skip);
-  bool SkipByte();
+   bool SkipByte();
 };
 
 

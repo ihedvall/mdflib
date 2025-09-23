@@ -465,8 +465,8 @@ void  Dg4Block::ReadVlsdData(std::streambuf& buffer,Cn4Block& channel,
     throw std::runtime_error(
         "Missing referenced data block in channel.");
   }
-  bool read_signal_data = false;
-  bool read_vlsd_cg_data = false;
+  bool read_signal_data = false;  // Traditional SD storage
+  bool read_vlsd_cg_data = false; // Newer CG-VLSD data
 
   switch (channel.Type()) {
     case ChannelType::VariableLength:
@@ -493,8 +493,16 @@ void  Dg4Block::ReadVlsdData(std::streambuf& buffer,Cn4Block& channel,
     ReadCache read_cache(&channel, buffer);
     read_cache.SetOffsetFilter(offset_list);
     read_cache.SetCallback(callback);
-
-    while (read_cache.ParseSignalData()) {
+    const std::set<uint64_t>& offset_filter = read_cache.GetSortedOffsetList();
+    if (!offset_filter.empty()) {
+      for (uint64_t offset : offset_filter) {
+        const bool more = read_cache.ParseSignalDataOffset(offset);
+        if (!more) {
+          break;
+        }
+      }
+    } else {
+      while (read_cache.ParseSignalData()) { }
     }
   } else if (read_vlsd_cg_data) {
     ReadCache read_cache(this, buffer);

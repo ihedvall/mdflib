@@ -244,9 +244,53 @@ bool ReadCache::ParseSignalData() {
       break;
     }
   }
-  return data_count_ <= max_data_count_;
-
+  return data_count_ < max_data_count_;
 }
+
+
+bool ReadCache::ParseSignalDataOffset(uint64_t offset) {
+  if (data_count_ >= max_data_count_ || block_list_.empty()) {
+    return false;
+  }
+  if (offset < offset_) {
+    MDF_ERROR() << "Invalid offset in call. Offset/Previous Offset: "
+      << offset << "/" << offset_;
+    return false;
+  }
+
+  if (uint64_t bytes_to_skip = offset - offset_; bytes_to_skip > 0 ) {
+    SkipBytes(bytes_to_skip);
+    offset_ += bytes_to_skip;
+  }
+
+
+  try {
+    if (data_count_ + 4 > max_data_count_ ) {
+      return false;
+    }
+    std::vector<uint8_t> temp(4, 0);
+    GetArray(temp);
+    const LittleBuffer<uint32_t> length(temp, 0);
+    const uint32_t nof_bytes = length.value();
+
+    if (data_count_ + nof_bytes > max_data_count_ ) {
+      return false;
+    }
+    std::vector<uint8_t> raw_data(length.value());
+    GetArray(raw_data);
+
+    if (callback_) {
+      callback_(offset_, raw_data);
+    }
+    offset_ += 4 + length.value();
+  } catch (std::exception &err) {
+    MDF_ERROR() << "Allocation error. Error: " << err.what();
+    return false;
+  }
+
+  return data_count_ < max_data_count_;
+}
+
 bool ReadCache::ParseVlsdCgData() {
 
   if (dg4_block_ == nullptr || dg4_block_->Cg4().empty() ) {
@@ -443,10 +487,47 @@ void ReadCache::SkipBytes(size_t nof_skip) {
     data_count_ += nof_skip;
     return;
   }
-  for (size_t skip = 0; skip < nof_skip; ++skip) {
-    if (!SkipByte()){
-      throw std::runtime_error("End of file detected.");
+
+  // First skip the remaining bytes.
+  nof_skip -= data_size_ - file_index_;
+
+  // If a list try to skip block by block first
+  while (block_index_ < block_list_.size()) {
+    file_index_ = 0;
+    data_size_ = 0;
+    auto* current_block = block_list_[block_index_];
+    ++block_index_;
+    if (current_block == nullptr) {
+      break;
     }
+    data_size_ = current_block->DataSize();
+    if (nof_skip > data_size_) {
+      nof_skip -= data_size_;
+      continue;
+    }
+    // In right block. Set up the file buffer.
+    if (current_block->BlockType() == "DZ") {
+      try {
+        file_buffer_.resize(static_cast<size_t>(data_size_) );
+      } catch (const std::exception&) {
+        break;;
+      }
+    } else {
+      file_buffer_.clear();
+      SetFilePosition(buffer_, current_block->DataPosition());
+    }
+    break;
+  }
+  // Step to the byte inside
+  if (nof_skip > 0) {
+    if (file_buffer_.empty()) {
+      const auto bytes = StepFilePosition(buffer_, nof_skip);
+      if (bytes != nof_skip) {
+        throw std::runtime_error("End of file detected.");
+      }
+    }
+    file_index_ += nof_skip;
+    data_count_ += nof_skip;
   }
 }
 
@@ -462,6 +543,7 @@ bool ReadCache::SkipByte() {
     ++data_count_;
     return true;
   }
+
   file_index_ = 0;
   data_size_ = 0;
   if (block_index_ >= block_list_.size()) {

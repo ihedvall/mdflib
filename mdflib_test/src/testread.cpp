@@ -76,11 +76,6 @@ void MdfLogFunction(const MdfLocation& location, MdfLogSeverity severity,
               static_cast<LogSeverity>(severity), text);
 }
 
-void MdfNoLogFunction(const MdfLocation&, MdfLogSeverity,
-                    const std::string& ) {
-
-}
-
 }  // namespace
 
 namespace mdf::test {
@@ -113,7 +108,7 @@ void TestRead::SetUpTestSuite() {
 }
 
 void TestRead::TearDownTestSuite() {
-  MdfLogStream::SetLogFunction1(MdfNoLogFunction);
+  MdfLogStream::SetLogFunction1(nullptr);
   util::log::LogConfig &log_config = util::log::LogConfig::Instance();
   log_config.DeleteLogChain();
 }

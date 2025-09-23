@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Ingemar Hedvall
+* Copyright 2025 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
 #pragma once
@@ -8,11 +8,13 @@
 
 namespace mdf::test {
 
-class TestRead : public testing::Test {
- public:
+class TestReadVlsd : public testing::Test {
+public:
   static void SetUpTestSuite();
   static void TearDownTestSuite();
 
 };
 
 }  // namespace mdf::test
+
+

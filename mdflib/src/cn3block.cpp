@@ -338,7 +338,7 @@ uint16_t Cn3Block::BitOffset() const { return start_offset_ % 8; }
 
 uint32_t Cn3Block::ByteOffset() const {
   return static_cast<uint32_t>(start_offset_/ 8) +
-    (static_cast<uint32_t>(byte_offset_) * kBitOffset);
+    static_cast<uint32_t>(byte_offset_);
 }
 
 void Cn3Block::ByteOffset(uint32_t byte_offset) {
@@ -347,7 +347,7 @@ void Cn3Block::ByteOffset(uint32_t byte_offset) {
     start_offset_ = static_cast<uint16_t>(byte_offset * 8);
     byte_offset_ = 0;
   } else {
-    byte_offset_ = byte_offset / kBitOffset;
+    byte_offset_ = (byte_offset / kBitOffset) * kBitOffset;
     start_offset_ = static_cast<uint16_t>((byte_offset % kBitOffset) * 8);
   }
 }

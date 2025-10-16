@@ -64,7 +64,7 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
   uint64_t ReadDataRecord(std::streambuf& buffer, const IDataGroup& notifier) const;
   uint64_t ReadRangeDataRecord(std::streambuf& buffer, const IDataGroup& notifier,
                              DgRange& range) const;
-  void PrepareForWriting();
+  [[nodiscard]] bool PrepareForWriting();
 
   void ClearData() override;
 

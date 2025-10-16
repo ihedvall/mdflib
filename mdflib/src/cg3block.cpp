@@ -8,6 +8,7 @@
 #include <cstdio>
 
 #include "mdf/idatagroup.h"
+#include "mdf/mdflogstream.h"
 
 namespace {
 
@@ -124,8 +125,7 @@ uint64_t Cg3Block::Write(std::streambuf& buffer) {
     if (sr_index == 0) {
       sr_link = sr3->FilePosition();
     } else {
-      auto &prev = sr_list_[sr_index - 1];
-      if (prev) {
+      if (auto &prev = sr_list_[sr_index - 1]; prev) {
         prev->UpdateLink(buffer, kIndexNext, sr3->FilePosition());
       }
     }
@@ -161,8 +161,7 @@ uint64_t Cg3Block::Write(std::streambuf& buffer) {
     if (cn_index == 0) {
       UpdateLink(buffer, kIndexCn, cn3->FilePosition());
     } else {
-      auto &prev = cn_list_[cn_index - 1];
-      if (prev) {
+      if (auto &prev = cn_list_[cn_index - 1]; prev) {
         prev->UpdateLink(buffer, kIndexNext, cn3->FilePosition());
       }
     }
@@ -223,25 +222,36 @@ void Cg3Block::AddCn3(std::unique_ptr<Cn3Block> &cn3) {
   nof_channels_ = static_cast<uint16_t>(cn_list_.size());
 }
 
-void Cg3Block::PrepareForWriting() {
-  nof_channels_ = static_cast<uint16_t>(cn_list_.size());
-  size_of_data_record_ = 0;
-  for (auto &cn3 : cn_list_) {
-    cn3->ByteOffset(size_of_data_record_);
-    size_of_data_record_ += static_cast<uint16_t>(cn3->DataBytes());
+bool Cg3Block::PrepareForWriting() {
+  try {
+    nof_channels_ = static_cast<uint16_t>(cn_list_.size());
+    uint64_t record_size = 0;
+    size_of_data_record_ = 0;
+    for (auto &cn3 : cn_list_) {
+      cn3->ByteOffset(static_cast<uint32_t>(record_size));
+      record_size += cn3->DataBytes();
+      size_of_data_record_ = static_cast<uint16_t>(record_size);
+    }
+    if (record_size > 0xFFFF) {
+      throw std::runtime_error("The record size is to large. Size; "
+        + std::to_string(record_size) + " > " + std::to_string(0xFFFF));
+    }
+    sample_buffer_.resize(static_cast<size_t>(record_size));
+
+  } catch (const std::exception &err) {
+    MDF_ERROR() << "Failed to prepare for writing. Error: " << err.what();
+    return false;
   }
-  sample_buffer_.resize(size_of_data_record_);
+  return true;
 }
 
 uint64_t Cg3Block::ReadDataRecord(std::streambuf& buffer,
                                 const IDataGroup &notifier) const {
-  uint64_t count;
-
   // Normal fixed length records
   std::size_t record_size = size_of_data_record_;
   std::vector<uint8_t> record(record_size, 0);
-  count = buffer.sgetn(
-      reinterpret_cast<char*>(record.data()),  record.size());
+  uint64_t count =
+      buffer.sgetn(reinterpret_cast<char *>(record.data()), record.size());
   uint64_t sample = Sample();
   if (sample < NofSamples()) {
     const bool continue_reading = notifier.NotifySampleObservers(sample, RecordId(), record);

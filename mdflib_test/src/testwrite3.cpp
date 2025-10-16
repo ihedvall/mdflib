@@ -122,10 +122,10 @@ TEST_F(TestWrite3, TestManyChannel) {
   if (kSkipTest) {
     GTEST_SKIP();
   }
-  constexpr uint16_t channelNum = 200;
+  constexpr uint16_t channelNum = 900;
 
   path test_file(kTestDir);
-  test_file.append("test_many_channels.mf3");
+  test_file.append("test_many_channels.dat");
   auto writer = MdfFactory::CreateMdfWriterEx(MdfWriterType::Mdf3Basic);
   writer->Init(test_file.string());
 
@@ -167,7 +167,7 @@ TEST_F(TestWrite3, TestManyChannel) {
 
 
   uint64_t sample_time = MdfHelper::NowNs();
-  writer->InitMeasurement();
+  ASSERT_TRUE(writer->InitMeasurement());
   writer->StartMeasurement(sample_time);
   auto cn_list = cg3->Channels();
   for (size_t sample = 0; sample < 10; ++sample) {
@@ -208,7 +208,7 @@ TEST_F(TestWrite3, TestManyChannel) {
 
       double value = 0;
       uint32_t count = 0;
-      bool valid = true;
+
       std::vector<double> values_exp{};
       std::vector<double> values_read{};
       for (const auto &channel: observer_list) {
@@ -236,13 +236,13 @@ TEST_F(TestWrite3, TestManyChannel) {
               values_read.clear();
               bool fail = false;
               for (size_t sample = 0; sample < samples; ++sample) {
-                  values_exp.push_back(sample);
+                  values_exp.push_back(static_cast<double>(sample));
                   channel->GetEngValue(sample, value);
                   values_read.push_back(value);
-                  if(value == sample)
+                  if (value == static_cast<double>(sample))
                       fail = true;
               }
-              if(fail)
+              if (fail)
                   EXPECT_EQ(values_read, values_exp);
           }
           count++;

@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WinRT;
 
 namespace mdflibrary_test;
+
 using MdfLibrary;
 
 
@@ -22,10 +23,10 @@ public class MdfLibraryTest
     private const string TestFile5 = @"test5.mf4";
     private static string _testDirectory = "";
     private static bool _skipTest = false;
-    
+
     [ClassInitialize]
-    public static void ClassInit(TestContext testContext) 
-    {    
+    public static void ClassInit(TestContext testContext)
+    {
         Console.WriteLine("Unit tests started.");
         MdfLibrary.Instance.LogEvent += (MdfLogSeverity severity, string function, string message) =>
         {
@@ -39,7 +40,7 @@ public class MdfLibraryTest
             Directory.Delete(_testDirectory, true);
         }
         Directory.CreateDirectory(_testDirectory);
-        _skipTest = !Directory.Exists(_testDirectory);      
+        _skipTest = !Directory.Exists(_testDirectory);
         Console.WriteLine("Unit tests started. Test Dir: " + _testDirectory);
     }
 
@@ -51,17 +52,17 @@ public class MdfLibraryTest
     }
 
     [TestInitialize]
-    public  void TestInit()
-    {            
-    
-    }
- 
-    [TestCleanup]
-    public  void TestExit()
+    public void TestInit()
     {
 
     }
-    
+
+    [TestCleanup]
+    public void TestExit()
+    {
+
+    }
+
 
     [TestMethod]
     public void TestNormalRead()
@@ -139,7 +140,7 @@ public class MdfLibraryTest
 
         var attachments = file.Attachments;
         Assert.IsNotNull(attachments);
-   
+
         var datagroups = file.DataGroups;
         Assert.IsNotNull(datagroups);
         Assert.IsTrue(datagroups.Length > 0);
@@ -197,7 +198,7 @@ public class MdfLibraryTest
         Assert.IsNotNull(header.MetaData);
 
         var attachments = header.Attachments;
-       Assert.IsNotNull(attachments);
+        Assert.IsNotNull(attachments);
 
         var histories = header.FileHistories;
         Assert.IsNotNull(histories);
@@ -205,7 +206,7 @@ public class MdfLibraryTest
 
         var events = header.Events;
         Assert.IsNotNull(events);
-       
+
         var groups = header.DataGroups;
         Assert.IsNotNull(groups);
         Assert.IsTrue(groups.Length > 0);
@@ -263,7 +264,7 @@ public class MdfLibraryTest
             var header = writer.Header;
             header.Description = "Test meta data";
             header.Author = "Ingemar Hedvall";
-            
+
             var metaData = header.CreateMetaData();
             Assert.IsNotNull(metaData, "Failed to create meta data object.");
 
@@ -489,7 +490,7 @@ public class MdfLibraryTest
 
     [TestMethod]
     public void TestChannelConversion()
-    {        
+    {
         var testFile = Path.Combine(_testDirectory, "channel_conversion.mf4");
         if (File.Exists(testFile))
         {
@@ -504,7 +505,7 @@ public class MdfLibraryTest
             // it also create the ID and HD block.
             Assert.IsTrue(writer.Init(testFile));
 
-            
+
             var header = writer.Header;
             header.Author = "Ingemar Hedvall";
             header.Department = "Home Alone";
@@ -515,7 +516,7 @@ public class MdfLibraryTest
 
             if (header.FileHistories.Length == 0)
             {
-        
+
                 // All MD4 files need to have at least one FH block
                 var history = header.CreateFileHistory();
                 history.Time = startTime;
@@ -532,29 +533,32 @@ public class MdfLibraryTest
             var channelGroup = dataGroup.CreateChannelGroup();
             Assert.IsNotNull(channelGroup);
             channelGroup.Name = "Group1";
-            
+
             var channel = channelGroup.CreateChannel();
             Assert.IsNotNull(channel);
             channel.Name = "Channel1";
             channel.DataBytes = 1;
             channel.Type = ChannelType.FixedLength;
             channel.DataType = ChannelDataType.UnsignedIntegerBe;
-            
-            
+
+
             var channelConv = channel.CreateChannelConversion();
             Assert.IsNotNull(channelConv);
             channelConv.Name = "Channel1Conv";
-            channelConv.Description = "Test";
-            channelConv.Unit = "km/h";
             channelConv.Type = ConversionType.ValueToText;
-            
+
             // No Inverse
             channelConv.Reference(0, "Zero");
-            channelConv.Reference(1, "One");   
-            channelConv.Reference(2, "Default");
+            channelConv.Reference(1, "One");
 
             channelConv.Parameter(0, 0.0);
             channelConv.Parameter(1, 1.0);
+
+            var fallbckConv = channelConv.CreateFallbackConversion();
+            fallbckConv.Name = "Channel1ConvFallback";
+            fallbckConv.Type = ConversionType.Linear;
+            fallbckConv.Parameter(0, 0.0);
+            fallbckConv.Parameter(1, 2.0);
 
             writer.InitMeasurement();
             writer.StartMeasurement(startTime);
@@ -562,7 +566,7 @@ public class MdfLibraryTest
             for (var sample = 0; sample < 3; ++sample)
             {
                 channel.SetChannelValue(sample);
-                writer.SaveSample(channelGroup,stopTime);
+                writer.SaveSample(channelGroup, stopTime);
                 stopTime += 100000000;
             }
             writer.StopMeasurement(stopTime);
@@ -579,7 +583,7 @@ public class MdfLibraryTest
             var group = datagroup.ChannelGroups[0];
             var channel = group.Channels[0];
             var conv = channel.ChannelConversion;
-            
+
             Assert.IsNotNull(conv);
 
             Console.WriteLine("Index: {0:X}", conv.Index);
@@ -596,18 +600,21 @@ public class MdfLibraryTest
             Console.WriteLine("Flags: {0:X}", conv.Flags);
             Assert.IsNull(conv.Inverse);
             Assert.IsNotNull(conv.CreateInverse());
-            
-            Assert.AreEqual(3, conv.NofReferences);            
+
+            Assert.AreEqual(3, conv.NofReferences);
             Assert.AreEqual("Zero", conv.Reference(0));
+
+            Assert.AreEqual(2, conv.NofParameters);
+            Assert.AreEqual(1.0, conv.Parameter(1));
             
-            Assert.AreEqual(2,conv.NofParameters);
-            Assert.AreEqual(1.0, conv.Parameter(1));        
+            Assert.IsNotNull(conv.FallbackConversion);
+            Assert.AreEqual(conv.FallbackConversion.Type, ConversionType.Linear);
         }
     }
 
     [TestMethod]
     public void TestBusLogging()
-    {           
+    {
         const string testFile = "can_bus_logger.mf4";
         if (File.Exists(testFile))
         {
@@ -621,7 +628,7 @@ public class MdfLibraryTest
             writer.BusType = MdfBusType.CAN;
             writer.StorageType = MdfStorageType.VlsdStorage;
             writer.MaxLength = 8;
-            
+
             var header = writer.Header;
             header.Author = "Caller";
             header.Department = "Home Alone";
@@ -630,7 +637,7 @@ public class MdfLibraryTest
             header.StartTime = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
             header.Subject = "PXY";
 
-            var history = header.CreateFileHistory(); 
+            var history = header.CreateFileHistory();
             history.Time = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
             history.Description = "Initial stuff";
             history.ToolName = "Unit Test";
@@ -644,7 +651,7 @@ public class MdfLibraryTest
 
             var dataGroup = lastDg.GetChannelGroup("CAN_DataFrame");
             Assert.IsNotNull(dataGroup);
-         
+
             Assert.IsTrue(writer.InitMeasurement());
             var timestamp = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
             writer.StartMeasurement(timestamp);
@@ -654,7 +661,7 @@ public class MdfLibraryTest
             var message = new CanMessage();
             message.MessageId = 12;
 
-            message.DataBytes = new byte[] {0x01,0x02};
+            message.DataBytes = new byte[] { 0x01, 0x02 };
             for (var sample = 0; sample < 100; ++sample)
             {
                 writer.SaveCanMessage(dataGroup, timestamp, message);
@@ -690,15 +697,15 @@ public class MdfLibraryTest
 
 
             for (uint sample = 0; sample < time.NofSamples; ++sample)
-            {               
+            {
                 double timeValue = 0;
-                var timeValid = time.GetEngValueAsFloat(sample, ref timeValue); 
-                
+                var timeValid = time.GetEngValueAsFloat(sample, ref timeValue);
+
                 ulong identValue = 0;
                 var identValid = ident.GetEngValueAsUnsigned(sample, ref identValue);
-                
+
                 var dataValue = Array.Empty<byte>();
-                var dataValid = data.GetEngValueAsArray(sample, ref dataValue);            
+                var dataValid = data.GetEngValueAsArray(sample, ref dataValue);
                 var dataString = "";
                 data.GetEngValueAsString(sample, ref dataString);
                 Console.WriteLine("Valid: {0} {1} {2} {3}", sample, timeValid, identValid, dataValid);
@@ -717,7 +724,7 @@ public class MdfLibraryTest
     [TestMethod]
     public void TestWriter()
     {
-        if(File.Exists(TestFile5))
+        if (File.Exists(TestFile5))
         {
             File.Delete(TestFile5);
         }
@@ -846,19 +853,19 @@ public class MdfLibraryTest
             cn.DataType = ChannelDataType.CanOpenTime;
         }
 
-/*        var Attachment = Header.CreateAttachment();
-        Attachment.CreatorIndex = 0;
-        Attachment.Embedded = true;
-        Attachment.Compressed = false;
-        Attachment.FileName = "test.txt";
-        Attachment.FileType = "text/plain";
+        /*        var Attachment = Header.CreateAttachment();
+                Attachment.CreatorIndex = 0;
+                Attachment.Embedded = true;
+                Attachment.Compressed = false;
+                Attachment.FileName = "test.txt";
+                Attachment.FileType = "text/plain";
 
-        Attachment = Header.CreateAttachment();
-        Attachment.CreatorIndex = 0;
-        Attachment.Embedded = true;
-        Attachment.Compressed = true;
-        Attachment.FileName = "test.txt";
-        Attachment.FileType = "text/plain";*/
+                Attachment = Header.CreateAttachment();
+                Attachment.CreatorIndex = 0;
+                Attachment.Embedded = true;
+                Attachment.Compressed = true;
+                Attachment.FileName = "test.txt";
+                Attachment.FileType = "text/plain";*/
 
         writer.InitMeasurement();
         var ns1970 = (ulong)(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000); // ns 
@@ -930,7 +937,7 @@ public class MdfLibraryTest
             str = "";
             foreach (var Event in Reader.Header.Events)
             {
-                str+=$"{Event.Name} {Event.Description} {Event.GroupName} {Event.SyncFactor}\n";
+                str += $"{Event.Name} {Event.Description} {Event.GroupName} {Event.SyncFactor}\n";
             }
             Console.WriteLine($"Events : \n{str}");
         }

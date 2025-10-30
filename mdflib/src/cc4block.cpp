@@ -147,6 +147,19 @@ IChannelConversion* Cc4Block::Inverse() const {
   return cc_block_ ? cc_block_.get() : nullptr;
 }
 
+IChannelConversion *Cc4Block::CreateConversion() {
+  if (!cc2_block_) {
+    cc2_block_ = std::make_unique<Cc4Block>();
+    cc2_block_->Init(*this);
+  }
+  cc2_block_->ChannelDataType(channel_data_type_);
+  return cc2_block_.get();
+}
+
+IChannelConversion* Cc4Block::Conversion() const {
+  return cc2_block_ ? cc2_block_.get() : nullptr;
+}
+
 void Cc4Block::GetBlockProperty(BlockPropertyList& dest) const {
   MdfBlock::GetBlockProperty(dest);
 
@@ -280,6 +293,10 @@ uint64_t Cc4Block::Write(std::streambuf& buffer) {  // NOLINT
     return static_cast<size_t>(block_length_);
   }
 
+  if(cc2_block_ != nullptr) {
+      Reference(static_cast<uint16_t>(ref_list_.size()),cc2_block_);
+  }
+
   nof_references_ = static_cast<uint16_t>(ref_list_.size());
   nof_values_ = static_cast<uint16_t>(value_list_.size());
 
@@ -291,11 +308,13 @@ uint64_t Cc4Block::Write(std::streambuf& buffer) {  // NOLINT
   WriteBlock4(buffer, unit_, kIndexUnit);
   WriteMdComment(buffer, kIndexMd);
   WriteBlock4(buffer, cc_block_, kIndexInverse);
-  for (uint16_t index_m = 0; index_m < nof_references_; ++index_m) {
+  uint16_t index_m = 0;
+  for (; index_m < nof_references_; ++index_m) {
     const auto index = kIndexRef + index_m;
     auto& block = ref_list_[index_m];
     WriteBlock4(buffer, block, index);
   }
+  WriteBlock4(buffer, cc2_block_, kIndexRef + index_m);
 
   uint64_t bytes = MdfBlock::Write(buffer);
   bytes += WriteNumber(buffer, type_);
@@ -543,6 +562,12 @@ const std::string& Cc4Block::Formula() const {
 
 [[nodiscard]] uint16_t Cc4Block::NofReferences() const {
   return nof_references_;  
+}
+
+void Cc4Block::Reference(uint16_t index, std::unique_ptr<Cc4Block> &cc4) {
+  while (index >= ref_list_.size()) {
+    ref_list_.emplace_back(std::move(cc4));
+  }
 }
 
 void Cc4Block::Reference(uint16_t index, const std::string& text) {

@@ -11,8 +11,12 @@ namespace mdf {
 IChannelConversion *IChannelConversion::CreateInverse() { return nullptr; }
 
 IChannelConversion *IChannelConversion::Inverse() const {
-  return nullptr;
-}
+  return nullptr; }
+
+IChannelConversion *IChannelConversion::CreateConversion() { return nullptr; }
+
+IChannelConversion *IChannelConversion::Conversion() const {
+  return nullptr; }
 
 void IChannelConversion::Flags(uint16_t flags) {}
 

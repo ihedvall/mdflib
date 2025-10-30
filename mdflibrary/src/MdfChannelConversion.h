@@ -61,6 +61,7 @@ public:
 
   property UInt16 Flags { UInt16 get(); void set(UInt16 flags); }
   property MdfChannelConversion^ Inverse { MdfChannelConversion^ get(); }
+  property MdfChannelConversion^ FallbackConversion { MdfChannelConversion^ get(); }
   property MdfMetaData^ MetaData { MdfMetaData^ get(); }
   property String^ Formula { String^ get(); void set(String^ formula); }
 
@@ -78,6 +79,7 @@ public:
   
   
   MdfChannelConversion^ CreateInverse();
+  MdfChannelConversion^ CreateFallbackConversion();
   MdfMetaData^ CreateMetaData();
 private:
   MdfChannelConversion() {};

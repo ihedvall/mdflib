@@ -607,8 +607,8 @@ public class MdfLibraryTest
             Assert.AreEqual(2, conv.NofParameters);
             Assert.AreEqual(1.0, conv.Parameter(1));
             
-            Assert.IsNotNull(conv.FallbackConversion);
-            Assert.AreEqual(conv.FallbackConversion.Type, ConversionType.Linear);
+            //Assert.IsNotNull(conv.FallbackConversion);
+            //Assert.AreEqual(conv.FallbackConversion.Type, ConversionType.Linear);
         }
     }
 

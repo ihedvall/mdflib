@@ -301,31 +301,6 @@ void Mdf4File::FindAllReferences(std::streambuf& buffer) {
       }
     }
   }
-
-  // Now set the size of channel array for all channels
-  for (auto& dg4_block : hd_block_->Dg4()) {
-    if (!dg4_block) {
-      continue;
-    }
-    for (auto &cg4_block : dg4_block->Cg4()) {
-      if (!cg4_block) {
-        continue;
-      }
-      auto channel_list = cg4_block->Channels();
-      for (IChannel* channel : channel_list) {
-        if (channel == nullptr) {
-          continue;
-        }
-        const auto* channel_array = channel->ChannelArray();
-        if (channel_array == nullptr) {
-          channel->ArraySize(1);
-        } else {
-          channel->ArraySize(channel_array->NofArrayValues());
-        }
-
-      }
-    }
-  }
 }
 
 bool Mdf4File::IsFinalizedDone() const {

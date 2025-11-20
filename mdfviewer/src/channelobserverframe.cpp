@@ -32,7 +32,7 @@ ChannelObserverFrame::ChannelObserverFrame(std::unique_ptr<ChannelObserverList>&
       if (!unit.empty()) {
         label << " [" << unit << "]";
       }
-      const auto* channel_array = channel->Channel().ChannelArray();
+      const auto* channel_array = channel->Channel().ChannelArray(0);
       if (channel_array != nullptr) {
         label << " " << channel_array->DimensionAsString();
       }

@@ -10,6 +10,7 @@
 #include "dbchelper.h"
 #include "mdf/ichannelgroup.h"
 #include "mdf/mdflogstream.h"
+#include "mdf/ichannelarray.h"
 
 namespace mdf {
 
@@ -19,6 +20,17 @@ bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
 
   const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
     + static_cast<size_t>( (array_index * BitCount()) );
+  size_t range_check = (bit_offset + BitCount()) / 8;
+  if ((bit_offset + BitCount()) % 8 != 0) {
+    ++range_check;
+  }
+  if (range_check > record_buffer.size()) {
+    MDF_ERROR() << "Range check error. Byte Index: "
+      << range_check << "(" << record_buffer.size() << "). "
+      << "Channel: " << Name();
+    return false;
+  }
+
   if (Type() == ChannelType::VariableLength) {
      dest = detail::DbcHelper::RawToUnsigned(true,
                                             bit_offset,
@@ -48,8 +60,10 @@ bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
                                               record_buffer.data());
       break;
 
-    default:
+    default: {
+      MDF_ERROR() << "Not a valid conversion. Channel: " << Name();
       return false;  // Not valid conversion
+    }
   }
   return true;
 }
@@ -62,6 +76,18 @@ bool IChannel::GetSignedValue(const std::vector<uint8_t> &record_buffer,
   // CopyToDataBuffer(record_buffer, data_buffer, array_index);
   const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
       + static_cast<size_t>( (array_index * BitCount()) );
+
+  size_t range_check = (bit_offset + BitCount()) / 8;
+  if ((bit_offset + BitCount()) % 8 != 0) {
+    ++range_check;
+  }
+  if (range_check > record_buffer.size()) {
+    MDF_ERROR() << "Range check error. Byte Index: "
+      << range_check << "(" << record_buffer.size() << "). "
+      << "Channel: " << Name();
+    return false;
+  }
+
   const bool little_endian = DataType() == ChannelDataType::SignedIntegerLe;
   dest = detail::DbcHelper::RawToSigned(little_endian,
                                                    bit_offset,
@@ -75,6 +101,18 @@ bool IChannel::GetFloatValue(const std::vector<uint8_t> &record_buffer,
                              uint64_t array_index ) const {
   const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
         + static_cast<size_t>( (array_index * BitCount()) );
+
+  size_t range_check = (bit_offset + BitCount()) / 8;
+  if ((bit_offset + BitCount()) % 8 != 0) {
+    ++range_check;
+  }
+  if (range_check > record_buffer.size()) {
+    MDF_ERROR() << "Range check error. Byte Index: "
+      << range_check << "(" << record_buffer.size() << "). "
+      << "Channel: " << Name();
+    return false;
+  }
+
   const bool little_endian = DataType() == ChannelDataType::FloatLe;
   bool valid = true;
   switch (BitCount()) {
@@ -305,7 +343,7 @@ void IChannel::SetUnsignedValueBe(uint64_t value, bool valid, uint64_t array_ind
     MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
-  const size_t bytes = static_cast<size_t>(DataBytes());
+  const auto bytes = static_cast<size_t>(DataBytes());
   const auto max_bytes = ByteOffset() +
                          (bytes * array_index);
   if (max_bytes > buffer.size()) {
@@ -352,7 +390,7 @@ void IChannel::SetSignedValueLe(int64_t value, bool valid,
     MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
-  const size_t bytes = static_cast<size_t>(DataBytes());
+  const auto bytes = static_cast<size_t>(DataBytes());
   const auto max_bytes = ByteOffset() +
                          (bytes * (array_index + 1));
   if (max_bytes > buffer.size()) {
@@ -400,7 +438,7 @@ void IChannel::SetSignedValueBe(int64_t value, bool valid,
     MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
-  const size_t bytes = static_cast<size_t>( DataBytes() );
+  const auto bytes = static_cast<size_t>( DataBytes() );
   const auto max_bytes = ByteOffset() +
                          (bytes * (array_index + 1));
   if (max_bytes > buffer.size()) {
@@ -446,7 +484,7 @@ void IChannel::SetFloatValueLe(double value, bool valid, uint64_t array_index) {
     MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
-  const size_t bytes = static_cast<size_t>(DataBytes());
+  const auto bytes = static_cast<size_t>(DataBytes());
   const auto max_bytes = ByteOffset() +
                          (bytes * (array_index + 1));
   if (max_bytes > buffer.size()) {
@@ -481,7 +519,7 @@ void IChannel::SetFloatValueBe(double value, bool valid, uint64_t array_index) {
     MDF_ERROR() << "Sample buffer not sized. Invalid use of function.";
     return; // Invalid use of function
   }
-  const size_t bytes = static_cast<size_t>( DataBytes() );
+  const auto bytes = static_cast<size_t>( DataBytes() );
   const auto max_bytes = ByteOffset() +
                          (bytes * (array_index + 1));
   if (max_bytes > buffer.size()) {
@@ -839,9 +877,14 @@ ISourceInformation *IChannel::CreateSourceInformation() {
   return nullptr;
 }
 
-IChannelArray *IChannel::ChannelArray() const {
+IChannelArray *IChannel::ChannelArray(size_t index) const {
   // Only supported for MDF 4 files
   return nullptr;
+}
+
+std::vector<IChannelArray*> IChannel::ChannelArrays() const {
+  // Default behaviour is reurning no arrays as in MDF 3
+  return {};
 }
 
 IChannelArray *IChannel::CreateChannelArray() {
@@ -993,6 +1036,21 @@ void IChannel::AddAttachmentReference(const IAttachment *) {
 std::vector<const IAttachment *> IChannel::AttachmentList() const {
   // Returns an empty list as MDF 3 doesn't support attachments.
   return {};
+}
+
+uint64_t IChannel::ArraySize() const {
+  const auto array_list = ChannelArrays();
+  if (array_list.empty()) {
+    return 1;
+  }
+
+  uint64_t count = 1;
+  for (const auto* array : array_list) {
+    if (array != nullptr) {
+      count *= array->NofArrayValues();
+    }
+  }
+  return count;
 }
 
 void IChannel::SetCnComment(const CnComment &cn_comment) {

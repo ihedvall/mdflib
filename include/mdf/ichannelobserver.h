@@ -13,7 +13,7 @@
 
 #include "mdf/ichannel.h"
 #include "mdf/isampleobserver.h"
-#include "mdf/mdfhelper.h"
+
 
 namespace mdf {
 

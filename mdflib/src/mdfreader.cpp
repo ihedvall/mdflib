@@ -84,11 +84,11 @@ ChannelObserverPtr CreateChannelObserver(const IDataGroup &data_group,
                                          const IChannelGroup &group,
                                          const IChannel &channel) {
   std::unique_ptr<IChannelObserver> observer;
-  const auto* channel_array = channel.ChannelArray();
+
   // Note, that num,ber of bytes returns number of bytes for
   // all value in the array
-  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
-  const auto value_size = channel.DataBytes() / array_size;
+  const auto array_size = channel.ArraySize();
+  const auto value_size = channel.DataBytes();
 
   switch (channel.DataType()) {
     case ChannelDataType::UnsignedIntegerLe:

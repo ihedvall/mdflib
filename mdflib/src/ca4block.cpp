@@ -307,31 +307,6 @@ uint64_t Ca4Block::Read(std::streambuf& buffer) {
       break;
   }
 
-  // Need to read all composition blocks if they exist
-  if (Link(kIndexComposition) > 0) {
-    SetFilePosition(buffer, Link(kIndexComposition));
-    const auto block_type = ReadBlockType(buffer);
-
-    if (composition_list_.empty() && (Link(kIndexComposition) > 0)) {
-      for (auto link = Link(kIndexComposition); link > 0; /* No ++ here*/) {
-        if (block_type == "CA") {
-          auto ca_block = std::make_unique<Ca4Block>();
-          ca_block->Init(*this);
-          SetFilePosition(buffer, link);
-          ca_block->Read(buffer);
-          link = ca_block->Link(0);
-          composition_list_.emplace_back(std::move(ca_block));
-        } else if (block_type == "CN") {
-          auto cn_block = std::make_unique<Cn4Block>();
-          cn_block->Init(*this);
-          SetFilePosition(buffer, link);
-          cn_block->Read(buffer);
-          link = cn_block->Link(0);
-          composition_list_.emplace_back(std::move(cn_block));
-        }
-      };
-    }
-  }
   // Finds all objects. Note that is function is called after all blocks are
   // read. For now, it sizes the lists.
   FindAllReferences(buffer);
@@ -465,8 +440,7 @@ uint64_t Ca4Block::Write(std::streambuf& buffer) {
   }
 
   link_list_.resize(nof_links, 0);
-  WriteLink4List(buffer, composition_list_, kIndexComposition,
-                 UpdateOption::DoNotUpdateWrittenBlock);
+
   size_t link_index = kIndexArray;
   if (Storage() == ArrayStorage::DgTemplate) {
     for (size_t index = 0; index < ProductOfArray(); ++index) {
@@ -593,21 +567,6 @@ uint64_t Ca4Block::ProductOfArray() const {
                   product *= dimension > 0 ? dimension : 1;
                 });
   return product;
-}
-
-MdfBlock *Ca4Block::Find(int64_t index) const {
-
-  for (auto& composition_block : composition_list_) {
-    if (!composition_block) {
-      continue;
-    }
-    auto* block = composition_block->Find(index);
-    if (block != nullptr) {
-      return block;
-    }
-  }
-
-  return MdfBlock::Find(index);
 }
 
 size_t Ca4Block::Dimensions() const {

@@ -419,6 +419,7 @@ uint64_t Cn4Block::Read(std::streambuf& buffer) {
         if (block_type == "CA") {
           auto ca_block = std::make_unique<Ca4Block>();
           ca_block->Init(*this);
+          ca_block->SetParentChannel(this);
           SetFilePosition(buffer, link);
           ca_block->Read(buffer);
           link = ca_block->Link(0);
@@ -1142,11 +1143,11 @@ void Cn4Block::PrepareForWriting(uint64_t offset) {
       }
       break;
   }
-  auto* array = ChannelArray();
-  auto* ca4 = array != nullptr ?
-                               dynamic_cast<Ca4Block*>(array) : nullptr;
-  if (ca4 != nullptr) {
-    ca4->PrepareForWriting();
+
+  for (auto* array: ChannelArrays()) {
+    if (auto* ca4 = dynamic_cast<Ca4Block*>(array); ca4 != nullptr) {
+      ca4->PrepareForWriting();
+    }
   }
 }
 
@@ -1273,28 +1274,31 @@ uint64_t Cn4Block::WriteSdSample(const std::vector<uint8_t> &buffer) const  {
   return index;
 }
 
-IChannelArray *Cn4Block::ChannelArray() const {
-  // In reality, the cx_list should only have a CA block.
-  for ( const auto& itr : cx_list_) {
-    try {
-      // The cx_list may have CA or CN channels, so we need to test for this.
-      auto* channel_array = dynamic_cast<IChannelArray*>(itr.get());
-      if (channel_array != nullptr) {
-        return channel_array;
-      }
-    } catch (const std::exception&) {
-    }
+IChannelArray *Cn4Block::ChannelArray(size_t index) const {
+  if (index >= cx_list_.size()) {
+    return nullptr;
+  }
+  if (auto& mdf_block = cx_list_[index]; mdf_block ) {
+    return dynamic_cast<IChannelArray*>(mdf_block.get());
   }
   return nullptr;
 }
 
-IChannelArray *Cn4Block::CreateChannelArray() {
-  if (const auto* channel_array = ChannelArray(); channel_array == nullptr) {
-    auto temp = std::make_unique<Ca4Block>();
-    temp->SetParentChannel(this);
-    cx_list_.emplace_back(std::move(temp));
+std::vector<IChannelArray*> Cn4Block::ChannelArrays() const {
+  std::vector<IChannelArray*> arrays;
+  for (const auto& block:  cx_list_) {
+    if (block && block->BlockType() == "CA") {
+      arrays.push_back(dynamic_cast<IChannelArray*>(block.get()));
+    }
   }
-  return ChannelArray();
+  return arrays;
+}
+
+IChannelArray *Cn4Block::CreateChannelArray() {
+  auto temp = std::make_unique<Ca4Block>();
+  temp->SetParentChannel(this);
+  cx_list_.emplace_back(std::move(temp));
+   return dynamic_cast<IChannelArray*>(cx_list_.back().get());
 }
 
 const IChannelGroup* Cn4Block::ChannelGroup() const {

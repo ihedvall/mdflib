@@ -659,7 +659,7 @@ void MdfDocument::OnUpdatePlotChannelData(wxUpdateUIEvent &event) {
   }
 
   const auto selected_id = GetSelectedBlockId();
-  const auto selected_block = GetBlock(selected_id);
+  const auto* selected_block = GetBlock(selected_id);
   if (selected_block == nullptr) {
     return;
   }
@@ -676,7 +676,7 @@ void MdfDocument::OnUpdatePlotChannelData(wxUpdateUIEvent &event) {
   // The timestamp (CAN Open Date/Time) is possible but labeling the tics is
   // almost impossible.
   // If channel data is an array, the more complex plots are required.
-  if (!cn->IsNumber() || cn->ChannelArray() != nullptr)  {
+  if (!cn->IsNumber() || cn->ChannelArray(0) != nullptr)  {
     return;
   }
   event.Enable(true);

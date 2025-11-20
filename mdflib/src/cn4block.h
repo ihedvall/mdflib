@@ -139,7 +139,8 @@ class Cn4Block : public DataListBlock, public IChannel {
   }
 
   uint64_t WriteSdSample(const std::vector<uint8_t>& buffer) const;
-  [[nodiscard]] IChannelArray *ChannelArray() const override;
+  [[nodiscard]] IChannelArray *ChannelArray(size_t index) const override;
+  [[nodiscard]] std::vector<IChannelArray*> ChannelArrays() const override;
   [[nodiscard]] IChannelArray *CreateChannelArray() override;
 
   const IChannelGroup* ChannelGroup() const override;

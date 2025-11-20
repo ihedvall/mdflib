@@ -55,24 +55,22 @@ bool IChannelObserver::IsMaster() const {
 }
 
 bool IChannelObserver::IsArray() const {
-  return channel_.ChannelArray() != nullptr;
+  return !channel_.ChannelArrays().empty();
 }
 
 uint64_t IChannelObserver::ArraySize() const {
-  const auto* channel_array = channel_.ChannelArray();
-  return channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  return channel_.ArraySize();
 }
 
 std::string IChannelObserver::EngValueToString(uint64_t sample) const {
   bool valid = false;
   std::string value;
-  const auto* channel_array = channel_.ChannelArray();
-  if (channel_array == nullptr) {
+  if (!IsArray()) {
     valid = GetEngValue( sample, value, 0);
     return valid ? value : "*";
   }
 
-  const auto array_size = channel_array->NofArrayValues();
+  const auto array_size = channel_.ArraySize();
   std::ostringstream output;
   for (auto sample_index = 0; sample_index < array_size; ++sample_index) {
     valid = GetEngValue(sample, value, sample_index);
@@ -97,7 +95,7 @@ void IChannelObserver::ReadVlsdData(bool read_vlsd_data) {
 }
 
 std::vector<uint64_t> IChannelObserver::Shape() const {
-  const IChannelArray* array = Channel().ChannelArray();
+  const IChannelArray* array = Channel().ChannelArray(0);
   if (array != nullptr) {
     return array->Shape();
   }

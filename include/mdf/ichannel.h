@@ -246,9 +246,10 @@ class IChannel : public IBlock  {
    *
    * The function is alo used to indicate if the channel is of array type.
    * Channel arrays only exist in MDF 4 files.
+   * @param index The channel may consist of multiple arrays
    * @return Pointer to the CA block or nullptr.
    */
-  [[nodiscard]] virtual IChannelArray *ChannelArray() const;
+  [[nodiscard]] virtual IChannelArray *ChannelArray(size_t index) const;
 
   /** \brief Create or returns an existing channel array (CA) block.
    *
@@ -257,6 +258,8 @@ class IChannel : public IBlock  {
    *
    * @return A new or existing channel array (CA) block.
    */
+
+  [[nodiscard]] virtual std::vector<IChannelArray*> ChannelArrays() const;
   [[nodiscard]] virtual IChannelArray* CreateChannelArray();
 
   /** \brief Returns the conversion block, if any. */
@@ -533,18 +536,11 @@ class IChannel : public IBlock  {
     return calculate_master_time_;
   }
 
-  /** \brief Sets the array size for the channel.
-   *
-   * This is an internal function that speed up the reads of values.
-   *
-   * @param array_size Size of the array.
-   */
-  void ArraySize(uint64_t array_size) { channel_array_size_ = array_size;}
   /** \brief Returns 1 if no array and > 1 if it is an array.
    *
    * @return Returns 1 for normal channel and array size for array channels
    */
-  [[nodiscard]] uint64_t ArraySize() const {return channel_array_size_;}
+  [[nodiscard]] uint64_t ArraySize() const;
 
   void SetCnComment(const CnComment& cn_comment);
   void GetCnComment(CnComment& cn_comment) const;
@@ -604,7 +600,7 @@ class IChannel : public IBlock  {
 
   mutable uint64_t vlsd_record_id_ = 0; ///< Used to fix the VLSD CG block.
   bool calculate_master_time_ = true; ///< If true, the master time channel will be calculated.
-  uint64_t channel_array_size_ = 1; ///< Value set when reading configuration
+
 };
 
 template <typename T>
@@ -773,9 +769,7 @@ void IChannel::SetChannelValue(const std::vector<uint8_t> &values, bool valid,
 
 template <typename T>
 void IChannel::SetChannelValues(const std::vector<T>& values) {
-  const auto* array = ChannelArray();
-  const auto array_size = array != nullptr ?
-                                           array->NofArrayValues() : 1;
+  const auto array_size = ArraySize();
   uint64_t index = 0;
   for (const T& value : values) {
     if (index < array_size) {

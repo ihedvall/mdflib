@@ -88,7 +88,7 @@ wxString SampleReductionListView::OnGetItemText(long item, long column) const {
   if (channel == nullptr) {
     return "?";
   }
-  const auto* channel_array = channel->ChannelArray();
+  const auto* channel_array = channel->ChannelArray(0);
   const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
 
   std::ostringstream temp;

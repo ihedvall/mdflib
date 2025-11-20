@@ -567,9 +567,13 @@ void ChildFrame::RedrawCnBlock(const detail::Cn4Block &cn,
 
     std::ostringstream cn_string;
     cn_string << cn.BlockType() << " (" << sub_string.str() << ")";
-    const auto* channel_array = cn.ChannelArray();
-    if (channel_array != nullptr) {
-      cn_string << " " << channel_array->DimensionAsString();
+
+
+    for (size_t array = 0;cn.ChannelArray(array) != nullptr ; ++array) {
+      if (const auto* channel_array = cn.ChannelArray(array); channel_array != nullptr) {
+          cn_string << " " << channel_array->DimensionAsString();
+      }
+
     }
 
 
@@ -600,10 +604,8 @@ void ChildFrame::RedrawCaBlock(const Ca4Block &ca4, const wxTreeItemId &root) {
     << " (" << sub_string.str() << ") "
     << ca4.DimensionAsString();
 
-  auto ca_root = left_->AppendItem(root, wxString::FromUTF8(label.str()), TREE_CA, TREE_CA,
+ left_->AppendItem(root, wxString::FromUTF8(label.str()), TREE_CA, TREE_CA,
                                    new BlockAddress(ca4.FilePosition()));
-
-  RedrawCxList(ca4.Cx4(), ca_root);
 }
 
 void ChildFrame::RedrawCnList(const detail::Cg3Block &cg3, const wxTreeItemId &root) {

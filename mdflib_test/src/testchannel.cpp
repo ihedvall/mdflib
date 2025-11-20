@@ -100,9 +100,9 @@ TEST(Cn4Block, TestProperties) {
   auto* source = channel.CreateSourceInformation();
   EXPECT_EQ(channel.SourceInformation(), source);
 
-  EXPECT_EQ(channel.ChannelArray(), nullptr);
-  auto* array = channel.CreateChannelArray();
-  EXPECT_EQ(channel.ChannelArray(), array);
+  EXPECT_TRUE(channel.ChannelArrays().empty());
+  const auto* array = channel.CreateChannelArray();
+  EXPECT_EQ(channel.ChannelArray(0),array);
 
   // Do number test before CC test
   channel.DataType(ChannelDataType::FloatBe);

@@ -59,9 +59,6 @@ class Ca4Block : public MdfBlock, public IChannelArray {
   [[nodiscard]] const std::vector<uint64_t>& CycleCounts() const override;
   [[nodiscard]] std::vector<uint64_t>& CycleCounts() override;
 
-  [[nodiscard]] MdfBlock *Find(int64_t index) const override;
-  [[nodiscard]] const Cx4List& Cx4() const { return composition_list_; }
-
   uint64_t Read(std::streambuf& buffer) override;
   void FindAllReferences(std::streambuf& buffer);
 
@@ -78,9 +75,6 @@ class Ca4Block : public MdfBlock, public IChannelArray {
   uint32_t invalid_bit_pos_base_ = 0;
   const Cn4Block* parent_channel_ = nullptr;
 
-  /** \brief Array of Array or composition _list */
-  Cx4List composition_list_;
-
   // Store number of items in each dimension (d).
   std::vector<uint64_t> dim_size_list_; ///< Dimension size for each dimension
   // Axis values
@@ -95,9 +89,5 @@ class Ca4Block : public MdfBlock, public IChannelArray {
                        const std::vector<CaTripleReference>& list,
                        size_t max_fill,
                        size_t start_index);
-
-
-
-
 };
 }  // namespace mdf::detail

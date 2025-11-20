@@ -449,10 +449,10 @@ void Cg4Block::PrepareForWriting() {
     }
     channel->PrepareForWriting(byte_offset);
     const auto value_size = static_cast<uint32_t>(channel->DataBytes());
-    const auto* array = channel->ChannelArray();
-    if (array != nullptr) {
-      nof_data_bytes_ += static_cast<uint32_t>(value_size * array->NofArrayValues());
-      byte_offset += static_cast<uint32_t>(value_size * array->NofArrayValues());
+    const uint64_t array_size = channel->ArraySize();
+    if (array_size > 1) {
+      nof_data_bytes_ += static_cast<uint32_t>(value_size * array_size);
+      byte_offset += static_cast<uint32_t>(value_size * array_size);
     } else {
       // Not an array
       nof_data_bytes_ += static_cast<uint32_t>(value_size);
@@ -461,8 +461,8 @@ void Cg4Block::PrepareForWriting() {
 
     if (channel->Flags() & CnFlag::InvalidValid) {
       channel->SetInvalidOffset(invalid_bit_offset);
-      if (array != nullptr) {
-        invalid_bit_offset += array->NofArrayValues();
+      if (array_size > 1) {
+        invalid_bit_offset += array_size;
       } else {
         ++invalid_bit_offset;
       }

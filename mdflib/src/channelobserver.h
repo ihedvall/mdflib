@@ -41,8 +41,8 @@ class ChannelObserver : public IChannelObserver {
         group_(group),
         record_id_(group.RecordId())
  {
-    const auto* channel_array = channel_.ChannelArray();
-    const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+
+    const auto array_size = channel_.ArraySize();
 
     valid_list_.resize(static_cast<size_t>(group_.NofSamples() * array_size), false);
     value_list_.resize(static_cast<size_t>(group.NofSamples() * array_size), T{});
@@ -173,8 +173,7 @@ template <class T>
 bool ChannelObserver<T>::GetSampleUnsigned(uint64_t sample,
                                            uint64_t& value,
                                            uint64_t array_index) const {
-  const auto* channel_array = channel_.ChannelArray();
-  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto array_size = channel_.ArraySize();
   const auto sample_index = static_cast<size_t>((sample * array_size) + array_index);
   value = sample_index < value_list_.size() ?
       static_cast<uint64_t>(value_list_[sample_index]) : static_cast<uint64_t>(T{});
@@ -196,8 +195,7 @@ template <class T>
 bool ChannelObserver<T>::GetSampleSigned(uint64_t sample,
                                          int64_t& value,
                                          uint64_t array_index) const {
-  const auto* channel_array = channel_.ChannelArray();
-  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto array_size = channel_.ArraySize();
   const auto sample_index = static_cast<size_t>((sample * array_size) + array_index);
   value = sample_index < value_list_.size() ? static_cast<int64_t>(value_list_[sample_index]) : 0;
   return sample_index < valid_list_.size() && valid_list_[sample_index];
@@ -215,8 +213,7 @@ bool ChannelObserver<std::string>::GetSampleSigned(uint64_t sample,
 template <class T>
 bool ChannelObserver<T>::GetSampleFloat(uint64_t sample, double& value,
                                         uint64_t array_index) const {
-  const auto* channel_array = channel_.ChannelArray();
-  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto array_size = channel_.ArraySize();
   const auto sample_index = static_cast<size_t>( (sample * array_size) + array_index);
   value = sample_index < value_list_.size() ? static_cast<double>(value_list_[sample_index]) : 0;
   return sample_index < valid_list_.size() && valid_list_[sample_index];
@@ -236,8 +233,7 @@ template <class T>
 bool ChannelObserver<T>::GetSampleText(uint64_t sample,
                                        std::string& value,
                                        uint64_t array_index) const {
-  const auto* channel_array = channel_.ChannelArray();
-  const auto array_size = channel_array != nullptr ? channel_array->NofArrayValues() : 1;
+  const auto array_size = channel_.ArraySize();
   const auto sample_index = static_cast<size_t>( (sample * array_size) + array_index );
   try {
     std::ostringstream temp;

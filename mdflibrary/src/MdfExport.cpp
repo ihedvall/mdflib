@@ -513,7 +513,7 @@ EXPORTFEATUREFUNC(const mdf::IChannelConversion*, GetChannelConversion) {
   return channel->ChannelConversion();
 }
 EXPORTFEATUREFUNC(const mdf::IChannelArray*, GetChannelArray) {
-  return channel->ChannelArray();
+  return channel->ChannelArray(0);
 }
 EXPORTFEATUREFUNC(size_t, GetChannelCompositions, mdf::IChannel* pChannels[]) {
   if (pChannels == nullptr) return channel->ChannelCompositions().size();

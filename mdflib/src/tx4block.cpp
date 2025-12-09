@@ -103,7 +103,7 @@ std::string Tx4Block::Text() const {
   return temp;
 }
 
-std::string Tx4Block::TxComment() const { return FixCommentToLine(Text(), 40); }
+std::string Tx4Block::TxComment() const { return Text(); }
 
 void Tx4Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("Comment", Text());

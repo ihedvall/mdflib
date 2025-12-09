@@ -294,7 +294,7 @@ std::string Md4Block::TxComment() const {
       << ", Block Type: " << BlockType();
     return text_;
   };
-  return FixCommentToLine(xml->Property<std::string>("TX"), 40);
+  return xml->Property<std::string>("TX");
 
 }
 

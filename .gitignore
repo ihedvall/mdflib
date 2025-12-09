@@ -67,3 +67,6 @@ TestResults/
 venv/
 .pytest_cache
 python/tests/__pycache__/
+
+#CPP CHECK
+*-cppcheck-build-*/

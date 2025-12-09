@@ -5,10 +5,18 @@
 
 #include <gtest/gtest.h>
 #include "mdfblock.h"
+#include "mdf/mdfreader.h"
+#include "mdf/idatagroup.h"
+
 #include <filesystem>
 #include <fstream>
+#include <string_view>
+
 using namespace std::filesystem;
 using namespace mdf::detail;
+
+constexpr std::string_view kTestCommentFile = "k:/test/mdf/test9-19.mf4";
+
 namespace {
   std::string MakeTestFilePath(const std::string_view& name) {
     try {
@@ -26,6 +34,9 @@ namespace {
     return {};
   }
 
+  bool IsEllipse(const std::string& text) {
+    return text.find("..") != std::string::npos;
+  }
 }
 
 namespace mdf::test {
@@ -111,5 +122,36 @@ TEST(TestMdfBlock, TestOpenMdf) {
   EXPECT_FALSE(file_buffer.is_open());
 
 }
+
+TEST(TestMdfBlock, TestEllipseComment) {
+  try {
+    const path filename(kTestCommentFile);
+    if (!exists(filename)) {
+      throw std::runtime_error("File does not exist");
+    }
+  } catch (const std::exception& err) {
+    GTEST_SKIP_(err.what());
+  }
+
+  MdfReader reader{std::string(kTestCommentFile)};
+  ASSERT_TRUE(reader.ReadEverythingButData());
+
+  const MdfFile* mdf_file = reader.GetFile();
+  ASSERT_TRUE(mdf_file != nullptr);
+
+  const IHeader* header = reader.GetHeader();
+  ASSERT_TRUE(header != nullptr);
+
+  const std::string desc_header = header->Description();
+  EXPECT_FALSE(IsEllipse(desc_header)) << desc_header;
+
+  const auto dg_list = header->DataGroups();
+  EXPECT_FALSE(dg_list.empty());
+  for (const auto* data_group : dg_list) {
+    const std::string desc_dg = data_group->Description();
+    EXPECT_FALSE(IsEllipse(desc_dg)) << desc_dg;
+  }
+}
+
 
 }

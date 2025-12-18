@@ -407,7 +407,7 @@ enum class MessageType : int {
 #endif
 
 extern "C" {
-namespace MdfLibrary::ExportFunctions {
+namespace MdfLibrary { namespace ExportFunctions {
 #pragma region MdfReader
 EXPORT(mdf::MdfReader*, MdfReader, Init, const char* filename);
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
@@ -919,7 +919,7 @@ EXPORTFEATUREFUNC(CanErrorType, GetErrorType);
 EXPORTFEATUREFUNC(void, SetErrorType, const CanErrorType type);
 #undef EXPORTFEATUREFUNC
 #pragma endregion
-}  // namespace MdfLibrary::ExportFunctions
+}}  // namespace MdfLibrary::ExportFunctions
 }
 
 #undef EXPORT

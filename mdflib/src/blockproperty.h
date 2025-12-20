@@ -4,6 +4,8 @@
  */
 #pragma once
 #include <string>
+#include <cstdint>
+
 namespace mdf::detail {
 enum class BlockItemType {
   NormalItem = 0,

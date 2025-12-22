@@ -12,15 +12,22 @@
 #include <fstream>
 #include <string>
 #include <thread>
-#include <filesystem>
 
 #include "ixmlfile.h"
 #include "md4block.h"
 #include "mdf/mdflogstream.h"
 #include "tx3block.h"
 
+#if INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
+using namespace fs;
 using namespace std::chrono_literals;
-using namespace std::filesystem;
 
 namespace mdf::detail {
 /*

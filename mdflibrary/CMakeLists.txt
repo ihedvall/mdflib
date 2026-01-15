@@ -82,20 +82,10 @@ set_target_properties(mdflibrary PROPERTIES PUBLIC_HEADER
 get_target_property(PH1 mdflibrary PUBLIC_HEADER)
 message(STATUS "MDFLibrary Target Includes: " "${PH1}")
 
-if(WIN32)
-  install(
-    TARGETS mdflibrary
-    EXPORT MdfLibraryTargets
-    LIBRARY DESTINATION mdflibrary/lib
-    ARCHIVE DESTINATION mdflibrary/lib
-    RUNTIME DESTINATION mdflibrary/bin
-    PUBLIC_HEADER DESTINATION mdflibrary/include/mdflibrary)
-else()
-  install(
+ install(
     TARGETS mdflibrary
     EXPORT MdfLibraryTargets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
     PUBLIC_HEADER DESTINATION include/mdflibrary)
-endif()

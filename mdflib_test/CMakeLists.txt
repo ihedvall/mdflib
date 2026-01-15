@@ -87,7 +87,6 @@ if(MSVC)
 endif()
 
 target_link_libraries(test_mdf PRIVATE Boost::filesystem)
-target_link_libraries(test_mdf PRIVATE Boost::process)
 target_link_libraries(test_mdf PRIVATE sago::platform_folders)
 target_link_libraries(test_mdf PRIVATE mdf)
 

@@ -10,12 +10,12 @@ if (NOT Boost_FOUND)
     set(Boost_NO_WARN_NEW_VERSIONS ON)
     set(Boost_DEBUG OFF)
 
-    find_package(Boost CONFIG COMPONENTS filesystem locale program_options iostreams)
+    find_package(Boost CONFIG COMPONENTS filesystem locale program_options iostreams process)
     if (NOT Boost_FOUND)
         if (COMP_DIR)
             set(Boost_ROOT ${COMP_DIR}/boost/latest/lib/cmake)
         endif()
-        find_package(Boost REQUIRED CONFIG COMPONENTS filesystem locale program_options iostreams)
+        find_package(Boost REQUIRED CONFIG COMPONENTS filesystem locale program_options iostreams process)
     endif()
 
 

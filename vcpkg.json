@@ -26,11 +26,13 @@
       "dependencies": [
         "boost-endian",
         "boost-iostreams",
+        "boost-program-options",
         "boost-interprocess",
         "boost-filesystem",
         "boost-system",
-        "boost-process",
         "boost-locale",
+        "boost-asio",
+        "boost-process",
         "xtensor",
         "gtest"
       ]

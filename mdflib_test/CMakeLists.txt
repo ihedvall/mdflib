@@ -59,14 +59,11 @@ target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 target_include_directories(test_mdf PRIVATE ${utillib_SOURCE_DIR}/include)
 
 if(VCPKG)
-  find_package(Boost REQUIRED CONFIG COMPONENTS endian filesystem system process locale)
-  target_link_libraries(test_mdf PRIVATE
-          Boost::endian
-          Boost::filesystem
-          Boost::system
-          Boost::process
-          Boost::locale
-          util)
+  include("../script/boost.cmake")
+  target_include_directories(test_mdf PRIVATE ${Boost_INCLUDE_DIRS})
+  target_link_libraries(test_mdf PRIVATE util ${Boost_LIBRARIES})
+  #find_package(Boost REQUIRED CONFIG COMPONENTS endian filesystem system process locale asio)
+  target_link_libraries(test_mdf PRIVATE util)
 
   find_package(GTest CONFIG REQUIRED)
   target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main

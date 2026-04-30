@@ -5,7 +5,6 @@
 #include "mdf/idatagroup.h"
 
 #include <algorithm>
-#include <execution>
 
 #include "mdf/ichannel.h"
 #include "mdf/ichannelgroup.h"

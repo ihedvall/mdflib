@@ -13,6 +13,8 @@
 #include "dgrange.h"
 namespace mdf::detail {
 class Cg3Block : public MdfBlock, public IChannelGroup {
+  /** \brief CG3 不支持 DataWriter，始终返回 nullptr。*/
+  [[nodiscard]] IDataWriter* CreateDataWriter() const override { return nullptr; }
  public:
   using Cn3List = std::vector<std::unique_ptr<Cn3Block>>;
   using Sr3List = std::vector<std::unique_ptr<Sr3Block>>;

@@ -24,6 +24,9 @@ endif()
 if(MDF_BUILD_TEST)
   list(APPEND _mdf_vcpkg_features mdflibtest)
 endif()
+if(MDF_BUILD_PYTHON)
+  list(APPEND _mdf_vcpkg_features python)
+endif()
 list(REMOVE_DUPLICATES _mdf_vcpkg_features)
 set(VCPKG_MANIFEST_FEATURES "${_mdf_vcpkg_features}" CACHE STRING
     "vcpkg manifest features required by selected mdflib build options" FORCE)
@@ -71,7 +74,7 @@ if (MDF_BUILD_PYTHON)
           Python3_FOUND
           Python3_INCLUDE_DIRS
           Python3_RUNTIME_LIBRARY_DIRS)
-  include("script/pybind11.cmake")
+  find_package(pybind11 CONFIG REQUIRED)
   add_subdirectory(python)
 endif()
 

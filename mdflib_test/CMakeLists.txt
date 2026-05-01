@@ -60,34 +60,24 @@ add_executable(test_mdf
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 target_include_directories(test_mdf PRIVATE ${utillib_SOURCE_DIR}/include)
 
-if(VCPKG)
-  include("../script/boost.cmake")
-  target_include_directories(test_mdf PRIVATE ${Boost_INCLUDE_DIRS})
-  target_link_libraries(test_mdf PRIVATE util ${Boost_LIBRARIES})
-  #find_package(Boost REQUIRED CONFIG COMPONENTS endian filesystem system process locale asio)
-  target_link_libraries(test_mdf PRIVATE util)
+find_package(Boost REQUIRED CONFIG COMPONENTS filesystem locale program_options iostreams process)
+find_package(GTest CONFIG REQUIRED)
 
-  find_package(GTest CONFIG REQUIRED)
-  target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main
-                                        GTest::gmock GTest::gmock_main)
-
-else()
-  include("../script/googletest.cmake")
-  include("../script/boost.cmake")
-  target_include_directories(test_mdf PRIVATE ${Boost_INCLUDE_DIRS})
-
-  target_link_libraries(test_mdf PRIVATE util ${Boost_LIBRARIES})
-
-  target_link_libraries(test_mdf PRIVATE GTest::gtest GTest::gtest_main)
-endif()
+target_link_libraries(test_mdf PRIVATE
+    util
+    Boost::filesystem
+    Boost::locale
+    Boost::program_options
+    Boost::iostreams
+    Boost::process
+    GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main
+    sago::platform_folders
+    mdf
+)
 
 if(MSVC)
   target_compile_definitions(test_mdf PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS _CRT_SECURE_NO_WARNINGS)
 endif()
-
-target_link_libraries(test_mdf PRIVATE Boost::filesystem)
-target_link_libraries(test_mdf PRIVATE sago::platform_folders)
-target_link_libraries(test_mdf PRIVATE mdf)
 
 include(GoogleTest)
 gtest_discover_tests(test_mdf)

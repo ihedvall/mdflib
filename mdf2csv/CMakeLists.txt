@@ -38,16 +38,9 @@ endif()
 target_link_libraries(mdf2csv PRIVATE mdf)
 
 
-if(VCPKG)
-    find_package(Boost CONFIG REQUIRED COMPONENTS program_options)
-    target_link_libraries(mdf2csv PRIVATE Boost::program_options)
-else()
-    include("../script/boost.cmake")
+find_package(Boost REQUIRED CONFIG COMPONENTS program_options)
 
-    target_include_directories(mdf2csv PRIVATE ${Boost_INCLUDE_DIRS})
-
-    target_link_libraries(mdf2csv PRIVATE ${Boost_LIBRARIES})
-endif()
+target_link_libraries(mdf2csv PRIVATE Boost::program_options)
 
 if(WIN32)
   install(

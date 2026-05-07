@@ -163,12 +163,12 @@ add_library(mdf
 )
 
 find_package(ZLIB REQUIRED)
-find_package(expat CONFIG REQUIRED)
+find_package(EXPAT REQUIRED)
 
 target_link_libraries(mdf
   PRIVATE
     ZLIB::ZLIB
-    expat::expat
+    EXPAT::EXPAT
 )
 
 target_include_directories(

@@ -52,28 +52,15 @@ endif()
 
 target_link_libraries(mdfview PRIVATE mdf)
 
-if(VCPKG)
-  find_package(boost_process REQUIRED CONFIG)
-  target_link_libraries(mdfview PRIVATE Boost::process)
+find_package(Boost REQUIRED CONFIG COMPONENTS process filesystem locale)
+find_package(wxWidgets REQUIRED CONFIG)
 
-  find_package(boost_filesystem REQUIRED CONFIG)
-  target_link_libraries(mdfview PRIVATE Boost::filesystem)
-
-  find_package(boost_locale REQUIRED CONFIG)
-  target_link_libraries(mdfview PRIVATE Boost::locale)
-
-  find_package(wxWidgets CONFIG REQUIRED)
-  target_link_libraries(mdfview PRIVATE wx::core wx::base)
-else()
-  include("../script/wxwidgets.cmake")
-  include("../script/boost.cmake")
-
-  target_include_directories(mdfview PRIVATE ${wxWidgets_INCLUDE_DIRS})
-  target_include_directories(mdfview PRIVATE ${Boost_INCLUDE_DIRS})
-
-  target_link_libraries(mdfview PRIVATE ${wxWidgets_LIBRARIES})
-  target_link_libraries(mdfview PRIVATE ${Boost_LIBRARIES})
-endif()
+target_link_libraries(mdfview PRIVATE
+    Boost::process
+    Boost::filesystem
+    Boost::locale
+    wx::core wx::base
+)
 
 
 if(MINGW)

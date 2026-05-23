@@ -162,24 +162,14 @@ add_library(mdf
         ../include/mdf/canbusobserver.h
 )
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})
+find_package(ZLIB REQUIRED)
+find_package(EXPAT REQUIRED)
 
-if(VCPKG)
-  find_package(ZLIB REQUIRED)
-  target_link_libraries(mdf PRIVATE ZLIB::ZLIB)
-
-  find_package(expat CONFIG REQUIRED)
-  target_link_libraries(mdf PRIVATE expat::expat)
-else()
-  include("../script/zlib.cmake")
-  include("../script/expat.cmake")
-  
-  target_include_directories(mdf PRIVATE ${ZLIB_INCLUDE_DIRS})
-  target_include_directories(mdf PRIVATE ${EXPAT_INCLUDE_DIRS})
-
-  target_compile_definitions(mdf PRIVATE XML_STATIC)
-  target_link_libraries(mdf ${ZLIB_LIBRARIES} ${EXPAT_LIBRARIES})
-endif()
+target_link_libraries(mdf
+  PRIVATE
+    ZLIB::ZLIB
+    EXPAT::EXPAT
+)
 
 target_include_directories(
   mdf PUBLIC
@@ -187,9 +177,9 @@ target_include_directories(
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
 )
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  set_target_properties(mdf PROPERTIES COMPILE_FLAGS "-fPIC")
-elseif(MSVC)
+set_target_properties(mdf PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+if(MSVC)
   target_compile_definitions(mdf PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS _CRT_SECURE_NO_WARNINGS)
 endif()
 

@@ -36,6 +36,12 @@
         "xtensor",
         "gtest"
       ]
+    },
+    "python": {
+      "description": "Build Python module",
+      "dependencies": [
+        "pybind11"
+      ]
     }
   }
 }

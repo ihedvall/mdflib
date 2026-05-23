@@ -7,12 +7,6 @@ cmake_policy(SET CMP0091 NEW)
 
 
 #cmake_policy(SET CMP0144 NEW)
-if("${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
-  set(VCPKG OFF)
-else()
-  set(VCPKG ON)
-endif()
-
 
 option(BUILD_SHARED_LIBS "Build static library as default." OFF)
 option(MDF_BUILD_SHARED_LIB "Build shared library." OFF)
@@ -23,15 +17,19 @@ option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF
 option(MDF_BUILD_TEST "Build Google Unit Tests. Requires Google Test." OFF)
 option(MDF_BUILD_PYTHON "Build Python module" OFF)
 
-if(MDF_BUILD_TOOL AND VCPKG)
-  list(APPEND VCPKG_MANIFEST_FEATURES "mdf2csv")
-  list(APPEND VCPKG_MANIFEST_FEATURES "mdfviewer")
+set(_mdf_vcpkg_features "")
+if(MDF_BUILD_TOOL)
+  list(APPEND _mdf_vcpkg_features mdf2csv mdfviewer)
 endif()
-
-if(MDF_BUILD_TEST AND VCPKG)
-  list(APPEND VCPKG_MANIFEST_FEATURES "mdflibtest")
+if(MDF_BUILD_TEST)
+  list(APPEND _mdf_vcpkg_features mdflibtest)
 endif()
-
+if(MDF_BUILD_PYTHON)
+  list(APPEND _mdf_vcpkg_features python)
+endif()
+list(REMOVE_DUPLICATES _mdf_vcpkg_features)
+set(VCPKG_MANIFEST_FEATURES "${_mdf_vcpkg_features}" CACHE STRING
+    "vcpkg manifest features required by selected mdflib build options" FORCE)
 
 
 # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") # for static runtime
@@ -76,7 +74,7 @@ if (MDF_BUILD_PYTHON)
           Python3_FOUND
           Python3_INCLUDE_DIRS
           Python3_RUNTIME_LIBRARY_DIRS)
-  include("script/pybind11.cmake")
+  find_package(pybind11 CONFIG REQUIRED)
   add_subdirectory(python)
 endif()
 

@@ -1,5 +1,6 @@
-include("${CMAKE_CURRENT_LIST_DIR}/MdfLibTargets.cmake")
+include(CMakeFindDependencyMacro)
 
-## adding this does not change anything
-#find_package(ZLIB REQUIRED)
-#find_package(EXPAT REQUIRED)
+find_dependency(ZLIB)
+find_dependency(EXPAT)
+
+include("${CMAKE_CURRENT_LIST_DIR}/MdfLibTargets.cmake")

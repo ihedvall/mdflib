@@ -25,21 +25,13 @@ target_include_directories(test_mdf2csv PRIVATE ../src)
 target_include_directories(test_mdf2csv PRIVATE ../../include)
 target_link_libraries(test_mdf2csv PRIVATE mdf)
 
-if(VCPKG)
-    find_package(boost_program_options REQUIRED CONFIG)
-    target_link_libraries(test_mdf2csv PRIVATE Boost::program_options)
+find_package(Boost REQUIRED CONFIG COMPONENTS program_options)
+find_package(GTest CONFIG REQUIRED)
 
-    find_package(GTest CONFIG REQUIRED)
-    target_link_libraries(test_mdf2csv PRIVATE GTest::gtest GTest::gtest_main
-                                        GTest::gmock GTest::gmock_main)
-else()
-    include("../../script/boost.cmake")
-    include("../../script/googletest.cmake")
-    target_include_directories(test_mdf2csv PRIVATE ${Boost_INCLUDE_DIRS})
-    target_link_libraries(test_mdf2csv PRIVATE ${Boost_LIBRARIES})
-
-    target_link_libraries(test_mdf2csv PRIVATE GTest::gtest GTest::gtest_main)
-endif()
+target_link_libraries(test_mdf2csv PRIVATE
+    Boost::program_options
+    GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main
+)
 
 if(MSVC)
     target_compile_definitions(test_mdf2csv PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS _CRT_SECURE_NO_WARNINGS)

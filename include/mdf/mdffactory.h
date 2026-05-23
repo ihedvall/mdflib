@@ -11,6 +11,7 @@
 #include <string>
 #include <memory>
 
+#include "mdf/mdfreader.h"
 #include "mdf/mdfwriter.h"
 #include "mdf/ichannelobserver.h"
 
@@ -44,22 +45,81 @@ class MdfWriter;
 class MdfFile;
 class IChannelObserver;
 
-/** \brief MDF factory class. */
+/**
+ * \brief Factory class for creating MDF-related objects.
+ *
+ * The MdfFactory class provides static methods to create readers, writers,
+ * file objects, and observers for working with MDF data. Additionally, it
+ * allows setting custom log functions for debugging or monitoring purposes.
+ */
 class MdfFactory {
  public:
-  /** \brief Creates an MDF writer object. */
+
+  /**
+   * \brief Creates an MDF reader object.
+   *
+   * The function creates a smart pointer to an MDF reader object.
+   *
+   * \param filename Full path to the MDF file.
+   */
+  static std::unique_ptr<MdfReader> CreateMdfReader(std::string filename);
+
+  /**
+   * \brief Creates an MDF writer object.
+   *
+   * The function creates a smart pointer to an MDF writer object.
+   *
+   * \param type Type of MDF writer to create.
+   */
   static std::unique_ptr<MdfWriter> CreateMdfWriter(MdfWriterType type);
-  /** \brief Create an MDF file object.*/
+
+  /**
+   * \brief Create an MDF file object.
+   *
+   * The function creates a smart pointer to an MDF file object.
+   *
+   * \param type Type of MDF file to create.
+   */
   static std::unique_ptr<MdfFile> CreateMdfFile(MdfFileType type);
 
-  /** \brief Creates an MDF writer object. */
+  /**
+   * \brief Creates an MDF writer object.
+   *
+   * The function creates a raw pointer to an MDF writer object.
+   * This function should be used with caution as it returns a raw pointer.
+   *
+   * \param type Type of MDF writer to create.
+   */
   static MdfWriter* CreateMdfWriterEx(MdfWriterType type);
-  /** \brief Create an MDF file object.*/
+
+  /**
+   * \brief Create an MDF file object.
+   *
+   * The function creates a raw pointer to an MDF file object.
+   * This function should be used with caution as it returns a raw pointer.
+   *
+   * \param type Type of MDF file to create.
+   */
   static MdfFile* CreateMdfFileEx(MdfFileType type);
 
-  /** \brief Sets the log function. */
+  /**
+   * \brief Sets the log function.
+   *
+   * The function sets the log function for the MDF library.
+   *
+   * \param func The log function to set.
+   */
   static void SetLogFunction2(const MdfLogFunction2& func);
 
+  /**
+   * \brief Creates a channel observer object.
+   *
+   * The function creates a smart pointer to a channel observer object.
+   *
+   * \param data_group The data group to observe.
+   * \param channel_group The channel group to observe.
+   * \param channel The channel to observe.
+   */
   static std::unique_ptr<IChannelObserver> CreateChannelObserver(
     const IDataGroup& data_group, const IChannelGroup& channel_group,
     const IChannel& channel);

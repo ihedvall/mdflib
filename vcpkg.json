@@ -32,9 +32,7 @@
         "boost-system",
         "boost-locale",
         "boost-asio",
-        "boost-process",
-        "xtensor",
-        "gtest"
+        "boost-process"
       ]
     },
     "python": {

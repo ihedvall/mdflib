@@ -1,4 +1,4 @@
-# Copyright 2023 Simplxs
+# Copyright 2026 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
 
 set(CMAKE_CXX_STANDARD 17)
@@ -160,13 +160,16 @@ add_library(mdf
         ../include/mdf/flexrayconfigadapter.h
         src/canbusobserver.cpp
         ../include/mdf/canbusobserver.h
+        src/mdftask.cpp
+        ../include/mdf/mdftask.h
+        src/validatingtask.cpp
+        src/validatingtask.h
 )
 
-find_package(ZLIB REQUIRED)
-find_package(EXPAT REQUIRED)
+include(${CMAKE_SOURCE_DIR}/script/zlib.cmake)
+include(${CMAKE_SOURCE_DIR}/script/expat.cmake)
 
-target_link_libraries(mdf
-  PRIVATE
+target_link_libraries(mdf PRIVATE
     ZLIB::ZLIB
     EXPAT::EXPAT
 )
@@ -174,7 +177,7 @@ target_link_libraries(mdf
 target_include_directories(
   mdf PUBLIC
     $<INSTALL_INTERFACE:include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
 )
 
 set_target_properties(mdf PROPERTIES POSITION_INDEPENDENT_CODE ON)

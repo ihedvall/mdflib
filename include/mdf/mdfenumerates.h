@@ -46,4 +46,10 @@ enum class MdfStorageType : int {
   MlsdStorage,        ///< Using maximum length storage
 };
 
+enum class MdfVersion : int {
+  Mdf3 = 3,
+  Mdf4_1 = 4,
+  Mdf4_2 = 5
+};
+
 }

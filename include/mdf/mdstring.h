@@ -33,6 +33,7 @@ class MdString : public MdStandardAttribute {
    explicit MdString(std::string text, uint64_t history_index = 0,
                      std::string language = {});
 
+
    operator const std::string&() const; // NOLINT(*-explicit-constructor)
 
    [[nodiscard]] bool operator < (const MdString& text) const;

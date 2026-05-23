@@ -8,13 +8,14 @@
 #include <iostream>
 #include <array>
 #include <string_view>
+#include <vector>
 
 #include "mdf/mdfhelper.h"
 
 namespace {
 
-mdf::MdfLogFunction1 LogFunction1;
-mdf::MdfLogFunction2 LogFunction2;
+std::vector<mdf::MdfLogFunction1> kLogFunction1List;
+std::vector<mdf::MdfLogFunction2> kLogFunction2List;
 
 constexpr std::array<std::string_view, 9> kSeverityList = {"Trace", "Debug",
                                                        "Info", "Notice",
@@ -34,27 +35,32 @@ MdfLogStream::~MdfLogStream() {
 
 void MdfLogStream::LogString(const MdfLocation &location, MdfLogSeverity severity,
                              const std::string &text) {
-  if (LogFunction1) {
-    LogFunction1(location, severity, text);
+  for (const auto &func1 : kLogFunction1List) {
+    if (func1) {
+      func1(location, severity, text);
+    }
   }
-  if (LogFunction2) {
-    std::ostringstream func;
-    func << location.file << ":" << location.function;
-    LogFunction2(severity, func.str(), text);
+  for (const auto &func2 : kLogFunction2List) {
+    if (func2) {
+      std::ostringstream func;
+      func << location.file << ":" << location.function;
+      func2(severity, func.str(), text);
+    }
   }
+
 }
 
 void MdfLogStream::SetLogFunction1(const MdfLogFunction1 &func) {
-  LogFunction1 = func;
+  kLogFunction1List.emplace_back(func);
 }
 
 void MdfLogStream::SetLogFunction2(const MdfLogFunction2 &func) {
-  LogFunction2 = func;
+  kLogFunction2List.emplace_back(func);
 }
 
 void MdfLogStream::ResetLogFunction() {
-  LogFunction1 = nullptr;
-  LogFunction2 = nullptr;
+  kLogFunction1List.clear();
+  kLogFunction2List.clear();
 }
 
 void MdfLogStream::LogToConsole(const MdfLocation& location,

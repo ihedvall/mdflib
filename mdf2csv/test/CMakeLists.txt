@@ -25,8 +25,8 @@ target_include_directories(test_mdf2csv PRIVATE ../src)
 target_include_directories(test_mdf2csv PRIVATE ../../include)
 target_link_libraries(test_mdf2csv PRIVATE mdf)
 
-find_package(Boost REQUIRED CONFIG COMPONENTS program_options)
-find_package(GTest CONFIG REQUIRED)
+include(${CMAKE_SOURCE_DIR}/script/boost.cmake)
+include(${CMAKE_SOURCE_DIR}/script/googletest.cmake)
 
 target_link_libraries(test_mdf2csv PRIVATE
     Boost::program_options

@@ -8,6 +8,7 @@
 #include <string_view>
 #include "mdf/mdcomment.h"
 #include "mdf/mdstring.h"
+#include "mdf/mdfhelper.h"
 
 namespace mdf {
 
@@ -35,9 +36,9 @@ class FhComment : public MdComment {
   [[nodiscard]] std::string ToXml() const override;
   void FromXml(const std::string& xml_snippet) override;
  private:
-  MdString tool_id_;
-  MdString tool_vendor_;
-  MdString tool_version_;
+  MdString tool_id_ = MdString(MdfHelper::ToolId());
+  MdString tool_vendor_ = MdString(MdfHelper::ToolVendor());
+  MdString tool_version_ = MdString(MdfHelper::ToolVersion());
   MdString user_name_;
 };
 

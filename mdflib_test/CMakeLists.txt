@@ -55,13 +55,15 @@ add_executable(test_mdf
         src/testreadvlsd.cpp
         src/testreadvlsd.h
         src/testappend.cpp
-        src/testappend.h)
+        src/testappend.h
+        src/testmdftask.cpp
+        src/testmdftask.h)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 target_include_directories(test_mdf PRIVATE ${utillib_SOURCE_DIR}/include)
 
-find_package(Boost REQUIRED CONFIG COMPONENTS filesystem locale program_options iostreams process)
-find_package(GTest CONFIG REQUIRED)
+include(${CMAKE_SOURCE_DIR}/script/boost.cmake)
+include(${CMAKE_SOURCE_DIR}/script/googletest.cmake)
 
 target_link_libraries(test_mdf PRIVATE
     util

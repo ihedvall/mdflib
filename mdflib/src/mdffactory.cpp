@@ -20,6 +20,10 @@ using namespace mdf::detail;
 
 namespace mdf {
 
+std::unique_ptr<MdfReader> MdfFactory::CreateMdfReader(std::string filename) {
+  return std::make_unique<MdfReader>(std::move(filename));
+}
+
 std::unique_ptr<MdfWriter> MdfFactory::CreateMdfWriter(MdfWriterType type) {
   std::unique_ptr<MdfWriter> writer;
 

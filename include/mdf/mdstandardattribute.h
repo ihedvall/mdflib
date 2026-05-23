@@ -17,6 +17,7 @@ using AttributeList = std::map<std::string, std::string>;
 
 class MdStandardAttribute {
  public:
+  virtual ~MdStandardAttribute() = default;
   [[nodiscard]] virtual bool IsActive() const;
 
   MdStandardAttribute() = default;

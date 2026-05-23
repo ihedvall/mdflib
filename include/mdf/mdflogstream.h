@@ -10,8 +10,9 @@
  */
 #pragma once
 
-#include <sstream>
 #include <string>
+#include <sstream>
+#include <functional>
 
 /** \brief This is a replacement for the std::source_location library.
  * The standard source_location library cannot be used due to user requirement

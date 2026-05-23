@@ -233,6 +233,9 @@ class MdfHelper {
  static void UnsignedToRaw(bool little_endian, size_t start, size_t length,
                      uint64_t value, uint8_t* raw);
 
+  static constexpr std::string_view ToolId() { return "MDF C++ Library (mdflib)"; }
+  static constexpr std::string_view ToolVendor() { return "IH Development"; }
+  static constexpr std::string_view ToolVersion() { return "2.3.0"; }
 };
 
 }  // namespace mdf

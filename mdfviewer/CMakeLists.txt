@@ -52,14 +52,14 @@ endif()
 
 target_link_libraries(mdfview PRIVATE mdf)
 
-find_package(Boost REQUIRED CONFIG COMPONENTS process filesystem locale)
-find_package(wxWidgets REQUIRED CONFIG)
+include(${CMAKE_SOURCE_DIR}/script/boost.cmake)
+include(${CMAKE_SOURCE_DIR}/script/wxwidgets.cmake)
 
 target_link_libraries(mdfview PRIVATE
     Boost::process
     Boost::filesystem
     Boost::locale
-    wx::core wx::base
+    wxWidgets::wxWidgets
 )
 
 

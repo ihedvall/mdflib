@@ -9,6 +9,7 @@
 
 
 #include "mdf/ichannelgroup.h"
+#include "mdf/idatawriter.h"
 #include "mdf/idatagroup.h"
 #include "mdfblock.h"
 #include "si4block.h"
@@ -17,7 +18,13 @@
 namespace mdf::detail {
 
 class Cg4Block : public MdfBlock, public IChannelGroup {
+ private:
+  mutable std::unique_ptr<mdf::IDataWriter> data_writer_;
  public:
+  /** \brief Creates a data writer for this channel group (CG4 only).
+   *  返回内部持有的 Cg4DataWriter 指针。
+   */
+  [[nodiscard]] IDataWriter* CreateDataWriter() const override;
   using Cn4List = std::vector<std::unique_ptr<Cn4Block>>;
   using Sr4List = std::vector<std::unique_ptr<Sr4Block>>;
 

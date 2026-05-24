@@ -8,10 +8,13 @@
  */
 #pragma once
 #include <algorithm>
+#include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "mdf/ichannel.h"
+#include "mdf/idatawriter.h"
 #include "mdf/samplerecord.h"
 #include "mdf/mdfenumerates.h"
 #include "mdf/iblock.h"
@@ -69,6 +72,7 @@ constexpr uint16_t EventSignal = 0x00010;
 class IChannelGroup : public IBlock {
 
  public:
+  ~IChannelGroup() override;
 
   virtual void RecordId(uint64_t record_id) = 0; ///< Sets the record identity.
   [[nodiscard]] virtual uint64_t RecordId() const = 0; ///< Record identity.
@@ -137,6 +141,29 @@ class IChannelGroup : public IBlock {
   /** \brief Support function that creates a sample record. */
   [[nodiscard]] SampleRecord GetSampleRecord() const;
 
+  /** \brief Creates a data writer for this channel group.
+   *
+   * The data writer only builds raw sample buffers. Saving samples is still
+   * done through MdfWriter::SaveSample().
+   *
+   * Default returns nullptr. Only CG4 派生类会返回有效 writer。
+   */
+  [[nodiscard]] virtual IDataWriter* CreateDataWriter() const {
+    return nullptr;
+  }
+
+  /** \brief Replaces the channel group internal sample buffer.
+   *
+   * This is intended for IDataWriter::Commit() and advanced bulk writers.
+   * @return True if the assignment succeeded.
+   */
+  [[nodiscard]] bool SetSampleBuffer(const std::vector<uint8_t>& buffer) const;
+
+  /** \brief Returns the current sample buffer size. */
+  [[nodiscard]] size_t SampleBufferSize() const {
+    return sample_buffer_.size();
+  }
+
   /** \brief Resets the internal sample counter. Internal use only. */
   void ResetSampleCounter() const { sample_ = 0;}
 
@@ -171,7 +198,7 @@ class IChannelGroup : public IBlock {
     return max_length_;
   }
 
- protected:
+protected:
   /** \brief Temporary record when saving samples.
    *
    * The sample buffer is used internally when reading and writing
@@ -213,7 +240,7 @@ class IChannelGroup : public IBlock {
 
 
 
- private:
+private:
   /** brief Internally used as sample counter.
    *
    * The sample counter is used to indicate how many records of this group

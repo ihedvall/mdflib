@@ -16,6 +16,7 @@ option(MDF_BUILD_DOC "Build documentation. Requires Doxygen and Release mode." O
 option(MDF_BUILD_TOOL "Build tools like the MDF Viewer. Requires WxWidgets." OFF)
 option(MDF_BUILD_TEST "Build Google Unit Tests. Requires Google Test." OFF)
 option(MDF_BUILD_PYTHON "Build Python module" OFF)
+option(MDF_BUILD_EXAMPLES "Build small mdflib examples." OFF)
 
 set(_mdf_vcpkg_features "")
 if(MDF_BUILD_TOOL)
@@ -61,6 +62,10 @@ endif()
 if(MDF_BUILD_TOOL)
   add_subdirectory(mdf2csv)
   add_subdirectory(mdfviewer)
+endif()
+
+if(MDF_BUILD_EXAMPLES)
+  add_subdirectory(mdflib_example)
 endif()
 
 if (MDF_BUILD_PYTHON)

@@ -50,6 +50,7 @@ add_executable(test_mdf
         src/testcanbusobserver.cpp
         src/testcanbusobserver.h
         src/testmdfwriter.cpp
+        src/testdatawriter.cpp
         src/testwrite3.cpp
         src/testwrite3.h
         src/testreadvlsd.cpp

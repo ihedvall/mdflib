@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "mdf/ichannel.h"
+#include "mdf/samplerecord.h"
 
 namespace mdf {
 
@@ -23,6 +24,7 @@ struct DataWriterChannelLayout {
   uint32_t byte_offset = 0;
   uint64_t data_bytes = 0;
   ChannelDataType data_type = ChannelDataType::UnsignedIntegerLe;
+  void* user_object = nullptr;
 };
 
 /** \brief Interface used to build one serialized sample buffer.
@@ -59,11 +61,54 @@ class IDataWriter {
    * This method does not enqueue or save a sample.
    * @return True on success.
    */
-  [[nodiscard]] virtual bool Commit() = 0;
+  [[nodiscard]] virtual SampleRecord Commit() = 0;
 
   /** \brief Returns channel layout metadata in channel index order. */
-  [[nodiscard]] virtual std::vector<DataWriterChannelLayout> ChannelLayouts()
+  [[nodiscard]] virtual const std::vector<DataWriterChannelLayout>& ChannelLayouts()
       const = 0;
+
+  template <typename T>
+  void SetValue(const DataWriterChannelLayout& layout, T value) {
+    std::vector<uint8_t>& buffer = Buffer();
+
+    if (layout.data_bytes != sizeof(T)) {
+      return;
+    }
+    if (layout.byte_offset + layout.data_bytes > buffer.size()) {
+      return;
+    }
+    switch (layout.data_type) {
+      case ChannelDataType::UnsignedIntegerLe:
+      case ChannelDataType::SignedIntegerLe:
+      case ChannelDataType::FloatLe:
+        memcpy(buffer.data() + layout.byte_offset, &value, layout.data_bytes);
+        if (!IsLittleEndian()) {
+          std::reverse(buffer.begin() + layout.byte_offset,
+            buffer.begin() + layout.byte_offset + layout.data_bytes);
+        }
+        break;
+
+      case ChannelDataType::UnsignedIntegerBe:
+      case ChannelDataType::SignedIntegerBe:
+      case ChannelDataType::FloatBe:
+        memcpy(buffer.data() + layout.byte_offset, &value, layout.data_bytes);
+        if (IsLittleEndian()) {
+          std::reverse(buffer.begin() + layout.byte_offset,
+            buffer.begin() + layout.byte_offset + layout.data_bytes);
+        }
+        break;
+
+      default:
+        break;;
+    }
+  }
+
+private:
+  [[nodiscard]] static constexpr bool IsLittleEndian() {
+    constexpr int num = 1;
+    return *(char*) &num == 1;
+  }
 };
+
 
 }  // namespace mdf

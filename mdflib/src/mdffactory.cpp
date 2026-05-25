@@ -14,7 +14,7 @@
 #include "mdf4writer.h"
 #include "mdfbuslogger.h"
 #include "mdfconverter.h"
-#include "sr4block.h"
+#include "cg4datawriter.h"
 
 using namespace mdf::detail;
 
@@ -137,6 +137,21 @@ std::unique_ptr<IChannelObserver> MdfFactory::CreateChannelObserver(
     const IDataGroup& data_group, const IChannelGroup& group,
     const IChannel& channel) {
   return mdf::CreateChannelObserver(data_group, group, channel);
+}
+
+std::unique_ptr<IDataWriter> MdfFactory::CreateDataWriter(
+    IChannelGroup& channel_group, MdfFileType type) {
+  std::unique_ptr<IDataWriter> writer;
+  switch (type) {
+    case MdfFileType::Mdf4FileType: {
+      writer = std::make_unique<Cg4DataWriter>(channel_group);
+      break;
+    }
+
+    default:
+      break;
+  }
+  return writer;
 }
 
 }  // namespace mdf

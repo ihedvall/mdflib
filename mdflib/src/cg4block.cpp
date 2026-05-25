@@ -1,24 +1,13 @@
 
 #include "cg4block.h"
-#include "cg4datawriter.h"
-#include "mdf/idatawriter.h"
+
 #include <algorithm>
 #include <codecvt>
 #include <climits>
+
 #include "cn4block.h"
 #include "sr4block.h"
 #include "mdf/mdflogstream.h"
-
-namespace mdf::detail {
-
-mdf::IDataWriter* Cg4Block::CreateDataWriter() const {
-  if (!data_writer_) {
-    data_writer_ = std::make_unique<Cg4DataWriter>(*this);
-  }
-  return data_writer_.get();
-}
-
-} // namespace mdf::detail
 
 namespace {
 

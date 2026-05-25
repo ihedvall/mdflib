@@ -18,13 +18,12 @@
 namespace mdf::detail {
 
 class Cg4Block : public MdfBlock, public IChannelGroup {
- private:
-  mutable std::unique_ptr<mdf::IDataWriter> data_writer_;
+
  public:
   /** \brief Creates a data writer for this channel group (CG4 only).
    *  返回内部持有的 Cg4DataWriter 指针。
    */
-  [[nodiscard]] IDataWriter* CreateDataWriter() const override;
+  // [[nodiscard]] IDataWriter* CreateDataWriter() const override;
   using Cn4List = std::vector<std::unique_ptr<Cn4Block>>;
   using Sr4List = std::vector<std::unique_ptr<Sr4Block>>;
 
@@ -73,7 +72,7 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   void ReadSrList(std::streambuf& buffer);
 
   uint64_t ReadDataRecord(std::streambuf& buffer, const IDataGroup& notifier) const;
-  std::vector<uint8_t>& SampleBuffer() const { return sample_buffer_; }
+
   uint64_t Write(std::streambuf& buffer) override;
 
   ISourceInformation* CreateSourceInformation() override;
@@ -131,6 +130,7 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   int64_t nof_data_position_ = 0; ///< File position for lower VLSD 32-bit
   int64_t nof_invalid_position_ = 0;///< File position for higher VLSD 32-bit
   uint64_t vlsd_index_ = 0; ///< Index Counter that holds the next free VLSD index
+
 };
 
 }  // namespace mdf::detail

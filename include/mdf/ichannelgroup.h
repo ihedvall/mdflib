@@ -7,8 +7,7 @@
  * \brief Defines an interface against a channel group (CG) block.
  */
 #pragma once
-#include <algorithm>
-#include <memory>
+
 #include <string>
 #include <string_view>
 #include <vector>
@@ -54,9 +53,6 @@ constexpr uint16_t RemoteMaster = 0x0008;
 /** \brief Event signal group. The group store events not values. */
 constexpr uint16_t EventSignal = 0x00010;
 }  // namespace CgFlag
-
-
-
 
 /** \brief Interface against a channel group (CG) block.
  *
@@ -111,7 +107,7 @@ class IChannelGroup : public IBlock {
    * the name instead of the full name */
   [[nodiscard]] virtual IChannel* GetChannel(const std::string_view& name) const;
 
-    [[nodiscard]] virtual IChannel* GetMasterChannel() const;
+  [[nodiscard]] virtual IChannel* GetMasterChannel() const;
 
   /** \brief Returns an external reference channel. */
   [[nodiscard]] virtual const IChannel* GetXChannel(
@@ -141,27 +137,8 @@ class IChannelGroup : public IBlock {
   /** \brief Support function that creates a sample record. */
   [[nodiscard]] SampleRecord GetSampleRecord() const;
 
-  /** \brief Creates a data writer for this channel group.
-   *
-   * The data writer only builds raw sample buffers. Saving samples is still
-   * done through MdfWriter::SaveSample().
-   *
-   * Default returns nullptr. Only CG4 派生类会返回有效 writer。
-   */
-  [[nodiscard]] virtual IDataWriter* CreateDataWriter() const {
-    return nullptr;
-  }
-
-  /** \brief Replaces the channel group internal sample buffer.
-   *
-   * This is intended for IDataWriter::Commit() and advanced bulk writers.
-   * @return True if the assignment succeeded.
-   */
-  [[nodiscard]] bool SetSampleBuffer(const std::vector<uint8_t>& buffer) const;
-
-  /** \brief Returns the current sample buffer size. */
-  [[nodiscard]] size_t SampleBufferSize() const {
-    return sample_buffer_.size();
+  [[nodiscard]] std::vector<uint8_t>& SampleBuffer() const {
+    return sample_buffer_;
   }
 
   /** \brief Resets the internal sample counter. Internal use only. */

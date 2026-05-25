@@ -4,8 +4,9 @@
  */
 
 #include "cg4datawriter.h"
+
 #include <algorithm>
-#include <cstring>
+
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatawriter.h"
 
@@ -15,15 +16,9 @@ Cg4DataWriter::Cg4DataWriter(const IChannelGroup& group)
     : group_(group), buffer_(group.GetSampleRecord().record_buffer) {
   const auto channels = group_.Channels();
   layouts_.reserve(channels.size());
-  size_t index = 0;
-  for (const auto* channel : channels) {
-    if (channel == nullptr) {
-      ++index;
-      continue;
-    }
-    // 不暴露 master channel
-    if (channel->Type() == ChannelType::Master) {
-      ++index;
+  for (size_t index = 0; index < channels.size(); ++index) {
+    const auto* channel =  channels[index];
+    if (channel == nullptr || channel->Type() == ChannelType::Master) {
       continue;
     }
     DataWriterChannelLayout layout;
@@ -33,7 +28,6 @@ Cg4DataWriter::Cg4DataWriter(const IChannelGroup& group)
     layout.data_bytes = channel->DataBytes();
     layout.data_type = channel->DataType();
     layouts_.emplace_back(std::move(layout));
-    ++index;
   }
 }
 
@@ -67,11 +61,15 @@ bool Cg4DataWriter::WriteRawRecord(const void* buffer, size_t length) {
   return true;
 }
 
-bool Cg4DataWriter::Commit() {
-  return group_.SetSampleBuffer(buffer_);
+SampleRecord Cg4DataWriter::Commit() {
+  SampleRecord record;
+  record.timestamp = MdfHelper::NowNs();
+  record.record_id = group_.RecordId();
+  record.record_buffer = buffer_;
+  return record;
 }
 
-std::vector<DataWriterChannelLayout> Cg4DataWriter::ChannelLayouts() const {
+const std::vector<DataWriterChannelLayout>& Cg4DataWriter::ChannelLayouts() const {
   return layouts_;
 }
 

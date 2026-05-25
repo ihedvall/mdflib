@@ -10,11 +10,7 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cstdio>
 #include <fstream>
-
-#include "dg4block.h"
-#include "dt4block.h"
 #include "mdf/ethconfigadapter.h"
 #include "mdf/linconfigadapter.h"
 #include "mdf/canconfigadapter.h"

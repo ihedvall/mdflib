@@ -40,6 +40,8 @@ class SampleQueue {
 
   void Reset();
   void RecalculateTimeMaster();
+  void AddSample(const IChannelGroup& group, uint64_t time,
+    SampleRecord&& sample_record);
   void SaveSample(const IChannelGroup& group, uint64_t time);
   void SaveCanMessage(const IChannelGroup& group,  uint64_t time,
                                          const CanMessage& msg);

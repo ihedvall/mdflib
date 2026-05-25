@@ -5,9 +5,6 @@
 
 #include "mdf/ichannelgroup.h"
 
-#include "datawriter.h"
-#include "mdf/idatawriter.h"
-
 namespace mdf {
 
 IChannelGroup::~IChannelGroup() = default;
@@ -18,19 +15,6 @@ SampleRecord IChannelGroup::GetSampleRecord() const {
   record.record_id = RecordId();
   record.record_buffer = sample_buffer_;
   return record;
-}
-
-
-bool IChannelGroup::SetSampleBuffer(const std::vector<uint8_t>& buffer) const {
-  if (sample_buffer_.empty()) {
-    sample_buffer_ = buffer;
-    return true;
-  }
-  if (sample_buffer_.size() != buffer.size()) {
-    return false;
-  }
-  sample_buffer_ = buffer;
-  return true;
 }
 
 void IChannelGroup::ClearData() { sample_ = 0; }

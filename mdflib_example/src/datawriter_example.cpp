@@ -61,7 +61,7 @@ int main() {
     writer->StartMeasurement(start_time);
 
     // Create DataWriter from the channel group
-    auto* data_writer = cg->CreateDataWriter();
+    auto data_writer = MdfFactory::CreateDataWriter(*cg);
     if (!data_writer) {
       std::cerr << "Failed to create DataWriter\n";
       return 3;
@@ -96,7 +96,7 @@ int main() {
 
       // Master/time channel is not written here. SaveSample() will set master
       // time from the supplied timestamp. Only write the signal value.
-      int32_t v = static_cast<int32_t>(100 + s);
+      auto v = static_cast<int32_t>(100 + s);
       std::memcpy(buf.data() + value_offset, &v, sizeof(v));
       if (s == 0) {
         std::cout << "value_offset=" << value_offset << " buffer_size=" << buf.size() << "\n";
@@ -106,13 +106,9 @@ int main() {
         }
         std::cout << std::dec << "\n";
       }
-      if (!data_writer->Commit()) {
-        std::cerr << "Commit failed for sample " << s << "\n";
-        return 4;
-      }
+      SampleRecord rec = data_writer->Commit();
 
       // Debug: verify group's internal sample buffer
-      auto rec = cg->GetSampleRecord();
       if (s == 0) {
         std::cout << "group buffer bytes at offset: ";
         for (size_t b = 0; b < std::min<size_t>(16, rec.record_buffer.size()); ++b) {
@@ -121,7 +117,9 @@ int main() {
         std::cout << std::dec << "\n";
       }
 
-      writer->SaveSample(*cg, start_time + static_cast<uint64_t>(s) * 1'000'000ULL);
+      writer->AddSample(*dg, *cg,
+        start_time + static_cast<uint64_t>(s) * 1'000'000ULL,
+        std::move(rec));
     }
 
     writer->StopMeasurement(start_time + 10'000'000ULL);

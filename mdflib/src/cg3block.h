@@ -1,20 +1,20 @@
 
 #pragma once
+
+#include "cn3block.h"
+
 #include <memory>
 #include <string>
 #include <vector>
-
-#include "cn3block.h"
 #include "mdf/ichannelgroup.h"
-#include "mdf/idatagroup.h"
+
 #include "mdfblock.h"
 #include "sr3block.h"
-#include "tx3block.h"
 #include "dgrange.h"
 namespace mdf::detail {
 class Cg3Block : public MdfBlock, public IChannelGroup {
   /** \brief CG3 不支持 DataWriter，始终返回 nullptr。*/
-  [[nodiscard]] IDataWriter* CreateDataWriter() const override { return nullptr; }
+
  public:
   using Cn3List = std::vector<std::unique_ptr<Cn3Block>>;
   using Sr3List = std::vector<std::unique_ptr<Sr3Block>>;
@@ -60,9 +60,7 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
 
   const Sr3List& Sr3() const { return sr_list_; }
 
-  [[nodiscard]] std::vector<uint8_t>& SampleBuffer() const {
-    return sample_buffer_;
-  }
+
   uint64_t ReadDataRecord(std::streambuf& buffer, const IDataGroup& notifier) const;
   uint64_t ReadRangeDataRecord(std::streambuf& buffer, const IDataGroup& notifier,
                              DgRange& range) const;
@@ -71,7 +69,7 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
   void ClearData() override;
 
   [[nodiscard]] const IDataGroup* DataGroup() const override;
-
+  // [[nodiscard]] IDataWriter* CreateDataWriter() const override { return nullptr; }
  private:
   uint16_t record_id_ = 0;
   uint16_t nof_channels_ = 0;

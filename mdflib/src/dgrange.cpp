@@ -8,6 +8,10 @@
  */
 
 #include "dgrange.h"
+
+#include <algorithm>
+#include <cstdint>
+
 #include "mdf/ichannelgroup.h"
 
 namespace mdf {

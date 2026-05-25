@@ -34,6 +34,11 @@ class WriteCache final {
     sample_event_.notify_one();
   }
 
+  void AddSample(const IDataGroup& data_group,
+                 const IChannelGroup& channel_group,
+                 uint64_t time,
+                 SampleRecord&& sample_record);
+
   void SaveSample(const IChannelGroup& channel_group, uint64_t time);
   void SaveSample(const IDataGroup& data_group,
                   const IChannelGroup& group, uint64_t time);

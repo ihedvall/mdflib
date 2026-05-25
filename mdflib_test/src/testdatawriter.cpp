@@ -17,6 +17,8 @@
 #include "mdf/mdffactory.h"
 #include "mdf/mdfreader.h"
 #include "mdf/mdfwriter.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
 
 using namespace std::filesystem;
 using namespace mdf;
@@ -52,7 +54,8 @@ const DataWriterChannelLayout* FindLayout(
  * 4) Save sample using the ordinary SaveSample API.
  */
 bool WriteSamplesWithDataWriterExample(const std::string& filename,
-                                       size_t nof_samples = 3) {
+                                       size_t nof_samples ) {
+  constexpr size_t nof_signals = 10'000;
   auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
   if (!writer || !writer->Init(filename)) {
     return false;
@@ -60,7 +63,7 @@ bool WriteSamplesWithDataWriterExample(const std::string& filename,
 
   auto* dg = writer->CreateDataGroup();
   auto* cg = MdfWriter::CreateChannelGroup(dg);
-  if (cg == nullptr) {
+  if (cg == nullptr || dg == nullptr) {
     return false;
   }
 
@@ -76,12 +79,12 @@ bool WriteSamplesWithDataWriterExample(const std::string& filename,
     master->DataBytes(sizeof(float));
     master->Unit("s");
   }
-  {
+  for (size_t index = 0; index < nof_signals; ++index) {
     auto* signal = MdfWriter::CreateChannel(cg);
     if (signal == nullptr) {
       return false;
     }
-    signal->Name("Value");
+    signal->Name("Value" + std::to_string(index));
     signal->Type(ChannelType::FixedLength);
     signal->DataType(ChannelDataType::SignedIntegerLe);
     signal->DataBytes(sizeof(int32_t));
@@ -91,39 +94,31 @@ bool WriteSamplesWithDataWriterExample(const std::string& filename,
     return false;
   }
 
-  const uint64_t start_time = 1'000'000'000ULL;
-  writer->StartMeasurement(start_time);
+  uint64_t sample_time = MdfHelper::NowNs();
+  writer->StartMeasurement(sample_time);
 
-  auto data_writer = cg->CreateDataWriter();
+  auto data_writer = MdfFactory::CreateDataWriter(*cg);
   if (!data_writer) {
     return false;
   }
 
-  const auto layouts = data_writer->ChannelLayouts();
-  const auto* time_layout = FindLayout(layouts, "Time");
-  const auto* value_layout = FindLayout(layouts, "Value");
-  if (time_layout == nullptr || value_layout == nullptr) {
-    return false;
-  }
+  const auto& layouts = data_writer->ChannelLayouts();
+
 
   for (size_t sample = 0; sample < nof_samples; ++sample) {
     data_writer->Reset();
-    auto& record = data_writer->Buffer();
 
-    const float time_s = static_cast<float>(sample) * 0.001F;
-    const int32_t value = static_cast<int32_t>(100 + sample);
-
-    memcpy(record.data() + time_layout->byte_offset, &time_s, sizeof(time_s));
-    memcpy(record.data() + value_layout->byte_offset, &value, sizeof(value));
-
-    if (!data_writer->Commit()) {
-      return false;
+    const auto value = static_cast<int32_t>(100 + sample);
+    for (const auto& layout : layouts) {
+      data_writer->SetValue(layout, value);
     }
 
-    writer->SaveSample(*cg, start_time + static_cast<uint64_t>(sample) * 1'000'000ULL);
+    SampleRecord record = data_writer->Commit();
+    writer->AddSample(*dg, *cg, sample_time, std::move(record) );
+    sample_time += 1'000'000ULL;
   }
 
-  writer->StopMeasurement(start_time + 10'000'000ULL);
+  writer->StopMeasurement(sample_time);
   return writer->FinalizeMeasurement();
 }
 
@@ -132,8 +127,9 @@ bool WriteSamplesWithDataWriterExample(const std::string& filename,
 namespace mdf::test {
 
 TEST(DataWriter, WriteAndReadBackMdf4) {
+  constexpr size_t nof_samples = 10'000;
   const auto test_file = CreateTestFile("datawriter_basic.mf4");
-  ASSERT_TRUE(WriteSamplesWithDataWriterExample(test_file, 3));
+  ASSERT_TRUE(WriteSamplesWithDataWriterExample(test_file, nof_samples));
 
   MdfReader reader(test_file);
   ASSERT_TRUE(reader.ReadEverythingButData());
@@ -146,7 +142,7 @@ TEST(DataWriter, WriteAndReadBackMdf4) {
   ASSERT_TRUE(cg != nullptr);
 
   const auto* time = cg->GetChannel("Time");
-  const auto* value = cg->GetChannel("Value");
+  const auto* value = cg->GetChannel("Value99");
   ASSERT_TRUE(time != nullptr);
   ASSERT_TRUE(value != nullptr);
 
@@ -157,10 +153,10 @@ TEST(DataWriter, WriteAndReadBackMdf4) {
 
   reader.ReadData(*dg);
 
-  ASSERT_EQ(time_observer->NofSamples(), 3);
-  ASSERT_EQ(value_observer->NofSamples(), 3);
+  ASSERT_EQ(time_observer->NofSamples(), nof_samples);
+  ASSERT_EQ(value_observer->NofSamples(), nof_samples);
 
-  for (uint64_t sample = 0; sample < 3; ++sample) {
+  for (uint64_t sample = 0; sample < nof_samples; ++sample) {
     double time_value = 0.0;
     int64_t signal_value = 0;
 
@@ -168,7 +164,7 @@ TEST(DataWriter, WriteAndReadBackMdf4) {
     EXPECT_TRUE(value_observer->GetChannelValue(sample, signal_value));
 
     // Master time is recalculated to relative time by SaveSample queue logic.
-    EXPECT_NEAR(time_value, static_cast<double>(sample) * 0.001, 1E-6);
+    EXPECT_FLOAT_EQ(time_value, static_cast<float>(sample * 0.001F));
     EXPECT_EQ(signal_value, static_cast<int64_t>(100 + sample));
   }
 }
@@ -202,7 +198,7 @@ TEST(DataWriter, RejectInvalidRawBufferSize) {
   }
 
   ASSERT_TRUE(writer->InitMeasurement());
-  auto data_writer = cg->CreateDataWriter();
+  auto data_writer = MdfFactory::CreateDataWriter(*cg);
   ASSERT_TRUE(data_writer != nullptr);
 
   std::vector<uint8_t> invalid(data_writer->RecordSize() + 1, 0);
@@ -210,12 +206,12 @@ TEST(DataWriter, RejectInvalidRawBufferSize) {
 
   std::vector<uint8_t> valid(data_writer->RecordSize(), 0);
   EXPECT_TRUE(data_writer->WriteRawRecord(valid.data(), valid.size()));
-  EXPECT_TRUE(data_writer->Commit());
+  SampleRecord record = data_writer->Commit();
 
   // If commit succeeded we should be able to save one sample with normal flow.
-  const uint64_t start_time = 2'000'000'000ULL;
+  constexpr uint64_t start_time = 2'000'000'000ULL;
   writer->StartMeasurement(start_time);
-  writer->SaveSample(*cg, start_time);
+  writer->AddSample(*dg,*cg, start_time, std::move(record));
   writer->StopMeasurement(start_time + 1'000'000ULL);
   EXPECT_TRUE(writer->FinalizeMeasurement());
 }

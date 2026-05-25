@@ -154,6 +154,16 @@ void WriteCache::RecalculateTimeMaster() {
   }
 }
 
+void WriteCache::AddSample(const IDataGroup& data_group,
+                           const IChannelGroup& channel_group, uint64_t time,
+                           SampleRecord&& sample_record) {
+  if (SampleQueue* queue = GetSampleQueue(channel_group);
+     queue != nullptr) {
+    std::lock_guard lock(locker_);
+    queue->AddSample(channel_group, time, std::move(sample_record));
+  }
+}
+
 void WriteCache::SaveSample(const IChannelGroup& channel_group, uint64_t time) {
   if (SampleQueue* queue = GetSampleQueue(channel_group);
       queue != nullptr) {

@@ -446,6 +446,13 @@ void SampleQueue::RecalculateTimeMaster() {
   }
 }
 
+void SampleQueue::AddSample(const IChannelGroup& group, uint64_t time,
+  SampleRecord&& sample_record) {
+  sample_record.timestamp = time;
+  RecalculateTime(group.RecordId(), sample_record);
+  AddSample(std::move(sample_record));
+}
+
 void SampleQueue::Open() {
   if (!writer_.IsOpen()) {
     writer_.Open(std::ios_base::in | std::ios_base::out | std::ios_base::binary);

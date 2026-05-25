@@ -13,8 +13,8 @@
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatawriter.h"
 
-namespace mdf {
-namespace detail {
+
+namespace mdf::detail {
 
 class GroupDataWriter final : public IDataWriter {
  public:
@@ -23,18 +23,13 @@ class GroupDataWriter final : public IDataWriter {
         buffer_(group.GetSampleRecord().record_buffer) {
     const auto channels = group_.Channels();
     layouts_.reserve(channels.size());
-    size_t index = 0;
-    for (const auto* channel : channels) {
-      if (channel == nullptr) {
-        ++index;
-        continue;
-      }
+    for (size_t index = 0; index < channels.size(); ++index) {
+      const auto* channel = channels[index];
       // Do not expose the master channel in the layout list. The master
       // channel value is typically calculated during SaveSample() and
       // should not be written directly by bulk writers unless
       // CalculateMasterTime() is disabled for the channel.
-      if (channel->Type() == ChannelType::Master) {
-        ++index;
+      if (channel == nullptr || channel->Type() == ChannelType::Master) {
         continue;
       }
       DataWriterChannelLayout layout;
@@ -44,7 +39,6 @@ class GroupDataWriter final : public IDataWriter {
       layout.data_bytes = channel->DataBytes();
       layout.data_type = channel->DataType();
       layouts_.emplace_back(std::move(layout));
-      ++index;
     }
   }
 
@@ -78,11 +72,13 @@ class GroupDataWriter final : public IDataWriter {
     return true;
   }
 
-  [[nodiscard]] bool Commit() override {
-    return group_.SetSampleBuffer(buffer_);
+  [[nodiscard]] SampleRecord Commit() override {
+    SampleRecord record = group_.GetSampleRecord();
+    record.record_buffer = buffer_;
+    return record;
   }
 
-  [[nodiscard]] std::vector<DataWriterChannelLayout> ChannelLayouts()
+  [[nodiscard]] const std::vector<DataWriterChannelLayout>& ChannelLayouts()
       const override {
     return layouts_;
   }
@@ -97,5 +93,5 @@ std::unique_ptr<IDataWriter> CreateGroupDataWriter(const IChannelGroup& group) {
   return std::make_unique<GroupDataWriter>(group);
 }
 
-}  // namespace detail
-}  // namespace mdf
+} // namespace mdf::detail
+

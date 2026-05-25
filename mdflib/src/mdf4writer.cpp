@@ -38,6 +38,14 @@ IChannelConversion* Mdf4Writer::CreateChannelConversion(IChannel* parent) {
   return cc;
 }
 
+void Mdf4Writer::AddSample(const IDataGroup& data_group,
+                           const IChannelGroup& channel_group, uint64_t time,
+                           SampleRecord&& sample_record) {
+  write_cache_.AddSample(data_group, channel_group, time,
+    std::move(sample_record));
+
+}
+
 void Mdf4Writer::CreateMdfFile() {
   auto mdf4 = std::make_unique<Mdf4File>();
   mdf_file_ = std::move(mdf4);
@@ -161,8 +169,6 @@ Dg4Block* Mdf4Writer::GetLastDg4() {
   }
   return dynamic_cast<Dg4Block*>(last_dg);
 }
-
-
 
 void Mdf4Writer::SaveSample(const IChannelGroup &group, uint64_t time) {
   write_cache_.SaveSample(group, time);

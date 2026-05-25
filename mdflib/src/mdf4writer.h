@@ -17,12 +17,11 @@ class Mdf4Writer : public MdfWriter {
   Mdf4Writer();
   ~Mdf4Writer() override;
 
-
   IChannelConversion* CreateChannelConversion(IChannel* parent) override;
-
- protected:
-  WriteCache write_cache_;
-
+  void AddSample(const IDataGroup& data_group,
+                 const IChannelGroup& channel_group,
+                 uint64_t time,
+                 SampleRecord&& sample_record) override;
   void SaveSample(const IChannelGroup& group, uint64_t time) override;
   void SaveSample(const IDataGroup& data_group,
                   const IChannelGroup& channel_group, uint64_t time) override;
@@ -52,6 +51,10 @@ class Mdf4Writer : public MdfWriter {
   void SaveFlexRayMessage(const IDataGroup& data_group,
                        const IChannelGroup& channel_group, uint64_t time,
                        const IFlexRayEvent& msg) override;
+
+ protected:
+  WriteCache write_cache_;
+
   void CreateMdfFile() override;
 
   bool PrepareForWriting() override;

@@ -32,6 +32,7 @@ IChannelConversion *Mdf3Writer::CreateChannelConversion(IChannel *parent) {
   return parent != nullptr ? parent->CreateChannelConversion() : nullptr;
 }
 
+
 void Mdf3Writer::CreateMdfFile() {
   auto mdf3 = std::make_unique<Mdf3File>();
   mdf_file_ = std::move(mdf3);
@@ -78,6 +79,13 @@ void Mdf3Writer::RecalculateTimeMaster() {
 
 void Mdf3Writer::NotifySample() {
   write_cache_.Notify();
+}
+
+void Mdf3Writer::AddSample(const IDataGroup &data_group,
+                           const IChannelGroup &channel_group, uint64_t time,
+                           SampleRecord &&sample_record) {
+  write_cache_.AddSample(data_group, channel_group, time,
+    std::move(sample_record));
 }
 
 void Mdf3Writer::SaveSample(const IChannelGroup &group, uint64_t time) {

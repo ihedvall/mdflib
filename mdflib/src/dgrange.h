@@ -8,7 +8,10 @@
 #pragma once
 
 #include "mdf/idatagroup.h"
+
+#include <cstdint>
 #include <map>
+
 #include "cgrange.h"
 
 namespace mdf {

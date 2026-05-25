@@ -6,7 +6,6 @@
 #pragma once
 #include <array>
 #include <cstdint>
-#include <cstring>
 #include <vector>
 
 namespace mdf {
@@ -25,11 +24,16 @@ class BigBuffer {
 
  private:
   std::array<uint8_t, sizeof(T)> buffer_;
+  [[nodiscard]] static constexpr bool IsLittleEndian() {
+    constexpr int num = 1;
+    return *(char*) &num == 1;
+  }
+
 };
 
 template <typename T>
 BigBuffer<T>::BigBuffer(const T& value) {
-  if (constexpr int num = 1;*(char*) &num == 1) { // If computer using Little endian
+  if (IsLittleEndian()) { // If computer using Little endian
     std::array<uint8_t, sizeof(T)> temp = {0};
     memcpy(temp.data(), &value, sizeof(T));
     for (size_t index = sizeof(T); index > 0; --index) {
@@ -62,15 +66,14 @@ size_t BigBuffer<T>::size() const {
 
 template <typename T>
 T BigBuffer<T>::value() const {
-  std::array<uint8_t, sizeof(T)> temp = {0};
-  if (constexpr int num = 1; *(char*) &num == 1) { // Computer uses little endian
+  const T* val = reinterpret_cast<const T*>(buffer_.data());
+  if (IsLittleEndian()) { // Computer uses little endian
+    std::array<uint8_t, sizeof(T)> temp = {0};
     for (size_t index = sizeof(T); index > 0; --index) {
       temp[sizeof(T) - index] = buffer_[index - 1];
     }
-  } else {
-    memcpy(temp.data(), buffer_.data(), sizeof(T));
+    val = reinterpret_cast<const T*>(temp.data());
   }
-  const T* val = reinterpret_cast<const T*>(temp.data());
   return *val;
 }
 

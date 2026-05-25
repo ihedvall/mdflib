@@ -14,6 +14,7 @@
 #include "mdf/mdfreader.h"
 #include "mdf/mdfwriter.h"
 #include "mdf/ichannelobserver.h"
+#include "mdf/idatawriter.h"
 
 namespace mdf {
 
@@ -123,6 +124,10 @@ class MdfFactory {
   static std::unique_ptr<IChannelObserver> CreateChannelObserver(
     const IDataGroup& data_group, const IChannelGroup& channel_group,
     const IChannel& channel);
+
+  static std::unique_ptr<IDataWriter>
+  CreateDataWriter(IChannelGroup& channel_group,
+    MdfFileType type = MdfFileType::Mdf4FileType);
 
 };
 

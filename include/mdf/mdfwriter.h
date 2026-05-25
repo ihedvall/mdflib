@@ -4,9 +4,8 @@
  */
 
 #pragma once
-#include <deque>
+#include <cstdint>
 #include <string>
-#include <map>
 #include <ios>
 #include <atomic>
 #include <memory>
@@ -191,6 +190,18 @@ class MdfWriter {
    */
   virtual bool InitMeasurement();
 
+  /** \brief Function that adds a sample record directly to the sample queue.
+   *
+   * This function add a sample record directly to the internal sample
+   * queue. The function should only be used by external data writer
+   * that needs to add data faster than normal SaveSample functions do.
+   *
+   * The caller is reponsible to generate the correct sample record layout.
+   */
+  virtual void AddSample(const IDataGroup& data_group,
+                          const IChannelGroup& channel_group,
+                          uint64_t time,
+                          SampleRecord&& sample_record) = 0;
   /** \brief Saves a sample record for a channel group.
    *
    * Call this function after all channel values have been updated with

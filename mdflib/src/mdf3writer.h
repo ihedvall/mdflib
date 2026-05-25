@@ -15,6 +15,10 @@ class Mdf3Writer : public MdfWriter {
                            ///< destructs.
 
   IChannelConversion* CreateChannelConversion(IChannel* parent) override;
+  void AddSample(const IDataGroup& data_group,
+                 const IChannelGroup& channel_group,
+                 uint64_t time,
+                 SampleRecord&& sample_record) override;
   void SaveSample(const IChannelGroup& group, uint64_t time) override;
   void SaveSample(const IDataGroup& data_group,
                   const IChannelGroup& channel_group, uint64_t time) override;

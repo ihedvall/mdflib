@@ -201,6 +201,7 @@
     <ClCompile Include="src\ce3block.cpp" />
     <ClCompile Include="src\cg3block.cpp" />
     <ClCompile Include="src\cg4block.cpp" />
+    <ClCompile Include="src\cg4datawriter.cpp" />
     <ClCompile Include="src\cgcomment.cpp" />
     <ClCompile Include="src\cgrange.cpp" />
     <ClCompile Include="src\ch4block.cpp" />
@@ -214,6 +215,7 @@
     <ClCompile Include="src\cryptoutil.cpp" />
     <ClCompile Include="src\datablock.cpp" />
     <ClCompile Include="src\datalistblock.cpp" />
+    <ClCompile Include="src\datawriter.cpp" />
     <ClCompile Include="src\dbchelper.cpp" />
     <ClCompile Include="src\dg3block.cpp" />
     <ClCompile Include="src\dg4block.cpp" />
@@ -372,6 +374,7 @@
     <ClInclude Include="..\include\mdf\ichannelobserver.h" />
     <ClInclude Include="..\include\mdf\iconfigadapter.h" />
     <ClInclude Include="..\include\mdf\idatagroup.h" />
+    <ClInclude Include="..\include\mdf\idatawriter.h" />
     <ClInclude Include="..\include\mdf\ievent.h" />
     <ClInclude Include="..\include\mdf\ifilehistory.h" />
     <ClInclude Include="..\include\mdf\iheader.h" />
@@ -416,6 +419,7 @@
     <ClInclude Include="src\ce3block.h" />
     <ClInclude Include="src\cg3block.h" />
     <ClInclude Include="src\cg4block.h" />
+    <ClInclude Include="src\cg4datawriter.h" />
     <ClInclude Include="src\cgrange.h" />
     <ClInclude Include="src\ch4block.h" />
     <ClInclude Include="src\channelobserver.h" />
@@ -424,6 +428,7 @@
     <ClInclude Include="src\convertersamplequeue.h" />
     <ClInclude Include="src\datablock.h" />
     <ClInclude Include="src\datalistblock.h" />
+    <ClInclude Include="src\datawriter.h" />
     <ClInclude Include="src\dbchelper.h" />
     <ClInclude Include="src\dg3block.h" />
     <ClInclude Include="src\dg4block.h" />

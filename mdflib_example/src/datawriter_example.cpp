@@ -16,10 +16,10 @@
 #include "mdf/ichannelgroup.h"
 #include "mdf/ichannel.h"
 
-pace std::filesystem;
+using namespace std::filesystem;
 using namespace mdf;
 
-#paramma pack(push, 1)
+#pragma pack(push, 1)
 struct TestSample{
   int32_t value1;
   float value2;
@@ -27,7 +27,6 @@ struct TestSample{
 };
 
 
-using names
 int main() {
   try {
     const std::string filename = (current_path() / "datawriter_example.mf4").string();

@@ -41,10 +41,10 @@ class IDataWriter {
   virtual void Reset() = 0;
 
   /** \brief Returns writable record buffer used for direct serialization. */
-  [[nodiscard]] virtual std::vector<uint8_t>& Buffer() = 0;
+  [[nodiscard]] virtual std::vector<uint8_t>& SampleBuffer() = 0;
 
   /** \brief Returns read-only record buffer used for direct serialization. */
-  [[nodiscard]] virtual const std::vector<uint8_t>& Buffer() const = 0;
+  [[nodiscard]] virtual const std::vector<uint8_t>& SampleBuffer() const = 0;
 
   /** \brief Returns expected fixed record size in bytes. */
   [[nodiscard]] virtual size_t RecordSize() const = 0;
@@ -56,12 +56,6 @@ class IDataWriter {
   [[nodiscard]] virtual bool WriteRawRecord(const void* buffer,
                                             size_t length) = 0;
 
-  /** \brief Copies the working buffer into the channel group sample buffer.
-   *
-   * This method does not enqueue or save a sample.
-   * @return True on success.
-   */
-  [[nodiscard]] virtual SampleRecord Commit() = 0;
 
   /** \brief Returns channel layout metadata in channel index order. */
   [[nodiscard]] virtual const std::vector<DataWriterChannelLayout>& ChannelLayouts()
@@ -69,7 +63,7 @@ class IDataWriter {
 
   template <typename T>
   void SetValue(const DataWriterChannelLayout& layout, T value) {
-    std::vector<uint8_t>& buffer = Buffer();
+    std::vector<uint8_t>& buffer = SampleBuffer();
 
     if (layout.data_bytes != sizeof(T)) {
       return;
@@ -104,9 +98,9 @@ class IDataWriter {
   }
 
 private:
-  [[nodiscard]] static constexpr bool IsLittleEndian() {
-    constexpr int num = 1;
-    return *(char*) &num == 1;
+  [[nodiscard]] static  bool IsLittleEndian() {
+    const uint16_t num = 1;
+    return *reinterpret_cast<const uint8_t*>(&num) == 1;
   }
 };
 

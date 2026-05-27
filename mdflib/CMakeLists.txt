@@ -51,7 +51,7 @@ add_library(mdf
         ../include/mdf/ichannel.h src/ichannel.cpp
         ../include/mdf/idatagroup.h src/idatagroup.cpp
         ../include/mdf/ichannelgroup.h src/ichannelgroup.cpp
-        ../include/mdf/idatawriter.h src/datawriter.cpp src/datawriter.h src/cg4datawriter.cpp
+        ../include/mdf/idatawriter.h  src/cg4datawriter.cpp
         src/channelobserver.h src/channelobserver.cpp
         ../include/mdf/ichannelobserver.h src/ichannelobserver.cpp
         ../include/mdf/ichannelconversion.h src/ichannelconversion.cpp

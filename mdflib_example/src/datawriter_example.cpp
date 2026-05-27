@@ -16,9 +16,18 @@
 #include "mdf/ichannelgroup.h"
 #include "mdf/ichannel.h"
 
-using namespace std::filesystem;
+pace std::filesystem;
 using namespace mdf;
 
+#paramma pack(push, 1)
+struct TestSample{
+  int32_t value1;
+  float value2;
+  double value3[10];
+};
+
+
+using names
 int main() {
   try {
     const std::string filename = (current_path() / "datawriter_example.mf4").string();
@@ -46,10 +55,30 @@ int main() {
     // Simple integer signal
     {
       auto* signal = MdfWriter::CreateChannel(cg);
-      signal->Name("Value");
+      signal->Name("Value1");
       signal->Type(ChannelType::FixedLength);
       signal->DataType(ChannelDataType::SignedIntegerLe);
       signal->DataBytes(sizeof(int32_t));
+    }
+    // Simple float signal
+    {
+      auto* signal = MdfWriter::CreateChannel(cg);
+      signal->Name("Value2");
+      signal->Type(ChannelType::FixedLength);
+      signal->DataType(ChannelDataType::FloatLe);
+      signal->DataBytes(sizeof(float));
+    }
+    // Simple double array signal
+    {
+      auto* signal = MdfWriter::CreateChannel(cg);
+      signal->Name("Value3");
+      signal->Type(ChannelType::FixedLength);
+      signal->DataType(ChannelDataType::FloatLe);
+      signal->DataBytes(sizeof(double));
+      auto* array = signal->CreateChannelArray();
+      array->Type(ArrayType::Array);
+      std::vector<uint64_t> shape{10};
+      array->Shape(shape);
     }
 
     if (!writer->InitMeasurement()) {
@@ -92,34 +121,18 @@ int main() {
     const size_t samples = 100;
     for (size_t s = 0; s < samples; ++s) {
       data_writer->Reset();
-      auto& buf = data_writer->Buffer();
+
 
       // Master/time channel is not written here. SaveSample() will set master
       // time from the supplied timestamp. Only write the signal value.
-      auto v = static_cast<int32_t>(100 + s);
-      std::memcpy(buf.data() + value_offset, &v, sizeof(v));
-      if (s == 0) {
-        std::cout << "value_offset=" << value_offset << " buffer_size=" << buf.size() << "\n";
-        std::cout << "buffer bytes at offset: ";
-        for (size_t b = 0; b < std::min<size_t>(16, buf.size()); ++b) {
-          std::cout << std::hex << (int)buf[b] << " ";
-        }
-        std::cout << std::dec << "\n";
+      TestSample sample;
+      sample.value1 = static_cast<int32_t>(s);
+      sample.value2 = static_cast<float>(s) * 0.11f;
+      for(int i = 0; i < 10; ++i) {
+        sample.value3[i] = static_cast<double>(s) * 0.01*i + i;
       }
-      SampleRecord rec = data_writer->Commit();
-
-      // Debug: verify group's internal sample buffer
-      if (s == 0) {
-        std::cout << "group buffer bytes at offset: ";
-        for (size_t b = 0; b < std::min<size_t>(16, rec.record_buffer.size()); ++b) {
-          std::cout << std::hex << (int)rec.record_buffer[b] << " ";
-        }
-        std::cout << std::dec << "\n";
-      }
-
-      writer->AddSample(*dg, *cg,
-        start_time + static_cast<uint64_t>(s) * 1'000'000ULL,
-        std::move(rec));
+      data_writer->WriteRawRecord(&sample,sizeof(sample));
+      writer->SaveSample(*cg, start_time + s * 100'000ULL);
     }
 
     writer->StopMeasurement(start_time + 10'000'000ULL);

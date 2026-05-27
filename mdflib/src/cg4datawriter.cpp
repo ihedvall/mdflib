@@ -12,62 +12,76 @@
 
 namespace mdf::detail {
 
-Cg4DataWriter::Cg4DataWriter(const IChannelGroup& group)
-    : group_(group), buffer_(group.GetSampleRecord().record_buffer) {
+Cg4DataWriter::Cg4DataWriter(IChannelGroup& group)
+    : group_(group){
   const auto channels = group_.Channels();
   layouts_.reserve(channels.size());
   for (size_t index = 0; index < channels.size(); ++index) {
     const auto* channel =  channels[index];
-    if (channel == nullptr || channel->Type() == ChannelType::Master) {
-      continue;
+    if(channel->Type() == ChannelType::Master) {
+      if(channel->ByteOffset()!=0){
+        // only support master channel at the beginning of the record buffer
+        throw std::runtime_error("Master channel should be at the beginning of the record buffer");
+      }
     }
+    // if (channel == nullptr || channel->Type() == ChannelType::Master) {
+    //   continue;
+    // }
     DataWriterChannelLayout layout;
-    layout.channel_index = index;
-    layout.name = channel->Name();
-    layout.byte_offset = channel->ByteOffset();
-    layout.data_bytes = channel->DataBytes();
-    layout.data_type = channel->DataType();
-    layouts_.emplace_back(std::move(layout));
+    if(channel->Type() == ChannelType::Master) {
+      master_layout_.channel_index = index;
+      master_layout_.name = channel->Name();
+      master_layout_.byte_offset = channel->ByteOffset();
+      master_layout_.data_bytes = channel->DataBytes();
+      master_layout_.data_type = channel->DataType();
+    }
+    else{
+      layout.channel_index = index;
+      layout.name = channel->Name();
+      layout.byte_offset = channel->ByteOffset();
+      layout.data_bytes = channel->DataBytes();
+      layout.data_type = channel->DataType();
+      layouts_.emplace_back(std::move(layout));
+    }
+    
   }
 }
 
 void Cg4DataWriter::Reset() {
-  std::fill(buffer_.begin(), buffer_.end(), 0);
+  auto& buffer = SampleBuffer();
+  std::fill(buffer.begin(), buffer.end(), 0);
 }
 
-std::vector<uint8_t>& Cg4DataWriter::Buffer() {
-  return buffer_;
+std::vector<uint8_t>& Cg4DataWriter::SampleBuffer() {
+  return group_.SampleBuffer();
 }
 
-const std::vector<uint8_t>& Cg4DataWriter::Buffer() const {
-  return buffer_;
+const std::vector<uint8_t>& Cg4DataWriter::SampleBuffer() const {
+  return group_.SampleBuffer();
 }
 
 size_t Cg4DataWriter::RecordSize() const {
-  return buffer_.size();
+  return group_.SampleBuffer().size() - master_layout_.data_bytes;
 }
 
 bool Cg4DataWriter::WriteRawRecord(const void* buffer, size_t length) {
-  if (length != buffer_.size()) {
+  auto& sample_buffer = SampleBuffer();
+  auto *buffer_ptr = sample_buffer.data()+master_layout_.data_bytes;
+  auto buffer_size = RecordSize();
+  if (length != buffer_size) {
     return false;
   }
   if (length == 0) {
-    return true;
+    return false;
   }
   if (buffer == nullptr) {
     return false;
   }
-  std::memcpy(buffer_.data(), buffer, length);
+  std::memcpy(buffer_ptr, buffer, length);
   return true;
 }
 
-SampleRecord Cg4DataWriter::Commit() {
-  SampleRecord record;
-  record.timestamp = MdfHelper::NowNs();
-  record.record_id = group_.RecordId();
-  record.record_buffer = buffer_;
-  return record;
-}
+
 
 const std::vector<DataWriterChannelLayout>& Cg4DataWriter::ChannelLayouts() const {
   return layouts_;

@@ -6,6 +6,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <string>
+
 #include <mdf/ichannelgroup.h>
 #include <mdf/idatagroup.h>
 #include <mdf/ievent.h>
@@ -42,7 +44,7 @@ extern "C" {
 namespace MdfLibrary::ExportFunctions {
 #pragma region MdfReader
 EXPORT(mdf::MdfReader*, MdfReader, Init, const char* filename) {
-  return new MdfReader(filename);
+  return new MdfReader(std::string(filename));
 }
 #define EXPORTFEATUREFUNC(ReturnType, FuncName, ...) \
   EXPORT(ReturnType, MdfReader, FuncName, mdf::MdfReader* reader, ##__VA_ARGS__)

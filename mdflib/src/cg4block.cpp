@@ -5,9 +5,12 @@
 #include <codecvt>
 #include <climits>
 
+#include "mdf/mdflogstream.h"
+#include "mdf/idatagroup.h"
+
 #include "cn4block.h"
 #include "sr4block.h"
-#include "mdf/mdflogstream.h"
+
 
 namespace {
 
@@ -81,25 +84,17 @@ const IChannel *Cg4Block::GetXChannel(const IChannel &reference) const {
 
   // First check if the channel have a dedicated X channel reference
   const auto x_axis_list = cn4->XAxisLinkList();
-  // As we are returning a channel pointer, we must assume that it belongs to
-  // this group
-  if (x_axis_list.size() == 3 && x_axis_list[1] == Index() && x_axis_list[2]) {
-    const auto channel_index = x_axis_list[2];
-    const auto find =
-      std::find_if(cn_list_.cbegin(), cn_list_.cend(),
-                             [&](const auto &p) {
-      if (!p) {
-        return false;
-      }
-      return p->Index() == channel_index;
-    });
 
-    if (find != cn_list_.cend()) {
-      return find->get();
+  if (x_axis_list.size() == 3 && x_axis_list[2] != 0) {
+    if (const MdfBlock* header = HeaderBlock(); header != nullptr) {
+      if (MdfBlock* channel_x = header->Find(x_axis_list[2]);
+          channel_x != nullptr) {
+        return dynamic_cast<IChannel*>(channel_x);
+      }
     }
   }
 
-  // Search for the master channel in the group
+  // Search for the master channel in this group
   const auto master =
     std::find_if(cn_list_.cbegin(), cn_list_.cend(),
                              [&](const auto &x) {
@@ -376,7 +371,7 @@ uint16_t Cg4Block::Flags() const { return flags_; }
 
 void Cg4Block::Flags(uint16_t flags) { flags_ = flags; }
 
-char16_t Cg4Block::PathSeparator() { return path_separator_; }
+char16_t Cg4Block::PathSeparator() const { return path_separator_; }
 
 void Cg4Block::PathSeparator(char16_t path_separator) {
   path_separator_ = path_separator;
@@ -720,6 +715,15 @@ Cn4Block *Cg4Block::FindVlsdChannel(uint64_t record_id) const {
 const IDataGroup *Cg4Block::DataGroup() const {
   const auto* mdf_block = DgBlock();
   return mdf_block != nullptr ? dynamic_cast<const IDataGroup*>(mdf_block) : nullptr;
+}
+
+void Cg4Block::CopyFrom(const IChannelGroup& source) {
+  acquisition_name_ = source.Name();
+  flags_ = source.Flags();
+  path_separator_ = static_cast<uint16_t>(source.PathSeparator());
+  CgComment comment;
+  source.GetCgComment(comment);
+  SetCgComment(comment);
 }
 
 }  // namespace mdf::detail

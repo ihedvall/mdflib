@@ -165,6 +165,10 @@ add_library(mdf
         ../include/mdf/mdftask.h
         src/validatingtask.cpp
         src/validatingtask.h
+        src/sortingtask.cpp
+        src/sortingtask.h
+        src/sortingconfigadapter.cpp
+        src/sortingconfigadapter.h
 )
 
 include(${CMAKE_SOURCE_DIR}/script/zlib.cmake)

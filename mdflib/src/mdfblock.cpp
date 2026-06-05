@@ -173,6 +173,7 @@ void SetFirstFilePosition(std::streambuf& buffer) {
     throw std::ios_base::failure("Failed to set first stream position");
   }
 }
+
 uint64_t StepFilePosition(std::streambuf& buffer, uint64_t steps) {
   const auto pos = buffer.pubseekoff(
       static_cast<std::streambuf::pos_type>(steps), std::ios_base::cur);
@@ -725,7 +726,6 @@ void MdfBlock::SetLastFilePosition(std::FILE *file) const {
 bool MdfBlock::IsMdf4() const {
   return !block_type_.empty() && block_type_[0] == '#';
 }
-
 
 void MdfBlock::UpdateLink(std::streambuf& buffer, size_t link_index, int64_t link) {
   if (link_index >= link_list_.size()) {

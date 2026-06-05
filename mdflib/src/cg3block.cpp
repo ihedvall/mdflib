@@ -335,4 +335,8 @@ const IDataGroup *Cg3Block::DataGroup() const {
   return mdf_block != nullptr ? dynamic_cast<const IDataGroup*>(mdf_block) : nullptr;
 }
 
+void Cg3Block::CopyFrom(const IChannelGroup &source) {
+  comment_ = source.Description();
+}
+
 }  // namespace mdf::detail

@@ -10,19 +10,12 @@
 #include <cstdint>
 
 #include "mdf/ichannel.h"
-#include "mdf/ichannelgroup.h"
-#include "mdf/idatagroup.h"
 #include "mdf/iblock.h"
 #include "mdf/chcomment.h"
 
 namespace mdf {
 
-/** \brief Support structure that holds a DG/CG/CN relation. */
-struct ElementLink {
-  const IDataGroup* data_group = nullptr; ///< Pointer to a DG block.
-  const IChannelGroup* channel_group = nullptr; ///< Pointer to a CG block.
-  const IChannel* channel = nullptr; ///< Pointer to a CN block.
-};
+
 
 /** \brief Block type */
 enum class ChType : uint8_t {

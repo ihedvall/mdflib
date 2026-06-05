@@ -16,6 +16,7 @@
 #include "mdf/canmessage.h"
 #include "mdf/linmessage.h"
 #include "mdf/ethmessage.h"
+#include "mdf/mdfreader.h"
 
 /** \file mdfwriter.h
  * \brief Interface against an MDF writer object.

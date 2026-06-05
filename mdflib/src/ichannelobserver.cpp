@@ -4,6 +4,7 @@
  */
 #include "mdf/ichannelobserver.h"
 #include "mdf/idatagroup.h"
+#include "mdf/ichannelgroup.h"
 
 namespace {
 std::string FormatArray(const mdf::IChannelArray& array, uint16_t dimension) {
@@ -42,6 +43,14 @@ IChannelObserver::IChannelObserver(const IDataGroup& data_group, const IChannel 
 }
 
 std::string IChannelObserver::Name() const { return channel_.Name(); }
+
+std::string IChannelObserver::ChannelGroupName() const {
+  if (const IChannelGroup* channel_group = channel_.ChannelGroup();
+      channel_group != nullptr) {
+    return channel_group->Name();
+  }
+  return {};
+}
 
 std::string IChannelObserver::Unit() const {
   return channel_.Unit();

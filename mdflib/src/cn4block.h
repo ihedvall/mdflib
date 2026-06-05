@@ -147,6 +147,10 @@ class Cn4Block : public DataListBlock, public IChannel {
   void AddAttachmentReference(const IAttachment* attachment) override;
   std::vector<const IAttachment*> AttachmentList() const override;
 
+  void DefaultX(const ElementLink& default_x) override;
+  [[nodiscard]] ElementLink DefaultX() const override;
+
+  void CopyFrom(const IChannel& source) override;
  protected:
 
   bool GetTextValue(const std::vector<uint8_t>& record_buffer,

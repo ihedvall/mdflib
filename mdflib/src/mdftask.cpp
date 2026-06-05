@@ -28,9 +28,19 @@ MdfTask::~MdfTask() {
   }
 }
 
+void MdfTask::SaveMessage(std::string message) const {
+  if (message.empty()) {
+    return;
+  }
+  message_list_.emplace_back(std::move(message));
+}
+
 void MdfTask::CheckSourceFile() const {
   try {
     const path source(SourceFile());
+    if (source.empty()) {
+      throw std::runtime_error("Source filename is empty");
+    }
     if (!exists(source) || !is_regular_file(source)) {
       throw std::runtime_error(
         "Source file does not exist or is not a regular file" );
@@ -45,10 +55,42 @@ void MdfTask::CheckSourceFile() const {
   }
 }
 
+void MdfTask::CheckDestinationFile() const {
+  try {
+    const path dest(DestinationFile());
+    if (dest.empty()) {
+      // Destination file must be set
+      throw std::runtime_error("Destination file is empty");
+    }
+    // Create dessnation directory if it doesn't exist
+    const path parent = dest.parent_path();
+    create_directories(parent);
+
+    if (exists(dest) && !OverwriteFile()) {
+      throw std::runtime_error(
+        "Destination file already exists and overwrite is disabled");
+    }
+
+    const path source(SourceFile());
+    if (source == dest) {
+      throw std::runtime_error(
+        "Source and destination files cannot be the same"
+      );
+    }
+  } catch (const std::exception& err) {
+    std::ostringstream oss;
+    oss << "Check of source file failed."
+    << " File: " << SourceFile()
+    << ", Error: " << err.what();
+    MDF_ERROR() << oss.str();
+    throw std::runtime_error(oss.str());
+  }
+}
+
 void MdfTask::CreateSourceTempFile() {
   try {
     const path source(SourceFile());
-    path temp = temp_directory_path();
+    path temp( temp_directory_path());
     temp /= source.filename();
 
     if (temp == source) {
@@ -59,6 +101,30 @@ void MdfTask::CreateSourceTempFile() {
 
     remove(temp);
     copy(source, temp);
+    TempFile(temp.string());
+  } catch (const std::exception& err) {
+    std::ostringstream oss;
+    oss << "Creating a temporary file failed."
+    << " File: " << SourceFile()
+    << ", Error: " << err.what();
+    MDF_ERROR() << oss.str();
+    throw std::runtime_error(oss.str());
+  }
+}
+
+void MdfTask::CreateDestinationTempFile() {
+  try {
+    const path dest(DestinationFile());
+    path temp( temp_directory_path());
+    temp /= dest.filename();
+
+    if (temp == dest) {
+      throw std::runtime_error(
+        "Cannot create temporary file with same name as the destination file"
+      );
+    }
+
+    remove(temp);
     TempFile(temp.string());
   } catch (const std::exception& err) {
     std::ostringstream oss;
@@ -137,13 +203,15 @@ bool MdfTask::ValidateAllValues() {
     DataGroupList dg_list;
     mdf_file->DataGroups(dg_list);
     if (dg_list.empty()) {
-      MDF_TRACE() << "No data groups found in the MDF file.";
-      return false;
+      throw std::runtime_error("No data groups in the file.");
     }
+    size_t dg_order = 0;
     for (IDataGroup* data_group : dg_list) {
+      ++dg_order;
       if (data_group == nullptr) {
         continue;
       }
+
       ChannelObserverList channel_list;
       CreateChannelObserverForDataGroup(*data_group, channel_list);
       if (const bool read_data = reader_->ReadData(*data_group); !read_data) {
@@ -161,15 +229,21 @@ bool MdfTask::ValidateAllValues() {
         });
         if (!valid_values) {
           all_valid = false;
-          MDF_TRACE() << "Invalid values found. Data Group: "
-            << data_group->Description();
+          std::string dg_name = data_group->Description();
+          if (dg_name.empty()) {
+            dg_name = "Measurement " + std::to_string(dg_order);
+          }
+          std::ostringstream err_msg;
+          err_msg << "Invalid values found. Data Group: " << dg_name
+            << " Channel Group: " << channel_observer->ChannelGroupName()
+            << ", Channel: " << channel_observer->Name();
+          SaveMessage(err_msg.str());
         }
       }
       data_group->ClearData();
     }
     reader_.reset();
   } catch (const std::exception& err) {
-    all_valid = false;
     std::ostringstream oss;
     oss << "Validating all values function failed."
     << " File: " << TempFile()

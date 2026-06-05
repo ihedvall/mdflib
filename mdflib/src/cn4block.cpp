@@ -10,11 +10,12 @@
 #include "bigbuffer.h"
 #include "ca4block.h"
 #include "cg4block.h"
+#include "dg4block.h"
+#include "dl4block.h"
+#include "dz4block.h"
+#include "hl4block.h"
 #include "littlebuffer.h"
 #include "sd4block.h"
-#include "dz4block.h"
-#include "dl4block.h"
-#include "hl4block.h"
 
 namespace {
 
@@ -347,7 +348,8 @@ void Cn4Block::GetBlockProperty(BlockPropertyList &dest) const {
     dest.emplace_back("Attachment AT", ToHexString(Link(kIndexAt + at)),
                       "Reference to attachment", BlockItemType::LinkItem);
   }
-  if (Link(kIndexAt + nof_attachments_) > 0) {
+  const ElementLink default_x = DefaultX();
+  if (!default_x.IsEmpty()) {
     dest.emplace_back(
         "Reference DG", ToHexString(Link(kIndexAt + nof_attachments_)),
         "Reference to x-axis data block", BlockItemType::LinkItem);
@@ -492,13 +494,15 @@ uint64_t Cn4Block::Read(std::streambuf& buffer) {
 }
 
 uint64_t Cn4Block::Write(std::streambuf& buffer) {
+
+
   if (const bool update = FilePosition() > 0;  // True if already written to file
       update) {
     return block_length_;
   }
-
-  nof_attachments_ = static_cast<uint16_t>(attachment_list_.size());
   const auto default_x = (flags_ & CnFlag::DefaultX) != 0;
+  nof_attachments_ = static_cast<uint16_t>(attachment_list_.size());
+
 
   block_type_ = "##CN";
   block_length_ = static_cast<uint64_t>(24 + 8 * 8);
@@ -507,7 +511,7 @@ uint64_t Cn4Block::Write(std::streambuf& buffer) {
     block_length_ += 3 * 8;
   }
   block_length_ += 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 1 + 1 + 2 + (6 * 8);
-  link_list_.resize(8 + nof_attachments_ + (default_x ? 1 : 0), 0);
+  link_list_.resize(8 + nof_attachments_ + (default_x ? 3 : 0), 0);
   WriteLink4List(buffer, cx_list_, kIndexCx,
                  UpdateOption::DoNotUpdateWrittenBlock);
   WriteTx4(buffer, kIndexName, name_);
@@ -523,14 +527,15 @@ uint64_t Cn4Block::Write(std::streambuf& buffer) {
     const auto *at4 = attachment_list_[index_at];
     link_list_[index] = at4 != nullptr ? at4->Index() : 0;
   }
+
   if (default_x) {
     const auto index = 8 + nof_attachments_;
     const auto *dg4 = default_x_.data_group;
     const auto *cg4 = default_x_.channel_group;
     const auto *cn4 = default_x_.channel;
-    link_list_[index] = dg4 != nullptr ? dg4->Index() : 0;
-    link_list_[index] = cg4 != nullptr ? cg4->Index() : 0;
-    link_list_[index] = cn4 != nullptr ? cn4->Index() : 0;
+    link_list_[index + 0] = dg4 != nullptr ? dg4->Index() : 0;
+    link_list_[index + 1] = cg4 != nullptr ? cg4->Index() : 0;
+    link_list_[index + 2] = cn4 != nullptr ? cn4->Index() : 0;
   }
 
   uint64_t bytes = MdfBlock::Write(buffer);
@@ -1327,6 +1332,66 @@ void Cn4Block::AddAttachmentReference(const IAttachment *attachment) {
 
 std::vector<const IAttachment *> Cn4Block::AttachmentList() const {
   return attachment_list_;
+}
+
+void Cn4Block::DefaultX(const ElementLink &default_x) {
+  flags_ |= CnFlag::DefaultX;
+  default_x_ = default_x;
+}
+
+ElementLink Cn4Block::DefaultX() const {
+  // The default_x_ variable is not populate when reading.
+  // Fix file position to pointer transfer if needed.
+  ElementLink default_x = default_x_;
+  const auto link_list = XAxisLinkList();
+  if ((flags_ & CnFlag::DefaultX) != 0 && link_list.size() >= 3) {
+    if (const MdfBlock* header = HeaderBlock(); header != nullptr) {
+      if (const MdfBlock* dg_block = header->Find(link_list[0]);
+          dg_block != nullptr && link_list[0] > 0) {
+        default_x.data_group = dynamic_cast<const Dg4Block*>(dg_block);
+      }
+      if (const MdfBlock* cg_block = header->Find(link_list[1]);
+          cg_block != nullptr && link_list[1] > 0) {
+        default_x.channel_group = dynamic_cast<const Cg4Block*>(cg_block);
+      }
+      if (const MdfBlock* cn_block = header->Find(link_list[2]);
+        cn_block != nullptr && link_list[2] > 0) {
+        default_x.channel = dynamic_cast<const Cn4Block*>(cn_block);
+      }
+    }
+  }
+  return default_x;
+}
+
+void Cn4Block::CopyFrom(const IChannel &source) {
+  if (const auto* cn4 = dynamic_cast<const Cn4Block*>(&source);
+      cn4 != nullptr) {
+    type_ = cn4->type_;
+    sync_type_ = cn4->sync_type_;
+    data_type_ = cn4->data_type_;
+    bit_count_ = cn4->bit_count_;
+    byte_offset_ = cn4->byte_offset_;
+    bit_offset_ = cn4->bit_offset_;
+    flags_ = cn4->flags_;
+    invalid_bit_pos_ = cn4->invalid_bit_pos_;
+    // nof_attachments_ = cn4->nof_attachments_;
+    // Todo: Attachment list i.e. pointers to attachments
+
+    range_min_ = cn4->range_min_;
+    range_max_ = cn4->range_max_;
+    limit_min_ = cn4->limit_min_;
+    limit_max_ = cn4->limit_max_;
+    limit_ext_min_ = cn4->limit_ext_min_;
+    limit_ext_max_ = cn4->limit_ext_max_;
+
+    name_ = cn4->name_;
+    Unit(cn4->Unit());
+
+    CnComment comment;
+    cn4->GetCnComment(comment);
+    SetCnComment(comment);
+
+  }
 }
 
 void Cn4Block::SetCnUnit(const CnUnit &unit) {

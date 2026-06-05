@@ -81,6 +81,11 @@ class Cn3Block : public DataListBlock, public IChannel {
   std::vector<IChannel*> ChannelCompositions() override;
 
   const IChannelGroup* ChannelGroup() const override;
+
+  void DefaultX(const ElementLink& default_x) override;
+  [[nodiscard]] ElementLink DefaultX() const override;
+
+  void CopyFrom(const IChannel& source) override;
  protected:
 
   [[nodiscard]] std::vector<uint8_t>& SampleBuffer() const override;

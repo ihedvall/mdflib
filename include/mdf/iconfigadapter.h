@@ -10,6 +10,7 @@
 #include <string>
 
 #include "mdf/mdfenumerates.h"
+#include "mdf/iheader.h"
 
 namespace mdf {
 
@@ -27,8 +28,8 @@ enum class MessageFilter : int {
 
 class IConfigAdapter {
  public:
-    virtual ~IConfigAdapter() = default;
-    IConfigAdapter() = delete;
+  virtual ~IConfigAdapter() = default;
+  IConfigAdapter() = delete;
   explicit IConfigAdapter(const MdfWriter& writer);
 
   void BusType(uint16_t bus_type);
@@ -60,7 +61,8 @@ class IConfigAdapter {
   void DeviceName(std::string device_name);
   [[nodiscard]] const std::string& DeviceName() const;
 
-  virtual void CreateConfig(IDataGroup& dg_block) = 0;
+  virtual void CreateConfig(IHeader& header);
+  virtual void CreateConfig(IDataGroup& dg_block);
 
     /** \brief Defines the type of variable length storage.
      *

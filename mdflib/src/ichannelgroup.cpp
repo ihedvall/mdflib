@@ -27,7 +27,7 @@ uint16_t IChannelGroup::Flags() const { return 0; }
 
 void IChannelGroup::Flags(uint16_t flags) {}
 
-char16_t IChannelGroup::PathSeparator() { return u'/'; }
+char16_t IChannelGroup::PathSeparator() const { return u'/'; }
 
 void IChannelGroup::PathSeparator(char16_t path_separator) {}
 

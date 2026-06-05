@@ -9,7 +9,7 @@
 #include <fstream>
 
 #include "mdf/cryptoutil.h"
-#include "mdf/mdfhelper.h"
+#include "mdf/mdfreader.h"
 #include "mdf/mdflogstream.h"
 #include "mdf/zlibutil.h"
 #include "platform.h"
@@ -168,36 +168,37 @@ uint64_t At4Block::Write(std::streambuf& buffer) {
   if (update) {
     return block_size_;
   }
-  ByteArray data_buffer;
-  try {
-    path filename = u8path(filename_);
-    if (!fs::exists(filename) && IsEmbedded()) {
-      MDF_ERROR() << "Attachment File doesn't exist. File: " << filename_;
-    }
-    if (fs::exists(filename)) {
-      if (const auto md5 = CreateMd5FileChecksum(filename_, md5_); md5) {
-        flags_ |= At4Flags::kUsingMd5;
+  if (original_size_ == 0) {
+    try {
+      path filename = u8path(filename_);
+      if (!fs::exists(filename) && IsEmbedded()) {
+        MDF_ERROR() << "Attachment File doesn't exist. File: " << filename_;
       }
-      original_size_ = file_size(filename);
-      if (IsEmbedded() && IsCompressed()) {
-        if (const bool compress = Deflate(filename_, data_buffer); !compress) {
-          MDF_ERROR() << "Compress failure. File: " << filename;
-          return 0;
+      if (fs::exists(filename)) {
+        if (const auto md5 = CreateMd5FileChecksum(filename_, md5_); md5) {
+          flags_ |= At4Flags::kUsingMd5;
         }
-      } else if (IsEmbedded()) {
-        if (const auto read = FileToBuffer(filename_, data_buffer); !read) {
-          MDF_ERROR() << "File to buffer failure. File: " << filename;
-          return 0;
+        original_size_ = file_size(filename);
+        if (IsEmbedded() && IsCompressed()) {
+          if (const bool compress = Deflate(filename_, data_buffer_); !compress) {
+            MDF_ERROR() << "Compress failure. File: " << filename;
+            return 0;
+          }
+        } else if (IsEmbedded()) {
+          if (const auto read = FileToBuffer(filename_, data_buffer_); !read) {
+            MDF_ERROR() << "File to buffer failure. File: " << filename;
+            return 0;
+          }
         }
       }
+    } catch (const std::exception& err) {
+      MDF_ERROR() << "Attachment File error. Error: " << err.what()
+                  << ", File: " << filename_;
+      return 0;
     }
-  } catch (const std::exception& err) {
-    MDF_ERROR() << "Attachment File error. Error: " << err.what()
-                << ", File: " << filename_;
-    return 0;
-  }
 
-  nof_bytes_ = data_buffer.size();
+    nof_bytes_ = data_buffer_.size();
+  }
 
   block_type_ = "##AT";
   block_length_ = 24 + (4 * 8) + 2 + 2 + 4 + 16 + 8 + 8 + nof_bytes_;
@@ -220,11 +221,15 @@ uint64_t At4Block::Write(std::streambuf& buffer) {
   bytes += WriteNumber(buffer, nof_bytes_);
   data_position_ = FilePosition();
   if (nof_bytes_ > 0) {
-    bytes += WriteByte(buffer, data_buffer);
+    bytes += WriteByte(buffer, data_buffer_);
   }
   UpdateBlockSize(buffer, bytes);
 
   return bytes;
+}
+
+uint64_t At4Block::OriginalSize() const {
+  return original_size_;
 }
 
 void At4Block::ReadData(std::streambuf& buffer,
@@ -319,6 +324,29 @@ std::optional<std::string> At4Block::Md5() const {
     return {};
   }
   return ConvertMd5Buffer(md5_);
+}
+
+void At4Block::CopyFrom(const IAttachment& source, MdfReader& reader) {
+  try {
+    const auto& at4 = dynamic_cast<const At4Block&>(source);
+    flags_ = at4.flags_;
+    creator_index_ = at4.creator_index_;
+    original_size_ = at4.original_size_;
+    nof_bytes_ = at4.nof_bytes_;
+    md5_ = at4.md5_;
+    filename_ = at4.filename_;
+    file_type_ = at4.file_type_;
+    if (at4.data_position_ > 0 && at4.nof_bytes_ > 0) {
+      reader.ReadInDataBuffer(at4.data_position_, at4.nof_bytes_, data_buffer_);
+    }
+    AtComment comment;
+    source.GetAtComment(comment);
+    SetAtComment(comment);
+  } catch (const std::exception&) {
+  }
+
+
+
 }
 
 void At4Block::CreatorIndex(uint16_t creator) { creator_index_ = creator; }

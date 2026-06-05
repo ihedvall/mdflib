@@ -71,6 +71,9 @@ class Dg4Block : public DataListBlock, public IDataGroup {
   void ParseDataRecords(std::streambuf& buffer, uint64_t nof_data_bytes) const;
   uint64_t ReadRecordId(std::streambuf& buffer, uint64_t& record_id) const;
 
+  void UpdateVlsdChannel(std::streambuf& buffer, const Cg4Block& cg4) const;
+  static void UpdateDefaultX(std::streambuf& buffer, Cn4Block& cn4);
+
 };
 
 }  // namespace mdf::detail

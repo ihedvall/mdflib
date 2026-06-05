@@ -102,6 +102,13 @@ const std::string& IConfigAdapter::DeviceName() const {
     return device_name_;
 }
 
+void IConfigAdapter::CreateConfig(IHeader& header) {
+
+}
+void IConfigAdapter::CreateConfig(IDataGroup& dg_block) {
+
+}
+
 IChannel* IConfigAdapter::CreateTimeChannel(IChannelGroup& group,
                                         const std::string_view& name) const {
   const auto cn_list = group.Channels();

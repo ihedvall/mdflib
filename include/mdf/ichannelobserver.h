@@ -56,6 +56,7 @@ class IChannelObserver : public ISampleObserver {
       const = 0; ///< Returns number of samples.
 
   [[nodiscard]] std::string Name() const; ///< Channel name
+  [[nodiscard]] std::string ChannelGroupName() const;
 
   [[nodiscard]] std::string Unit() const; ///< Channel unit.
 

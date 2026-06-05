@@ -21,4 +21,15 @@ void ISourceInformation::GetSiComment(SiComment &si_comment) const {
   }
 }
 
+void ISourceInformation::CopyFrom(const ISourceInformation& source) {
+  Type(source.Type());
+  Bus(source.Bus());
+  Flags(source.Flags());
+  Name(source.Name());
+  Path(source.Path());
+  SiComment si_comment;
+  source.GetSiComment(si_comment);
+  SetSiComment(si_comment);
+}
+
 }  // namespace mdf

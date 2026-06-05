@@ -46,6 +46,8 @@ class MdString : public MdStandardAttribute {
 
    [[nodiscard]] bool IsActive() const override;
 
+   [[nodiscard]] bool IsEmpty() const { return text_.empty(); }
+
    void Text(std::string text);
    [[nodiscard]] const std::string& Text() const;
 

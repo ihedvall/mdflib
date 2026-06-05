@@ -58,7 +58,8 @@ add_executable(test_mdf
         src/testappend.cpp
         src/testappend.h
         src/testmdftask.cpp
-        src/testmdftask.h)
+        src/testmdftask.h
+        src/testdefaultx.cpp)
 
 target_include_directories(test_mdf PRIVATE ../include ../mdflib/src)
 target_include_directories(test_mdf PRIVATE ${utillib_SOURCE_DIR}/include)

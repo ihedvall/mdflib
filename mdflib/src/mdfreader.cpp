@@ -265,6 +265,8 @@ MdfReader::MdfReader(std::string filename) : filename_(std::move(filename)) {
 
   VerifyMdfFile();
 }
+MdfReader::MdfReader(const std::string_view &filename)
+  : MdfReader(std::string(filename)) {}
 
 MdfReader::MdfReader(const std::shared_ptr<std::streambuf>& buffer)  {
   file_ = buffer;
@@ -535,6 +537,33 @@ bool MdfReader::ReadData(IDataGroup &data_group) {
     Close();
   }
   return !error;
+}
+
+bool MdfReader::ReadInDataBuffer(int64_t data_position, uint64_t nof_bytes,
+                                 std::vector<uint8_t> &destination) {
+  try {
+    if (data_position <= 0) {
+      throw std::invalid_argument("Data Position must be positive");
+    }
+    if (nof_bytes == 0) {
+      destination.clear();
+      return true;
+    }
+    destination.resize(nof_bytes);
+    const bool was_open = Open();
+    if (file_) {
+      SetFilePosition(*file_, data_position);
+      ReadByte(*file_, destination, nof_bytes);
+    }
+    if (!was_open) {
+      Close();
+    }
+  } catch (const std::exception &err) {
+    MDF_ERROR() << "Failed to read the file information blocks. Error: "
+                << err.what();
+    return false;
+  }
+  return true;
 }
 
 bool MdfReader::ReadPartialData(IDataGroup &data_group, size_t min_sample,

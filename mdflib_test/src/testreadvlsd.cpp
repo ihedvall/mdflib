@@ -64,7 +64,7 @@ TEST_F(TestReadVlsd, TestVeryLargeFile) {
     ASSERT_TRUE(false) << err.what();
   }
   const auto start_open = MdfHelper::NowNs();
-  MdfReader reader((kVeryLargeFile.data()));
+  MdfReader reader((kVeryLargeFile));
   const auto stop_open = MdfHelper::NowNs();
   std::cout << "Open File (ms): " << ConvertToMs(stop_open - start_open) << std::endl;
 
@@ -156,7 +156,7 @@ TEST_F(TestReadVlsd, TestSdList) {
   }
 
   const auto start_open = MdfHelper::NowNs();
-  MdfReader reader((kSdList.data()));
+  MdfReader reader((kSdList));
   const auto stop_open = MdfHelper::NowNs();
   std::cout << "Open File (ms): " << ConvertToMs(stop_open - start_open) << std::endl;
 
@@ -251,7 +251,7 @@ TEST_F(TestReadVlsd, TestRead10) {
   }
 
   const auto start_open = MdfHelper::NowNs();
-  MdfReader reader((kSdList.data()));
+  MdfReader reader((kSdList));
   const auto stop_open = MdfHelper::NowNs();
   std::cout << "Open File (ms): " << ConvertToMs(stop_open - start_open) << std::endl;
 

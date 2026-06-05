@@ -5,6 +5,9 @@
 #include "ca4block.h"
 #include <algorithm>
 
+#include "mdf/idatagroup.h"
+#include "mdf/ichannelgroup.h"
+
 #include "cn4block.h"
 
 namespace {

@@ -15,6 +15,8 @@
 
 namespace mdf {
 
+class MdfReader;
+
 /** \brief Interface against an attached file.
  *
  * The attachment (AT) block is used to reference and/or embed the file content.
@@ -42,12 +44,16 @@ class IAttachment : public IBlock {
   virtual void IsCompressed(bool compress) = 0; ///< Set true tp compress.
   [[nodiscard]] virtual bool IsCompressed() const = 0; ///< True if compressed.
 
+
   /** \brief Return the MDG checksum if it exist.
    *
    * Returns the MD5 checksum string if it is supplied.
    * @return MD5 checksum string.
    */
   [[nodiscard]] virtual std::optional<std::string> Md5() const = 0;
+
+
+  [[nodiscard]] virtual uint64_t OriginalSize() const = 0;
 
   /** \brief Sets the filename. Include path.
    *
@@ -95,6 +101,8 @@ class IAttachment : public IBlock {
 
   void SetAtComment(const AtComment& at_comment);
   void GetAtComment(AtComment& at_comment) const;
+
+  virtual void CopyFrom(const IAttachment& source, MdfReader& reader) = 0;
 };
 
 }  // namespace mdf

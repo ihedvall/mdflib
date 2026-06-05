@@ -522,4 +522,35 @@ const IChannelGroup* Cn3Block::ChannelGroup() const {
   return dynamic_cast<const IChannelGroup*> (CgBlock());
 }
 
+void Cn3Block::DefaultX(const ElementLink &default_x) {
+  // Not supported for CN3 blocks
+}
+
+ElementLink Cn3Block::DefaultX() const {
+  return {};
+}
+
+void Cn3Block::CopyFrom(const IChannel &source) {
+  if (const auto *source_cn3 = dynamic_cast<const Cn3Block *>(&source);
+      source_cn3 != nullptr) {
+    channel_type_ = source_cn3->channel_type_;
+    short_name_ = source_cn3->short_name_;
+    description_ = source_cn3->description_;
+    start_offset_ = source_cn3->start_offset_;
+    nof_bits_ = source_cn3->nof_bits_;
+    signal_type_ = source_cn3->signal_type_;
+
+    range_valid_ = source_cn3->range_valid_;
+    min_ = source_cn3->min_;
+    max_ = source_cn3->max_;
+    sample_rate_ = source_cn3->sample_rate_;
+    byte_offset_ = source_cn3->byte_offset_;
+
+    comment_ = source_cn3->comment_;
+    long_name_ = source_cn3->long_name_;
+    display_name_ = source_cn3->display_name_;
+  }
+
+}
+
 }  // namespace mdf::detail

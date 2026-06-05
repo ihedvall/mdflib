@@ -238,7 +238,7 @@ TEST_F(TestRead, Benchmark) {
   }
 
   {
-    MdfReader oRead(kBenchMarkFile.data());
+    MdfReader oRead(kBenchMarkFile);
     const auto start = steady_clock::now();
     oRead.ReadMeasurementInfo();
     const auto stop = steady_clock::now();
@@ -248,7 +248,7 @@ TEST_F(TestRead, Benchmark) {
   }
   {
     const auto start = steady_clock::now();
-    MdfReader oRead(kBenchMarkFile.data());
+    MdfReader oRead(kBenchMarkFile);
     oRead.ReadEverythingButData();
     const auto *file = oRead.GetFile();
     DataGroupList dg_list;
@@ -499,7 +499,7 @@ TEST_F(TestRead, TestPartialRead) {
   std::cout << "Start reading large 22GB file (NAS storage." << std::endl;
 
   const auto start_open = MdfHelper::NowNs();
-  MdfReader oRead(kLargeNasFile.data());
+  MdfReader oRead(kLargeNasFile);
   const auto stop_open = MdfHelper::NowNs();
   std::cout << "Open File (ms): " << ConvertToMs(stop_open - start_open)
             << std::endl;

@@ -9,8 +9,7 @@
 
 
 #include "mdf/ichannelgroup.h"
-#include "mdf/idatawriter.h"
-#include "mdf/idatagroup.h"
+
 #include "mdfblock.h"
 #include "si4block.h"
 #include "cn4block.h"
@@ -53,10 +52,10 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   [[nodiscard]] uint64_t RecordId() const override;
   void RecordId(uint64_t record_id) override;
 
-  uint16_t Flags() const override;
+    [[nodiscard]] uint16_t Flags() const override;
   void Flags(uint16_t flags) override;
 
-  char16_t PathSeparator() override;
+  [[nodiscard]] char16_t PathSeparator() const override;
   void PathSeparator(char16_t path_separator) override;
 
   [[nodiscard]] std::vector<IChannel*> Channels() const override;
@@ -112,6 +111,8 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   Cn4Block* FindVlsdChannel(uint64_t record_id) const;
 
   [[nodiscard]] const IDataGroup* DataGroup() const override;
+
+  void CopyFrom(const IChannelGroup& source) override;
  private:
   uint64_t record_id_ = 0;
   uint64_t nof_samples_ = 0;

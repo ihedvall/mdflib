@@ -87,7 +87,7 @@ class IChannelGroup : public IBlock {
   [[nodiscard]] virtual uint16_t Flags() const; ///< Sets CgFlag.
   virtual void Flags(uint16_t flags); ///< Returns CgFlag.
 
-  [[nodiscard]] virtual char16_t PathSeparator(); ///< Sets the path separator.
+  [[nodiscard]] virtual char16_t PathSeparator() const; ///< Sets the path separator.
   virtual void PathSeparator(char16_t path_separator); ///< Path separator.
 
   /** \brief Returns a list of channels. */
@@ -175,6 +175,7 @@ class IChannelGroup : public IBlock {
     return max_length_;
   }
 
+  virtual void CopyFrom(const IChannelGroup& source) = 0;
 protected:
   /** \brief Temporary record when saving samples.
    *

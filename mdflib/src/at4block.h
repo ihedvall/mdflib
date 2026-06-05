@@ -3,12 +3,16 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <memory>
+#include <cstdint>
+#include <string>
 #include <vector>
 
-#include "md4block.h"
 #include "mdf/iattachment.h"
 #include "mdfblock.h"
+
+namespace mdf {
+class MdfReader;
+}
 
 namespace mdf::detail {
 namespace At4Flags {
@@ -57,7 +61,11 @@ class At4Block : public MdfBlock, public IAttachment {
   void ReadData(std::streambuf& buffer, std::streambuf& dest_buffer) const;
 
   uint64_t Write(std::streambuf& buffer) override;
+
+  [[nodiscard]] uint64_t OriginalSize() const override;
   [[nodiscard]] std::optional<std::string> Md5() const override;
+
+  void CopyFrom(const IAttachment& source, MdfReader& reader) override;
 
  private:
   uint16_t flags_ = 0;
@@ -70,5 +78,9 @@ class At4Block : public MdfBlock, public IAttachment {
   int64_t data_position_ = 0;  ///< File position of the data BLOB
   std::string filename_;
   std::string file_type_;
+
+  std::vector<uint8_t> data_buffer_; ///< Data buffer used when copying
+
+
 };
 }  // namespace mdf::detail

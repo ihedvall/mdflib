@@ -22,6 +22,7 @@ constexpr std::array<std::string_view, 9> kSeverityList = {"Trace", "Debug",
                                                        "Warning", "Error",
                                                        "Critical","Alert",
                                                        "Emergency" };
+mdf::MdfLogSeverity kLogLevel = mdf::MdfLogSeverity::kTrace;
 }  // end namespace
 
 namespace mdf {
@@ -66,6 +67,9 @@ void MdfLogStream::ResetLogFunction() {
 void MdfLogStream::LogToConsole(const MdfLocation& location,
                                    MdfLogSeverity severity,
                                    const std::string& text) {
+  if (severity < kLogLevel) {
+    return;
+  }
   try {
     const uint64_t now = MdfHelper::NowNs();
     const std::string now_string = MdfHelper::NsToLocalIsoTime(now);
@@ -86,5 +90,8 @@ void MdfLogStream::LogToConsole(const MdfLocation& location,
   }
 }
 
+void MdfLogStream::SetLogLevel(MdfLogSeverity severity) {
+  kLogLevel = severity;
+}
 
 }  // namespace mdf

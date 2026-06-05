@@ -69,7 +69,9 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
   void ClearData() override;
 
   [[nodiscard]] const IDataGroup* DataGroup() const override;
-  // [[nodiscard]] IDataWriter* CreateDataWriter() const override { return nullptr; }
+
+  void CopyFrom(const IChannelGroup& source) override;
+
  private:
   uint16_t record_id_ = 0;
   uint16_t nof_channels_ = 0;

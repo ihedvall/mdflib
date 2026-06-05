@@ -20,4 +20,12 @@ void IFileHistory::GetFhComment(FhComment &fh_comment) const {
     fh_comment.FromXml(meta_data->XmlSnippet());
   }
 }
+
+void IFileHistory::CopyFrom(const IFileHistory& source) {
+  Time(source.Time());
+  FhComment comment;
+  source.GetFhComment(comment);
+  SetFhComment(comment);
 }
+
+}  // namespace mdf

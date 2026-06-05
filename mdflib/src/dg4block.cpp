@@ -132,15 +132,16 @@ uint64_t Dg4Block::Write(std::streambuf& buffer) {
     // Need to update the signal data link for any channels referencing
     // VLSD CG blocks.
     for (auto& cg4 : cg_list_) {
-      if (cg4 && (cg4->Flags() & CgFlag::VlsdChannel) ) {
-        // The previous CG block has a channel which needs to update its
-        // signal data link.
-        auto* other_cg4 = FindCgRecordId(cg4->RecordId() -1);
-        auto* cn4 = other_cg4 != nullptr ?
-                 other_cg4->FindVlsdChannel(cg4->RecordId()) : nullptr;
-        if (cn4 != nullptr) {
-          cn4->UpdateDataLink(buffer, cg4->FilePosition());
+      if (!cg4) {
+        continue;
+      }
+      UpdateVlsdChannel(buffer, *cg4);
+      const auto& cn4_list = cg4->Cn4();
+      for (const auto& channel_x : cn4_list) {
+        if (!channel_x) {
+          continue;
         }
+        UpdateDefaultX(buffer, *channel_x);
       }
     }
   }
@@ -580,6 +581,33 @@ uint64_t Dg4Block::ReadRecordId(std::streambuf& buffer, uint64_t& record_id) con
       break;
   }
   return count;
+}
+
+void Dg4Block::UpdateVlsdChannel(std::streambuf& buffer, const Cg4Block& cg4) const {
+  if ((cg4.Flags() & CgFlag::VlsdChannel) != 0 ) {
+    // The previous CG block has a channel which needs to update its
+    // signal data link.
+    auto* other_cg4 = FindCgRecordId(cg4.RecordId() -1);
+    auto* cn4 = other_cg4 != nullptr ?
+             other_cg4->FindVlsdChannel(cg4.RecordId()) : nullptr;
+
+    if (cn4 != nullptr) {
+      // Update the data and optional the default X links
+      cn4->UpdateDataLink(buffer, cg4.FilePosition());
+    }
+  }
+}
+void Dg4Block::UpdateDefaultX(std::streambuf& buffer, Cn4Block& cn4) {
+  if ((cn4.Flags() & CnFlag::DefaultX) != 0) {
+    const auto default_x = cn4.DefaultX();
+    const auto index = 8 + cn4.AttachmentList().size();
+    const auto *dg4_x = default_x.data_group;
+    const auto *cg4_x = default_x.channel_group;
+    const auto *cn4_x = default_x.channel;
+    cn4.UpdateLink(buffer, index + 0, dg4_x != nullptr ? dg4_x->Index() : 0);
+    cn4.UpdateLink(buffer, index + 1, cg4_x != nullptr ? cg4_x->Index() : 0);
+    cn4.UpdateLink(buffer, index + 2, cn4_x != nullptr ? cn4_x->Index() : 0);
+  }
 }
 
 Cg4Block* Dg4Block::FindCgRecordId(uint64_t record_id) const {

@@ -182,6 +182,8 @@ class IFileHistory : public IBlock {
 
   void SetFhComment(const FhComment& fh_comment);
   void GetFhComment(FhComment& fh_comment) const;
+
+  void CopyFrom(const IFileHistory& source);
 };
 
 }  // namespace mdf

@@ -30,7 +30,7 @@ void ValidatingTask::Run() {
     std::ostringstream oss;
     oss << "Failed to run the validation task. Error: " << err.what();
     Error(true);
-    ErrorMessage(oss.str());
+    SaveMessage(oss.str());
   }
 }
 

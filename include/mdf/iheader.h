@@ -35,6 +35,7 @@ class IDataGroup;
  */
 class IHeader : public IBlock {
  public:
+
   /** \brief Sets the author of the file.
    *
    * Sets the author of the files.
@@ -308,6 +309,8 @@ class IHeader : public IBlock {
 
   void SetHdComment(const HdComment& hd_comment);
   void GetHdComment(HdComment& hd_comment) const;
+
+  void CopyFrom(const IHeader& source);
 
  protected:
   ~IHeader() override = default;  ///< Default constructor

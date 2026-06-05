@@ -9,14 +9,15 @@
 #include <memory>
 #include <string>
 #include <system_error>
+#include <vector>
 
 #include "mdf/mdfenumerates.h"
 #include "mdf/mdfreader.h"
 #include "mdf/mdfwriter.h"
+
 namespace mdf {
 class MdfTask {
 public:
-
   virtual ~MdfTask();
 
   void SourceFile(std::string source_file) {
@@ -54,18 +55,23 @@ public:
   void Error(bool error) const { error_ = error; }
   [[nodiscard]] bool Error() const { return error_; }
 
-  void ErrorMessage(std::string message) const { error_message_ = std::move(message); }
-  [[nodiscard]] const std::string& ErrorMessage() const { return error_message_; }
+  void SaveMessage(std::string message) const;
+  [[nodiscard]] const std::vector<std::string>& MessageList() const {
+    return message_list_;
+  }
 
   [[nodiscard]] bool IsMdf4File() const { return is_mdf4_file_; }
   void SetMdf4File(bool is_mdf4_file) { is_mdf4_file_ = is_mdf4_file; }
+
 protected:
   std::unique_ptr<MdfReader> reader_;
   std::unique_ptr<MdfWriter> writer_;
 
   MdfTask() = default;
   void CheckSourceFile() const;
+  void CheckDestinationFile() const;
   void CreateSourceTempFile();
+  void CreateDestinationTempFile();
   void CopyTempFile() const;
   void DeleteTempFile();
   [[nodiscard]] bool ValidateAllValues();
@@ -78,7 +84,7 @@ private:
 
   mutable bool result_ = false;
   mutable bool error_ = false;
-  mutable std::string error_message_;
+  mutable std::vector<std::string> message_list_;
   bool is_mdf4_file_ = true;
 
   MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;

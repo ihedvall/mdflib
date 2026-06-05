@@ -101,6 +101,22 @@ enum class ChannelDataType : uint8_t {
   ComplexBe = 16         ///< Complex value, big endian.
 };
 
+class IDataGroup;
+class IChannelGroup;
+class IChannel;
+
+/** \brief Support structure that holds a DG/CG/CN relation. */
+struct ElementLink {
+  const IDataGroup* data_group = nullptr; ///< Pointer to a DG block.
+  const IChannelGroup* channel_group = nullptr; ///< Pointer to a CG block.
+  const IChannel* channel = nullptr; ///< Pointer to a CN block.
+  [[nodiscard]] bool IsEmpty() const {
+    return data_group == nullptr &&
+           channel_group == nullptr &&
+           channel == nullptr;
+  }
+};
+
 /** \brief Channel flags. See also IChannel::Flags().
  *
  */
@@ -544,6 +560,12 @@ class IChannel : public IBlock  {
 
   void SetCnComment(const CnComment& cn_comment);
   void GetCnComment(CnComment& cn_comment) const;
+
+  virtual void DefaultX(const ElementLink& default_x) = 0;
+  [[nodiscard]] virtual ElementLink DefaultX() const = 0;
+
+  virtual void CopyFrom(const IChannel& source) = 0;
+
  protected:
 
 

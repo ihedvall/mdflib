@@ -8,6 +8,7 @@
 
 namespace mdf {
 
+
 void IHeader::MeasurementId(const std::string &uuid) {}
 
 std::string IHeader::MeasurementId() const { return {}; }
@@ -64,4 +65,35 @@ void IHeader::GetHdComment(HdComment &hd_comment) const {
   }
 }
 
+void IHeader::CopyFrom(const IHeader &source) {
+  if (!source.Author().empty()) {
+    Author(source.Author());
+  }
+  if (!source.Department().empty()) {
+    Department(source.Department());
+  }
+  if (!source.Project().empty()) {
+    Project(source.Project());
+  }
+  if (!source.Subject().empty()) {
+    Subject(source.Subject());
+  }
+  if (!source.Description().empty()) {
+    Description(source.Description());
+  }
+  HdComment hd_comment;
+  source.GetHdComment(hd_comment);
+  SetHdComment(hd_comment);
+
+  StartTime(source.StartTime());
+  if (const auto start_angle = source.StartAngle();
+      start_angle.has_value()) {
+    StartAngle(start_angle.value());
+  }
+  if (const auto start_dist = source.StartDistance();
+      start_dist.has_value()) {
+    StartDistance(start_dist.value());
+  }
+
+}
 }  // namespace mdf

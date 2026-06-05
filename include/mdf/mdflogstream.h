@@ -70,6 +70,7 @@ class MdfLogStream : public std::ostringstream {
   static void LogToConsole( const MdfLocation& location,
                             MdfLogSeverity severity,
                             const std::string& text);
+  static void SetLogLevel(MdfLogSeverity severity);
  protected:
   MdfLocation location_;     ///< File and function location.
   MdfLogSeverity severity_;  ///< Log level of the stream
@@ -77,6 +78,7 @@ class MdfLogStream : public std::ostringstream {
   /** \brief Defines the logging function. */
   virtual void LogString(const MdfLocation& location, MdfLogSeverity severity,
                          const std::string& text);
+
 };
 
 }  // namespace mdf

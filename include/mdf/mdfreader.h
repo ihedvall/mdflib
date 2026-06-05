@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <functional>
 #include <vector>
 #include <fstream>
@@ -93,6 +94,7 @@ class MdfReader {
    * @param filename Full file path to the input file.
    */
   explicit MdfReader(std::string filename);
+  explicit MdfReader(const std::string_view& filename);
 
   explicit MdfReader(const std::shared_ptr<std::streambuf>& buffer);
   virtual ~MdfReader();  ///< Destructor that close any open file and destructs.
@@ -137,6 +139,8 @@ class MdfReader {
 
   /** \brief Returns the header (HD) block. */
   [[nodiscard]] const IHeader* GetHeader() const;
+
+
   /** \brief Returns the data group (DG) block. */
   [[nodiscard]] IDataGroup* GetDataGroup(size_t order) const;
 
@@ -198,6 +202,9 @@ class MdfReader {
    * @return True if the read was successful.
    */
   bool ReadData(IDataGroup& data_group);
+
+  bool ReadInDataBuffer(int64_t data_position, uint64_t nof_bytes,
+    std::vector<uint8_t>& destination);
 
   /** \brief Reads a range of samples.
    *

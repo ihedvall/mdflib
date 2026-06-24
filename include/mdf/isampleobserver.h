@@ -228,6 +228,7 @@ class ISampleObserver {
   std::set<uint64_t> record_id_list_; ///< List of subscribed channel groups.
 
   const IDataGroup* DataGroup() const { return data_group_; } ///< Returns the data group.
+  void FindVlsdRecord(const IChannelGroup& channel_group);
  private:
   mutable const IDataGroup* data_group_;  ///< Reference to the data group (DG) block.
 };

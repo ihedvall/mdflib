@@ -132,7 +132,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   void ByteOffset(uint32_t bytes) override;
   [[nodiscard]] uint32_t ByteOffset() const override;
   IChannel* CreateChannelComposition() override;
-  std::vector<IChannel*> ChannelCompositions() override;
+  std::vector<IChannel*> ChannelCompositions() const override;
 
   void MlsdChannel(const Cn4Block* channel) const {
     mlsd_channel_ = channel;
@@ -151,6 +151,8 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] ElementLink DefaultX() const override;
 
   void CopyFrom(const IChannel& source) override;
+  void CopyConfigFrom(const IChannel& source) override;
+
  protected:
 
   bool GetTextValue(const std::vector<uint8_t>& record_buffer,

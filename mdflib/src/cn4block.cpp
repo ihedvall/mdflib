@@ -1001,7 +1001,7 @@ IChannel *Cn4Block::CreateChannelComposition() {
   return dynamic_cast<IChannel*>(cx_list_.back().get());
 }
 
-std::vector<IChannel *> Cn4Block::ChannelCompositions() {
+std::vector<IChannel *> Cn4Block::ChannelCompositions() const {
   std::vector<IChannel*> list;
   for ( const auto& itr : cx_list_) {
     try {
@@ -1374,8 +1374,9 @@ void Cn4Block::CopyFrom(const IChannel &source) {
     bit_offset_ = cn4->bit_offset_;
     flags_ = cn4->flags_;
     invalid_bit_pos_ = cn4->invalid_bit_pos_;
+    precision_ = cn4->precision_;
     // nof_attachments_ = cn4->nof_attachments_;
-    // Todo: Attachment list i.e. pointers to attachments
+    // Attachment list i.e. pointers to attachments
 
     range_min_ = cn4->range_min_;
     range_max_ = cn4->range_max_;
@@ -1387,12 +1388,74 @@ void Cn4Block::CopyFrom(const IChannel &source) {
     name_ = cn4->name_;
     Unit(cn4->Unit());
 
-    CnComment comment;
-    cn4->GetCnComment(comment);
-    SetCnComment(comment);
-
+    if (const IMetaData* meta = cn4->MetaData();
+        meta != nullptr) {
+      CnComment comment;
+      cn4->GetCnComment(comment);
+      SetCnComment(comment);
+    }
   }
 }
+
+void Cn4Block::CopyConfigFrom(const IChannel &source) {
+  CopyFrom(source);
+  const auto* source_cn4 = dynamic_cast<const Cn4Block*>(&source);
+  if (source_cn4 == nullptr) {
+    return;
+  }
+  if (const ISourceInformation* source_si = source_cn4->SourceInformation();
+    source_si != nullptr) {
+    ISourceInformation* dest_si = CreateSourceInformation();
+    if (dest_si == nullptr) {
+      throw std::logic_error(
+        "Failed to create the destination source information.");
+    }
+    dest_si->CopyFrom(*source_si);
+  }
+
+  const auto ca_list = source_cn4->ChannelArrays();
+  for (const IChannelArray* source_ca : ca_list) {
+      // Check if the array is possible to copy.
+      // Arrays with references to other blocks cannot be copied.
+    if (source_ca == nullptr || source_ca->HasReferenceToOtherBlock()) {
+      continue;
+    }
+    if (auto* dest_ca = CreateChannelArray(); dest_ca != nullptr) {
+      dest_ca->CopyFrom(*source_ca);
+    }
+  }
+
+  if (const IChannelConversion* source_cc = source_cn4->ChannelConversion();
+      source_cc != nullptr) {
+    IChannelConversion* dest_cc = CreateChannelConversion();
+    if (dest_cc == nullptr) {
+      throw std::logic_error(
+        "Failed to create the destination channel conversion.");
+    }
+    dest_cc->CopyFrom(*source_cc);
+    if (const IChannelConversion* source_inverse = source_cc->Inverse();
+        source_inverse != nullptr) {
+      IChannelConversion* dest_inverse = dest_cc->CreateInverse();
+      if (dest_inverse == nullptr) {
+        throw std::logic_error(
+          "Failed to create the inverse channel conversion.");
+      }
+      dest_inverse->CopyFrom(*source_inverse);
+    }
+  }
+
+  const auto cx_list = source_cn4->ChannelCompositions();
+  for (const IChannel* source_cx : cx_list) {
+    if (source_cx == nullptr) {
+      continue;
+    }
+    if (auto* dest_cx = CreateChannelComposition();
+        dest_cx != nullptr) {
+      dest_cx->CopyConfigFrom(*source_cx);
+    }
+  }
+}
+
 
 void Cn4Block::SetCnUnit(const CnUnit &unit) {
   unit_ = std::make_unique<Md4Block>(unit.ToXml());

@@ -54,7 +54,7 @@ bool Mdf3Writer::PrepareForWriting() {
         continue;
       }
       if (auto* cg3 = dynamic_cast<Cg3Block*>(channel_group);
-          cg3 != nullptr) {
+          cg3 != nullptr && CalculateBitAndByteOffsets()) {
         if (const bool prep = cg3->PrepareForWriting(); !prep ) {
           MDF_ERROR() << "Faled to prepare for writing.";
           return false;

@@ -18,7 +18,6 @@ class Cc4Block : public MdfBlock, public IChannelConversion {
  public:
   using RefList = std::vector<std::unique_ptr<MdfBlock>>;
 
-
   Cc4Block();
 
   [[nodiscard]] int64_t Index() const override;
@@ -79,6 +78,7 @@ class Cc4Block : public MdfBlock, public IChannelConversion {
   void Formula( const std::string& formula) override;
   [[nodiscard]] const std::string& Formula() const override;
 
+  void CopyFrom(const IChannelConversion& source) override;
 
  protected:
   bool ConvertValueToText(double channel_value,

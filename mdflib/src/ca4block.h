@@ -66,6 +66,8 @@ class Ca4Block : public MdfBlock, public IChannelArray {
 
   void SetParentChannel(const Cn4Block* parent);
   void PrepareForWriting();
+  void CopyFrom(const IChannelArray& source) override;
+
  private:
   uint8_t type_ = 0;
   uint8_t storage_ = 0;

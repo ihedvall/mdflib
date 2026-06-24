@@ -66,7 +66,7 @@ class Mdf4Writer : public MdfWriter {
   void RecalculateTimeMaster() override;
   void NotifySample() override;
 
-  Dg4Block* GetLastDg4();
+  Dg4Block* GetLastDg4() const;
  private:
 
 

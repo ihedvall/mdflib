@@ -81,6 +81,14 @@ IChannel *IChannelGroup::GetMasterChannel() const {
   return itr != cn_list.end() ? *itr : nullptr;
 }
 
+IChannel *IChannelGroup::GetMasterTimeChannel() const {
+  if (IChannel* master = GetMasterChannel();
+    master != nullptr && master->Sync() == ChannelSyncType::Time) {
+    return master;
+  }
+  return nullptr;
+}
+
 void IChannelGroup::SetCgComment(const CgComment &cg_comment) {
   if (IMetaData* meta_data = CreateMetaData();
       meta_data != nullptr ) {

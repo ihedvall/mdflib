@@ -238,7 +238,7 @@ std::string MdfHelper::FormatDouble(double value, uint8_t decimals, bool fixed,
 
   std::string text;
   auto value_int = static_cast<int64_t>(value);
-  if (value == value_int && !fixed) {
+  if (value == static_cast<double>(value_int) && !fixed) {
     // If the value actually is an integer then just show it as an integer
     text = std::to_string(value_int);
   } else if (decimals == 0) {

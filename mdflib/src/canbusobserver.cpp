@@ -20,7 +20,7 @@ CanBusObserver::CanBusObserver(const IDataGroup& data_group,
   record_id_list_.clear();
   nof_samples_ = channel_group.NofSamples();
   record_id_list_.insert(channel_group.RecordId());
-  FindVLsdRecord(channel_group);
+  FindVlsdRecord(channel_group);
 
   if (group_name.find("_DataFrame") != std::string::npos) {
     message_type_ = MessageType::CAN_DataFrame;
@@ -131,18 +131,6 @@ bool CanBusObserver::OnSample(uint64_t sample, uint64_t record_id,
   return true;
 }
 
-void CanBusObserver::FindVLsdRecord(const IChannelGroup& channel_group) {
-  const auto channel_list = channel_group.Channels();
-  for (const auto* channel : channel_list) {
-    if (channel == nullptr) {
-      continue;
-    }
-    if (channel->VlsdRecordId() > 0) {
-      record_id_list_.insert(channel->VlsdRecordId());
-    }
-  }
-}
-
 void CanBusObserver::HandleCallback(uint64_t record_id,
                                 const std::vector<uint8_t>& record) {
   if (record_id != channel_group_.RecordId()) {
@@ -215,7 +203,7 @@ void CanBusObserver::HandleSample(uint64_t record_id,
         break;
 
       case MdfStorageType::FixedLengthStorage:
-        // The VLSD data is stored in the data byes channel's SD block.
+        // The VLSD data is stored in the data bytes channel's SD block.
         // The SD block has to be read in ahead of this call and it's
         // consumes primary memory. The data bytes is a 64-bit offset
         // into that SD block.

@@ -35,6 +35,8 @@ class Cc3Block : public MdfBlock, public IChannelConversion {
   uint64_t Read(std::streambuf& buffer) override;
   uint64_t Write(std::streambuf& buffer) override;
 
+  void CopyFrom(const IChannelConversion& source) override;
+
  protected:
   bool ConvertValueToText(double channel_value,
                           std::string& eng_value) const override;

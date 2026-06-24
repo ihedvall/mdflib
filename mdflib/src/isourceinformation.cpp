@@ -27,6 +27,7 @@ void ISourceInformation::CopyFrom(const ISourceInformation& source) {
   Flags(source.Flags());
   Name(source.Name());
   Path(source.Path());
+
   SiComment si_comment;
   source.GetSiComment(si_comment);
   SetSiComment(si_comment);

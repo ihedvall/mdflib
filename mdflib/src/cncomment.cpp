@@ -126,6 +126,11 @@ void CnComment::FromXml(const std::string& xml_snippet) {
   if (xml_snippet.empty()) {
     return;
   }
+  if (!xml_snippet.empty() && xml_snippet.front() != '<') {
+    // Not XML. Assume TX block.
+    Comment(xml_snippet);
+    return;
+  }
   try {
     auto xml_file = CreateXmlFile("Expat");
     if (!xml_file) {

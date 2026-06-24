@@ -4,8 +4,10 @@
  */
 
 #include "mdf4writer.h"
+
 #include <ctime>
 #include <fstream>
+#include <iostream>
 #include "mdf/mdflogstream.h"
 #include "mdf4file.h"
 #include "platform.h"
@@ -41,6 +43,7 @@ IChannelConversion* Mdf4Writer::CreateChannelConversion(IChannel* parent) {
 void Mdf4Writer::AddSample(const IDataGroup& data_group,
                            const IChannelGroup& channel_group, uint64_t time,
                            SampleRecord&& sample_record) {
+
   write_cache_.AddSample(data_group, channel_group, time,
     std::move(sample_record));
 
@@ -108,12 +111,15 @@ bool Mdf4Writer::PrepareForWriting() {
     }
     */
     // Size the sample buffers for each CG block
-    for (auto& cg4 : dg4->Cg4()) {
+    const bool calculate_offsets = CalculateBitAndByteOffsets();
+    for (const auto& cg4 : dg4->Cg4()) {
       if (!cg4) {
         continue;
       }
       // I need to update the CN to CG reference
-      cg4->PrepareForWriting();
+      if (calculate_offsets) {
+        cg4->PrepareForWriting();
+      }
     }
   }
   return true;
@@ -156,7 +162,7 @@ bool Mdf4Writer::WriteSignalData(std::streambuf& buffer) {
   return true;
 }
 
-Dg4Block* Mdf4Writer::GetLastDg4() {
+Dg4Block* Mdf4Writer::GetLastDg4() const {
   auto *header = Header();
   if (header == nullptr) {
     return nullptr;

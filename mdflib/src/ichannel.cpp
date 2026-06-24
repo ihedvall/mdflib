@@ -6,11 +6,12 @@
 
 #include "bigbuffer.h"
 // #include "half.hpp"
-#include "littlebuffer.h"
 #include "dbchelper.h"
-#include "mdf/ichannelgroup.h"
-#include "mdf/mdflogstream.h"
+#include "littlebuffer.h"
 #include "mdf/ichannelarray.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/ievent.h"
+#include "mdf/mdflogstream.h"
 
 namespace mdf {
 
@@ -894,6 +895,69 @@ IChannelArray *IChannel::CreateChannelArray() {
 
 void IChannel::Flags(uint32_t flags) {}
 uint32_t IChannel::Flags() const { return 0; }
+
+double IChannel::GetTimestamp(uint64_t sample, const std::vector<uint8_t> &record_buffer) const {
+  double timestamp = 0.0;
+  if (Type() != ChannelType::Master && Type() != ChannelType::VirtualMaster) {
+    return timestamp;
+  }
+  if (Sync() != ChannelSyncType::Time) {
+    return timestamp;
+  }
+  const auto* conversion = ChannelConversion();
+
+  if (Type() == ChannelType::VirtualMaster) {
+    // This is the sample index * CC
+    if (conversion != nullptr) {
+      conversion->Convert(sample, timestamp) ;
+    } else {
+      timestamp = static_cast<double>(sample);
+    }
+    return timestamp;
+  }
+
+  switch (DataType()) {
+    case ChannelDataType::UnsignedIntegerBe:
+    case ChannelDataType::UnsignedIntegerLe: {
+      uint64_t value = 0;
+      GetChannelValue(record_buffer, value, 0);
+      if (conversion != nullptr) {
+        conversion->Convert(value, timestamp) ;
+      } else {
+        timestamp = static_cast<double>(value);
+      }
+      break;
+    }
+
+    case ChannelDataType::SignedIntegerBe:
+    case ChannelDataType::SignedIntegerLe: {
+      int64_t value = 0;
+      GetChannelValue(record_buffer, value, 0);
+      if (conversion != nullptr) {
+        conversion->Convert(value, timestamp) ;
+      } else {
+        timestamp = static_cast<double>(value);
+      }
+      break;
+    }
+
+    case ChannelDataType::FloatBe:
+    case ChannelDataType::FloatLe: {
+      double value = 0;
+      GetChannelValue(record_buffer, value, 0);
+      if (conversion != nullptr) {
+        conversion->Convert(value, timestamp) ;
+      } else {
+        timestamp = value;
+      }
+      break;
+    }
+
+    default:
+      break;
+  }
+  return timestamp;
+}
 
 void IChannel::SetTimestamp(double timestamp,
                             std::vector<uint8_t> &record_buffer) const {

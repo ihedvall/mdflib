@@ -111,11 +111,11 @@ void WriteCache::WorkThread() {
       if (!sample_queue) {
         continue;
       }
-
+      try {
       switch (writer_.State()) {
         case WriteState::Init: {
           sample_queue->TrimQueue();  // Purge the queue using pre-trig time
-            break;
+          break;
         }
         case WriteState::StartMeas: {
           if (writer_.IsSavePeriodic()) {
@@ -134,6 +134,10 @@ void WriteCache::WorkThread() {
           break;
       }
     }
+    catch (...) {
+      MDF_ERROR() << "Failed to save queue";
+    }}
+
   } while (!stop_thread_);
   {
     std::unique_lock lock(locker_);

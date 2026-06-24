@@ -44,6 +44,9 @@ public:
   void OverwriteFile(bool overwrite) { overwrite_file_ = overwrite; }
   [[nodiscard]] bool OverwriteFile() const { return overwrite_file_; }
 
+  void SkipIfNoSamples(bool skip) { skip_if_no_samples_ = skip; }
+  [[nodiscard]] bool SkipIfNoSamples() const { return skip_if_no_samples_; }
+  
   void Version(MdfVersion version) { version_ = version; }
   [[nodiscard]] MdfVersion Version() const { return version_; }
 
@@ -70,12 +73,27 @@ protected:
   MdfTask() = default;
   void CheckSourceFile() const;
   void CheckDestinationFile() const;
+  void CheckSourceAndDestinationDiff() const;
+
   void CreateSourceTempFile();
   void CreateDestinationTempFile();
+  void CreateWriter();
+
+  static void CreateObserverForTopLevelChannels(const IDataGroup& data_group,
+                                         const IChannelGroup& channel_group,
+                                         ChannelObserverList& observer_list);
+
   void CopyTempFile() const;
+  void CopyMainConfig() const;
+  static IChannelGroup* CopyChannelConfig(const IChannelGroup& source_cg,
+                         IDataGroup& dest_dg);
+
   void DeleteTempFile();
   [[nodiscard]] bool ValidateAllValues();
   void AddValidationResult();
+
+  void ReadConfig();
+
   
 private:
   std::string source_file_;
@@ -90,6 +108,7 @@ private:
   MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;
   bool compress_data_ = false;
   bool overwrite_file_ = false;
+  bool skip_if_no_samples_ = false;
   MdfVersion version_ = MdfVersion::Mdf4_2;
 };
 

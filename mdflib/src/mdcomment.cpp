@@ -226,6 +226,11 @@ void MdComment::FromXml(const std::string& xml_snippet) {
   if (xml_snippet.empty()) {
     return;
   }
+  if (!xml_snippet.empty() && xml_snippet.front() != '<') {
+    // Not an XML string. Assume that the source is a TX block.
+    Comment(xml_snippet);
+    return;
+  }
   try {
     auto xml_file = CreateXmlFile("Expat");
     if (!xml_file) {
@@ -239,7 +244,7 @@ void MdComment::FromXml(const std::string& xml_snippet) {
     if (root_node == nullptr) {
       throw std::runtime_error("There is no root node in the XML string");
     }
-    MdComment::FromXml(*root_node);
+    FromXml(*root_node);
   } catch (const std::exception& err) {
     MDF_ERROR() << "Failed to parse the " << block_name_
                 << " comment. Error: " << err.what();

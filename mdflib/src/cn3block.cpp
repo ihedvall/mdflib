@@ -514,7 +514,7 @@ IChannelConversion *Cn3Block::CreateChannelConversion() {
 }
 
 IChannel *Cn3Block::CreateChannelComposition() { return nullptr; }
-std::vector<IChannel *> Cn3Block::ChannelCompositions() {
+std::vector<IChannel *> Cn3Block::ChannelCompositions() const {
   return {};
 }
 
@@ -551,6 +551,10 @@ void Cn3Block::CopyFrom(const IChannel &source) {
     display_name_ = source_cn3->display_name_;
   }
 
+}
+
+void Cn3Block::CopyConfigFrom(const IChannel &source) {
+  Cn3Block::CopyFrom(source);
 }
 
 }  // namespace mdf::detail

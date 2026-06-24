@@ -28,7 +28,7 @@ SampleQueue::~SampleQueue() {
 
 void SampleQueue::AddSample(SampleRecord&& record) {
   size_ += record.SampleSize();
-  queue_.emplace_back(record);
+  queue_.emplace_back(std::move(record));
 }
 
 void SampleQueue::PushSample(const SampleRecord& record) {
@@ -450,6 +450,7 @@ void SampleQueue::AddSample(const IChannelGroup& group, uint64_t time,
   SampleRecord&& sample_record) {
   sample_record.timestamp = time;
   RecalculateTime(group.RecordId(), sample_record);
+
   AddSample(std::move(sample_record));
 }
 

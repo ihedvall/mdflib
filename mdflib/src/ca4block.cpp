@@ -711,4 +711,22 @@ void Ca4Block::PrepareForWriting() {
   }
 }
 
+void Ca4Block::CopyFrom(const IChannelArray& source) {
+  IChannelArray::CopyFrom(source);
+
+  const auto* source_ca = dynamic_cast<const Ca4Block*>(&source);
+  if (source_ca == nullptr) {
+    return;
+  }
+  type_ = source_ca->type_;
+  storage_ = source_ca->storage_;
+  flags_ = source_ca->flags_;
+  dimensions_ = source_ca->dimensions_;
+  byte_offset_base_ = source_ca->byte_offset_base_;
+  invalid_bit_pos_base_ = source_ca->invalid_bit_pos_base_;
+  dim_size_list_ = source_ca->dim_size_list_;
+  axis_value_list_ = source_ca->axis_value_list_;
+  cycle_count_list_ = source_ca->cycle_count_list_;
+ }
+
 }  // namespace mdf::detail

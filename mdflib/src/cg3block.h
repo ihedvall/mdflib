@@ -36,6 +36,8 @@ class Cg3Block : public MdfBlock, public IChannelGroup {
   [[nodiscard]] uint64_t RecordId() const override;
 
   [[nodiscard]] std::vector<IChannel*> Channels() const override;
+  [[nodiscard]] std::vector<IChannel*> TopLevelChannels() const override;
+
   [[nodiscard]] IChannel* CreateChannel() override;
 
   [[nodiscard]] const IChannel* GetXChannel(

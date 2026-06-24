@@ -307,7 +307,7 @@ class IChannel : public IBlock  {
    * bit length and bit offset to its parent channel. In reality, the parent
    * channel must be a byte array.
    */
-  [[nodiscard]] virtual std::vector<IChannel*> ChannelCompositions() = 0;
+  [[nodiscard]] virtual std::vector<IChannel*> ChannelCompositions() const = 0;
 
   /** \brief Returns true if the channel is a number. */
   [[nodiscard]] bool IsNumber() const {
@@ -430,6 +430,9 @@ class IChannel : public IBlock  {
     */
   virtual bool GetTextValue(const std::vector<uint8_t> &record_buffer,
                             std::string &dest) const;
+
+  double GetTimestamp(uint64_t sample, const std::vector<uint8_t> &record_buffer) const;
+
   /** \brief The function change the supplied records time channel value.
    *
    * The function update the record buffer with a new time. This function is
@@ -565,6 +568,7 @@ class IChannel : public IBlock  {
   [[nodiscard]] virtual ElementLink DefaultX() const = 0;
 
   virtual void CopyFrom(const IChannel& source) = 0;
+  virtual void CopyConfigFrom(const IChannel& source) = 0;
 
  protected:
 

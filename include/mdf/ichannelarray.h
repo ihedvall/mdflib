@@ -58,9 +58,14 @@ constexpr uint32_t StandardAxis = 0x0100; ///< Standard axis.
 
 /** \brief Structure that defines the channel array (CA) blocks references.*/
 struct  CaTripleReference {
-  const mdf::IDataGroup* DataGroup = nullptr; ///< Pointer to the data group (DG) block
-  const mdf::IChannelGroup* ChannelGroup = nullptr; ///< Pointer to the channel group (CG) block.
-  const mdf::IChannel* Channel = nullptr; ///< Pointer to the channel (CN) block.
+  const IDataGroup* DataGroup = nullptr; ///< Pointer to the data group (DG) block
+  const IChannelGroup* ChannelGroup = nullptr; ///< Pointer to the channel group (CG) block.
+  const IChannel* Channel = nullptr; ///< Pointer to the channel (CN) block.
+  [[nodiscard]] bool IsEmpty() const {
+    return DataGroup == nullptr &&
+           ChannelGroup == nullptr &&
+           Channel == nullptr;
+  }
 };
 
 
@@ -204,6 +209,9 @@ class IChannelArray : public IBlock {
    * @return Number of array values in a sample.
    */
   [[nodiscard]] virtual uint64_t ProductOfArray() const = 0;
+
+  [[nodiscard]] bool HasReferenceToOtherBlock() const;
+  virtual void CopyFrom(const IChannelArray& source);
  protected:
   std::vector<int64_t> data_links_; ///< List of index to data blocks.
   std::vector<CaTripleReference> dynamic_size_list_; ///< Dynamic size list.

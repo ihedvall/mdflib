@@ -62,6 +62,26 @@ std::vector<CaTripleReference>& IChannelArray::AxisList() {
   return axis_list_;
 }
 
+bool IChannelArray::HasReferenceToOtherBlock() const {
+   return !data_links_.empty() ||
+      !dynamic_size_list_.empty() ||
+      !input_quantity_list_.empty() ||
+      !output_quantity_.IsEmpty() ||
+      !comparison_quantity_.IsEmpty() ||
+      !axis_conversion_list_.empty() ||
+      !axis_list_.empty();
+}
+
+void IChannelArray::CopyFrom(const IChannelArray& source) {
+  // data_links_.clear() = source.data_links_;
+  // dynamic_size_list_ = source.dynamic_size_list_;
+  // input_quantity_list_ = source.input_quantity_list_;
+  // output_quantity_ = source.output_quantity_;
+  // comparison_quantity_ = source.comparison_quantity_;
+  // axis_conversion_list_ = source.axis_conversion_list_;
+  // axis_list_ = source.axis_list_;
+}
+
 void IChannelArray::ResizeArrays() {
   const size_t dim = Dimensions();
   const size_t sum_of_array = static_cast<size_t>( SumOfArray() );

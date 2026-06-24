@@ -39,6 +39,10 @@ bool IsMdfFile(const std::string &filename) {
   std::filebuf file;
 
   try {
+    const auto file_size = fs::file_size(filename);
+    if (file_size <= 64) {
+      return false;
+    }
     file.open(filename, std::ios_base::in | std::ios_base::binary);
   } catch (const std::exception&) {
     return false;
@@ -641,6 +645,13 @@ bool MdfReader::ReadSrData(ISampleReduction &sr_group) {
 const IHeader *MdfReader::GetHeader() const {
   const auto *file = GetFile();
   return file != nullptr ? file->Header() : nullptr;
+}
+
+uint64_t MdfReader::GetStartTime() const {
+  if (const IHeader* header = GetHeader(); header != nullptr) {
+    return header->StartTime();
+  }
+  return 0;
 }
 
 IDataGroup *MdfReader::GetDataGroup(size_t order) const {

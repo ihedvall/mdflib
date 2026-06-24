@@ -59,6 +59,8 @@ class Cg4Block : public MdfBlock, public IChannelGroup {
   void PathSeparator(char16_t path_separator) override;
 
   [[nodiscard]] std::vector<IChannel*> Channels() const override;
+  [[nodiscard]] std::vector<IChannel*> TopLevelChannels() const override;
+
   [[nodiscard]] IChannel* CreateChannel() override;
 
   [[nodiscard]] const IChannel* GetXChannel(

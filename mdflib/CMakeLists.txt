@@ -169,6 +169,10 @@ add_library(mdf
         src/sortingtask.h
         src/sortingconfigadapter.cpp
         src/sortingconfigadapter.h
+        src/samplerecordobserver.cpp
+        ../include/mdf/samplerecordobserver.h
+        src/copysampleobserver.cpp
+        src/copysampleobserver.h
 )
 
 include(${CMAKE_SOURCE_DIR}/script/zlib.cmake)

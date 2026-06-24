@@ -28,6 +28,15 @@ void IChannelConversion::ChannelDataType(uint8_t channel_data_type) {
   channel_data_type_ = channel_data_type;
 }
 
+void IChannelConversion::CopyFrom(const IChannelConversion &source) {
+  nof_values_ = source.nof_values_;
+  value_list_ = source.value_list_;
+  channel_data_type_ = source.channel_data_type_;
+  formula_ = source.formula_;
+  text_conversion_list_ = source.text_conversion_list_;
+  text_range_conversion_list_ = source.text_range_conversion_list_;
+}
+
 bool IChannelConversion::IsChannelInteger() const {
   return channel_data_type_ <= 3;
 }
@@ -395,8 +404,7 @@ void IChannelConversion::SetCcComment(const CcComment &cc_comment) {
 }
 
 void IChannelConversion::GetCcComment(CcComment &cc_comment) const {
-  if (const IMetaData* meta_data = MetaData();
-      meta_data != nullptr) {
+  if (const IMetaData* meta_data = MetaData(); meta_data != nullptr) {
     cc_comment.FromXml(meta_data->XmlSnippet());
   }
 }

@@ -364,6 +364,20 @@ uint64_t Cc3Block::Write(std::streambuf& buffer) {
   return bytes;
 }
 
+void Cc3Block::CopyFrom(const IChannelConversion &source) {
+  IChannelConversion::CopyFrom(source);
+
+  const auto* source_cc = dynamic_cast<const Cc3Block*>(&source);
+  if (source_cc == nullptr) {
+    return;
+  }
+  range_valid_ = source_cc->range_valid_;
+  min_ = source_cc->min_;
+  max_ = source_cc->max_;
+  unit_ = source_cc->unit_;
+  conversion_type_ = source_cc->conversion_type_;
+}
+
 bool Cc3Block::ConvertValueToText(double channel_value,
                                   std::string &eng_value) const {
   for (const auto &conv : text_conversion_list_) {

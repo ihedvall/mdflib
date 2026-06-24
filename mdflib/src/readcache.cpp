@@ -111,6 +111,9 @@ bool ReadCache::ParseRecord() {
   } catch (const std::exception &err) {
     MDF_ERROR() << "Parse of record failed. Error: " << err.what();
     return false;
+  } catch (...) {
+    MDF_ERROR() << "Parse of record failed.";
+    return false;
   }
 
   return continue_reading;

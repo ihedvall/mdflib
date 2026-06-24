@@ -285,6 +285,10 @@ std::string Md4Block::TxComment() const {
   if (IsTxtBlock()) {
     return Tx4Block::TxComment();
   }
+  if (!text_.empty() && text_[0] != '<') {
+    // Not an XML string. Assume mistake of TX block instead of MD block.
+    return text_;
+  }
   auto xml = CreateXmlFile();
   if (!xml) {
     return {};

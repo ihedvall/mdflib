@@ -79,6 +79,7 @@ class ISourceInformation : public IBlock {
   void SetSiComment(const SiComment& si_comment);
   void GetSiComment(SiComment& si_comment) const;
 
+
   void CopyFrom(const ISourceInformation& source);
 };
 

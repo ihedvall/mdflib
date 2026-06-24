@@ -140,6 +140,8 @@ class MdfReader {
   /** \brief Returns the header (HD) block. */
   [[nodiscard]] const IHeader* GetHeader() const;
 
+  [[nodiscard]] uint64_t GetStartTime() const;
+
 
   /** \brief Returns the data group (DG) block. */
   [[nodiscard]] IDataGroup* GetDataGroup(size_t order) const;

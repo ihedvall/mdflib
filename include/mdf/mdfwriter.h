@@ -383,6 +383,13 @@ class MdfWriter {
     return mandatory_members_only_;
   }
 
+  void CalculateBitAndByteOffsets(bool calculate_offsets) {
+    calculate_bit_and_byte_offsets_ = calculate_offsets;
+  }
+  [[nodiscard]] bool CalculateBitAndByteOffsets() const {
+    return calculate_bit_and_byte_offsets_;
+  }
+
  protected:
   MdfWriterType type_of_writer_ = MdfWriterType::Mdf4Basic;
   /** \brief Smart pointer to a stream buffer.
@@ -422,6 +429,8 @@ class MdfWriter {
   virtual void RecalculateTimeMaster() = 0;
   virtual void NotifySample() = 0;
 
+
+
   //void SetDataPosition();
 
  private:
@@ -431,6 +440,7 @@ class MdfWriter {
   MdfStorageType storage_type_ = MdfStorageType::FixedLengthStorage;
   uint32_t max_length_ = 8; ///< Max data byte storage
   bool mandatory_members_only_ = false;
+  bool calculate_bit_and_byte_offsets_ = true;
 
   [[nodiscard]] bool IsFirstMeasurement() const;
 

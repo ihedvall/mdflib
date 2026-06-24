@@ -29,9 +29,10 @@ public:
   CanMessage* GetCanMessage(uint64_t sample);
 
   std::function<bool(uint64_t sample, const CanMessage& msg)> OnCanMessage;
-protected:
+
   bool OnSample(uint64_t sample, uint64_t record_id,
-                        const std::vector<uint8_t>& record) override;
+                const std::vector<uint8_t>& record) override;
+
 private:
   struct CanSample {
     uint64_t sample = 0;
@@ -75,8 +76,6 @@ private:
   const IChannel* frame_duration_channel_ = nullptr; ///< Frame duration (ns)
   const IChannel* bit_position_channel_ = nullptr; ///< Bit position (error msg)
   const IChannel* error_type_channel_ = nullptr; ///< Error Type enumeration
-
-  void FindVLsdRecord(const IChannelGroup& channel_group);
 
   void HandleCallback(uint64_t record_id,
     const std::vector<uint8_t>& record);

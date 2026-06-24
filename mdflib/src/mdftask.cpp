@@ -9,10 +9,13 @@
 #include <sstream>
 
 #include "mdf/fhcomment.h"
+#include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
 #include "mdf/ifilehistory.h"
 #include "mdf/mdffactory.h"
 #include "mdf/mdflogstream.h"
+
+#include "sortingconfigadapter.h"
 
 using namespace std::filesystem;
 
@@ -20,12 +23,13 @@ namespace mdf {
 
 MdfTask::~MdfTask() {
   try {
-    reader_.reset();
     writer_.reset();
+    reader_.reset();
     DeleteTempFile();
   } catch (const std::exception& err) {
     MDF_ERROR() << "Deleting temporary objects failed. Error: " << err.what();
   }
+
 }
 
 void MdfTask::SaveMessage(std::string message) const {
@@ -87,6 +91,25 @@ void MdfTask::CheckDestinationFile() const {
   }
 }
 
+void MdfTask::CheckSourceAndDestinationDiff() const {
+  const path source_path(SourceFile());
+  if (source_path.empty()) {
+    throw std::runtime_error("The source path is empty.");
+  }
+
+  const path destination_path(DestinationFile());
+  if (destination_path.empty()) {
+    throw std::runtime_error("The destination path is empty.");
+  }
+
+  if (source_path == destination_path) {
+    std::ostringstream temp;
+    temp << "Source and destination path cannot be the same. Source: "
+         << source_path << ", Destination: " << destination_path;
+    throw std::runtime_error(temp.str());
+  }
+}
+
 void MdfTask::CreateSourceTempFile() {
   try {
     const path source(SourceFile());
@@ -119,20 +142,57 @@ void MdfTask::CreateDestinationTempFile() {
     temp /= dest.filename();
 
     if (temp == dest) {
-      throw std::runtime_error(
-        "Cannot create temporary file with same name as the destination file"
-      );
+      throw std::invalid_argument(
+"Cannot create temporary file with same path as the destination file. Path: "
+    + DestinationFile() );
     }
 
     remove(temp);
+
     TempFile(temp.string());
   } catch (const std::exception& err) {
     std::ostringstream oss;
     oss << "Creating a temporary file failed."
-    << " File: " << SourceFile()
+    << " File: " << DestinationFile()
     << ", Error: " << err.what();
     MDF_ERROR() << oss.str();
     throw std::runtime_error(oss.str());
+  }
+}
+
+void MdfTask::CreateWriter() {
+  const path temp_path(TempFile());
+  if (temp_path.empty()) {
+    throw std::invalid_argument("Temporary file path is empty. File: "
+      + TempFile());
+  }
+
+  writer_ = MdfFactory::CreateMdfWriter(MdfWriterType::MdfConverter);
+  if (!writer_) {
+    throw std::logic_error("Failed to create the writer. File: "
+      + TempFile());
+  }
+  writer_->StorageType(StorageType());
+  writer_->CompressData(CompressData());
+
+  const bool init = writer_->Init(temp_path.string());
+  if (!init) {
+    throw std::runtime_error("Failed to initialize the writer. File: "
+      + TempFile());
+  }
+
+}
+
+void MdfTask::CreateObserverForTopLevelChannels(
+    const IDataGroup& data_group, const IChannelGroup& channel_group,
+    ChannelObserverList& observer_list) {
+  const auto channel_list = channel_group.TopLevelChannels();
+  for (const IChannel* channel : channel_list) {
+    if (channel == nullptr) {
+      continue;
+    }
+    auto observer = CreateChannelObserver(data_group,channel_group, *channel);
+    observer_list.emplace_back(std::move(observer));
   }
 }
 
@@ -160,6 +220,70 @@ void MdfTask::CopyTempFile() const {
     MDF_ERROR() << oss.str();
     throw std::runtime_error(oss.str());
   }
+}
+
+void MdfTask::CopyMainConfig() const {
+  if (!reader_ || !writer_) {
+    throw std::invalid_argument("Reader or writer is not initialized.");
+  }
+  const MdfFile* source_file = reader_->GetFile();
+  if (source_file == nullptr) {
+    throw std::runtime_error(
+      "Failed to get the source MDF file. File: " + SourceFile());
+  }
+
+  const IHeader* source_header = source_file->Header();
+  if (source_header == nullptr) {
+    throw std::runtime_error(
+      "Failed to get the source MDF header. File: " + SourceFile());
+  }
+
+  MdfFile* dest_file = writer_->GetFile();
+  if (dest_file == nullptr) {
+    throw std::runtime_error(
+      "Failed to get the temporary MDF file. File: " + TempFile());
+  }
+  IHeader* dest_header = dest_file->Header();
+  if (dest_header == nullptr) {
+    throw std::runtime_error(
+      "Failed to get the temporary MDF header. File: " + TempFile());
+  }
+
+  SortingConfigAdapter config_adapter(*writer_, *reader_);
+  config_adapter.CreateConfig(*dest_header);
+
+}
+
+IChannelGroup* MdfTask::CopyChannelConfig(const IChannelGroup& source_cg,
+                                IDataGroup& dest_dg) {
+  IChannelGroup* dest_cg = dest_dg.CreateChannelGroup();
+  if (dest_cg == nullptr) {
+    throw std::logic_error(
+      "Failed to create the destination channel group.");
+  }
+
+  dest_cg->CopyFrom(source_cg);
+  if (const ISourceInformation* source_si = source_cg.SourceInformation();
+      source_si != nullptr) {
+    ISourceInformation* dest_si = dest_cg->CreateSourceInformation();
+    if (dest_si == nullptr) {
+      throw std::logic_error(
+        "Failed to create the destination source information.");
+    }
+    dest_si->CopyFrom(*source_si);
+  }
+  const auto source_cn_list = source_cg.TopLevelChannels();
+  for (const IChannel* source_cn : source_cn_list) {
+    if (source_cn == nullptr) {
+      continue;
+    }
+    IChannel* dest_cn = dest_cg->CreateChannel();
+    if (dest_cn == nullptr) {
+      throw std::logic_error("Failed to create the destination channel.");
+    }
+    dest_cn->CopyConfigFrom(*source_cn);
+  }
+  return dest_cg;
 }
 
 void MdfTask::DeleteTempFile() {
@@ -295,6 +419,27 @@ void MdfTask::AddValidationResult() {
     MDF_ERROR() << oss.str();
     throw std::runtime_error(oss.str());
 
+  }
+}
+
+void MdfTask::ReadConfig() {
+  path source(SourceFile());
+  if (!exists(source)) {
+    throw std::runtime_error("Source file does not exist. File: "
+      + SourceFile());
+  }
+  reader_ = MdfFactory::CreateMdfReader(SourceFile());
+  if (!reader_) {
+    throw std::runtime_error("Failed to create the reader object.");
+  }
+  if (!reader_->IsOk()) {
+    throw std::runtime_error("The source file isn't OK. File: "
+      + SourceFile() );
+  }
+  const bool read = reader_->ReadEverythingButData();
+  if (!read) {
+    throw std::runtime_error("Failed to read the configuration . File: "
+      + SourceFile() );
   }
 }
 

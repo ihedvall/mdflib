@@ -15,6 +15,7 @@
 #include "mdf/mdftask.h"
 #include "mdf/mdflogstream.h"
 #include "validatingtask.h"
+#include "sortingtask.h"
 
 using namespace std::filesystem;
 using MdfList = std::map<std::string, std::string>;
@@ -35,6 +36,19 @@ std::string GetMdfFile(const std::string& name) {
 }
 
 namespace mdf::test {
+
+TestSampleRecordObserver::TestSampleRecordObserver(
+    const IDataGroup& data_group, const IChannelGroup& channel_group,
+    uint64_t base_time)
+: SampleRecordObserver(data_group, channel_group,base_time) {
+
+}
+
+void TestSampleRecordObserver::OnSampleRecord() {
+  SampleRecord record;
+  GetSampleRecord(record);
+  ++nof_samples_;
+}
 
 void TestMdfTask::SetUpTestSuite() {
 
@@ -164,7 +178,7 @@ TEST_F(TestMdfTask, TestValidatingTask) {
     ValidatingTask task;
     task.SourceFile(file_path);
     path dest_file(kTestDir);
-    std::string filename = name + ".mf4";
+    std::string filename = name + "_valid.mf4";
     dest_file.append(filename);
     task.DestinationFile(dest_file.string());
 
@@ -184,7 +198,6 @@ TEST_F(TestMdfTask, TestValidatingTask) {
     } else {
       ++nof_valid;
     }
-
   }
   MdfLogStream::SetLogLevel(MdfLogSeverity::kTrace);
   EXPECT_GT(nof_invalid, 0);
@@ -192,4 +205,93 @@ TEST_F(TestMdfTask, TestValidatingTask) {
 
 }
 
+TEST_F(TestMdfTask, TestSampleRecordObserver) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  MdfLogStream::SetLogLevel(MdfLogSeverity::kError);
+  for (const auto& [name,file_path] : kMdfList) {
+    const auto filesize = file_size(file_path);
+    if (filesize > 1'000'000'000) {
+      continue;
+    }
+    MdfReader reader(file_path);
+    ASSERT_TRUE(reader.ReadEverythingButData());
+    const auto* file = reader.GetFile();
+    ASSERT_TRUE(file != nullptr);
+    const auto* header = file->Header();
+    ASSERT_TRUE(header != nullptr);
+    uint64_t base_time = header->StartTime();
+    auto dg_list = header->DataGroups();
+    for (IDataGroup* data_group : dg_list) {
+      ASSERT_TRUE(data_group != nullptr);
+      auto cg_list = data_group->ChannelGroups();
+      for (IChannelGroup* channel_group : cg_list) {
+        ASSERT_TRUE(channel_group != nullptr);
+
+        if (channel_group->NofSamples() <= 0 ||
+          (channel_group->Flags() & CgFlag::VlsdChannel) != 0) {
+          continue;
+        }
+        TestSampleRecordObserver observer(*data_group, *channel_group, base_time);
+        reader.ReadData(*data_group);
+        EXPECT_EQ(observer.GetSampleIndex() + 1, channel_group->NofSamples());
+        std::cout << "File: " << name  << "/" << channel_group->Name() << " OK" << std::endl;
+      }
+    }
+  }
+
+  MdfLogStream::SetLogLevel(MdfLogSeverity::kTrace);
+}
+
+
+TEST_F(TestMdfTask, TestSortingTask) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  MdfLogStream::SetLogLevel(MdfLogSeverity::kError);
+  size_t nof_sorted = 0;
+
+  for (const auto& [name,file_path] : kMdfList) {
+    if (const auto filesize = file_size(file_path);
+      filesize > 1'000'000'000) {
+      continue;
+    }
+
+    const uint64_t test_start = MdfHelper::NowNs();
+
+    SortingTask task;
+    task.SourceFile(file_path);
+    path dest_file(kTestDir);
+    std::string filename = name + "_sorting.mf4";
+    dest_file.append(filename);
+    task.DestinationFile(dest_file.string());
+    task.SkipIfNoSamples(true);
+
+    task.Run();
+    const uint64_t test_stop = MdfHelper::NowNs();
+    const double test_time = static_cast<double>(test_stop - test_start) / 1'000'000'000.0;
+
+        /*
+    EXPECT_TRUE(task.Result());
+    EXPECT_FALSE(task.Error());
+    EXPECT_TRUE(task.ErrorMessage().empty());
+    */
+    std::cout << "File: " << name <<
+      (task.Result() ? " OK (" : " ERROR (")
+       << test_time << "s)" << std::endl;
+    if (!task.Result()) {
+      for ( const auto& msg : task.MessageList() ) {
+        std::cout << "Error: " << msg << std::endl;
+      }
+    } else {
+      ++nof_sorted;
+    }
+
+  }
+  MdfLogStream::SetLogLevel(MdfLogSeverity::kTrace);
+  EXPECT_GT(nof_sorted, 0);
+  //EXPECT_GT(nof_non_sorted, 0);
+
+}
 }  // namespace mdf::test

@@ -286,6 +286,8 @@ class IChannelConversion : public IBlock {
     return true;
   }
 
+  virtual void CopyFrom(const IChannelConversion& source);
+
  protected:
   uint16_t nof_values_ = 0; ///< Number of parameter values (MDF3).
 

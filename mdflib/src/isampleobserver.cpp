@@ -49,5 +49,17 @@ bool ISampleObserver::OnSample(uint64_t sample, uint64_t record_id,
 }
 
 
+void ISampleObserver::FindVlsdRecord(const IChannelGroup& channel_group) {
+  const auto channel_list = channel_group.Channels();
+  for (const auto* channel : channel_list) {
+    if (channel == nullptr) {
+      continue;
+    }
+    if (channel->VlsdRecordId() > 0) {
+      record_id_list_.insert(channel->VlsdRecordId());
+    }
+  }
+}
+
 
 }

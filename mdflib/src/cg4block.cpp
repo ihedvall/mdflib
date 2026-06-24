@@ -342,8 +342,6 @@ uint64_t Cg4Block::ReadDataRecord(std::streambuf& buffer,
   return count;
 }
 
-
-
 std::vector<IChannel *> Cg4Block::Channels() const {
   std::vector<IChannel *> channel_list;
   for (const auto& cn4 : cn_list_) {
@@ -355,6 +353,18 @@ std::vector<IChannel *> Cg4Block::Channels() const {
     // Include any composition channels as well
     AddCxChannels(*cn_block, channel_list);
 
+  }
+  return channel_list;
+}
+
+std::vector<IChannel *> Cg4Block::TopLevelChannels() const {
+  std::vector<IChannel *> channel_list;
+  for (const auto& cn4 : cn_list_) {
+    const auto* cn_block = cn4.get();
+    if (cn_block == nullptr) {
+      continue;
+    }
+    channel_list.push_back(cn4.get());
   }
   return channel_list;
 }
@@ -718,12 +728,31 @@ const IDataGroup *Cg4Block::DataGroup() const {
 }
 
 void Cg4Block::CopyFrom(const IChannelGroup& source) {
-  acquisition_name_ = source.Name();
-  flags_ = source.Flags();
-  path_separator_ = static_cast<uint16_t>(source.PathSeparator());
-  CgComment comment;
-  source.GetCgComment(comment);
-  SetCgComment(comment);
+
+  if (const IMetaData* meta = source.MetaData();
+      meta != nullptr) {
+    CgComment comment;
+    source.GetCgComment(comment);
+    SetCgComment(comment);
+  }
+
+  if (const auto* cg4 = dynamic_cast<const Cg4Block*>(&source);
+      cg4 != nullptr) {
+    // Record ID set by create function
+    flags_ = cg4->flags_;
+
+    path_separator_ = cg4->path_separator_;
+    nof_data_bytes_ = cg4->nof_data_bytes_;
+    nof_invalid_bytes_ = cg4->nof_invalid_bytes_;
+    acquisition_name_ = cg4->acquisition_name_;
+  }
+  if (const auto total_size = nof_invalid_bytes_ + nof_data_bytes_;
+      total_size > 0) {
+    sample_buffer_.resize(total_size,0);
+  } else {
+    sample_buffer_.clear();
+    sample_buffer_.shrink_to_fit();
+  }
 }
 
 }  // namespace mdf::detail

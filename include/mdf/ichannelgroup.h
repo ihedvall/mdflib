@@ -93,6 +93,8 @@ class IChannelGroup : public IBlock {
   /** \brief Returns a list of channels. */
   [[nodiscard]] virtual std::vector<IChannel*> Channels() const = 0;
 
+  [[nodiscard]] virtual std::vector<IChannel*> TopLevelChannels() const = 0;
+
   /** \brief Creates a new channel. */
   [[nodiscard]] virtual IChannel* CreateChannel() = 0;
 
@@ -108,7 +110,7 @@ class IChannelGroup : public IBlock {
   [[nodiscard]] virtual IChannel* GetChannel(const std::string_view& name) const;
 
   [[nodiscard]] virtual IChannel* GetMasterChannel() const;
-
+  [[nodiscard]] IChannel* GetMasterTimeChannel() const;
   /** \brief Returns an external reference channel. */
   [[nodiscard]] virtual const IChannel* GetXChannel(
       const IChannel& reference) const = 0;

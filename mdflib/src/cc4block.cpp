@@ -7,6 +7,9 @@
 
 #include <sstream>
 #include <string>
+
+#include "mdf/mdflogstream.h"
+
 namespace {
 constexpr size_t kIndexName = 0;
 constexpr size_t kIndexUnit = 1;
@@ -108,7 +111,7 @@ void Cc4Block::Decimals(uint8_t decimals) {
 }
 
 uint8_t Cc4Block::Decimals() const {
-  const auto max = static_cast<uint8_t>(
+  constexpr auto max = static_cast<uint8_t>(
                               std::numeric_limits<double>::max_digits10);
   return  flags_ & CcFlag::PrecisionValid ?
                              precision_ : max;
@@ -275,9 +278,9 @@ uint64_t Cc4Block::Read(std::streambuf& buffer) {  // NOLINT
 }
 
 uint64_t Cc4Block::Write(std::streambuf& buffer) {  // NOLINT
-  const bool update = FilePosition() > 0;  // True if already written to file
-  if (update) {
-    return static_cast<size_t>(block_length_);
+  if (const bool update = FilePosition() > 0;  // True if already written to file
+      update) {
+    return block_length_;
   }
 
   nof_references_ = static_cast<uint16_t>(ref_list_.size());
@@ -517,15 +520,15 @@ bool Cc4Block::ConvertTextToTranslation(const std::string& channel_value,
 }
 
 void Cc4Block::Formula(const std::string& formula) {
-  // The formula should be place in ref_list[0].
-  constexpr size_t index = 0;
-  while (index >= ref_list_.size()) {
-    auto temp = std::make_unique<Tx4Block>();
-    ref_list_.emplace_back(std::move(temp));
-  }
-  auto* tx4 = dynamic_cast<Tx4Block*>(ref_list_[0].get());
-  if (tx4 != nullptr) {
-    tx4->Text(formula);
+  // The formula should be placed in ref_list[0].
+  if (auto temp = std::make_unique<Tx4Block>(); temp ) {
+    temp->Init(*this);
+    temp->Text(formula);
+    if (ref_list_.empty()) {
+      ref_list_.emplace_back(std::move(temp));
+    } else {
+      ref_list_[0] = std::move(temp);
+    }
   }
   IChannelConversion::Formula(formula);
 }
@@ -541,18 +544,68 @@ const std::string& Cc4Block::Formula() const {
   return IChannelConversion::Formula();
 }
 
+void Cc4Block::CopyFrom(const IChannelConversion& source) {
+  IChannelConversion::CopyFrom(source);
+  if (const auto* cc4 = dynamic_cast<const Cc4Block*>(&source);
+      cc4 != nullptr) {
+    type_ = cc4->type_;
+    precision_ = cc4->precision_;
+    flags_ = cc4->flags_;
+    nof_references_ = cc4->nof_references_;
+    range_min_ = cc4->range_min_;
+    range_max_ = cc4->range_max_;
+    name_ = cc4->name_;
+
+    CcComment comment;
+    cc4->GetCcComment(comment);
+    SetCcComment(comment);
+
+    CcUnit unit;
+    cc4->GetCcUnit(unit);
+    SetCcUnit(unit);
+
+    for (const auto& source_ref : cc4->ref_list_) {
+      if (!source_ref) {
+        continue;
+      }
+      if (source_ref->BlockType() != "TX") {
+        const auto* source_tx4 = dynamic_cast<const Tx4Block*>(source_ref.get());
+        if (auto tx4_block = std::make_unique<Tx4Block>();
+            tx4_block && source_tx4 != nullptr) {
+          tx4_block->Init(*this);
+          tx4_block->Text(source_tx4->Text());
+          ref_list_.emplace_back(std::move(tx4_block));
+        }
+      } else if (source_ref->BlockType() == "CC") {
+        const auto* source_cc4 = dynamic_cast<const Cc4Block*>(source_ref.get());
+        if (auto cc4_block = std::make_unique<Cc4Block>();
+            cc4_block && source_cc4 != nullptr) {
+          cc4_block->Init(*this);
+          cc4_block->CopyFrom(*source_cc4);
+          ref_list_.emplace_back(std::move(cc4_block));
+        }
+      }
+    }
+  }
+}
+
 [[nodiscard]] uint16_t Cc4Block::NofReferences() const {
   return nof_references_;  
 }
 
-void Cc4Block::Reference(uint16_t index, const std::string& text) {
-  while (index >= ref_list_.size()) {
-    auto temp = std::make_unique<Tx4Block>();
-    ref_list_.emplace_back(std::move(temp));
-  }
-  auto* tx4 = dynamic_cast<Tx4Block*>(ref_list_.back().get());
-  if (tx4 != nullptr) {
-    tx4->Text(text);
+void Cc4Block::Reference(const uint16_t index, const std::string& text) {
+  try {
+    if (index >= ref_list_.size()) {
+      ref_list_.resize(index + 1);
+    }
+    if (auto temp = std::make_unique<Tx4Block>(); temp) {
+      temp->Init(*this);
+      temp->Text(text);
+      ref_list_[index] = std::move(temp);
+    }
+  } catch (const std::exception& err) {
+    MDF_ERROR() << "Failed to add a text reference. Index: "
+                << index << ", Text: " << text << ", Error: " << err.what();
   }
 }
 

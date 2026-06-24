@@ -43,10 +43,15 @@ void MdList::AddProperty(MdProperty property) {
 }
 
 void MdList::AddTree(MdList tree) {
-  if (const auto& name = tree.Name();
-      !IsDuplicateName(name) ) {
-    tree_list_.emplace(name, std::move(tree));
+  // If the tree alrady exist, append the new tree to the old one
+  if (auto tree_itr = tree_list_.find(tree.Name());
+      tree_itr != tree_list_.cend()) {
+    for (const auto& [prop_name, prop] : tree.Properties()) {
+      tree_itr->second.AddProperty(prop);
+    }
+    return;
   }
+  tree_list_.emplace(tree.Name(), std::move(tree));
 }
 
 void MdList::AddList(MdList list) {

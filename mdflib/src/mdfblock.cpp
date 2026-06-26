@@ -4,12 +4,12 @@
  */
 #include "mdfblock.h"
 
-#include <cstdio>
-
 #include <chrono>
-#include <ios>
-#include <sstream>
+#include <cstdio>
 #include <fstream>
+#include <ios>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <thread>
 
@@ -313,7 +313,7 @@ bool OpenMdfFile(FILE *&file, const std::string &filename,
 }
 */
 
-bool OpenMdfFile(std::streambuf& buffer, const std::string &filename,
+bool OpenMdfFile(std::streambuf& buffer, const std::wstring &filename,
                  std::ios_base::openmode mode) {
   const std::filebuf* file = nullptr;
   // Dirty trick if the file was opened outside through the stream
@@ -321,7 +321,7 @@ bool OpenMdfFile(std::streambuf& buffer, const std::string &filename,
   if (filename.empty()) {
     return true;
   }
-
+  path fname;
   try {
     auto& file_buffer = dynamic_cast<std::filebuf&>(buffer);
 
@@ -329,10 +329,11 @@ bool OpenMdfFile(std::streambuf& buffer, const std::string &filename,
       if (file_buffer.is_open()) {
         file_buffer.close();
       }
-      file = file_buffer.open(filename, mode);
+      fname = filename;
+      file = file_buffer.open(fname, mode);
       if (file == nullptr) {
-        if (!exists(filename)) {
-          MDF_ERROR() << "The file doesn't exist. File: " << filename;
+        if (!exists(fname)) {
+          MDF_ERROR() << "The file doesn't exist. File: " << fname;
           return false;
         }
         // Failed to open the file. Try again with a delay
@@ -348,7 +349,7 @@ bool OpenMdfFile(std::streambuf& buffer, const std::string &filename,
 
   if (file == nullptr) {
     MDF_ERROR() << "Failed to open the file due to lock timeout (5 s). File: "
-                << filename;
+                << fname;
   }
   return file != nullptr;
 }

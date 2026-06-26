@@ -17,6 +17,8 @@ namespace fs = std::experimental::filesystem;
 namespace fs = std::filesystem;
 #endif
 
+using namespace fs;
+
 namespace mdf {
 
 int MdfFile::MainVersion() const {
@@ -48,7 +50,7 @@ int MdfFile::MinorVersion() const {
 IAttachment* MdfFile::CreateAttachment() { return nullptr; }
 
 void MdfFile::FileName(const std::string& filename) {
-  filename_ = filename;
+  filename_ = filename; // assume UTF8
   if (name_.empty()) {
     try {
       auto name = fs::u8path(filename).stem().u8string();

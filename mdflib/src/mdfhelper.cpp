@@ -15,6 +15,7 @@
 #include <sstream>
 
 #include "littlebuffer.h"
+#include "cutf.h"
 
 namespace {
 
@@ -308,10 +309,10 @@ std::string MdfHelper::Latin1ToUtf8(const std::string &latin1) {
   for (const auto in_char : latin1) {
     const auto ch = static_cast<const uint8_t>(in_char);
     if (ch < 0x80) {
-      utf8 << ch;
+      utf8 << in_char;
     } else {
-      utf8 << (0xC0 | ch >> 6);
-      utf8 << (0x80 | (ch & 0x3f));
+      utf8 << static_cast<char>(0xC0 | ch >> 6);
+      utf8 << static_cast<char>(0x80 | (ch & 0x3f));
     }
   }
   return utf8.str();
@@ -319,32 +320,12 @@ std::string MdfHelper::Latin1ToUtf8(const std::string &latin1) {
 
 std::string MdfHelper::Utf16ToUtf8(const std::wstring &utf16) {
   if (utf16.empty()) return {};
-
-  std::mbstate_t state = std::mbstate_t();
-  const wchar_t* src = utf16.data();
-  size_t len = std::wcsrtombs(nullptr, &src, 0, &state);
-  if (len == static_cast<size_t>(-1)) {
-    return {};
-  }
-  std::string utf8(len, '\0');
-  src = utf16.data();
-  std::wcsrtombs(&utf8[0], &src, len, &state);
-  return utf8;
+  return widetoutf8(utf16);
 }
 
 std::wstring MdfHelper::Utf8ToUtf16(const std::string &utf8) {
   if (utf8.empty()) return {};
-
-  std::mbstate_t state = std::mbstate_t();
-  const char* src = utf8.data();
-  size_t len = std::mbsrtowcs(nullptr, &src, 0, &state);
-  if (len == static_cast<size_t>(-1)) {
-    return {};
-  }
-  std::wstring utf16(len, L'\0');
-  src = utf8.data();
-  std::mbsrtowcs(&utf16[0], &src, len, &state);
-  return utf16;
+  return utf8towide(utf8);
 }
 
 bool MdfHelper::ComputerUseLittleEndian() {

@@ -4,13 +4,12 @@
  */
 
 #pragma once
-#include <cstdio>
+
 #include <memory>
 #include <string>
 #include <string_view>
 #include <functional>
 #include <vector>
-#include <fstream>
 
 #include "mdf/ichannelobserver.h"
 #include "mdf/mdffile.h"
@@ -93,7 +92,8 @@ class MdfReader {
    *
    * @param filename Full file path to the input file.
    */
-  explicit MdfReader(std::string filename);
+  explicit MdfReader(std::wstring filename);
+  explicit MdfReader(const std::string& filename);
   explicit MdfReader(const std::string_view& filename);
 
   explicit MdfReader(const std::shared_ptr<std::streambuf>& buffer);
@@ -105,6 +105,10 @@ class MdfReader {
   MdfReader& operator=(const MdfReader&) = delete;
   MdfReader& operator=(MdfReader&&) = delete;
 
+  [[nodiscard]] std::string Filename() const;
+  [[nodiscard]] const std::wstring& WFilename() const {
+    return filename_;
+  }
   /**
    * Unique index for this reader. This index is typically used when fetching
    * files from a database. The index itself is not used by the reader.
@@ -148,7 +152,8 @@ class MdfReader {
 
   [[nodiscard]] std::string ShortName()
       const;  ///< Returns the file name without paths.
-
+  [[nodiscard]] std::wstring WShortName()
+      const;  ///< Returns the file name without paths.
   /** \brief Opens the internal stream buffer.
    *
    * Normally the stream buffer is an ordinary file but the use may also
@@ -274,7 +279,7 @@ class MdfReader {
    */
   std::shared_ptr<std::streambuf> file_;
 
-  std::string filename_;               ///< The file name with full path.
+  std::wstring filename_;               ///< The file name with full path.
   std::unique_ptr<MdfFile> instance_;  ///< Pointer to the MDF file object.
   int64_t index_ = 0;  ///< Unique (database) file index that can be used to
                        ///< identify a file instead of its path.

@@ -11,9 +11,11 @@
 #include <algorithm>
 #include <chrono>
 #include <fstream>
+#include <iostream>
+
+#include "mdf/canconfigadapter.h"
 #include "mdf/ethconfigadapter.h"
 #include "mdf/linconfigadapter.h"
-#include "mdf/canconfigadapter.h"
 #include "mdf/mostconfigadapter.h"
 #include "mdfblock.h"
 #include "platform.h"
@@ -104,7 +106,7 @@ IHeader* MdfWriter::Header() const {
   return mdf_file_ ? mdf_file_->Header() : nullptr;
 }
 
-IDataGroup* MdfWriter::CreateDataGroup() {
+IDataGroup* MdfWriter::CreateDataGroup() const {
   return !mdf_file_ ? nullptr : mdf_file_->CreateDataGroup();
 }
 
@@ -164,12 +166,16 @@ void MdfWriter::Close() {
   }
 }
 
-bool MdfWriter::Init(const std::string& filename) {
+std::string MdfWriter::Filename() const {
+  return MdfHelper::Utf16ToUtf8(filename_);
+}
+
+bool MdfWriter::Init(const std::wstring& filename) {
   bool init = false;
   CreateMdfFile();
   filename_ = filename;
   if (mdf_file_) {
-    mdf_file_->FileName(filename);
+    mdf_file_->FileName(Filename());
   }
   file_ = std::make_shared<std::filebuf>();
   if (!file_) {
@@ -177,7 +183,7 @@ bool MdfWriter::Init(const std::string& filename) {
     return false;
   }
   try {
-    if (fs::exists(filename_)) {
+    if (exists(filename_)) {
       // Read in existing file so we can append to it
 
       Open(std::ios_base::in | std::ios_base::binary);
@@ -185,11 +191,12 @@ bool MdfWriter::Init(const std::string& filename) {
         mdf_file_->ReadEverythingButData(*file_);
         Close();
         write_state_ = WriteState::Finalize;  // Append to the file
-        MDF_DEBUG() << "Reading existing file. File: " << filename_;
+        MDF_DEBUG() << "Reading existing file. File: "
+          << Filename();
         init = true;
       } else {
         MDF_ERROR() << "Failed to open the existing MDF file. File: "
-                    << filename_;
+                    << Filename();
         write_state_ = WriteState::Create;
       }
     } else {
@@ -203,21 +210,32 @@ bool MdfWriter::Init(const std::string& filename) {
       Close();
       write_state_ = WriteState::Finalize;
       MDF_ERROR() << "Failed to read the existing MDF file. Error: "
-                  << err.what() << ", File: " << filename_;
+                  << err.what() << ", File: " << Filename();
     } else {
       write_state_ = WriteState::Create;
       MDF_ERROR() << "Failed to open the existing MDF file. Error: "
-                  << err.what() << ", File: " << filename_;
+                  << err.what() << ", File: " << Filename();
     }
   }
   return init;
 }
 
+bool MdfWriter::Init(const std::string& filename) {
+  const std::wstring fname = MdfHelper::Utf8ToUtf16(filename);
+  return Init(fname);
+}
+
 bool MdfWriter::Init(const std::shared_ptr<std::streambuf>& buffer) {
   bool init = true;
-  CreateMdfFile();
-  file_ = buffer;
-  write_state_ = WriteState::Create;
+  try {
+    CreateMdfFile();
+    file_ = buffer;
+    write_state_ = WriteState::Create;
+  } catch (const std::exception& err) {
+    MDF_ERROR() << "Failed to create a file buffer. Internal error. Error: "
+                << err.what();
+    init = false;
+  }
   return init;
 }
 
@@ -232,7 +250,7 @@ bool MdfWriter::InitMeasurement() {
   const bool prep = PrepareForWriting();
   if (!prep) {
     MDF_ERROR() << "Failed to prepare the file for writing. File: "
-                << filename_;
+                << Filename();
     return false;
   }
   // 1: Save ID, HD, DG, AT, CG and CN blocks to the file.
@@ -241,7 +259,8 @@ bool MdfWriter::InitMeasurement() {
              std::ios_base::out | std::ios_base::binary | std::ios_base::trunc:
              std::ios_base::in | std::ios_base::out | std::ios_base::binary);
   if (!IsOpen()) {
-    MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
+    MDF_ERROR() << "Failed to open the file for writing. File: "
+      << Filename();
     return false;
   }
 
@@ -321,7 +340,8 @@ bool MdfWriter::FinalizeMeasurement() {
 
   Open(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
   if (!IsOpen()) {
-    MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
+    MDF_ERROR() << "Failed to open the file for writing. File: "
+      << Filename();
     return false;
   }
   const bool write = mdf_file_ && mdf_file_->Write(*file_);
@@ -342,7 +362,7 @@ bool MdfWriter::WriteSignalData(std::streambuf&) {
 
 std::string MdfWriter::Name() const {
   try {
-    auto filename = u8path(filename_).stem().u8string();
+    auto filename = path(filename_).stem().u8string();
     return {filename.begin(), filename.end()};
   } catch (...) {
   }

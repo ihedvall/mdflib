@@ -23,6 +23,10 @@ class MdfDocument : public wxDocument {
 
   bool OnOpenDocument(const wxString &filename) override;
 
+  std::wstring GetMdfFilename() const {
+    return reader_ ? reader_->WFilename() : L"No Name";
+  }
+
   [[nodiscard]] const mdf::MdfFile* GetFile() const {
     return !reader_  ? nullptr : reader_->GetFile();
   }

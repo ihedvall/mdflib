@@ -92,7 +92,7 @@ std::string ToMd5String(const std::vector<uint8_t> &md5);
  * @param mode Open mode according to a file stream..
  * @return True if the file was opened.
  */
-bool OpenMdfFile(std::streambuf& buffer, const std::string &filename,
+bool OpenMdfFile(std::streambuf& buffer, const std::wstring &filename,
                  std::ios_base::openmode mode);
 //bool OpenMdfFile(std::FILE *&file, const std::string &filename,
 //                 const std::string &mode);
@@ -470,8 +470,7 @@ void MdfBlock::WriteLink4List(std::streambuf& buffer,
     if (index == 0) {
       UpdateLink(buffer, link_index, block->FilePosition());
     } else {
-      auto &prev = block_list[index - 1];
-      if (prev) {
+      if (auto &prev = block_list[index - 1]; prev) {
         prev->UpdateLink(buffer, 0, block->FilePosition());
       }
     }

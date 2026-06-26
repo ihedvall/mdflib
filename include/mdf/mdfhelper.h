@@ -25,7 +25,8 @@ class MdfHelper {
 
   /** \brief return the time zone offset in seconds.
    *
-   * Returns the current used time zone offset in seconds
+   * Returns the current used time zone offset in seconds.
+   * Note that the offset include the DST offset.
    * @return Time offset in seconds
    */
   static int64_t TimeZoneOffset();
@@ -202,15 +203,21 @@ class MdfHelper {
    */
   static void Trim(std::string &text);
 
-  /// Converts a floating point value to a string using number of decimals.\n
+  /// Converts a floating point value to a string using number of decimals.
   /// It also fix rounding and returning a fixed decimals.
   /// Presenting fixed number of decimals means that it fills up the string with
-  /// '0' characters.\n Example: Value: 1.23 and decimals 3,String: (Fixed =
-  /// false) "1.23" (Fixed = true) "1.230"\n Optional it can append a unit to
-  /// the string (Example: "1.23 m/s").\n \param[in] value  The floating point
-  /// value. \param[in] decimals Max number of decimals. \param[in] fixed If it
-  /// should show fixed number of decimals. \param[in] unit Appends a unit
-  /// string to the output. \return The formatted string.
+  /// '0' characters.
+  ///
+  /// Example: Value: 1.23 and decimals 3,String: (Fixed =
+  /// false) "1.23" (Fixed = true) "1.230"
+  ///
+  /// Optional it can append a unit to the string (Example: "1.23 m/s").
+  ///
+  /// \param[in] value  The floating point value.
+  /// \param[in] decimals Max number of decimals.
+  /// \param[in] fixed If it should show fixed number of decimals.
+  /// \param[in] unit Appends a unit string to the output.
+  /// \return The formatted string.
   static std::string FormatDouble(
       double value, uint8_t decimals, bool fixed = false,
       const std::string &unit = {});  ///< Converts a float to a string.
@@ -219,6 +226,7 @@ class MdfHelper {
 
   /** \brief Converts a Latin1 string to UTF8 string. */
   static std::string Latin1ToUtf8(const std::string &latin1);
+
   /** \brief Converts a wide UTF16 string to an UTF8 string. */
   static std::string Utf16ToUtf8(const std::wstring &utf16);
   /** \brief Converts a wide UTF8 string to an UTF16 string. */
@@ -230,8 +238,16 @@ class MdfHelper {
   static std::vector<uint8_t> TextToByteArray(const std::string& text);
 
 
- static void UnsignedToRaw(bool little_endian, size_t start, size_t length,
-                     uint64_t value, uint8_t* raw);
+  /** \brief Converts an unsigned integer to a byte array.
+   *
+   * This function is intended for CAN messages that uses a DBC
+   * file.
+   * It can fill an byte array with an unsigned integer at any bit position.
+   * Note that the bit position for little endian is 0 while big endian is 7
+   * if is an byte that should be transferred.
+   */
+  static void UnsignedToRaw(bool little_endian, size_t bit_start,
+   size_t bit_length, uint64_t value, uint8_t* raw);
 
   static constexpr std::string_view ToolId() { return "MDF C++ Library (mdflib)"; }
   static constexpr std::string_view ToolVendor() { return "IH Development"; }

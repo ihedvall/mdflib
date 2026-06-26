@@ -117,6 +117,9 @@ class MdfWriter {
     return write_state_;
   }
 
+  std::string Filename() const;
+
+
   /** \brief Init the writer against a file.
    *
    * Initiate the writer by defining which file it shall work with. Note that
@@ -126,7 +129,7 @@ class MdfWriter {
    * @return Returns true if the function was successful.
    */
   bool Init(const std::string& filename);
-
+  bool Init(const std::wstring& filename);
   /** \brief Initialize the writer against a  generic stream buffer.
    *
    * This function attach the internal stream buffer
@@ -178,7 +181,7 @@ class MdfWriter {
   bool CreateBusLogConfiguration();
   
   /** \brief Create a new data group (DG) block. */
-  [[nodiscard]] IDataGroup* CreateDataGroup();
+  [[nodiscard]] IDataGroup* CreateDataGroup() const;
   /** \brief Create a new channel group (CG) block. */
   [[nodiscard]] static IChannelGroup* CreateChannelGroup(IDataGroup* parent);
   /** \brief Creates a new channel (CN) block. */
@@ -402,7 +405,7 @@ class MdfWriter {
 
 
   std::unique_ptr<MdfFile> mdf_file_;  ///< Holds the actual file object.
-  std::string filename_;  ///< Full name of file with path and extension.
+  std::wstring filename_;  ///< Full name of file with path and extension.
 
   std::atomic<uint64_t> pre_trig_time_ = 0;  ///< Nanoseconds difference.
   std::atomic<uint64_t> start_time_ = 0;     ///< Nanoseconds since 1970.

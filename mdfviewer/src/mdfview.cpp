@@ -27,6 +27,7 @@ bool MdfView::OnCreate(wxDocument *doc, long flags) {
   auto* parent = wxDynamicCast(app.GetTopWindow(),wxMDIParentFrame);
   wxFrame* sub_frame = new ChildFrame(doc, this, parent,wxID_ANY,"MDF File");
   sub_frame->Show();
+
   return true;
 }
 

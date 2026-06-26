@@ -8,8 +8,8 @@
 #include <filesystem>
 #include <string>
 #include <thread>
-#include <set>
 #include <random>
+#include <fstream>
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
@@ -332,6 +332,78 @@ TEST_F(TestWrite, Mdf3WriteTestValueType) {
   }
   writer->StopMeasurement(TimeStampToNs());
   writer->FinalizeMeasurement();
+}
+
+TEST_F(TestWrite, Mdf4JapanesePath) {  // NOLINT
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append(L"한글-にほんご-中文.mf4");
+  std::cout << "MDF file path: " << mdf_file << std::endl;
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.wstring()));
+  EXPECT_FALSE(writer->Filename().empty());
+  std::cout << "Writer Filename: " << writer->Filename() << std::endl;
+
+  const auto start_time1 = TimeStampToNs();
+
+  auto* header = writer->Header();
+  ASSERT_TRUE(header != nullptr);
+  EXPECT_EQ(header->Index(), 0);
+
+  header->Author("Ingemar Hedvall");
+  EXPECT_TRUE(header->Author() == "Ingemar Hedvall");
+
+  header->Department("Home Alone");
+  header->Description("Testing Japanese");
+  header->Project("Mdf4JapanesePath");
+  header->StartTime(start_time1);
+  header->Subject("PXY");
+  header->MeasurementId("AAA");
+  header->RecorderId("BBB");
+  header->RecorderIndex(45);
+  header->StartAngle(1.0);
+  header->StartDistance(2.0);
+
+  writer->InitMeasurement();
+  writer->FinalizeMeasurement();
+
+  EXPECT_GT(header->Index(), 0);
+
+    {
+      MdfReader reader(mdf_file.wstring());
+      ASSERT_TRUE(reader.IsOk());
+      ASSERT_TRUE(reader.ReadHeader());
+      const auto* file1 = reader.GetFile();
+      ASSERT_TRUE(file1 != nullptr);
+
+      const auto* header1 = file1->Header();
+      ASSERT_TRUE(header1 != nullptr);
+      EXPECT_GT(header1->Index(), 0);
+
+      EXPECT_EQ(header->Author(), header1->Author());
+      std::cout << "Author: " << header1->Author() << std::endl;
+      EXPECT_EQ(header->Department(), header1->Department());
+      EXPECT_EQ(header->Description(), header1->Description());
+
+      EXPECT_EQ(header->Project(), header1->Project());
+
+      EXPECT_EQ(header->StartTime(), header1->StartTime()) << start_time1;
+      EXPECT_EQ(header1->StartTime(), start_time1);
+
+      EXPECT_EQ(header->Subject(), header1->Subject());
+      EXPECT_EQ(header->MeasurementId(), header1->MeasurementId());
+      EXPECT_EQ(header->RecorderId(), header1->RecorderId());
+      EXPECT_EQ(header->RecorderIndex(), header1->RecorderIndex());
+
+      EXPECT_EQ(header->StartAngle(), header1->StartAngle());
+      EXPECT_TRUE(header1->StartAngle().has_value());
+
+      EXPECT_EQ(header->StartDistance(), header1->StartDistance());
+      EXPECT_TRUE(header1->StartDistance().has_value());
+    }
 }
 
 TEST_F(TestWrite, Mdf4WriteHD) {  // NOLINT
@@ -1309,7 +1381,6 @@ TEST_F(TestWrite, Mdf4TimeAndDate) {
   auto temp_time = tick_time;
 
   for (size_t sample = 0; sample < 100; ++sample) {
-    double value = static_cast<double>(sample) + 0.23;
     ch1->SetChannelValue(temp_time);
     ch2->SetChannelValue(temp_time);
     writer->SaveSample(*group1,temp_time);
@@ -2537,7 +2608,6 @@ TEST_F(TestWrite, MultiCGWithoutMasterChannel) {
   }
   reader.Close();
 
-  std::set<std::string> unique_list;
 
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
@@ -2647,8 +2717,6 @@ TEST_F(TestWrite, MdfCompressConverter) {
     reader.ReadData(*dg4);
   }
   reader.Close();
-
-  std::set<std::string> unique_list;
 
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
@@ -2770,8 +2838,6 @@ TEST_F(TestWrite, MdfNotCompressConverter) {
     reader.ReadData(*dg4);
   }
   reader.Close();
-
-  std::set<std::string> unique_list;
 
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);
@@ -2914,8 +2980,6 @@ TEST_F(TestWrite, TestStreamInterface) {
   std::cout << "Write Time [ms]: " <<
       static_cast<double>(read_time - stop_write) / 1'000'000
             << std::endl;
-
-  std::set<std::string> unique_list;
 
   for (auto& observer : observer_list) {
     ASSERT_TRUE(observer);

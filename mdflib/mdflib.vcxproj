@@ -213,6 +213,7 @@
     <ClCompile Include="src\cnunit.cpp" />
     <ClCompile Include="src\convertersamplequeue.cpp" />
     <ClCompile Include="src\cryptoutil.cpp" />
+    <ClCompile Include="src\cutf.cpp" />
     <ClCompile Include="src\datablock.cpp" />
     <ClCompile Include="src\datalistblock.cpp" />
     <ClCompile Include="src\datawriter.cpp" />
@@ -426,6 +427,7 @@
     <ClInclude Include="src\cn3block.h" />
     <ClInclude Include="src\cn4block.h" />
     <ClInclude Include="src\convertersamplequeue.h" />
+    <ClInclude Include="src\cutf.h" />
     <ClInclude Include="src\datablock.h" />
     <ClInclude Include="src\datalistblock.h" />
     <ClInclude Include="src\datawriter.h" />

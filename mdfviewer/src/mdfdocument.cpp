@@ -155,7 +155,7 @@ wxEND_EVENT_TABLE()
 bool MdfDocument::OnOpenDocument(const wxString &filename) {
 
   wxBusyCursor wait;
-  reader_ = std::make_unique<MdfReader>(std::string(filename.mb_str(wxConvUTF8))); // Note that the file is now open
+  reader_ = std::make_unique<MdfReader>(filename.ToStdWstring()); // Note that the file is now open
   bool parse = reader_->IsOk();
   if (!parse) {
     LOG_ERROR() << "The file is not an MDF file. File: "
@@ -166,7 +166,7 @@ bool MdfDocument::OnOpenDocument(const wxString &filename) {
     reader_->Close();
     return false;
   }
-
+  LOG_INFO() << "Opened MDF file: " << filename;;
   try {
     parse = reader_->ReadEverythingButData();
    } catch (const std::exception &error) {
@@ -342,8 +342,7 @@ void MdfDocument::OnUpdateShowGroupData(wxUpdateUIEvent &event) {
     if (dg == nullptr) {
       return;
     }
-    auto cg_list = dg->ChannelGroups();
-    bool enable = cg_list.size() == 1;
+    const auto cg_list = dg->ChannelGroups();
     event.Enable(cg_list.size() == 1);
   } else if (selected_block->BlockType() == "CG") {
     const auto* cg_block = dynamic_cast<const IChannelGroup*>(selected_block);
@@ -700,7 +699,7 @@ MdfDocument::~MdfDocument() {
   }
   for (auto* obs : win_list) {
     if (obs != nullptr) {
-      auto close = obs->Close(true);
+      obs->Close(true);
     }
   }
 }

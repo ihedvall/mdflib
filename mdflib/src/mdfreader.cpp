@@ -9,6 +9,7 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include <fstream>
 
 #include "channelobserver.h"
 #include "dg4block.h"
@@ -32,6 +33,7 @@ namespace fs = std::filesystem;
 
 using namespace std::chrono_literals;
 using namespace mdf::detail;
+using namespace fs;
 
 namespace mdf {
 
@@ -242,22 +244,24 @@ void CreateChannelObserverForDataGroup(const IDataGroup &data_group,
   }
 }
 
-MdfReader::MdfReader(std::string filename) : filename_(std::move(filename)) {
+MdfReader::MdfReader(std::wstring filename)
+: filename_(std::move(filename)) {
   // Need to create MDF3 of MDF4 file
   bool bExist = false;
   try {
-    fs::path p = fs::u8path(filename_);
-    if (fs::exists(p)) {
+    fs::path fname(filename_);
+    if (fs::exists(fname)) {
       bExist = true;
     }
   } catch (const std::exception &error) {
-    MDF_ERROR() << "File I/O error. Filename: " << filename_
+    MDF_ERROR() << "File I/O error. Filename: " << Filename()
                 << ", Error: " << error.what();
     return;
   }
 
   if (!bExist) {
-    MDF_ERROR() << "The file doesn't exist. Filename: " << filename_;
+    MDF_ERROR() << "The file doesn't exist. Filename: "
+      << Filename();
     // No meaning to continue if the file doesn't exist
     return;
   }
@@ -269,6 +273,11 @@ MdfReader::MdfReader(std::string filename) : filename_(std::move(filename)) {
 
   VerifyMdfFile();
 }
+
+MdfReader::MdfReader(const std::string &filename)
+  : MdfReader(MdfHelper::Utf8ToUtf16(filename)) {
+}
+
 MdfReader::MdfReader(const std::string_view &filename)
   : MdfReader(std::string(filename)) {}
 
@@ -287,7 +296,7 @@ void MdfReader::VerifyMdfFile() {
   if (!open) {
     MDF_ERROR()
         << "The file couldn't be opened for reading (locked?). Filename: "
-        << filename_;
+        << Filename();
     // No meaning to continue if the file cannot be opened
     return;
   }
@@ -299,17 +308,19 @@ void MdfReader::VerifyMdfFile() {
       Platform::strnicmp(id_block->FileId().c_str(), "UnFinMF", 7) == 0) {
     if (id_block->Version() >= 400) {
       instance_ = std::make_unique<detail::Mdf4File>(std::move(id_block));
-      instance_->FileName(filename_);
+      instance_->FileName(Filename());
     } else {
       instance_ = std::make_unique<detail::Mdf3File>(std::move(id_block));
-      instance_->FileName(filename_);
+      instance_->FileName(Filename());
     }
     if (!instance_) {
       Close();
-      MDF_ERROR() << "MDF version not supported. File: " << filename_;
+      MDF_ERROR() << "MDF version not supported. File: "
+        << Filename();
     }
   } else {
-    MDF_ERROR() << "This is not and MDF file. File: " << filename_;
+    MDF_ERROR() << "This is not and MDF file. File: "
+      << Filename();
     Close();
   }
 }
@@ -318,13 +329,22 @@ MdfReader::~MdfReader() { Close(); }
 
 std::string MdfReader::ShortName() const {
   try {
-    auto filename = fs::u8path(filename_).stem().u8string();
+    auto filename = fs::path(filename_).stem().u8string();
     return {filename.begin(), filename.end()};
   } catch (const std::exception &) {
   }
   return {};
 }
 
+std::wstring MdfReader::WShortName() const {
+  try {
+    const path fullname(filename_);
+    const path stem = fullname.stem();
+    return stem.wstring();
+  } catch (const std::exception &) {
+  }
+  return {};
+}
 bool MdfReader::Open() {
   if (!file_) {
     MDF_ERROR() <<
@@ -334,7 +354,7 @@ bool MdfReader::Open() {
 
   // Note that the above function will return true if it isn't a file
   // buffer.
-  return detail::OpenMdfFile(*file_, filename_,
+  return OpenMdfFile(*file_, filename_,
            std::ios_base::in | std::ios_base::binary);
 }
 
@@ -380,13 +400,13 @@ void MdfReader::Close() {
 
 bool MdfReader::ReadHeader() {
   if (!instance_ || !file_) {
-    MDF_ERROR() << "No instance created. File: " << filename_;
+    MDF_ERROR() << "No instance created. File: " << Filename();
     return false;
   }
   // If the file is not open, then open and close the file in this call
   bool shall_close = !IsOpen() && Open();
   if (!IsOpen()) {
-    MDF_ERROR() << "File is not open. File: " << filename_;
+    MDF_ERROR() << "File is not open. File: " << Filename();
     return false;
   }
 
@@ -405,12 +425,12 @@ bool MdfReader::ReadHeader() {
 
 bool MdfReader::ReadMeasurementInfo() {
   if (!instance_ || !file_) {
-    MDF_ERROR() << "No instance created. File: " << filename_;
+    MDF_ERROR() << "No instance created. File: " << Filename();
     return false;
   }
   bool shall_close = !IsOpen() && Open();
   if (!IsOpen()) {
-    MDF_ERROR() << "File is not open. File: " << filename_;
+    MDF_ERROR() << "File is not open. File: " << Filename();
     return false;
   }
   bool no_error = true;
@@ -429,12 +449,13 @@ bool MdfReader::ReadMeasurementInfo() {
 
 bool MdfReader::ReadEverythingButData() {
   if (!instance_ || !file_) {
-    MDF_ERROR() << "No instance created. File: " << filename_;
+    MDF_ERROR() << "No instance created. File: " << Filename();
     return false;
   }
   bool shall_close = !IsOpen() && Open();
   if (!IsOpen()) {
-    MDF_ERROR() << "File is not open. File: " << filename_;
+    MDF_ERROR() << "File is not open. File: "
+      << Filename();
     return false;
   }
   bool no_error = true;
@@ -455,13 +476,13 @@ bool MdfReader::ReadEverythingButData() {
 bool MdfReader::ExportAttachmentData(const IAttachment &attachment,
                                      const std::string &dest_file) {
   if (!instance_ || !file_) {
-    MDF_ERROR() << "No instance created. File: " << filename_;
+    MDF_ERROR() << "No instance created. File: " << Filename();
     return false;
   }
 
   bool shall_close = !IsOpen() && Open();
   if (!IsOpen()) {
-    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    MDF_ERROR() << "Failed to open file. File: " << Filename();
     return false;
   }
 
@@ -484,13 +505,13 @@ bool MdfReader::ExportAttachmentData(const IAttachment &attachment,
 bool MdfReader::ExportAttachmentData(const IAttachment &attachment,
                                      std::streambuf &dest_buffer) {
   if (!instance_ || !file_) {
-    MDF_ERROR() << "No instance created. File: " << filename_;
+    MDF_ERROR() << "No instance created. File: " << Filename();
     return false;
   }
 
   bool shall_close = !IsOpen() && Open();
   if (!IsOpen()) {
-    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    MDF_ERROR() << "Failed to open file. File: " << Filename();
     return false;
   }
 
@@ -512,13 +533,13 @@ bool MdfReader::ExportAttachmentData(const IAttachment &attachment,
 
 bool MdfReader::ReadData(IDataGroup &data_group) {
   if (!instance_ || !file_) {
-    MDF_ERROR() << "No instance created. File: " << filename_;
+    MDF_ERROR() << "No instance created. File: " << Filename();
     return false;
   }
 
   bool shall_close = !IsOpen() && Open();
   if (!IsOpen()) {
-    MDF_ERROR() << "Didn't open the file. File: " << filename_;
+    MDF_ERROR() << "Didn't open the file. File: " << Filename();
     return false;
   }
 
@@ -533,7 +554,7 @@ bool MdfReader::ReadData(IDataGroup &data_group) {
     }
   } catch (const std::exception &err) {
     MDF_ERROR() << "Didn't read the file information blocks. Error: "
-                << err.what() << ", File: " << filename_;
+                << err.what() << ", File: " << Filename();
     error = true;
   }
 
@@ -573,7 +594,7 @@ bool MdfReader::ReadInDataBuffer(int64_t data_position, uint64_t nof_bytes,
 bool MdfReader::ReadPartialData(IDataGroup &data_group, size_t min_sample,
                                 size_t max_sample) {
   if (!instance_ || !file_) {
-    MDF_ERROR() << "No instance created. File: " << filename_;
+    MDF_ERROR() << "No instance created. File: " << Filename();
     return false;
   }
   if (max_sample < min_sample) {
@@ -581,7 +602,7 @@ bool MdfReader::ReadPartialData(IDataGroup &data_group, size_t min_sample,
   }
   bool shall_close = !IsOpen() && Open();
   if (!IsOpen()) {
-    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    MDF_ERROR() << "Failed to open file. File: " << Filename();
     return false;
   }
 
@@ -611,13 +632,13 @@ bool MdfReader::ReadPartialData(IDataGroup &data_group, size_t min_sample,
 
 bool MdfReader::ReadSrData(ISampleReduction &sr_group) {
   if (!instance_ || !file_) {
-    MDF_ERROR() << "No instance created. File: " << filename_;
+    MDF_ERROR() << "No instance created. File: " << Filename();
     return false;
   }
 
   bool shall_close = !IsOpen() && Open();
   if (!IsOpen()) {
-    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    MDF_ERROR() << "Failed to open file. File: " << Filename();
     return false;
   }
 
@@ -678,13 +699,13 @@ bool MdfReader::ReadVlsdData(IDataGroup &data_group,
   }
 
   if (!instance_ || !file_ ) {
-    MDF_ERROR() << "No instance created. File: " << filename_;
+    MDF_ERROR() << "No instance created. File: " << Filename();
     return false;
   }
 
   bool shall_close = !IsOpen() && Open();
   if (!IsOpen()) {
-    MDF_ERROR() << "Failed to open file. File: " << filename_;
+    MDF_ERROR() << "Failed to open file. File: " << Filename();
     return false;
   }
 
@@ -708,6 +729,19 @@ bool MdfReader::ReadVlsdData(IDataGroup &data_group,
     Close();
   }
   return !error;
+}
+
+std::string MdfReader::Filename() const {
+  try {
+    const path fname(filename_);
+    std::ostringstream temp;
+    temp << fname;
+    return temp.str();
+  }
+  catch (const std::exception &) {
+
+  }
+  return MdfHelper::Utf16ToUtf8(filename_);
 }
 
 bool MdfReader::IsFinalized() const {

@@ -447,6 +447,9 @@
     <ClCompile Include="src\datawriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\cutf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\at4block.h">
@@ -894,6 +897,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\datawriter.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cutf.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

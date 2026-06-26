@@ -34,6 +34,22 @@ namespace {
     return {};
   }
 
+  std::wstring WMakeTestFilePath(const std::string_view& name) {
+    try {
+      path filename = temp_directory_path();
+      filename.append("test");
+      filename.append("mdf");
+      create_directories(filename);
+      filename.append(name);
+      remove(filename);
+      return filename.wstring();
+
+    } catch (const std::exception& err) {
+     std::cout << err.what() << std::endl;
+    }
+    return {};
+  }
+
   bool IsEllipse(const std::string& text) {
     return text.find("..") != std::string::npos;
   }
@@ -95,7 +111,7 @@ TEST(TestMdfBlock, TestStatic) {
 }
 
 TEST(TestMdfBlock, TestOpenMdf) {
-  std::string test_file = MakeTestFilePath("open.mf4");
+  std::wstring test_file = WMakeTestFilePath("open.mf4");
   std::filebuf file_buffer;
   const bool write = OpenMdfFile(file_buffer, test_file,
                                          std::ios_base::out

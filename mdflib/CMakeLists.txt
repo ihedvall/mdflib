@@ -173,6 +173,7 @@ add_library(mdf
         ../include/mdf/samplerecordobserver.h
         src/copysampleobserver.cpp
         src/copysampleobserver.h
+        src/cutf.h src/cutf.cpp
 )
 
 include(${CMAKE_SOURCE_DIR}/script/zlib.cmake)

@@ -46,7 +46,7 @@ bool MdfConverter::InitMeasurement() {
   const bool prep = PrepareForWriting();
   if (!prep) {
     MDF_ERROR() << "Failed to prepare the file for writing. File: "
-                << filename_;
+                << filename_.c_str();
     return false;
   }
   // 1: Save ID, HD, DG, AT, CG and CN blocks to the file.
@@ -55,7 +55,8 @@ bool MdfConverter::InitMeasurement() {
     std::ios_base::out | std::ios_base::trunc | std::ios_base::binary
     :  std::ios_base::in | std::ios_base::out | std::ios_base::binary);
   if (!IsOpen()) {
-    MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
+    MDF_ERROR() << "Failed to open the file for writing. File: "
+      << filename_.c_str();
     return false;
   }
 
@@ -84,7 +85,8 @@ bool MdfConverter::FinalizeMeasurement() {
   }
 
   if (!IsOpen()) {
-    MDF_ERROR() << "Failed to open the file for writing. File: " << filename_;
+    MDF_ERROR() << "Failed to open the file for writing. File: "
+      << filename_.c_str();
     return false;
   }
   const bool write = mdf_file_ && mdf_file_->Write(*file_);

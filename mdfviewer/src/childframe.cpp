@@ -6,9 +6,11 @@
 
 #include <sstream>
 #include <filesystem>
+
 #include <wx/sizer.h>
 #include <wx/bitmap.h>
 #include "util/timestamp.h"
+#include "util/logstream.h"
 
 #include "mdfdocument.h"
 #include "hl4block.h"
@@ -23,6 +25,8 @@
 
 
 using namespace mdf::detail;
+using namespace std::filesystem;
+using namespace util::log;
 
 namespace {
 #include "img/sub.xpm"
@@ -202,6 +206,7 @@ ChildFrame::ChildFrame(wxDocument *doc,
   auto* main_sizer = new wxBoxSizer(wxVERTICAL);
   main_sizer->Add(splitter_, 1 , wxALL | wxGROW,0);
   main_panel->SetSizerAndFit(main_sizer);
+
 }
 
 void ChildFrame::RedrawTreeList() {
@@ -217,7 +222,7 @@ void ChildFrame::RedrawTreeList() {
     return;
   }
 
-  left_->AddRoot(reader->ShortName(), TREE_ROOT, TREE_ROOT);
+  left_->AddRoot(reader->WShortName(), TREE_ROOT, TREE_ROOT);
 
   const auto* file = doc->GetFile();
    if (file == nullptr) {

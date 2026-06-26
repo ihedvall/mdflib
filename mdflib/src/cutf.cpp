@@ -4,6 +4,9 @@
 
     Based on UTF8-CPP: Copyright 2006, Nemanja Trifunovicm
 */
+#include <cstring>
+#include <cstdint>
+
 #include "cutf.h"
 
 #define CUTF_LEAD_SURROGATE_MIN  0xd800u

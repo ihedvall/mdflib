@@ -124,10 +124,7 @@ BusType IChannelGroup::GetBusType() const {
     if (bus_name == "LIN") {
       return BusType::Lin;
     }
-    if (bus_name == "CAN") {
-      return BusType::Can;
-    }
-    if (bus_name == "Fle") {
+    if (bus_name == "FLX") {
       return BusType::FlexRay;
     }
     if (bus_name == "MOS") {
@@ -157,10 +154,7 @@ BusType IChannelGroup::GetBusType() const {
       if (bus_name == "LIN") {
         return BusType::Lin;
       }
-      if (bus_name == "CAN") {
-        return BusType::Can;
-      }
-      if (bus_name == "Fle") {
+      if (bus_name == "FLX") {
         return BusType::FlexRay;
       }
       if (bus_name == "MOS") {

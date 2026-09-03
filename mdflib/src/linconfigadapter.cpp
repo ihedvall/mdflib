@@ -98,7 +98,7 @@ void LinConfigAdapter::CreateFrameChannels(IChannelGroup& group) const {
   }
   CreateBusChannel(*cn_frame);
   CreateBitsChannel(*cn_frame, "LIN_Frame.ID", 9, 0, 6);
-  CreateBitChannel(*cn_frame, "LIN_Frame.Dir", 9, 7);
+  CreateBitChannel(*cn_frame, "LIN_Frame.Dir", 9, 6);
 
   if (IChannel* count = CreateBitsChannel(*cn_frame,"LIN_Frame.ReceivedDataByteCount", 10, 0, 4);
     count != nullptr) {

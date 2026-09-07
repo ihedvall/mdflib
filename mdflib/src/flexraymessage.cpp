@@ -52,7 +52,7 @@ void FlexRayFrame::ToRaw(SampleRecord& sample) const {
   record[8] = BusChannel();
   MdfHelper::UnsignedToRaw(true, 0, 11, FrameId(), record.data() + 9);
   record[11] = static_cast<uint8_t>(CycleCount()) & 0x3F;
-  record[11] |= (static_cast<uint8_t>(FlexRayChannel()) & 0x01) << 6;
+  record[11] |= (static_cast<uint8_t>(Channel()) & 0x01) << 6;
   record[11] |= (static_cast<uint8_t>(Direction()) & 0x01) << 7;
   record[12] = PayloadLength();
   record[13] = static_cast<uint8_t>(DataBytes().size());
@@ -153,7 +153,7 @@ void FlexRayFrameHeader::ToRaw(SampleRecord& sample) const {
   record[8] = BusChannel();
   MdfHelper::UnsignedToRaw(true, 0, 11, FrameId(), record.data() + 9);
   record[11] = static_cast<uint8_t>(CycleCount()) & 0x3F;
-  record[11] |= (static_cast<uint8_t>(FlexRayChannel()) & 0x01) << 6;
+  record[11] |= (static_cast<uint8_t>(Channel()) & 0x01) << 6;
   record[11] |= (static_cast<uint8_t>(Direction()) & 0x01) << 7;
   record[12] = PayloadLength();
 
@@ -247,7 +247,7 @@ void FlexRayErrorFrame::ToRaw(SampleRecord& sample) const {
   record[8] = BusChannel();
   MdfHelper::UnsignedToRaw(true, 0, 11, FrameId(), record.data() + 9);
   record[11] = static_cast<uint8_t>(CycleCount()) & 0x3F;
-  record[11] |= (static_cast<uint8_t>(FlexRayChannel()) & 0x01) << 6;
+  record[11] |= (static_cast<uint8_t>(Channel()) & 0x01) << 6;
   record[11] |= (static_cast<uint8_t>(Direction()) & 0x01) << 7;
   if (mandatory_members_only) {
     sample.vlsd_data = false;
@@ -302,7 +302,7 @@ void FlexRaySymbol::ToRaw(SampleRecord& sample) const {
   // The time allocate the first 8 bytes (double)
   record[8] = BusChannel();
   record[9] = static_cast<uint8_t>(CycleCount()) & 0x3F;
-  record[9] |= (static_cast<uint8_t>(FlexRayChannelMask()) & 0x03) << 6;
+  record[9] |= (static_cast<uint8_t>(ChannelMask()) & 0x03) << 6;
   if (mandatory_members_only) {
     return;
   }

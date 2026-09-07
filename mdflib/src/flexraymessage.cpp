@@ -302,7 +302,7 @@ void FlexRaySymbol::ToRaw(SampleRecord& sample) const {
   // The time allocate the first 8 bytes (double)
   record[8] = BusChannel();
   record[9] = static_cast<uint8_t>(CycleCount()) & 0x3F;
-  record[9] |= (static_cast<uint8_t>(Channel()) & 0x03) << 6;
+  record[9] |= (static_cast<uint8_t>(ChannelMask()) & 0x03) << 6;
   if (mandatory_members_only) {
     return;
   }

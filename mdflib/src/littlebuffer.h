@@ -33,11 +33,11 @@ class LittleBuffer {
   T value() const;
 
  private:
-  std::array<uint8_t, sizeof(T)> buffer_;
+  std::array<uint8_t, sizeof(T)> buffer_ = {};
 
   [[nodiscard]] static constexpr bool IsBigEndian() {
     constexpr int num = 1;
-    return *(char*) &num == 0;
+    return *reinterpret_cast<const char*>(&num) == 0;
   }
 };
 
@@ -76,16 +76,15 @@ size_t LittleBuffer<T>::size() const {
 
 template <typename T>
 T LittleBuffer<T>::value() const {
-  const T* val = reinterpret_cast<const T*>(buffer_.data());
-
+  T val = *reinterpret_cast<const T*>(buffer_.data());
   if (IsBigEndian()) {
     std::array<uint8_t, sizeof(T)> temp = {0};
     for (size_t index = sizeof(T); index > 0; --index) {
       temp[sizeof(T) - index] = buffer_[index - 1];
     }
-    val = reinterpret_cast<const T*>(temp.data());
+    val = *reinterpret_cast<const T*>(temp.data());
   } 
-  return *val;
+  return val;
 }
 
 }  // namespace mdf

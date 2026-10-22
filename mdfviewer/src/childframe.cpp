@@ -2,10 +2,12 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+// ReSharper disable CppUnusedIncludeDirective
 #include "childframe.h"
 
 #include <sstream>
 #include <filesystem>
+#include <array>
 
 #include <wx/sizer.h>
 #include <wx/bitmap.h>
@@ -28,32 +30,81 @@ using namespace std::filesystem;
 using namespace util::log;
 
 namespace {
-// Bitmap index for the tree control (tree_list.bmp)
-constexpr int TREE_ROOT = 0;
-constexpr int TREE_ID = 1;
-constexpr int TREE_HD = 2;
-constexpr int TREE_FH_ROOT = 3;
-constexpr int TREE_FH = 4;
-constexpr int TREE_DG_ROOT = 5;
-constexpr int TREE_DG = 6;
-constexpr int TREE_AT_ROOT = 7;
-constexpr int TREE_AT = 8;
-constexpr int TREE_CH_ROOT = 9;
-constexpr int TREE_CH = 10;
-constexpr int TREE_EV_ROOT = 11;
-constexpr int TREE_EV = 12;
-constexpr int TREE_CG = 13;
-constexpr int TREE_SI = 14;
-constexpr int TREE_CN = 15;
-constexpr int TREE_CC = 16;
-constexpr int TREE_CA = 17;
-constexpr int TREE_DT = 18;
-constexpr int TREE_SR = 19;
-constexpr int TREE_RD = 20;
-constexpr int TREE_SD = 21;
-constexpr int TREE_DL = 22;
-constexpr int TREE_DZ = 23;
-constexpr int TREE_HL = 24;
+#include "img/config.cpp"
+#include "img/database.cpp"
+#include "img/document_text.cpp"
+#include "img/folder_close.cpp"
+#include "img/folder_open.cpp"
+#include "img/layers.cpp"
+#include "img/lineplot.cpp"
+#include "img/memory.cpp"
+#include "img/mf4.cpp"
+#include "img/settings.cpp"
+
+#include "img/at_block.cpp"
+#include "img/at_root.cpp"
+#include "img/ca_block.cpp"
+#include "img/cc_block.cpp"
+#include "img/cg_block.cpp"
+#include "img/ch_block.cpp"
+#include "img/ch_root.cpp"
+#include "img/cn_block.cpp"
+#include "img/dg_block.cpp"
+#include "img/dg_root.cpp"
+#include "img/dl_block.cpp"
+#include "img/dt_block.cpp"
+#include "img/dz_block.cpp"
+#include "img/ev_block.cpp"
+#include "img/ev_root.cpp"
+#include "img/fh_block.cpp"
+#include "img/fh_root.cpp"
+#include "img/hd_block.cpp"
+#include "img/hl_block.cpp"
+#include "img/id_block.cpp"
+#include "img/rd_block.cpp"
+#include "img/sd_block.cpp"
+#include "img/si_block.cpp"
+#include "img/sr_block.cpp"
+
+constexpr int kBmpConfig = 0;
+constexpr int kBmpLayers = 1;
+constexpr int kBmpLinePlot = 2;
+constexpr int kBmpDatabase = 3;
+constexpr int kBmpDocText = 4;
+constexpr int kBmpFolderClose = 5;
+constexpr int kBmpFolderOpen = 6;
+constexpr int kBmpMemory = 7;
+constexpr int kBmpMf4 = 8;
+constexpr int kBmpSettings = 9;
+
+constexpr int kBmpAtBlock = 10;
+constexpr int kBmpAtRoot = 11;
+constexpr int kBmpCaBlock = 12;
+constexpr int kBmpCcBlock = 13;
+constexpr int kBmpCgBlock = 14;
+constexpr int kBmpChBlock = 15;
+constexpr int kBmpChRoot = 16;
+constexpr int kBmpCnBlock = 17;
+constexpr int kBmpDgBlock = 18;
+constexpr int kBmpDgRoot = 19;
+constexpr int kBmpDlBlock = 20;
+constexpr int kBmpDtBlock = 21;
+constexpr int kBmpDzBlock = 22;
+constexpr int kBmpEvBlock = 23;
+constexpr int kBmpEvRoot = 24;
+constexpr int kBmpFhBlock = 25;
+constexpr int kBmpFhRoot = 26;
+constexpr int kBmpHdBlock = 27;
+constexpr int kBmpHlBlock = 28;
+constexpr int kBmpIdBlock = 29;
+constexpr int kBmpRdBlock = 30;
+constexpr int kBmpSdBlock = 31;
+constexpr int kBmpSiBlock = 32;
+constexpr int kBmpSrBlock = 33;
+
+
+
+
 
 // Fake file positions which select a list of blocks
 constexpr int64_t kHistoryPosition = -100;
@@ -131,8 +182,9 @@ ChildFrame::ChildFrame(wxDocument *doc,
                      wxWindowID id,
                      const wxString& title)
     : wxDocMDIChildFrame(doc, view, parent, id, title, wxDefaultPosition, wxDefaultSize,
-                         wxDEFAULT_FRAME_STYLE, wxASCII_STR(wxFrameNameStr)),
-                         image_list_(16,16,false,25) {
+                        wxDEFAULT_FRAME_STYLE,
+                        wxASCII_STR(wxFrameNameStr)) {
+  CreateImageList();
 #ifdef _WIN32
   wxIcon sub("SUB_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
 #else
@@ -195,14 +247,7 @@ ChildFrame::ChildFrame(wxDocument *doc,
   hierarchy_view_->Hide();
 
   splitter_->SplitVertically(left_, property_view_, 400);
-#ifdef _WIN32
-  wxBitmap tree_list("TREE_LIST", wxBITMAP_TYPE_BMP_RESOURCE);
-#else
-  wxBitmap tree_list {wxICON(tree_list)};
-#endif
-
-  image_list_.Add(tree_list);
-  left_->SetImageList(&image_list_);
+  left_->SetImages(image_list_);
 
   auto* main_sizer = new wxBoxSizer(wxVERTICAL);
   main_sizer->Add(splitter_, 1 , wxALL | wxGROW,0);
@@ -223,7 +268,7 @@ void ChildFrame::RedrawTreeList() {
     return;
   }
 
-  left_->AddRoot(reader->WShortName(), TREE_ROOT, TREE_ROOT);
+  left_->AddRoot(reader->WShortName(), kBmpMf4, kBmpMf4);
 
   const auto* file = doc->GetFile();
    if (file == nullptr) {
@@ -259,13 +304,13 @@ void ChildFrame::RedrawMdf3Blocks(const mdf::detail::Mdf3File *file) {
   std::ostringstream id_string;
   id_string << "ID (" << id.VersionString() << ")";
   left_->AppendItem(root, wxString::FromUTF8(id_string.str()),
-                    TREE_ID, TREE_ID, new BlockAddress(id.FilePosition()));
+                    kBmpIdBlock, kBmpIdBlock, new BlockAddress(id.FilePosition()));
 
   // Header block
   const auto& hd = file->Hd();
   const auto& hd_string = CreateBlockText(hd);
   auto hd_root = left_->AppendItem(root, hd_string,
-                                   TREE_HD, TREE_HD, new BlockAddress(hd.FilePosition()));
+                                   kBmpHdBlock, kBmpHdBlock, new BlockAddress(hd.FilePosition()));
 
   RedrawMeasurement(hd, hd_root);
 
@@ -283,13 +328,13 @@ void ChildFrame::RedrawMdf4Blocks(const mdf::detail::Mdf4File *file) {
   std::ostringstream id_string;
   id_string << "ID (" << id.VersionString() << ")";
   left_->AppendItem(root, wxString::FromUTF8(id_string.str()),
-                    TREE_ID, TREE_ID, new BlockAddress(id.FilePosition()));
+                    kBmpIdBlock, kBmpIdBlock, new BlockAddress(id.FilePosition()));
 
   // Header block
   const auto& hd = file->Hd();
   const auto& hd_string = CreateBlockText(hd);
   auto hd_root = left_->AppendItem(root, hd_string,
-                                   TREE_HD, TREE_HD, new BlockAddress(hd.FilePosition()));
+                                   kBmpHdBlock, kBmpHdBlock, new BlockAddress(hd.FilePosition()));
 
   RedrawHistory(hd, hd_root);
   RedrawMeasurement(hd, hd_root);
@@ -313,23 +358,24 @@ void ChildFrame::RedrawHistory(const Hd4Block &hd, const wxTreeItemId &root) con
   if (hd.Fh4().empty()) {
     return;
   }
-  auto fh_root = left_->AppendItem(root, "History", TREE_FH_ROOT,TREE_FH_ROOT,
-                                   new BlockAddress(kHistoryPosition));
+  auto fh_root = left_->AppendItem(root, "History",
+    kBmpFhRoot,kBmpFhRoot, new BlockAddress(kHistoryPosition));
   for (const auto& fh4 : hd.Fh4()) {
     if (!fh4) {
       continue;
     }
-    left_->AppendItem(fh_root, CreateBlockText(*fh4), TREE_FH, TREE_FH,
+    left_->AppendItem(fh_root, CreateBlockText(*fh4),
+                kBmpFhBlock, kBmpFhBlock,
                       new BlockAddress(fh4->FilePosition()));
   }
 }
 
-void ChildFrame::RedrawMeasurement(const detail::Hd4Block &hd, const wxTreeItemId &root) {
+void ChildFrame::RedrawMeasurement(const Hd4Block &hd, const wxTreeItemId &root) {
   if (hd.Dg4().empty()) {
     return;
   }
-  auto dg_root = left_->AppendItem(root, "Measurement", TREE_DG_ROOT, TREE_DG_ROOT,
-                                   new BlockAddress(kMeasurementPosition));
+  auto dg_root = left_->AppendItem(root, "Measurement",
+    kBmpDgRoot, kBmpDgRoot , new BlockAddress(kMeasurementPosition));
   for (const auto& dg4 : hd.Dg4()) {
     if (!dg4) {
       continue;
@@ -338,12 +384,12 @@ void ChildFrame::RedrawMeasurement(const detail::Hd4Block &hd, const wxTreeItemI
    }
 }
 
-void ChildFrame::RedrawMeasurement(const detail::Hd3Block &hd, const wxTreeItemId &root) {
+void ChildFrame::RedrawMeasurement(const Hd3Block &hd, const wxTreeItemId &root) {
   if (hd.Dg3().empty()) {
     return;
   }
-  auto dg_root = left_->AppendItem(root, "Measurement", TREE_DG_ROOT, TREE_DG_ROOT,
-                                   new BlockAddress(kMeasurementPosition));
+  auto dg_root = left_->AppendItem(root, "Measurement",
+    kBmpDgRoot, kBmpDgRoot, new BlockAddress(kMeasurementPosition));
   for (const auto& dg3 : hd.Dg3()) {
     if (!dg3) {
       continue;
@@ -351,12 +397,12 @@ void ChildFrame::RedrawMeasurement(const detail::Hd3Block &hd, const wxTreeItemI
     RedrawDgBlock(*dg3,dg_root);
   }
 }
-void ChildFrame::RedrawHierarchy(const detail::Hd4Block &hd, const wxTreeItemId &root) {
+void ChildFrame::RedrawHierarchy(const Hd4Block &hd, const wxTreeItemId &root) {
   if (hd.Ch4().empty()) {
     return;
   }
-  auto ch_root = left_->AppendItem(root, "Channel Hierarchy", TREE_CH_ROOT, TREE_CH_ROOT,
-                                   new BlockAddress(kHierarchyPosition));
+  auto ch_root = left_->AppendItem(root, "Channel Hierarchy",
+    kBmpChRoot, kBmpChRoot, new BlockAddress(kHierarchyPosition));
   for (const auto& ch4 : hd.Ch4()) {
     if (!ch4) {
       continue;
@@ -369,8 +415,8 @@ void ChildFrame::RedrawAttachment(const detail::Hd4Block &hd, const wxTreeItemId
   if (hd.At4().empty()) {
     return;
   }
-  auto at_root = left_->AppendItem(root, "Attachment", TREE_AT_ROOT, TREE_AT_ROOT,
-                                   new BlockAddress(kAttachmentPosition));
+  auto at_root = left_->AppendItem(root, "Attachment",
+    kBmpAtRoot, kBmpAtRoot, new BlockAddress(kAttachmentPosition));
   for (const auto &at4: hd.At4()) {
     if (!at4) {
       continue;
@@ -385,7 +431,8 @@ void ChildFrame::RedrawAttachment(const detail::Hd4Block &hd, const wxTreeItemId
       block_string << " (" << filename << ")";
     }
     left_->AppendItem(at_root, wxString::FromUTF8(block_string.str()),
-                      TREE_AT, TREE_AT, new BlockAddress(at4->FilePosition()));
+                      kBmpAtBlock, kBmpAtBlock,
+                      new BlockAddress(at4->FilePosition()));
   }
 }
 
@@ -393,14 +440,14 @@ void ChildFrame::RedrawEvent(const detail::Hd4Block &hd, const wxTreeItemId &roo
   if (hd.Ev4().empty()) {
     return;
   }
-  auto ev_root = left_->AppendItem(root, "Event", TREE_EV_ROOT, TREE_EV_ROOT,
-                                   new BlockAddress(kEventPosition));
+  auto ev_root = left_->AppendItem(root, "Event",
+    kBmpEvRoot, kBmpEvRoot, new BlockAddress(kEventPosition));
   for (const auto& ev4 : hd.Ev4()) {
     if (!ev4) {
       continue;
     }
     left_->AppendItem(ev_root, CreateBlockText(*ev4),
-                        TREE_EV, TREE_EV, new BlockAddress(ev4->FilePosition()));
+      kBmpEvBlock, kBmpEvBlock, new BlockAddress(ev4->FilePosition()));
   }
 }
 
@@ -423,12 +470,12 @@ void ChildFrame::RedrawDataList(const DataListBlock& dg, const wxTreeItemId& roo
     if (data->BlockType() == "DT") {
       block_string << " (Size [byte]: " << nof_data_bytes << ")";
       left_->AppendItem(root, block_string.str(),
-                        TREE_DT, TREE_DT,
+                        kBmpDtBlock, kBmpDtBlock,
                         new BlockAddress(data->FilePosition()));
     } else if (data->BlockType() == "DV" || data->BlockType() == "DI") {
       block_string << " (Size [byte]: " << nof_data_bytes << ")";
       left_->AppendItem(root,block_string.str(),
-                        TREE_DT, TREE_DT,
+                        kBmpDtBlock, kBmpDtBlock,
                         new BlockAddress(data->FilePosition()));
     } else if (data->BlockType() == "DZ") {
       if (const auto* dz4 = dynamic_cast<const Dz4Block*>(data.get());
@@ -438,28 +485,28 @@ void ChildFrame::RedrawDataList(const DataListBlock& dg, const wxTreeItemId& roo
           << "/" << dz4->DataSize() << ")";
       }
       left_->AppendItem(root,block_string.str(),
-                        TREE_DZ, TREE_DZ,
+                        kBmpDzBlock, kBmpDzBlock,
                         new BlockAddress(data->FilePosition()));
     } else if (data->BlockType() == "RD" || data->BlockType() == "RV" || data->BlockType() == "RI") {
       block_string << " (Size [byte]: " << nof_data_bytes << ")";
       left_->AppendItem(root, block_string.str(),
-                        TREE_RD, TREE_RD, new BlockAddress(data->FilePosition()));
+                        kBmpRdBlock, kBmpRdBlock, new BlockAddress(data->FilePosition()));
     } else if (data->BlockType() == "SD") {
       block_string << " (Size [byte]: " << nof_data_bytes << ")";
       left_->AppendItem(root, block_string.str(),
-                        TREE_SD, TREE_SD, new BlockAddress(data->FilePosition()));
+                        kBmpSdBlock, kBmpSdBlock, new BlockAddress(data->FilePosition()));
     } else if (data->BlockType() == "DL") {
       if (const auto* dl4 = dynamic_cast<const Dl4Block*>(data.get());
           dl4 != nullptr ) {
         block_string << " (Nof Blocks: " << dl4->DataBlockList().size() << ")";
         wxTreeItemId dl_root = left_->AppendItem(root,block_string.str(),
-          TREE_DL, TREE_DL,
+          kBmpDlBlock, kBmpDlBlock,
           new BlockAddress(data->FilePosition()));
         RedrawDataList(*dl4, dl_root);
       }
     } else if (data->BlockType() == "LD") {
       auto ld_root = left_->AppendItem(root,block_string.str(),
-                                       TREE_DL, TREE_DL,
+                                       kBmpDlBlock, kBmpDlBlock,
                                        new BlockAddress(data->FilePosition()));
       const auto* data_list = dynamic_cast<const DataListBlock*>(data.get());
       if (data_list != nullptr) {
@@ -471,7 +518,7 @@ void ChildFrame::RedrawDataList(const DataListBlock& dg, const wxTreeItemId& roo
         block_string << " (" << wxString(hl4->TypeAsString()) << ")";
         auto hl_root = left_->AppendItem(root,
                      block_string.str(),
-                        TREE_HL, TREE_HL,
+                        kBmpHlBlock, kBmpHlBlock,
                         new BlockAddress(data->FilePosition()));
 
         RedrawDataList(*hl4, hl_root);
@@ -481,7 +528,7 @@ void ChildFrame::RedrawDataList(const DataListBlock& dg, const wxTreeItemId& roo
           data_list_block != nullptr) {
         block_string << " (Size [byte]: " << nof_data_bytes << ")";
         wxTreeItemId sr_root = left_->AppendItem(root, block_string.str(),
-         TREE_SR, TREE_SR,
+         kBmpSrBlock, kBmpSrBlock,
          new BlockAddress(data->FilePosition()));
         RedrawDataList(*data_list_block, sr_root);
       }
@@ -490,7 +537,7 @@ void ChildFrame::RedrawDataList(const DataListBlock& dg, const wxTreeItemId& roo
 }
 
 
-void ChildFrame::RedrawCgList(const mdf::detail::Dg4Block& dg, const wxTreeItemId& root) {
+void ChildFrame::RedrawCgList(const Dg4Block& dg, const wxTreeItemId& root) {
   if (dg.Cg4().empty()) {
     return;
   }
@@ -518,7 +565,7 @@ void ChildFrame::RedrawCgList(const mdf::detail::Dg4Block& dg, const wxTreeItemI
     cg_string << cg4->BlockType() << " (" << sub_string.str() << ")";
 
     auto root_cg = left_->AppendItem(root, cg_string.str(),
-                                     TREE_CG, TREE_CG, new BlockAddress(cg4->FilePosition()));
+       kBmpCgBlock, kBmpCgBlock, new BlockAddress(cg4->FilePosition()));
 
     if (const auto* si = cg4->Source(); si != nullptr) {
       RedrawSiBlock(*si, root_cg);
@@ -528,7 +575,7 @@ void ChildFrame::RedrawCgList(const mdf::detail::Dg4Block& dg, const wxTreeItemI
   }
 }
 
-void ChildFrame::RedrawCgList(const mdf::detail::Dg3Block& dg3, const wxTreeItemId& root) {
+void ChildFrame::RedrawCgList(const Dg3Block& dg3, const wxTreeItemId& root) {
   if (dg3.Cg3().empty()) {
     return;
   }
@@ -556,7 +603,7 @@ void ChildFrame::RedrawCgList(const mdf::detail::Dg3Block& dg3, const wxTreeItem
     cg_string << cg3->BlockType() << " (" << sub_string.str() << ")";
 
     auto root_cg = left_->AppendItem(root, cg_string.str(),
-                                     TREE_CG, TREE_CG, new BlockAddress(cg3->FilePosition()));
+      kBmpCgBlock, kBmpCgBlock, new BlockAddress(cg3->FilePosition()));
     RedrawCnList(*cg3, root_cg);
     RedrawSrList(*cg3, root_cg);
   }
@@ -598,7 +645,7 @@ void ChildFrame::RedrawCnBlock(const detail::Cn4Block &cn,
 
 
     auto cn_root = left_->AppendItem(root, wxString::FromUTF8(cn_string.str()),
-                      TREE_CN, TREE_CN, new BlockAddress(cn.FilePosition()));
+       kBmpCnBlock, kBmpCnBlock, new BlockAddress(cn.FilePosition()));
     const auto* si = cn.Si();
     if (si != nullptr) {
       RedrawSiBlock(*si,cn_root);
@@ -624,8 +671,8 @@ void ChildFrame::RedrawCaBlock(const Ca4Block &ca4, const wxTreeItemId &root) co
     << " (" << sub_string.str() << ") "
     << ca4.DimensionAsString();
 
- left_->AppendItem(root, wxString::FromUTF8(label.str()), TREE_CA, TREE_CA,
-                                   new BlockAddress(ca4.FilePosition()));
+ left_->AppendItem(root, wxString::FromUTF8(label.str()),
+   kBmpCaBlock, kBmpCaBlock, new BlockAddress(ca4.FilePosition()));
 }
 
 void ChildFrame::RedrawCnList(const detail::Cg3Block &cg3, const wxTreeItemId &root) {
@@ -650,7 +697,7 @@ void ChildFrame::RedrawCnList(const detail::Cg3Block &cg3, const wxTreeItemId &r
     cn_string << cn3->BlockType() << " (" << sub_string.str() << ")";
 
     auto cn_root = left_->AppendItem(root, wxString::FromUTF8(cn_string.str()),
-                                     TREE_CN, TREE_CN, new BlockAddress(cn3->FilePosition()));
+       kBmpCnBlock, kBmpCnBlock, new BlockAddress(cn3->FilePosition()));
 
     if ( const auto* cc3 = cn3->Cc3(); cc3 != nullptr) {
       RedrawCcBlock(*cc3,cn_root);
@@ -659,12 +706,12 @@ void ChildFrame::RedrawCnList(const detail::Cg3Block &cg3, const wxTreeItemId &r
 
     if (const auto* cd3 = cn3->Cd3(); cd3 != nullptr) {
       left_->AppendItem(cn_root, CreateBlockText(*cd3),
-      TREE_CH, TREE_CH, new BlockAddress(cd3->FilePosition()));
+      kBmpChBlock, kBmpChBlock, new BlockAddress(cd3->FilePosition()));
     }
 
     if (const auto* ce3 = cn3->Ce3(); ce3 != nullptr) {
       left_->AppendItem(cn_root, CreateBlockText(*ce3),
-      TREE_SI, TREE_SI, new BlockAddress(ce3->FilePosition()));
+      kBmpSiBlock, kBmpSiBlock, new BlockAddress(ce3->FilePosition()));
     }
     RedrawDataList(*cn3, cn_root);
   }
@@ -683,7 +730,7 @@ void ChildFrame::RedrawSrList(const detail::Cg4Block &cg4, const wxTreeItemId &r
     sr_string << sr4->BlockType() << " (" << sub_string.str() << ")";
     auto sr_root = left_->AppendItem(root,
            wxString::FromUTF8(sr_string.str()),
-          TREE_SR, TREE_SR,
+          kBmpSrBlock, kBmpSrBlock,
           new BlockAddress(sr4->FilePosition()));
 
     RedrawDataList(*sr4,sr_root);
@@ -696,7 +743,7 @@ void ChildFrame::RedrawSrList(const detail::Cg3Block &cg3, const wxTreeItemId &r
       continue;
     }
     auto sr_root = left_->AppendItem(root, sr->BlockType(),
-          TREE_SR, TREE_SR, new BlockAddress(sr->FilePosition()));
+          kBmpSrBlock, kBmpSrBlock, new BlockAddress(sr->FilePosition()));
 
     RedrawDataList(*sr,sr_root);
   }
@@ -730,7 +777,7 @@ void ChildFrame::RedrawSiBlock(const detail::Si4Block &si, const wxTreeItemId &r
   si_string << si.BlockType() << " (" << sub_string.str() << ")";
 
   left_->AppendItem(root, wxString::FromUTF8(si_string.str()),
-                                   TREE_SI, TREE_SI, new BlockAddress(si.FilePosition()));
+    kBmpSiBlock, kBmpSiBlock, new BlockAddress(si.FilePosition()));
 }
 
 void ChildFrame::RedrawDgBlock(const detail::Dg4Block &dg4, const wxTreeItemId &root) {
@@ -753,8 +800,8 @@ void ChildFrame::RedrawDgBlock(const detail::Dg4Block &dg4, const wxTreeItemId &
     // If the DG only have one CG, use the CG Name instead
 
   }
-  auto root_dg = left_->AppendItem(root, label.str(), TREE_DG, TREE_DG,
-                                   new BlockAddress(dg4.FilePosition()));
+  auto root_dg = left_->AppendItem(root, label.str(),
+    kBmpDgBlock, kBmpDgBlock, new BlockAddress(dg4.FilePosition()));
   RedrawDataList(dg4,root_dg);
   RedrawCgList(dg4, root_dg);
 
@@ -762,13 +809,13 @@ void ChildFrame::RedrawDgBlock(const detail::Dg4Block &dg4, const wxTreeItemId &
 
 void ChildFrame::RedrawDgBlock(const detail::Dg3Block &dg3, const wxTreeItemId &root) {
   auto root_dg = left_->AppendItem(root, CreateBlockText(dg3),
-                                   TREE_DG, TREE_DG, new BlockAddress(dg3.FilePosition()));
+     kBmpDgBlock, kBmpDgBlock, new BlockAddress(dg3.FilePosition()));
   RedrawDataList(dg3,root_dg);
   RedrawCgList(dg3, root_dg);
 
   if (const auto* tr3 = dg3.Tr3(); tr3 != nullptr) {
     left_->AppendItem(root_dg, CreateBlockText(*tr3),
-                      TREE_EV, TREE_EV, new BlockAddress(tr3->FilePosition()));
+        kBmpEvBlock, kBmpEvBlock, new BlockAddress(tr3->FilePosition()));
   }
 }
 
@@ -804,7 +851,7 @@ void ChildFrame::RedrawCcBlock(const detail::Cc4Block &cc4, const wxTreeItemId &
   }
 
   auto cc_root = left_->AppendItem(root, wxString::FromUTF8(cc_string.str()),
-                    TREE_CC, TREE_CC, new BlockAddress(cc4.FilePosition()));
+     kBmpCcBlock, kBmpCcBlock, new BlockAddress(cc4.FilePosition()));
 
   if ( const auto* reverse = cc4.Cc(); reverse != nullptr) {
     RedrawCcBlock(*reverse, cc_root);
@@ -878,7 +925,7 @@ void ChildFrame::RedrawCcBlock(const detail::Cc3Block &cc3, const wxTreeItemId &
   }
 
   left_->AppendItem(root, wxString::FromUTF8(cc_string.str()),
-                                   TREE_CC, TREE_CC, new BlockAddress(cc3.FilePosition()));
+      kBmpCcBlock, kBmpCcBlock, new BlockAddress(cc3.FilePosition()));
 }
 
 void ChildFrame::RedrawChBlock(const detail::Ch4Block &ch, const wxTreeItemId &root) {
@@ -904,7 +951,7 @@ void ChildFrame::RedrawChBlock(const detail::Ch4Block &ch, const wxTreeItemId &r
   }
 
   auto ch_root = left_->AppendItem(root, wxString::FromUTF8(ch_string.str()),
-                                   TREE_CH, TREE_CH, new BlockAddress(ch.FilePosition()));
+     kBmpChBlock, kBmpChBlock, new BlockAddress(ch.FilePosition()));
   for (const auto& p : ch.Ch()) {
     if (!p) {
       continue;
@@ -913,7 +960,7 @@ void ChildFrame::RedrawChBlock(const detail::Ch4Block &ch, const wxTreeItemId &r
   }
 }
 
-
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
 void ChildFrame::OnTreeSelected(wxTreeEvent& event) {
   const auto selected_item = event.GetItem();
   const auto selected_id = GetBlockId(left_,selected_item);
@@ -1011,6 +1058,7 @@ void ChildFrame::OnTreeRightClick(wxTreeEvent& event) {
   PopupMenu(&menu);
 }
 
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
 void ChildFrame::OnListItemActivated(wxListEvent& event) {
   if (splitter_->GetWindow2() != property_view_) {
     return;
@@ -1404,6 +1452,54 @@ MdfDocument *ChildFrame::GetDoc() const {
   return dynamic_cast<MdfDocument*>(GetDocument());
 }
 
+void ChildFrame::CreateImageList() {
+  const std::array<wxBitmapBundle, 34> image_list = {
+    wxBitmapBundle(wxBITMAP_PNG(config)),
+    wxBitmapBundle(wxBITMAP_PNG(layers)),
+    wxBitmapBundle(wxBITMAP_PNG(lineplot)),
+    wxBitmapBundle(wxBITMAP_PNG(database)),
+    wxBitmapBundle(wxBITMAP_PNG(document_text)),
+
+    wxBitmapBundle(wxBITMAP_PNG(folder_close)),
+    wxBitmapBundle(wxBITMAP_PNG(folder_open)),
+    wxBitmapBundle(wxBITMAP_PNG(memory)),
+    wxBitmapBundle(wxBITMAP_PNG(mf4)),
+    wxBitmapBundle(wxBITMAP_PNG(settings)),
+
+    wxBitmapBundle(wxBITMAP_PNG(at_block)),
+    wxBitmapBundle(wxBITMAP_PNG(at_root)),
+    wxBitmapBundle(wxBITMAP_PNG(ca_block)),
+    wxBitmapBundle(wxBITMAP_PNG(cc_block)),
+    wxBitmapBundle(wxBITMAP_PNG(cg_block)),
+
+    wxBitmapBundle(wxBITMAP_PNG(ch_block)),
+    wxBitmapBundle(wxBITMAP_PNG(ch_root)),
+    wxBitmapBundle(wxBITMAP_PNG(cn_block)),
+    wxBitmapBundle(wxBITMAP_PNG(dg_block)),
+    wxBitmapBundle(wxBITMAP_PNG(dg_root)),
+
+    wxBitmapBundle(wxBITMAP_PNG(dl_block)),
+    wxBitmapBundle(wxBITMAP_PNG(dt_block)),
+    wxBitmapBundle(wxBITMAP_PNG(dz_block)),
+    wxBitmapBundle(wxBITMAP_PNG(ev_block)),
+    wxBitmapBundle(wxBITMAP_PNG(ev_root)),
+
+    wxBitmapBundle(wxBITMAP_PNG(fh_block)),
+    wxBitmapBundle(wxBITMAP_PNG(fh_root)),
+    wxBitmapBundle(wxBITMAP_PNG(hd_block)),
+    wxBitmapBundle(wxBITMAP_PNG(hl_block)),
+    wxBitmapBundle(wxBITMAP_PNG(id_block)),
+
+    wxBitmapBundle(wxBITMAP_PNG(rd_block)),
+    wxBitmapBundle(wxBITMAP_PNG(sd_block)),
+    wxBitmapBundle(wxBITMAP_PNG(si_block)),
+    wxBitmapBundle(wxBITMAP_PNG(sr_block)),
+  };
+
+  for (const auto& image : image_list) {
+    image_list_.emplace_back(image);
+  }
+}
 }
 
 

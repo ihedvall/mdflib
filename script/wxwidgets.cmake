@@ -4,11 +4,15 @@ include(CMakePrintHelpers)
 
 
 if (NOT wxWidgets_FOUND )
-    find_package(wxWidgets COMPONENTS adv core base aui)
+    set(wxWidgets_USE_STATIC ON)
+    set(wxWidgets_USE_UNICODE ON)
+    find_package(wxWidgets COMPONENTS adv core base aui xml)
 endif()
 
 
 if (NOT wxWidgets_FOUND)
+    set(wxWidgets_USE_STATIC ON)
+    set(wxWidgets_USE_UNICODE ON)
     if (WIN32)
         set(wxWidgets_ROOT_DIR ${COMP_DIR}/wxwidgets/master)
 
@@ -19,8 +23,7 @@ if (NOT wxWidgets_FOUND)
         endif()
     else()
         set(CMAKE_FIND_ROOT_PATH ${COMP_DIR}/wxwidgets/master)
-        set(wxWidgets_USE_STATIC ON)
-        set(wxWidgets_USE_UNICODE ON)
+
         if (CMAKE_BUILD_TYPE MATCHES DEBUG)
             set(wxWidgets_USE_DEBUG ON)
         else()
@@ -28,13 +31,15 @@ if (NOT wxWidgets_FOUND)
         endif()
         set(wxWidgets_USE_UNIVERSAL OFF)
     endif()
-    find_package(wxWidgets COMPONENTS adv core base aui)
+    find_package(wxWidgets COMPONENTS adv core base aui xml)
 
 endif()
 
 if (wxWidgets_FOUND)
     include(UsewxWidgets)
 endif()
+
+
 
 cmake_print_variables( wxWidgets_FOUND
                        wxWidgets_VERSION
@@ -45,9 +50,8 @@ cmake_print_variables( wxWidgets_FOUND
                        wxWidgets_DEFINITIONS_DEBUG
                        wxWidgets_CXX_FLAGS)
 cmake_print_properties(TARGETS wxWidgets::wxWidgets
-        PROPERTIES LOCATION
+        PROPERTIES INTERFACE_LINK_LIBRARIES
                    INTERFACE_INCLUDE_DIRECTORIES)
-
 
 
 

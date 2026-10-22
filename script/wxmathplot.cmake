@@ -5,7 +5,7 @@ include(FetchContent)
 include(CMakePrintHelpers)
 
 FetchContent_Declare(wxmathplot
-        GIT_REPOSITORY https://github.com/GitHubLionel/wxMathPlot.git
+        GIT_REPOSITORY https://github.com/ihedvall/wxMathPlot.git
         GIT_TAG HEAD
 )
 FetchContent_MakeAvailable(wxmathplot)

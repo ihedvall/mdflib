@@ -8,7 +8,8 @@
 #include <wx/splitter.h>
 #include <wx/treectrl.h>
 #include <wx/listctrl.h>
-#include <wx/imaglist.h>
+#include <wx/bmpbndl.h>
+#include <wx/vector.h>
 
 #include "mdf3file.h"
 #include "mdf4file.h"
@@ -40,7 +41,7 @@ class ChildFrame : public wxDocMDIChildFrame {
   wxListView* hierarchy_view_ = nullptr;
 
   wxSplitterWindow* splitter_ = nullptr;
-  wxImageList image_list_;
+  wxVector<wxBitmapBundle> image_list_;
   mdf::detail::BlockPropertyList property_list_;
 
 
@@ -95,6 +96,8 @@ class ChildFrame : public wxDocMDIChildFrame {
   void OnTreeSelected(wxTreeEvent& event);
   void OnTreeRightClick(wxTreeEvent& event);
   void OnListItemActivated(wxListEvent& event);
+
+  void CreateImageList();
   wxDECLARE_EVENT_TABLE();
 
 };

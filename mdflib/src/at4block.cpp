@@ -240,7 +240,7 @@ void At4Block::ReadData(std::streambuf& buffer,
   SetFilePosition(buffer, data_position_);
   if (IsEmbedded()) {
     std::filebuf dest;
-    dest.open( dest_file,
+    [[maybe_unsued]] auto* buf  = dest.open( dest_file,
             std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
     if (!dest.is_open()) {
       throw std::ios_base::failure("Failed to open the destination file");

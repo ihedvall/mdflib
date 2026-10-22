@@ -1,8 +1,6 @@
 # Copyright 2021 Ingemar Hedvall
 # SPDX-License-Identifier: MIT
-project(
-  MdfViewer
-  VERSION 1.0
+project(MdfViewer VERSION 3.0
   DESCRIPTION "Simple MDF file browser"
   LANGUAGES CXX)
 
@@ -33,8 +31,9 @@ add_executable(mdfview
         src/samplereductionlistview.cpp
         src/samplereductionlistview.h)
 
-target_include_directories(mdfview PRIVATE mdf
-                                           "${CMAKE_CURRENT_SOURCE_DIR}/../mdflib/src")
+target_include_directories(mdfview PRIVATE
+        mdf
+        "${CMAKE_CURRENT_SOURCE_DIR}/../mdflib/src")
 
 if(MSVC)
   target_link_options(mdfview PRIVATE /SUBSYSTEM:WINDOWS)
@@ -54,16 +53,15 @@ target_link_libraries(mdfview PRIVATE mdf)
 
 include(${CMAKE_SOURCE_DIR}/script/boost.cmake)
 include(${CMAKE_SOURCE_DIR}/script/wxwidgets.cmake)
-include(${CMAKE_SOURCE_DIR}/script/wxmathplot.cmake)
+include(${CMAKE_SOURCE_DIR}/script/wx2dplot.cmake)
 
 target_link_libraries(mdfview PRIVATE
     Boost::process
     Boost::filesystem
     Boost::locale
+    wx2dplot
     wxWidgets::wxWidgets
-    wxmathplot_static
 )
-
 
 if(MINGW)
   target_link_libraries(mdfview PRIVATE iconv)

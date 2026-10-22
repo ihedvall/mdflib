@@ -264,7 +264,7 @@ TEST_F(TestFlexRayLogger, FlexRayVlsdStorage) {
     HdComment hd_comment("Test of FlexRay VLSD Storage");
     hd_comment.Author("Ingemar Hedvall");
     hd_comment.Department("IH Development");
-    hd_comment.Project("MOST bus support");
+    hd_comment.Project("FlexRay bus support");
     hd_comment.Subject("Testing FlexRay support");
     hd_comment.TimeSource(MdString("PC UTC Time"));
     header->SetHdComment(hd_comment);

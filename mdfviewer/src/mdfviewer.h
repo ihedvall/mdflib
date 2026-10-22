@@ -33,7 +33,7 @@ class MdfViewer : public wxApp {
  private:
   std::string notepad_; ///< Path to notepad.exe if it exist
   std::string gnuplot_; ///< Path to gnuplot.exe if it exist
-  std::string my_temp_dir_; ///< Temporary directory for this application taht is removed at exit
+  std::string my_temp_dir_; ///< Temporary directory for this application that is removed at exit
 
   void OnOpenLogFile(wxCommandEvent& event);
   void OnUpdateOpenLogFile(wxUpdateUIEvent& event);

@@ -2,6 +2,8 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+// ReSharper disable CppMemberFunctionMayBeConst
+// ReSharper disable CppMemberFunctionMayBeStatic
 #include "mainframe.h"
 
 #include <wx/aboutdlg.h>
@@ -17,6 +19,7 @@
 #include "mdfviewer.h"
 #include "windowid.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
 namespace {
 #include "img/app.xpm"
 }
@@ -39,13 +42,12 @@ wxEND_EVENT_TABLE()
 MainFrame::MainFrame(const wxString& title, const wxPoint& start_pos, const wxSize& start_size, bool maximized)
     : wxDocMDIParentFrame(wxDocManager::GetDocumentManager(), nullptr, wxID_ANY, title,
       start_pos, start_size) {
-#ifdef _WIN32
-  wxIcon app("APP_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
-#else
-  wxIcon app {wxICON(app)};
-#endif
+
+  wxIcon app{wxICON(app)};
   SetIcon(app);
+
   wxWindow::SetName("MdfTopWindow");
+
 #if (_MSC_VER)
   wxTopLevelWindowMSW::Maximize(maximized);
  #else
@@ -178,13 +180,14 @@ void MainFrame::OnAbout(wxCommandEvent&) {
 }
 
 void MainFrame::OnUpdateNoDoc(wxUpdateUIEvent &event) {
-  auto* man = wxDocManager::GetDocumentManager();
-  auto* doc = man != nullptr ? man->GetCurrentDocument() : nullptr;
+  const auto* man = wxDocManager::GetDocumentManager();
+  const auto* doc = man != nullptr ? man->GetCurrentDocument() : nullptr;
   if (doc == nullptr) {
     event.Enable(false);
   }
 }
 
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
 void MainFrame::OnDropFiles(wxDropFilesEvent& event) {
   const int count = event.GetNumberOfFiles();
   const auto* list = event.GetFiles();
@@ -219,6 +222,8 @@ void MainFrame::OnDropFiles(wxDropFilesEvent& event) {
     }
   }
 }
+
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
 void MainFrame::OnTimer(wxTimerEvent& event) {
   if (event.GetId() != kIdMainFrameTimer) {
     return;

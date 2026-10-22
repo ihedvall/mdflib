@@ -27,7 +27,10 @@
 #include "windowid.h"
 #include "mdf/mdflogstream.h"
 
+namespace {
 
+
+}
 using namespace util::log;
 
 wxIMPLEMENT_APP(mdf::viewer::MdfViewer);
@@ -66,6 +69,15 @@ bool MdfViewer::OnInit() {
     return false;
   }
 
+  if (wxImage::FindHandler(wxBITMAP_TYPE_PNG) == nullptr) {
+    wxImage::AddHandler(new wxPNGHandler);
+  }
+  if (wxImage::FindHandler(wxBITMAP_TYPE_XPM) == nullptr) {
+    wxImage::AddHandler(new wxXPMHandler);
+  }
+  if (wxImage::FindHandler(wxBITMAP_TYPE_ICO) == nullptr) {
+    wxImage::AddHandler(new wxICOHandler);
+  }
   // Setup correct localization when formatting date and times
   //boost::locale::generator gen;
 
@@ -124,8 +136,8 @@ bool MdfViewer::OnInit() {
   app_config->Read("/MainWin/Max",&maximized, maximized);
 
   auto* doc_manager = new wxDocManager;
-  new wxDocTemplate(doc_manager, "MDF File","*.mf4;*.mdf;*.mf3;*.dat","",
-                                         "mf4;mdf;mf3;dat","MDFViewer","MDF Viewer",
+  new wxDocTemplate(doc_manager, "MDF or Config File","*.mdx;*.mf4;*.mdf;*.mf3;*.dat","",
+                                         "mdx;mf4;mdf;mf3;dat","MDFViewer","MDF Viewer",
                                          wxCLASSINFO(MdfDocument), wxCLASSINFO(MdfView));
 
   auto* frame = new MainFrame(GetAppDisplayName(), start_pos, start_size, maximized);

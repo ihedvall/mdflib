@@ -24,6 +24,9 @@
 #include "sr4block.h"
 #include "cn4block.h"
 
+#include "img/sub.xpm"
+#include "img/tree_list.xpm"
+
 
 using namespace mdf::detail;
 using namespace std::filesystem;

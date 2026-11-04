@@ -5,6 +5,7 @@
 
 #include <gtest/gtest.h>
 #include "cn4block.h"
+#include "mdf/cncomment.h"
 #include <string_view>
 #include <boost/endian.hpp>
 
@@ -568,5 +569,18 @@ TEST(Cn4Block, TestFloatBe) {
 }
 
 
+
+TEST(Cn4Block, DisplayNameFromComment) {
+  Cn4Block channel;
+  EXPECT_TRUE(channel.DisplayName().empty());
+  CnComment comment;
+  comment.Comment(MdString("A signal"));
+  channel.SetCnComment(comment);
+  EXPECT_TRUE(channel.DisplayName().empty());
+  comment.Names().AddDisplayName(MdString("Display_A"));
+  comment.Names().AddDisplayName(MdString("Display_B"));
+  channel.SetCnComment(comment);
+  EXPECT_EQ(channel.DisplayName(), "Display_A");
+}
 
 } // End namespace mdf::test

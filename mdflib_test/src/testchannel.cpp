@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 #include "cn4block.h"
+#include "dg4block.h"
+#include "channelobserver.h"
 #include <string_view>
 #include <boost/endian.hpp>
 
@@ -568,5 +570,27 @@ TEST(Cn4Block, TestFloatBe) {
 }
 
 
+
+TEST(ChannelObserver, OneNotificationPerRecord) {
+  class CountingObserver : public ChannelObserver<double> {
+   public:
+    using ChannelObserver<double>::ChannelObserver;
+    size_t calls = 0;
+    bool OnSample(uint64_t, uint64_t, const std::vector<uint8_t>&) override {
+      ++calls;
+      return true;
+    }
+  };
+  class DataGroup : public Dg4Block {
+   public:
+    using Dg4Block::InitFastObserverList;
+  } data_group;
+  auto* group = data_group.CreateChannelGroup();
+  auto* channel = group->CreateChannel();
+  CountingObserver observer(data_group, *group, *channel);
+  data_group.InitFastObserverList();
+  EXPECT_TRUE(data_group.NotifySampleObservers(0, group->RecordId(), {}));
+  EXPECT_EQ(observer.calls, 1);
+}
 
 } // End namespace mdf::test

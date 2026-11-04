@@ -424,22 +424,7 @@ double DbcHelper::RawToDouble(bool little_endian, size_t start, size_t length,
                               const unsigned char* raw )
 {
   double value = 0.0;
-  uint64_t temp = 0;
-  uint64_t mask = 1ULL << ( length - 1 );
-  auto byte = (little_endian ?
-               static_cast<int>(start + length - 1) : static_cast<int>(start) ) / 8;
-  auto bit = static_cast<int>( (start + length - 1) % 8);
-  for (size_t index = 0; index < length; ++index ) {
-    if ((raw[byte] & kMask[bit] ) != 0) {
-      temp |= mask;
-    }
-    mask >>= 1;
-    --bit;
-    if (bit < 0) {
-      bit = 7;
-      little_endian ? --byte : ++byte;
-    }
-  }
+  const uint64_t temp = RawToUnsigned(little_endian, start, length, raw);
   memcpy( &value, &temp, sizeof(value));
   return value;
 }
@@ -448,22 +433,7 @@ float DbcHelper::RawToFloat(bool little_endian, size_t start, size_t length,
                             const unsigned char* raw )
 {
   float value = 0.0;
-  uint32_t temp = 0;
-  uint32_t mask = 1ULL << ( length - 1 );
-  auto byte = (little_endian ?
-               static_cast<int>(start + length - 1) : static_cast<int>(start) ) / 8;
-  auto bit = static_cast<int>( (start + length - 1) % 8);
-  for (size_t index = 0; index < length; ++index ) {
-    if ((raw[byte] & kMask[bit] ) != 0) {
-      temp |= mask;
-    }
-    mask >>= 1;
-    --bit;
-    if (bit < 0) {
-      bit = 7;
-      little_endian ? --byte : ++byte;
-    }
-  }
+  const auto temp = static_cast<uint32_t>(RawToUnsigned(little_endian, start, length, raw));
   memcpy( &value, &temp, sizeof(value));
   return value;
 }
@@ -502,22 +472,7 @@ int64_t DbcHelper::RawToSigned(bool little_endian, size_t start, size_t length,
 {
   int64_t value = 0;
 
-  uint64_t temp = 0;
-  auto byte = (little_endian ?
-               static_cast<int>(start + length - 1) : static_cast<int>(start) ) / 8;
-  auto bit = static_cast<int>( (start + length - 1) % 8);
-
-  for (size_t index = 0; index < length; ++index) {
-    if ( index > 0 ) temp <<= 1;
-    if ((raw[byte] & kMask[bit]) != 0) {
-      temp |= 1;
-    }
-    --bit;
-    if (bit < 0) {
-      bit = 7;
-      little_endian ? --byte : ++byte;
-    }
-  }
+  const uint64_t temp = RawToUnsigned(little_endian, start, length, raw);
 
   signed64 temp_value {};
   memcpy( &temp_value, &temp, sizeof(temp));
@@ -600,6 +555,15 @@ uint64_t DbcHelper::RawToUnsigned(bool little_endian, size_t start,
   auto byte = (little_endian ?
       static_cast<int>(start + length - 1) : static_cast<int>(start) ) / 8;
   auto bit = static_cast<int>( (start + length - 1) % 8);
+
+  // A byte-aligned value of whole bytes needs no bit loop.
+  if (start % 8 == 0 && length % 8 == 0) {
+    for (size_t index = 0; index < length / 8; ++index) {
+      value = (value << 8) | raw[byte];
+      little_endian ? --byte : ++byte;
+    }
+    return value;
+  }
 
   for (size_t index = 0; index < length; ++index) {
     if (index > 0) {

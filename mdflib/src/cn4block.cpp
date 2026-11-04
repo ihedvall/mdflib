@@ -2,6 +2,7 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+#include "mdf/cncomment.h"
 #include "cn4block.h"
 
 #include <ctime>
@@ -223,8 +224,11 @@ void Cn4Block::DisplayName(const std::string &name) {
 }
 
 std::string Cn4Block::DisplayName() const {
-  // No support in MDF4
-  return {};
+  // MF4 stores display names in the channel comment: <names><display>
+  CnComment comment;
+  GetCnComment(comment);
+  const auto& names = comment.Names().DisplayNames();
+  return names.empty() ? std::string() : names.front().Text();
 }
 
 void Cn4Block::Description(const std::string &description) {

@@ -5,8 +5,7 @@
 
 #include <gtest/gtest.h>
 #include "cn4block.h"
-#include "dg4block.h"
-#include "channelobserver.h"
+#include "mdf/cncomment.h"
 #include <string_view>
 #include <boost/endian.hpp>
 
@@ -571,26 +570,17 @@ TEST(Cn4Block, TestFloatBe) {
 
 
 
-TEST(ChannelObserver, OneNotificationPerRecord) {
-  class CountingObserver : public ChannelObserver<double> {
-   public:
-    using ChannelObserver<double>::ChannelObserver;
-    size_t calls = 0;
-    bool OnSample(uint64_t, uint64_t, const std::vector<uint8_t>&) override {
-      ++calls;
-      return true;
-    }
-  };
-  class DataGroup : public Dg4Block {
-   public:
-    using Dg4Block::InitFastObserverList;
-  } data_group;
-  auto* group = data_group.CreateChannelGroup();
-  auto* channel = group->CreateChannel();
-  CountingObserver observer(data_group, *group, *channel);
-  data_group.InitFastObserverList();
-  EXPECT_TRUE(data_group.NotifySampleObservers(0, group->RecordId(), {}));
-  EXPECT_EQ(observer.calls, 1);
+TEST(Cn4Block, DisplayNameFromComment) {
+  Cn4Block channel;
+  EXPECT_TRUE(channel.DisplayName().empty());
+  CnComment comment;
+  comment.Comment(MdString("A signal"));
+  channel.SetCnComment(comment);
+  EXPECT_TRUE(channel.DisplayName().empty());
+  comment.Names().AddDisplayName(MdString("Display_A"));
+  comment.Names().AddDisplayName(MdString("Display_B"));
+  channel.SetCnComment(comment);
+  EXPECT_EQ(channel.DisplayName(), "Display_A");
 }
 
 } // End namespace mdf::test

@@ -231,10 +231,6 @@ void Dg4Block::ReadData(std::streambuf& buffer) {
       if (channel == nullptr) {
         continue;
       }
-      // Check if the channel is in the subscription
-      if (!IsSubscribingOnChannel(*channel) ) {
-        continue;
-      }
       const auto* cn_block = dynamic_cast<const Cn4Block*>(channel);
       if (cn_block == nullptr) {
         continue;
@@ -247,6 +243,10 @@ void Dg4Block::ReadData(std::streambuf& buffer) {
       const auto data_link = cn_block->DataLink();
       if (data_link == 0) {
         continue; // No data to read into the system
+      }
+      // Check if the channel is in the subscription
+      if (!IsSubscribingOnChannel(*channel) ) {
+        continue;
       }
       const auto* block = Find(data_link);
       if (block == nullptr) {
@@ -378,10 +378,6 @@ void Dg4Block::ReadRangeData(std::streambuf& buffer, DgRange& range) {
       if (channel == nullptr) {
         continue;
       }
-      // Check if the channel is in the subscription
-      if (!IsSubscribingOnChannel(*channel) ) {
-        continue;
-      }
       const auto* cn_block = dynamic_cast<const Cn4Block*>(channel);
       if (cn_block == nullptr) {
         continue;
@@ -393,6 +389,10 @@ void Dg4Block::ReadRangeData(std::streambuf& buffer, DgRange& range) {
       const auto data_link = cn_block->DataLink();
       if (data_link == 0) {
         continue; // No data to read into the system
+      }
+      // Check if the channel is in the subscription
+      if (!IsSubscribingOnChannel(*channel) ) {
+        continue;
       }
       const auto* block = Find(data_link);
       if (block == nullptr) {

@@ -50,7 +50,6 @@ class ChannelObserver : public IChannelObserver {
     if (channel_.Type() == ChannelType::VariableLength) {
       offset_list_.resize(static_cast<size_t>(group.NofSamples() * array_size), 0);
     }
-    ChannelObserver::AttachObserver();
   }
 
   ~ChannelObserver() override {

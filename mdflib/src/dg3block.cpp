@@ -49,6 +49,8 @@ void Dg3Block::GetBlockProperty(BlockPropertyList &dest) const {
   dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
+  dest.emplace_back("Name", Name(),
+  "Unique name of the DG block", BlockItemType::NormalItem);
   dest.emplace_back("Channel Groups", std::to_string(nof_cg_blocks_));
   dest.emplace_back("Record ID size [bytes]", std::to_string(nof_record_id_));
 }

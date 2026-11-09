@@ -160,8 +160,10 @@ add_library(mdf
         src/cutf.h src/cutf.cpp
         src/cuttask.cpp src/cuttask.h
         src/csvwriter.cpp ../include/mdf/csvwriter.h
-        src/mdftocsvtask.cpp
-        src/mdftocsvtask.h
+        src/mdftocsvtask.cpp  src/mdftocsvtask.h
+        src/mdfsignal.cpp src/mdfsignal.h
+        ../include/mdf/isignal.h
+        src/readerthread.cpp ../include/mdf/readerthread.h
 )
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../script/zlib.cmake)
@@ -186,6 +188,7 @@ endif()
 
 set(MDF_PUBLIC_HEADERS
     ../include/mdf/atcomment.h
+    ../include/mdf/canbusobserver.h
     ../include/mdf/canconfigadapter.h
     ../include/mdf/canmessage.h
     ../include/mdf/cccomment.h
@@ -195,6 +198,7 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/cncomment.h
     ../include/mdf/cnunit.h
     ../include/mdf/cryptoutil.h
+    ../include/mdf/csvwriter.h
     ../include/mdf/dgcomment.h
     ../include/mdf/etag.h
     ../include/mdf/ethconfigadapter.h
@@ -233,6 +237,8 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/imdftimestamp.h
     ../include/mdf/imetadata.h
     ../include/mdf/isampleobserver.h
+    ../include/mdf/isamplereduction.h
+    ../include/mdf/isignal.h
     ../include/mdf/isourceinformation.h
     ../include/mdf/itimestamp.h
     ../include/mdf/linconfigadapter.h
@@ -248,6 +254,7 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/mdflogstream.h
     ../include/mdf/mdformula.h
     ../include/mdf/mdfreader.h
+    ../include/mdf/mdftask.h
     ../include/mdf/mdfwriter.h
     ../include/mdf/mdlist.h
     ../include/mdf/mdnumber.h
@@ -258,7 +265,7 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/mdvariable.h
     ../include/mdf/mostconfigadapter.h
     ../include/mdf/mostmessage.h
-    ../include/mdf/isamplereduction.h
+    ../include/mdf/readerthread.h
     ../include/mdf/samplerecord.h
     ../include/mdf/sicomment.h
     ../include/mdf/zlibutil.h)

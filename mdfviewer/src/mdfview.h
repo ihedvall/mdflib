@@ -10,7 +10,7 @@ namespace mdf::viewer {
  class MdfView : public wxView  {
   public:
    MdfView() = default;
-   MdfDocument* GetDocument() const;
+   MdfDocument* GetDoc() const;
 
    bool OnCreate(wxDocument* doc, long flags) override;
    bool OnClose(bool del) override;

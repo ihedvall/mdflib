@@ -6,7 +6,10 @@ project(
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(datawriter_example src/datawriter_example.cpp)
+add_executable(datawriter_example src/datawriter_example.cpp
+        ../include/mdf/isignal.h
+        ../mdflib/src/readerthread.cpp
+        ../include/mdf/readerthread.h)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set_target_properties(datawriter_example PROPERTIES LINK_FLAGS "-Wl,-rpath,'$ORIGIN'")

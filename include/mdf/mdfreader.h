@@ -154,6 +154,13 @@ class MdfReader {
       const;  ///< Returns the file name without paths.
   [[nodiscard]] std::wstring WShortName()
       const;  ///< Returns the file name without paths.
+
+  void SetName(std::wstring name) {
+    name_ = std::move(name);
+  }
+  [[nodiscard]] const std::wstring& GetName() const {
+    return name_;
+  }
   /** \brief Opens the internal stream buffer.
    *
    * Normally the stream buffer is an ordinary file but the use may also
@@ -278,6 +285,7 @@ class MdfReader {
    * created by this class (file streams) or outside the
    */
   std::shared_ptr<std::streambuf> file_;
+  std::wstring name_; ///< Internal name of the reader
 
   std::wstring filename_;               ///< The file name with full path.
   std::unique_ptr<MdfFile> instance_;  ///< Pointer to the MDF file object.

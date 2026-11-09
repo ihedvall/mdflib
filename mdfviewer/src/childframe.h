@@ -6,18 +6,14 @@
 #include <wx/wx.h>
 #include <wx/docmdi.h>
 #include <wx/splitter.h>
-#include <wx/treectrl.h>
-#include <wx/listctrl.h>
-#include <wx/bmpbndl.h>
-#include <wx/vector.h>
 
-#include "mdf3file.h"
-#include "mdf4file.h"
-#include "mdfdocument.h"
-#include "ca4block.h"
-#include "cc4block.h"
+#include "configwindow.h"
+#include "displaywindow.h"
 
 namespace mdf::viewer {
+
+class MdfDocument;
+
 class ChildFrame : public wxDocMDIChildFrame {
  public:
   ChildFrame(wxDocument *doc,
@@ -28,76 +24,14 @@ class ChildFrame : public wxDocMDIChildFrame {
   ChildFrame() = default;
 
   void Update() override;
- protected:
+  void RedrawDisplays() const;
   [[nodiscard]] MdfDocument* GetDoc() const;
 
  private:
-  wxTreeCtrl* left_ = nullptr;
-  wxListView* property_view_ = nullptr;
-  wxListView* history_view_ = nullptr;
-  wxListView* measurement_view_ = nullptr;
-  wxListView* event_view_ = nullptr;
-  wxListView* attachment_view_ = nullptr;
-  wxListView* hierarchy_view_ = nullptr;
+  ConfigWindow* left_ = nullptr;
+  DisplayWindow* right_ = nullptr;
 
   wxSplitterWindow* splitter_ = nullptr;
-  wxVector<wxBitmapBundle> image_list_;
-  mdf::detail::BlockPropertyList property_list_;
-
-
-  void RedrawTreeList();
-
-  void RedrawMdf3Blocks(const mdf::detail::Mdf3File* file);
-  void RedrawMdf4Blocks(const mdf::detail::Mdf4File* file);
-
-  void RedrawHistory(const mdf::detail::Hd4Block& hd, const wxTreeItemId& root) const;
-
-  void RedrawMeasurement(const mdf::detail::Hd4Block& hd, const wxTreeItemId& root);
-  void RedrawMeasurement(const mdf::detail::Hd3Block& hd, const wxTreeItemId& root);
-
-  void RedrawHierarchy(const mdf::detail::Hd4Block& hd, const wxTreeItemId& root);
-  void RedrawAttachment(const mdf::detail::Hd4Block& hd, const wxTreeItemId& root) const;
-  void RedrawEvent(const mdf::detail::Hd4Block& hd, const wxTreeItemId& root) const;
-
-  void RedrawDataList(const mdf::detail::DataListBlock& dg, const wxTreeItemId& root);
-
-  void RedrawCgList(const mdf::detail::Dg4Block& dg4, const wxTreeItemId& root);
-  void RedrawCgList(const mdf::detail::Dg3Block& dg3, const wxTreeItemId& root);
-
-  void RedrawCnList(const mdf::detail::Cg4Block& cg, const wxTreeItemId& root);
-  void RedrawCnList(const mdf::detail::Cg3Block& cg3, const wxTreeItemId& root);
-
-  void RedrawCnBlock(const mdf::detail::Cn4Block &cn4, const wxTreeItemId& root);
-  void RedrawCaBlock(const mdf::detail::Ca4Block &ca4, const wxTreeItemId& root) const;
-
-  void RedrawSrList(const mdf::detail::Cg4Block& cg, const wxTreeItemId& root);
-  void RedrawSrList(const mdf::detail::Cg3Block& cg, const wxTreeItemId& root);
-
-  void RedrawDgBlock(const mdf::detail::Dg4Block& dg4, const wxTreeItemId& root);
-  void RedrawDgBlock(const mdf::detail::Dg3Block& dg3, const wxTreeItemId& root);
-
-  void RedrawSiBlock(const mdf::detail::Si4Block& si, const wxTreeItemId& root) const;
-
-  void RedrawCcBlock(const mdf::detail::Cc4Block& cc4, const wxTreeItemId& root);
-  void RedrawCcBlock(const mdf::detail::Cc3Block& cc3, const wxTreeItemId& root) const;
-
-  void RedrawCxList(const std::vector<std::unique_ptr<mdf::detail::MdfBlock>>& cx_list,
-                    const wxTreeItemId& root);
-
-  void RedrawChBlock(const mdf::detail::Ch4Block& ch, const wxTreeItemId& root);
-
-  void RedrawListView();
-  void RedrawHistoryView() const;
-  void RedrawMeasurementView() const;
-  void RedrawEventView() const;
-  void RedrawAttachmentView() const;
-  void RedrawHierarchyView() const;
-
-  void OnTreeSelected(wxTreeEvent& event);
-  void OnTreeRightClick(wxTreeEvent& event);
-  void OnListItemActivated(wxListEvent& event);
-
-  void CreateImageList();
   wxDECLARE_EVENT_TABLE();
 
 };

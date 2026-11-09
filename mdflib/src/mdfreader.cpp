@@ -246,11 +246,12 @@ void CreateChannelObserverForDataGroup(const IDataGroup &data_group,
 
 MdfReader::MdfReader(std::wstring filename)
 : filename_(std::move(filename)) {
+  name_ = WShortName();
   // Need to create MDF3 of MDF4 file
   bool bExist = false;
   try {
-    fs::path fname(filename_);
-    if (fs::exists(fname)) {
+    path fname(filename_);
+    if (exists(fname)) {
       bExist = true;
     }
   } catch (const std::exception &error) {
@@ -301,7 +302,7 @@ void MdfReader::VerifyMdfFile() {
     return;
   }
 
-  auto id_block = std::make_unique<detail::IdBlock>();
+  auto id_block = std::make_unique<IdBlock>();
   id_block->Read(*file_);
 
   if (Platform::strnicmp(id_block->FileId().c_str(), "MDF", 3) == 0 ||
@@ -345,6 +346,7 @@ std::wstring MdfReader::WShortName() const {
   }
   return {};
 }
+
 bool MdfReader::Open() {
   if (!file_) {
     MDF_ERROR() <<

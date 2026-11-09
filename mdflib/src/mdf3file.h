@@ -44,8 +44,8 @@ class Mdf3File : public MdfFile {
   void ReadMeasurementInfo(std::streambuf& buffer) override;
   void ReadEverythingButData(std::streambuf& buffer) override;
 
-  [[nodiscard]] const IdBlock &Id() const;
-  [[nodiscard]] const Hd3Block &Hd() const;
+  [[nodiscard]] const IdBlock& Id() const;
+  [[nodiscard]] const Hd3Block& Hd() const;
 
   bool Write(std::streambuf& buffer) override;
 

@@ -3,59 +3,74 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <wx/docview.h>
-#include <wx/wx.h>
 
 #include <memory>
 
-#include "mdf/mdffile.h"
-#include "mdf/mdfreader.h"
-#include "mdf3file.h"
-#include "mdf4file.h"
+#include <wx/docview.h>
+#include <wx/timer.h>
+#include <plot/configuration.h>
+
+#include "mdf/readerthread.h"
 #include "mdfblock.h"
+#include "configdata.h"
 
 namespace mdf::viewer {
 
 class MdfDocument : public wxDocument {
  public:
-  MdfDocument() = default;
+  MdfDocument();
   ~MdfDocument() override;
 
   bool OnOpenDocument(const wxString &filename) override;
 
-  std::wstring GetMdfFilename() const {
-    return reader_ ? reader_->WFilename() : L"No Name";
+  const plot::Configuration& GetConfiguration() const {
+    return configuration_;
   }
 
-  [[nodiscard]] const mdf::MdfFile* GetFile() const {
-    return !reader_  ? nullptr : reader_->GetFile();
-  }
-  [[nodiscard]] const mdf::MdfReader* GetReader() const {
-    return reader_.get();
+  plot::Configuration& GetConfiguration() {
+    return configuration_;
   }
 
-  void SetSelectedBlockId(int64_t id, int64_t parent_id, int64_t grand_parent_id);
-
-  [[nodiscard]] int64_t GetSelectedBlockId() const {
-    return selected_id_;
+  [[nodiscard]] ReaderList& GetReaderList() {
+    return reader_thread_.GetReaderList();
+  }
+  [[nodiscard]] const ReaderList& GetReaderList() const {
+    return reader_thread_.GetReaderList();
   }
 
-  [[nodiscard]] int64_t GetParentBlockId() const {
-    return parent_id_;
+  [[nodiscard]] SignalList& GetSignalList() {
+    return reader_thread_.GetSignalList();
+  }
+  [[nodiscard]] const SignalList& GetSignalList() const {
+    return reader_thread_.GetSignalList();
   }
 
-  [[nodiscard]] int64_t GetGrandParentBlockId() const {
-    return grand_parent_id_;
-  }
+  [[nodiscard]] static detail::MdfBlock* GetBlock(const MdfReader* reader,
+        int64_t id); ///< Returns a block pointer by block index.
 
-  [[nodiscard]] mdf::detail::MdfBlock* GetBlock(int64_t id) const; ///< Returns a block pointer by block index.
+  void SetLastConfigData(const ConfigData& config_data) {
+    last_config_data_ = config_data;
+  }
+  [[nodiscard]] const ConfigData& GetLastConfigData() const {
+    return last_config_data_;
+  };
+ protected:
+  bool DoSaveDocument(const wxString& file) override;
+  bool DoOpenDocument(const wxString& file) override;
+  void SetConfigFilename(const std::wstring& filename);
+  void AddMdfFile(const std::wstring& filename, bool add_reader_only);
 
  private:
-  std::unique_ptr<mdf::MdfReader> reader_;
+  plot::Configuration original_configuration_;;
+  plot::Configuration configuration_;
+  ReaderThread reader_thread_;
+  wxTimer modify_timer_;
+
   int64_t selected_id_ = 64; ///< The selected items block index (file position).
   int64_t parent_id_ = -1; ///< The parent index of the selected block.
   int64_t grand_parent_id_ = -1; ///< The grand parent index of the selected block.
 
+  ConfigData last_config_data_;
   void OnSaveAttachment(wxCommandEvent& event);
   void OnUpdateSaveAttachment(wxUpdateUIEvent& event);
 
@@ -70,6 +85,8 @@ class MdfDocument : public wxDocument {
 
   void OnPlotChannelData(wxCommandEvent& event);
   void OnUpdatePlotChannelData(wxUpdateUIEvent& event);
+
+  void OnModifyTimer(wxTimerEvent& event);
   wxDECLARE_DYNAMIC_CLASS(MdfDocument);
   wxDECLARE_EVENT_TABLE();
 };

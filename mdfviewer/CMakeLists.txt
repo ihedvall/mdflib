@@ -26,10 +26,14 @@ add_executable(mdfview
         src/util/logstream.cpp src/util/logstream.h
         src/util/stringutil.cpp src/util/stringutil.h
         src/util/timestamp.cpp src/util/timestamp.h
-        src/samplereductionframe.cpp
-        src/samplereductionframe.h
-        src/samplereductionlistview.cpp
-        src/samplereductionlistview.h)
+        src/samplereductionframe.cpp src/samplereductionframe.h
+        src/samplereductionlistview.cpp src/samplereductionlistview.h
+        src/configwindow.cpp src/configwindow.h
+        src/configdata.cpp src/configdata.h
+        src/displaywindow.cpp src/displaywindow.h
+        src/infowindow.cpp src/infowindow.h
+        src/signalwindow.cpp src/signalwindow.h
+        src/signallistview.cpp src/signallistview.h)
 
 target_include_directories(mdfview PRIVATE
         mdf

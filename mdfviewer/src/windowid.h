@@ -19,4 +19,20 @@ constexpr wxWindowID kIdAttachmentList = 12;
 constexpr wxWindowID kIdHierarchyList = 13;
 constexpr wxWindowID kIdShowSrData = 14;
 constexpr wxWindowID kIdMainFrameTimer = 15;
+constexpr wxWindowID kIdRightWindow = 16;
+constexpr wxWindowID kIdInfoWindow = 17;
+
+constexpr wxWindowID kIdNameFilter = 18;
+constexpr wxWindowID kIdUnitFilter = 19;
+constexpr wxWindowID kIdSourceFilter = 20;
+constexpr wxWindowID kIdLabFilter = 21;
+constexpr wxWindowID kIdSignalList = 22;
+
+constexpr wxWindowID kIdDeleteLayer = 30;
+constexpr wxWindowID kIdAddLayer = 31;
+constexpr wxWindowID kIdAddLineplot = 32;
+
+constexpr wxWindowID kIdAppearanceSystem = 101;
+constexpr wxWindowID kIdAppearanceDark = 102;
+constexpr wxWindowID kIdAppearanceLight = 103;
 }

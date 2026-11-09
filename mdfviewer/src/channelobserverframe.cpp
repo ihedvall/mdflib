@@ -13,11 +13,7 @@ ChannelObserverFrame::ChannelObserverFrame(std::unique_ptr<ChannelObserverList>&
                                            wxWindowID id, const wxString &title)
 : wxFrame(parent, id,title,wxDefaultPosition,parent->GetClientSize(),
           wxDEFAULT_FRAME_STYLE | wxFRAME_FLOAT_ON_PARENT) {
-#ifdef _WIN32
-  wxIcon sub("SUB_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
-#else
-  wxIcon sub {wxICON(sub)};
-#endif
+  wxIcon sub(wxICON(app));
   SetIcon(sub);
   list_view_ = new ChannelObserverListView(this);
   list_view_->AppendColumn(wxString::FromUTF8("Sample"));
@@ -45,9 +41,9 @@ ChannelObserverFrame::ChannelObserverFrame(std::unique_ptr<ChannelObserverList>&
 
   list_view_->ObserverList(observer_list);
   list_view_->SetItemCount(static_cast<long>(samples));
-  for (int col = 0; col < list_view_->GetColumnCount(); ++col) {
-    list_view_->SetColumnWidth(col, wxLIST_AUTOSIZE_USEHEADER);
-  }
+//  for (int col = 0; col < list_view_->GetColumnCount(); ++col) {
+//    list_view_->SetColumnWidth(col, wxLIST_AUTOSIZE_USEHEADER);
+//  }
 
 }
 

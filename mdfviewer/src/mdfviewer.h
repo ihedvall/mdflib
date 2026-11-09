@@ -7,9 +7,6 @@
 #include <wx/wx.h>
 #include <boost/asio.hpp>
 
-#if !wxUSE_DOC_VIEW_ARCHITECTURE
-#error You must set wxUSE_DOC_VIEW_ARCHITECTURE to 1 in setup.h!
-#endif
 
 namespace mdf::viewer {
 
@@ -29,11 +26,14 @@ class MdfViewer : public wxApp {
   const std::string& GnuPlot() const {
     return gnuplot_;
   }
+
+  Appearance GetAppearance() const { return appearance_; }
   boost::asio::io_context ctx_;
  private:
   std::string notepad_; ///< Path to notepad.exe if it exist
   std::string gnuplot_; ///< Path to gnuplot.exe if it exist
   std::string my_temp_dir_; ///< Temporary directory for this application that is removed at exit
+  Appearance appearance_ = Appearance::System;
 
   void OnOpenLogFile(wxCommandEvent& event);
   void OnUpdateOpenLogFile(wxUpdateUIEvent& event);

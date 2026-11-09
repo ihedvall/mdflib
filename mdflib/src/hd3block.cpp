@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <sstream>
 
 #include "mdf/mdfhelper.h"
 #include "pr3block.h"
@@ -90,6 +91,9 @@ void Hd3Block::GetBlockProperty(BlockPropertyList &dest) const {
 
     case 16:
       dest.emplace_back("Time Source", "NTP/PTP");
+      break;
+
+    default:
       break;
   }
   dest.emplace_back("Timer ID", timestamp_.timer_id_);
@@ -209,11 +213,9 @@ uint64_t Hd3Block::Write(std::streambuf& buffer) {
     dg3->Write(buffer);
     if (index == 0) {
       UpdateLink(buffer, kIndexDg, dg3->FilePosition());
-    } else {
-      auto &prev = dg_list_[index - 1];
-      if (prev) {
-        prev->UpdateLink(buffer, kIndexNext, dg3->FilePosition());
-      }
+    } else if (auto &prev = dg_list_[index - 1];
+          prev) {
+      prev->UpdateLink(buffer, kIndexNext, dg3->FilePosition());
     }
   }
   return bytes;
@@ -221,13 +223,18 @@ uint64_t Hd3Block::Write(std::streambuf& buffer) {
 
 void Hd3Block::ReadMeasurementInfo(std::streambuf& buffer) {
   dg_list_.clear();
+  int meas_no = 1;
   for (auto link = Link(kIndexDg); link > 0; /* No ++ here*/) {
     auto dg = std::make_unique<Dg3Block>();
     dg->Init(*this);
     SetFilePosition(buffer, link);
     dg->Read(buffer);
     link = dg->Link(kIndexNext);
+    std::ostringstream temp;
+    temp << "Meas" << meas_no;
+    dg->Name(temp.str());
     dg_list_.emplace_back(std::move(dg));
+    ++meas_no;
   }
 }
 

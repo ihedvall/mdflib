@@ -19,27 +19,41 @@
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
+#include "mdf/mdflogstream.h"
+#include "plot/plotlogstream.h"
 
 #include "mdfviewer.h"
 #include "mainframe.h"
 #include "mdfdocument.h"
 #include "mdfview.h"
 #include "windowid.h"
-#include "mdf/mdflogstream.h"
+
 
 namespace {
 
 
 }
 using namespace util::log;
+using namespace plot;
 
 wxIMPLEMENT_APP(mdf::viewer::MdfViewer);
 namespace {
 
-void LogFunc(const MdfLocation& location, mdf::MdfLogSeverity severity,
+void MdfLogFunc(const MdfLocation& location, mdf::MdfLogSeverity severity,
              const std::string& text) {
   auto &log_config = LogConfig::Instance();
   LogMessage message;
+  message.message = text;
+  message.severity = static_cast<LogSeverity>(severity);
+
+  log_config.AddLogMessage(message);
+}
+
+void PlotLogFunc(const std::source_location& location, PlotLogSeverity severity,
+             const std::string& text) {
+  auto &log_config = LogConfig::Instance();
+  LogMessage message;
+  message.location = location;
   message.message = text;
   message.severity = static_cast<LogSeverity>(severity);
 
@@ -62,8 +76,6 @@ wxBEGIN_EVENT_TABLE(MdfViewer, wxApp)
 wxEND_EVENT_TABLE()
 
 bool MdfViewer::OnInit() {
-
-  SetAppearance(Appearance::System);
 
   if (!wxApp::OnInit()) {
     return false;
@@ -99,8 +111,10 @@ bool MdfViewer::OnInit() {
   log_config.CreateDefaultLogger();
   LOG_INFO() << "Log File created. Path: " << log_config.GetLogFile();
 
-  MdfLogStream::SetLogFunction1(LogFunc);
-  notepad_ = util::log::FindNotepad();
+  MdfLogStream::SetLogFunction1(MdfLogFunc);
+  PlotLogStream::SetLogFunction(PlotLogFunc);
+
+  notepad_ = FindNotepad();
 
   // Find the path to the 'gnuplot.exe'
   try {
@@ -125,23 +139,36 @@ bool MdfViewer::OnInit() {
     LOG_ERROR() << "Error when creating temporary directory. Error:" << error.what();
   }
 
-  auto* app_config = wxConfig::Get();
-  wxPoint start_pos;
-  app_config->Read("/MainWin/X",&start_pos.x, wxDefaultPosition.x);
-  app_config->Read("/MainWin/Y",&start_pos.y, wxDefaultPosition.x);
-  wxSize start_size;
-  app_config->Read("/MainWin/XWidth",&start_size.x, 1200);
-  app_config->Read("/MainWin/YWidth",&start_size.y, 800);
+  int appearance = static_cast<int>(Appearance::System);
+  wxPoint start_pos(wxDefaultPosition);
+  wxSize start_size(wxDefaultSize);
   bool maximized = false;
-  app_config->Read("/MainWin/Max",&maximized, maximized);
+  if (auto* app_config = wxConfig::Get(); app_config != nullptr ) {
+    appearance_ = static_cast<Appearance>(app_config->Read(
+            "/MainWin/Appearance", appearance));
+    app_config->Read("/MainWin/X",&start_pos.x, wxDefaultPosition.x);
+    app_config->Read("/MainWin/Y",&start_pos.y, wxDefaultPosition.x);
 
+    app_config->Read("/MainWin/XWidth",&start_size.x, 1200);
+    app_config->Read("/MainWin/YWidth",&start_size.y, 800);
+
+    app_config->Read("/MainWin/Max",&maximized, maximized);
+  }
+
+  const AppearanceResult result = SetAppearance(appearance_);
+  if (result == AppearanceResult::Failure) {
+    LOG_ERROR() << "Failed to set the appearance. Appearance: " << appearance;
+  } else if (result == AppearanceResult::CannotChange) {
+    LOG_INFO() << "Cannot change appearance. Appearance: " << appearance;
+  }
   auto* doc_manager = new wxDocManager;
   new wxDocTemplate(doc_manager, "MDF or Config File","*.mdx;*.mf4;*.mdf;*.mf3;*.dat","",
                                          "mdx;mf4;mdf;mf3;dat","MDFViewer","MDF Viewer",
                                          wxCLASSINFO(MdfDocument), wxCLASSINFO(MdfView));
+  //doc_manager->SetMaxDocsOpen(1);
 
   auto* frame = new MainFrame(GetAppDisplayName(), start_pos, start_size, maximized);
-
+  SetTopWindow(frame);
   frame->Show(true);
 
   return true;

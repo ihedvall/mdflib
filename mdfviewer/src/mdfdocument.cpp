@@ -2,12 +2,17 @@
  * Copyright 2021 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
+// ReSharper disable CppMemberFunctionMayBeConst
 #include <sstream>
 
 #include <filesystem>
+#include <algorithm>
+#include <ranges>
+
 #include <boost/asio.hpp>
 #include <boost/process.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <wx/msgdlg.h>
 
@@ -17,6 +22,8 @@
 #include "mdf/isamplereduction.h"
 #include "mdf/mdflogstream.h"
 
+#include "mdf3file.h"
+#include "mdf4file.h"
 #include "mdfdocument.h"
 #include "windowid.h"
 #include "mdfviewer.h"
@@ -27,7 +34,13 @@
 #include "mainframe.h"
 
 using namespace util::log;
+
 using namespace mdf;
+using namespace mdf::detail;
+using namespace std::filesystem;
+using namespace boost::algorithm;
+using namespace plot;
+
 namespace {
 /**
  * Creates a CSV file using sample observers as input.
@@ -156,73 +169,107 @@ wxBEGIN_EVENT_TABLE(MdfDocument, wxDocument) // NOLINT
 wxEND_EVENT_TABLE()
 
 bool MdfDocument::OnOpenDocument(const wxString &filename) {
+  std::wstring config_file;
+  std::wstring mdf_file;
+  bool config_exists = false;
 
-  wxBusyCursor wait;
-  reader_ = std::make_unique<MdfReader>(filename.ToStdWstring()); // Note that the file is now open
-  bool parse = reader_->IsOk();
-  if (!parse) {
-    LOG_ERROR() << "The file is not an MDF file. File: "
-                << filename;
-    wxMessageBox(wxString("File is not an MDF file"),
-                 wxString("Error Open File"),
-                 wxOK | wxCENTRE | wxICON_ERROR);
-    reader_->Close();
+  try {
+      // Check file type
+    const path fullname(filename.ToStdWstring());
+    const std::wstring extension = fullname.extension().wstring();
+    const bool mdf = iequals(extension, L".mdf") ||
+                     iequals(extension, L".mf4") ||
+                     iequals(extension, L".mf3") ||
+                     iequals(extension, L".dat");
+
+    if (iequals(extension, L".mdx") ) {
+      // Configuration file. Assume XML format
+      config_file = fullname.wstring();
+      config_exists = exists(fullname);
+    } else if (mdf) {
+      // Create a configuration file with the MDF file name with mdx extension.
+      path mdx_file = fullname.parent_path();
+      mdx_file /= fullname.stem();
+      mdx_file += path(".mdx");
+      config_file = mdx_file.wstring();
+
+      mdf_file = fullname.wstring();
+    } else {
+      throw std::runtime_error("The file is not an MDF nor MDX file");
+    }
+  } catch (const std::exception &error) {
+
+    LOG_ERROR() << "File extension error. Error: " << error.what()
+                << ", File: " << filename;
+    wxMessageBox(wxString("The file is not an MDF nor an MDX file"),
+             wxString("Error Open File"),
+             wxOK | wxCENTRE | wxICON_ERROR);
     return false;
   }
-  LOG_INFO() << "Opened MDF file: " << filename;;
+
+  const bool ok = config_exists ? wxDocument::OnOpenDocument(config_file) :
+          wxDocument::OnNewDocument();
+  SetConfigFilename(config_file);
+  if (!mdf_file.empty()) {
+    AddMdfFile(mdf_file, false);
+    UpdateAllViews();
+  }
+
+  return ok;
+}
+
+void MdfDocument::SetConfigFilename(const std::wstring& filename) {
   try {
-    parse = reader_->ReadEverythingButData();
-   } catch (const std::exception &error) {
-    LOG_ERROR() << "Parsing error. Error: " << error.what()
-                << ", File: " << filename;
-    parse = false;
-  }
-  reader_->Close();
-  if (!parse) {
-    wxMessageBox(wxString("Failed to parse the file.\nMore information in the log file."),
-                 wxString("Error Parsing File"),
-                 wxOK | wxCENTRE | wxICON_ERROR);
-  }
-  return parse && wxDocument::OnOpenDocument(filename);
-}
+    const path old_name(configuration_.GetFilename());
+    const std::string old_stem = old_name.stem().string();
 
-void MdfDocument::SetSelectedBlockId(int64_t id, int64_t parent_id,
-                                     int64_t grand_parent_id) {
-  selected_id_ = id;
-  parent_id_ = parent_id;
-  grand_parent_id_ = grand_parent_id;
-  const auto* block = GetBlock(id);
-
-  wxApp& app = wxGetApp();
-  auto* main_frame = dynamic_cast<MainFrame*>(app.GetTopWindow());
-  if (main_frame != nullptr && block != nullptr) {
-    wxStatusBar* status_bar = main_frame->GetStatusBar();
-    if (status_bar != nullptr) {
-      std::ostringstream status_text;
-      status_text << "Index: " << block->Index()
-        << ", Type: " << block->BlockType()
-        << ", Length: " << block->BlockLength();
-      status_bar->SetStatusText(status_text.str());
+    const path fullname(filename);
+    const std::string stem = fullname.stem().string();
+    configuration_.SetFilename(filename);
+    const std::string& name = configuration_.GetName();
+    if (name.empty()) {
+      configuration_.SetName(stem);
+    } else if (iequals(name, old_stem)) {
+      // If the name is the same as the old stem,
+      // change the name to the new stem.
+      configuration_.SetName(stem);
     }
+    SetFilename(filename); // Update wxDocument
+    SetTitle(configuration_.GetName());
+  } catch (const std::exception& error) {
+    const wxString file(filename);
+    LOG_ERROR() << "Failed to set file name. Error: " << error.what()
+       << ", File: " << file;
   }
-
-
 }
 
-mdf::detail::MdfBlock*MdfDocument::GetBlock(int64_t id) const {
-  const auto *file = GetFile();
+void MdfDocument::AddMdfFile(const std::wstring& filename,
+  bool add_reader_only) {
+  [[maybe_unused]] wxBusyCursor wait;
+  const std::wstring fname = Configuration::FindFile(filename);
+  const bool add = reader_thread_.AddMdfFile(fname);
+  if (!add_reader_only && add) {
+    configuration_.AddFile(fname);
+  }
+}
+
+MdfBlock* MdfDocument::GetBlock(const MdfReader* reader, int64_t id) {
+  if (reader == nullptr) {
+    return nullptr;
+  }
+  const MdfFile *file = reader->GetFile();
   if (file == nullptr || id < 0) {
     return nullptr;
   }
 
-  mdf::detail::MdfBlock* block = nullptr;
+  MdfBlock* block = nullptr;
   if (file->IsMdf4()) {
-    const auto *file4 = dynamic_cast<const mdf::detail::Mdf4File *>(file);
+    const auto *file4 = dynamic_cast<const Mdf4File *>(file);
     if (file4 != nullptr) {
       block = file4->Find(id);
     }
   } else {
-    const auto *file3 = dynamic_cast<const mdf::detail::Mdf3File *>(file);
+    const auto *file3 = dynamic_cast<const Mdf3File *>(file);
     if (file3 != nullptr) {
       block = file3->Find(id);
     }
@@ -230,13 +277,70 @@ mdf::detail::MdfBlock*MdfDocument::GetBlock(int64_t id) const {
   return block;
 }
 
+bool MdfDocument::DoSaveDocument(const wxString& file) {
+  try {
+    if (file.empty()) {
+      throw std::runtime_error("File name is not defined (empy)");
+    }
+
+    const path fullname(file.ToStdWstring());
+    const path directory = fullname.parent_path();
+    create_directories(directory);
+    configuration_.SetFilename(file.ToStdWstring());
+    const bool save = configuration_.SaveXmlFile();
+    if (!save) {
+      throw std::runtime_error("Error saving configuration file");
+    }
+    original_configuration_ = configuration_;
+  } catch (const std::exception& error) {
+    LOG_ERROR() << "Error saving configuration. Error: " << error.what()
+      << " .File: " << file;
+    return false;
+  }
+  return true;
+}
+
+bool MdfDocument::DoOpenDocument(const wxString& file) {
+  try {
+    if (file.empty()) {
+      throw std::runtime_error("File name is not defined (empy)");
+    }
+    const path fullname(file.ToStdWstring());
+    if (!exists(fullname)) {
+      throw std::runtime_error("File does not exist");
+    }
+    configuration_.SetFilename(file.ToStdWstring());
+    const bool read = configuration_.ReadXmlFile();
+    if (!read) {
+      throw std::runtime_error("Error reading configuration file");
+    }
+    original_configuration_ = configuration_;
+
+    // Add MDF readers to eac data file
+    const FileList& file_list = configuration_.GetDataFiles();
+    for (const std::wstring& filename : file_list) {
+      AddMdfFile(filename, true);
+    }
+  } catch (const std::exception& error) {
+    LOG_ERROR() << "Error opening document. Error: " << error.what()
+      << " .File: " << file;
+    return false;
+  }
+  return true;
+}
+
 void MdfDocument::OnSaveAttachment(wxCommandEvent &) {
-  const auto id = GetSelectedBlockId();
-  const auto *block = GetBlock(id);
+  const ConfigData& data = GetLastConfigData();
+  const int64_t block_index = data.BlockIndex();
+  MdfReader* reader = data.Reader();
+  if (reader == nullptr) {
+    return;
+  }
+  const MdfBlock *block = GetBlock(reader, block_index);
   if (block == nullptr) {
     return;
   }
-  const auto* at4 = dynamic_cast<const mdf::detail::At4Block*>(block);
+  const auto* at4 = dynamic_cast<const At4Block*>(block);
   if (at4 == nullptr) {
     return;
   }
@@ -250,8 +354,9 @@ void MdfDocument::OnSaveAttachment(wxCommandEvent &) {
   if (ret != wxID_OK) {
     return;
   }
+
   std::string filename = std::string(save_dialog.GetPath().mb_str(wxConvUTF8));
-  const auto ok = reader_->ExportAttachmentData(*at4, filename);
+  const auto ok = reader->ExportAttachmentData(*at4, filename);
   if (!ok) {
     wxMessageBox("Failed to create the file.\nMore information in the log file.",
                  "File Save Error",
@@ -271,12 +376,19 @@ void MdfDocument::OnSaveAttachment(wxCommandEvent &) {
 }
 
 void MdfDocument::OnUpdateSaveAttachment(wxUpdateUIEvent &event) {
-  if (!reader_) {
+  const ConfigData& data = GetLastConfigData();
+  const int64_t block_index = data.BlockIndex();
+  const MdfReader* reader = data.Reader();
+  if (reader == nullptr) {
+    return;
+  }
+
+  if (reader == nullptr) {
     event.Enable(false);
     return;
   }
-  const auto id = GetSelectedBlockId();
-  const auto *block = GetBlock(id);
+
+  const MdfBlock *block = GetBlock(reader, block_index);
   if (block == nullptr) {
     event.Enable(false);
     return;
@@ -285,9 +397,11 @@ void MdfDocument::OnUpdateSaveAttachment(wxUpdateUIEvent &event) {
 }
 
 void MdfDocument::OnShowGroupData(wxCommandEvent &) {
-  const auto selected_id = GetSelectedBlockId();
-  auto *selected_block = GetBlock(selected_id);
-  if (selected_block == nullptr) {
+  const ConfigData& data = GetLastConfigData();
+  const int64_t block_index = data.BlockIndex();
+  MdfReader* reader = data.Reader();
+  MdfBlock *selected_block = GetBlock(reader, block_index);
+  if (selected_block == nullptr || reader == nullptr) {
     return;
   }
   IDataGroup* dg = nullptr;
@@ -302,11 +416,7 @@ void MdfDocument::OnShowGroupData(wxCommandEvent &) {
     }
   } else if (selected_block->BlockType() == "CG") {
     cg = dynamic_cast<IChannelGroup*>(selected_block);
-    const auto parent_id = GetParentBlockId();
-    auto *parent_block = GetBlock(parent_id);
-    if (parent_block != nullptr) {
-      dg = dynamic_cast<IDataGroup*>(parent_block);
-    }
+    dg = const_cast<IDataGroup*>(cg->DataGroup());
   }
   if (dg == nullptr || cg == nullptr) {
     return;
@@ -337,11 +447,11 @@ void MdfDocument::OnShowGroupData(wxCommandEvent &) {
   if (!title.str().empty()) {
     title << "/";
   }
-  title << reader_->ShortName();
+  title << reader->ShortName();
 
   auto observer_list = std::make_unique<mdf::ChannelObserverList>();
-  mdf::CreateChannelObserverForChannelGroup(*dg, *cg, *observer_list);
-  const bool read = reader_->ReadData(*dg);
+  CreateChannelObserverForChannelGroup(*dg, *cg, *observer_list);
+  const bool read = reader->ReadData(*dg);
   if (!read) {
     wxMessageBox("The read failed.\nMore information in the log file.",
                  "Failed to Read Data Block", wxCENTRE | wxICON_ERROR);
@@ -352,13 +462,16 @@ void MdfDocument::OnShowGroupData(wxCommandEvent &) {
 }
 
 void MdfDocument::OnUpdateShowGroupData(wxUpdateUIEvent &event) {
+  const ConfigData& data = GetLastConfigData();
+  const int64_t block_index = data.BlockIndex();
+  const MdfReader* reader = data.Reader();
   event.Enable(false);
-  if (!reader_) {
+  if (reader == nullptr) {
     return;
   }
 
-  const auto selected_id = GetSelectedBlockId();
-  const auto selected_block = GetBlock(selected_id);
+
+  const auto selected_block = GetBlock(reader, block_index);
   if (selected_block == nullptr) {
     return;
   }
@@ -382,18 +495,18 @@ void MdfDocument::OnUpdateShowGroupData(wxUpdateUIEvent &event) {
       if (cn4 == nullptr || cn4->DataLink() == 0) {
         continue;
       }
-      const auto* block = GetBlock(cn4->DataLink());
-      if ( const auto* data_block_list = dynamic_cast<const detail::DataListBlock*>(block);
+      const auto* block = GetBlock(reader, cn4->DataLink());
+      if ( const auto* data_block_list = dynamic_cast<const DataListBlock*>(block);
            data_block_list != nullptr && data_block_list->DataSize() > 100'000'000) {
         enable = false;
         break;
       }
-      if (const auto* data_block = dynamic_cast<const detail::DataBlock*>(block);
+      if (const auto* data_block = dynamic_cast<const DataBlock*>(block);
           data_block != nullptr && data_block->DataSize() > 100'000'000) {
         enable = false;
         break;
       }
-      if (const auto* vlsd_block = dynamic_cast<const detail::Cg4Block*>(block);
+      if (const auto* vlsd_block = dynamic_cast<const Cg4Block*>(block);
           vlsd_block != nullptr && vlsd_block->NofDataBytes() > 100'000'000) {
         enable = false;
         break;
@@ -406,19 +519,19 @@ void MdfDocument::OnUpdateShowGroupData(wxUpdateUIEvent &event) {
 }
 
 void MdfDocument::OnShowChannelData(wxCommandEvent &) {
-  if (!reader_) {
+  const ConfigData& data = GetLastConfigData();
+  const int64_t block_index = data.BlockIndex();
+  MdfReader* reader = data.Reader();
+  if (reader == nullptr) {
     return;
   }
-  const auto* mdf_file = reader_->GetFile();
+  const MdfFile* mdf_file = reader->GetFile();
   if (mdf_file == nullptr) {
     return;
   }
 
-
-
   const IChannel* channel = nullptr;
-  const auto selected_id = GetSelectedBlockId();
-  const auto *selected_block = GetBlock(selected_id);
+  const auto *selected_block = GetBlock(reader, block_index);
   if (selected_block != nullptr && selected_block->BlockType() == "CN") {
     channel = dynamic_cast<const IChannel*>(selected_block);
   }
@@ -472,7 +585,7 @@ void MdfDocument::OnShowChannelData(wxCommandEvent &) {
   if (!title.str().empty()) {
     title << "/";
   }
-  title << reader_->ShortName();
+  title << reader->ShortName();
 
   auto observer_list = std::make_unique<mdf::ChannelObserverList>();
   if (x_axis != nullptr && x_axis->Index() != channel->Index()) {
@@ -482,7 +595,7 @@ void MdfDocument::OnShowChannelData(wxCommandEvent &) {
   observer_list->emplace_back(std::move(mdf::CreateChannelObserver(
       *data_group, *channel_group, *channel)));
 
-  const bool read = reader_->ReadData(*data_group);
+  const bool read = reader->ReadData(*data_group);
   if (!read) {
     wxMessageBox("The read failed.\nMore information in the log file.",
                  "Failed to Read Data Block", wxCENTRE | wxICON_ERROR);
@@ -494,13 +607,15 @@ void MdfDocument::OnShowChannelData(wxCommandEvent &) {
 }
 
 void MdfDocument::OnUpdateShowChannelData(wxUpdateUIEvent &event) {
+  const ConfigData& data = GetLastConfigData();
+  const int64_t block_index = data.BlockIndex();
+  const MdfReader* reader = data.Reader();
   event.Enable(false);
-  if (!reader_) {
+  if (reader == nullptr) {
     return;
   }
 
-  const auto selected_id = GetSelectedBlockId();
-  const auto selected_block = GetBlock(selected_id);
+  const auto* selected_block = GetBlock(reader, block_index);
   if (selected_block == nullptr) {
     return;
   }
@@ -511,17 +626,19 @@ void MdfDocument::OnUpdateShowChannelData(wxUpdateUIEvent &event) {
 }
 
 void MdfDocument::OnShowSrData(wxCommandEvent &) {
-  if (!reader_) {
+  const ConfigData& data = GetLastConfigData();
+  const int64_t block_index = data.BlockIndex();
+  MdfReader* reader = data.Reader();
+  if (reader == nullptr) {
     return;
   }
-  const auto* mdf_file = reader_->GetFile();
+  const auto* mdf_file = reader->GetFile();
   if (mdf_file == nullptr) {
     return;
   }
 
   ISampleReduction* sr_block = nullptr;
-  const auto selected_id = GetSelectedBlockId();
-  auto *selected_block = GetBlock(selected_id);
+  auto *selected_block = GetBlock(reader, block_index);
   if (selected_block != nullptr && selected_block->BlockType() == "SR") {
     sr_block = dynamic_cast<ISampleReduction*>(selected_block);
   }
@@ -566,9 +683,9 @@ void MdfDocument::OnShowSrData(wxCommandEvent &) {
   if (!title.str().empty()) {
     title << "/";
   }
-  title << reader_->ShortName();
+  title << reader->ShortName();
 
-  const bool read = reader_->ReadSrData(*sr_block);
+  const bool read = reader->ReadSrData(*sr_block);
   if (!read) {
     wxMessageBox("The read failed.\nMore information in the log file.",
                  "Failed to Read Data Block", wxCENTRE | wxICON_ERROR);
@@ -580,13 +697,14 @@ void MdfDocument::OnShowSrData(wxCommandEvent &) {
 }
 
 void MdfDocument::OnUpdateShowSrData(wxUpdateUIEvent &event) {
+  const ConfigData& data = GetLastConfigData();
+  const int64_t block_index = data.BlockIndex();
+  const MdfReader* reader = data.Reader();
   event.Enable(false);
-  if (!reader_) {
+  if (reader == nullptr) {
     return;
   }
-
-  const auto selected_id = GetSelectedBlockId();
-  const auto selected_block = GetBlock(selected_id);
+  const auto selected_block = GetBlock(reader, block_index);
   if (selected_block == nullptr) {
     return;
   }
@@ -602,9 +720,15 @@ void MdfDocument::OnPlotChannelData(wxCommandEvent &) {
     MDF_ERROR() << "No gnuplot application available";
     return;
   }
+  const ConfigData& data = GetLastConfigData();
+  const int64_t block_index = data.BlockIndex();
+  MdfReader* reader = data.Reader();
+  if (reader == nullptr) {
+    MDF_ERROR() << "No reader found";
+    return;
+  }
 
-  const auto selected_id = GetSelectedBlockId();
-  auto *selected_block = GetBlock(selected_id);
+  auto *selected_block = GetBlock(reader, block_index);
   if (selected_block == nullptr) {
     MDF_ERROR() << "No selected block found";
     return;
@@ -655,7 +779,7 @@ void MdfDocument::OnPlotChannelData(wxCommandEvent &) {
   if (!title.str().empty()) {
     title << "/";
   }
-  title << reader_->ShortName();
+  title << reader->ShortName();
 
   // Create the observer list
   auto observer_list = std::make_unique<mdf::ChannelObserverList>();
@@ -665,7 +789,7 @@ void MdfDocument::OnPlotChannelData(wxCommandEvent &) {
   observer_list->emplace_back(std::move(mdf::CreateChannelObserver(*dg, *cg, *cn)));
 
   // Read in the values from the MDF file
-  const bool read = reader_->ReadData(*dg);
+  const bool read = reader->ReadData(*dg);
   if (!read) {
     wxMessageBox("The read failed.\nMore information in the log file.",
                  "Failed to Read Data Block", wxCENTRE | wxICON_ERROR);
@@ -686,14 +810,17 @@ void MdfDocument::OnPlotChannelData(wxCommandEvent &) {
 }
 
 void MdfDocument::OnUpdatePlotChannelData(wxUpdateUIEvent &event) {
+  const ConfigData& data = GetLastConfigData();
+  const int64_t block_index = data.BlockIndex();
+  MdfReader* reader = data.Reader();
   event.Enable(false);
   auto& app = wxGetApp();
-  if (!reader_ || app.GnuPlot().empty()) {
+
+  if (reader == nullptr || app.GnuPlot().empty()) {
     return;
   }
 
-  const auto selected_id = GetSelectedBlockId();
-  const auto* selected_block = GetBlock(selected_id);
+  const auto* selected_block = GetBlock(reader, block_index);
   if (selected_block == nullptr) {
     return;
   }
@@ -716,7 +843,19 @@ void MdfDocument::OnUpdatePlotChannelData(wxUpdateUIEvent &event) {
   event.Enable(true);
 }
 
+void MdfDocument::OnModifyTimer(wxTimerEvent&) {
+  Modify(configuration_ != original_configuration_);
+}
+
+MdfDocument::MdfDocument() {
+  modify_timer_.Bind(wxEVT_TIMER, &MdfDocument::OnModifyTimer, this);
+  modify_timer_.Start(1000);
+}
+
 MdfDocument::~MdfDocument() {
+  modify_timer_.Stop();
+  modify_timer_.Unbind(wxEVT_TIMER, &MdfDocument::OnModifyTimer, this);
+
   // Close all ObserverFrame
   wxWindowList::compatibility_iterator node = wxTopLevelWindows.GetFirst();
   std::vector<wxWindow*>  win_list;

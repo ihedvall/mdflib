@@ -37,6 +37,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxDocMDIParentFrame)
   EVT_CLOSE(MainFrame::OnClose)
   EVT_DROP_FILES(MainFrame::OnDropFiles)
   EVT_TIMER(kIdMainFrameTimer, MainFrame::OnTimer)
+  EVT_MENU_RANGE(kIdAppearanceSystem, kIdAppearanceLight, MainFrame::OnAppearance)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(const wxString& title, const wxPoint& start_pos, const wxSize& start_size, bool maximized)
@@ -58,9 +59,15 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& start_pos, const wxSi
   auto* app_config = wxConfig::Get();
   auto* doc_manager = wxDocManager::GetDocumentManager();
 
-    // FILE
+    // Config File
   auto* menu_file = new wxMenu;
+  menu_file->Append(wxID_NEW);
   menu_file->Append(wxID_OPEN);
+  menu_file->Append(wxID_CLOSE);
+  menu_file->AppendSeparator();
+  menu_file->Append(wxID_SAVE);
+  menu_file->Append(wxID_SAVEAS);
+  menu_file->AppendSeparator();
   menu_file->Append(wxID_EXIT);
 
   doc_manager->FileHistoryUseMenu(menu_file);
@@ -75,6 +82,33 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& start_pos, const wxSi
   menu_block->AppendSeparator();
   menu_block->Append(kIdSaveAttachment, "Save Attachment File");
 
+  // SYSTEM COLOR
+  auto* menu_system_color = new wxMenu;
+  menu_system_color->AppendRadioItem(kIdAppearanceSystem,
+    "System Mode","Let the system choose the light or dark mode");
+  menu_system_color->AppendRadioItem(kIdAppearanceDark,
+    "Dark Mode", "Select the dark mode");
+  menu_system_color->AppendRadioItem(kIdAppearanceLight,
+    "Light Mode", "Select the light mode");
+
+  auto& main = wxGetApp();
+  switch (main.GetAppearance()) {
+    case wxApp::Appearance::System:
+      menu_system_color->Check(kIdAppearanceSystem, true);
+      break;
+
+    case wxApp::Appearance::Dark:
+      menu_system_color->Check(kIdAppearanceDark, true);
+      break;
+
+    case wxApp::Appearance::Light:
+      menu_system_color->Check(kIdAppearanceLight, true);
+      break;
+
+    default:
+      break;
+  }
+
   // ABOUT
   auto* menu_about = new wxMenu;
   menu_about->Append(kIdOpenLogFile, "Open Log File");
@@ -83,8 +117,9 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& start_pos, const wxSi
   menu_about->Append(wxID_ABOUT, wxGetStockLabel(wxID_ABOUT));
 
   auto* menu_bar = new wxMenuBar;
-  menu_bar->Append(menu_file, wxGetStockLabel(wxID_FILE));
+  menu_bar->Append(menu_file, "Configuration");
   menu_bar->Append(menu_block, "Data");
+  menu_bar->Append(menu_system_color, "Appearance");
   menu_bar->Append(menu_about, wxGetStockLabel(wxID_HELP));
   wxFrameBase::SetMenuBar(menu_bar);
 
@@ -167,14 +202,9 @@ void MainFrame::OnAbout(wxCommandEvent&) {
       "IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
   );
   if (!info.HasIcon()) {
-#ifdef _WIN32
-      wxIcon app("APP_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
-#else
-      wxIcon app {wxICON(app)};
-#endif
-      info.SetIcon(app);
+    wxIcon app (wxICON(app));
+    info.SetIcon(app);
   }
-
 
   wxAboutBox(info);
 }
@@ -241,6 +271,44 @@ void MainFrame::OnTimer(wxTimerEvent& event) {
     if (new_time != old_time) {
       status_bar->SetStatusText(new_time, 1);
     }
+  }
+}
+
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
+void MainFrame::OnAppearance(wxCommandEvent& event) {
+  auto& app = wxGetApp();
+  wxMenuBar* menu_bar  = GetMenuBar();
+  if (menu_bar == nullptr) {
+    MDF_ERROR() << "Menu bar is not initialized.";
+    return;
+  }
+
+  wxApp::Appearance old_appearance = app.GetAppearance();
+  wxApp::Appearance new_appearance = old_appearance;
+  switch (event.GetId()) {
+    case kIdAppearanceDark:
+      new_appearance = wxApp::Appearance::Dark;
+      break;
+
+    case kIdAppearanceLight:
+      new_appearance = wxApp::Appearance::Light;
+      break;
+
+    case kIdAppearanceSystem:
+    default:
+      new_appearance = wxApp::Appearance::System;
+      break;
+  }
+  if (new_appearance != old_appearance) {
+    if (auto* app_config = wxConfig::Get(); app_config != nullptr) {
+      app_config->Write("MainWin/Appearance",
+        static_cast<int>(new_appearance));
+    }
+    wxMessageBox(
+      "You need to restart the application\n"
+        "before the changes take effect.",
+        "Restart the application",
+        wxOK | wxCENTER | wxICON_INFORMATION);
   }
 }
 

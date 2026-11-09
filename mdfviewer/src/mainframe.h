@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <wx/aui/framemanager.h>
+
 #include <wx/docmdi.h>
 #include <wx/wx.h>
 
@@ -21,6 +21,7 @@ class MainFrame : public wxDocMDIParentFrame {
   void OnUpdateNoDoc(wxUpdateUIEvent& event);
   void OnDropFiles(wxDropFilesEvent& event);
   void OnTimer(wxTimerEvent& event);
+  void OnAppearance(wxCommandEvent& event);
 wxDECLARE_EVENT_TABLE();
 };
 }

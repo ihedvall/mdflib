@@ -35,3 +35,15 @@ sd_block  RCDATA "img/sd_block.png"
 settings  RCDATA "img/settings.png"
 si_block  RCDATA "img/si_block.png"
 sr_block  RCDATA "img/sr_block.png"
+
+info32    RCDATA "img/info32.png"
+info24    RCDATA "img/info24.png"
+info16    RCDATA "img/info16.png"
+
+resources32    RCDATA "img/resources32.png"
+resources24    RCDATA "img/resources24.png"
+resources16    RCDATA "img/resources16.png"
+
+variables32    RCDATA "img/variables32.png"
+variables24    RCDATA "img/variables24.png"
+variables16    RCDATA "img/variables16.png"

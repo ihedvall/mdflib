@@ -198,8 +198,17 @@ void Hd4Block::ReadMeasurementInfo(std::streambuf& buffer) {
 
   // Special handling of DG blocks.
   ReadLink4List(buffer, dg_list_, kIndexDg);
+
+  int meas_no = 1;
   for (auto& dg4 : dg_list_) {
+    if (!dg4) {
+      continue;
+    }
     dg4->ReadCgList(buffer);
+    std::ostringstream temp;
+    temp << "Meas" << meas_no;
+    dg4->Name(temp.str());
+    ++meas_no;
   }
 
   // Need to read in any attachments before we read in the channels as

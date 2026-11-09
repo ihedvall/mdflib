@@ -6,13 +6,14 @@
 #include "mdfview.h"
 #include "mdfviewer.h"
 #include "childframe.h"
+#include "mainframe.h"
 
 namespace mdf::viewer {
 
 wxIMPLEMENT_DYNAMIC_CLASS(MdfView,wxView) //NOLINT
 
-MdfDocument *MdfView::GetDocument() const {
-  return wxDynamicCast(wxView::GetDocument(),MdfDocument );
+MdfDocument *MdfView::GetDoc() const {
+  return dynamic_cast<MdfDocument*>(GetDocument());
 }
 
 void MdfView::OnDraw(wxDC*) {
@@ -24,9 +25,14 @@ bool MdfView::OnCreate(wxDocument *doc, long flags) {
   }
 
   auto & app = wxGetApp();
-  auto* parent = wxDynamicCast(app.GetTopWindow(),wxMDIParentFrame);
-  wxFrame* sub_frame = new ChildFrame(doc, this, parent,wxID_ANY,"MDF File");
-  sub_frame->Show();
+  if (auto* parent = dynamic_cast<MainFrame*>(app.GetTopWindow());
+    parent != nullptr) {
+    auto* sub_frame = new ChildFrame(doc, this, parent,wxID_ANY,"MDF File");
+    sub_frame->Maximize(true);
+    sub_frame->Show();
+    sub_frame->Update();
+
+  }
 
   return true;
 }
@@ -40,7 +46,6 @@ void MdfView::OnUpdate(wxView *sender, wxObject *hint) {
   if (frame != nullptr) {
     frame->Update();
   }
-
 }
 
 }

@@ -42,6 +42,21 @@ class IChannel;
 class IDataGroup : public IBlock {
  public:
 
+  /** \brief Sets the internal identity of the data group
+   *
+   * Internal fix for the missing unique name of the data group.
+   * The name is set by the MDF reader when reading the file.
+   * A typical unique name is Meas1, Meas2.
+   */
+  void Name(std::string name) { name_ = std::move(name);}
+
+  /** \brief Returns the internal identity of the data group
+   *
+   * The name is set by the MDF reader when reading the file.
+   * A typical unique name is Meas1, Meas2.
+   */
+  [[nodiscard]] const std::string& Name() const { return name_; }
+
   /** \brief Sets the descriptive text for the measurement. */
   virtual void Description(const std::string& desc);
   /** \brief Return the descriptive text. */
@@ -169,6 +184,7 @@ class IDataGroup : public IBlock {
   void InitFastObserverList();
 
  private:
+  std::string name_; ///< Internal identity of the datagroup
   mutable bool mark_as_read_ = false; ///< True if the data block has been read.
   mutable bool mandatory_members_only_ = false;
 

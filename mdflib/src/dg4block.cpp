@@ -92,6 +92,8 @@ void Dg4Block::GetBlockProperty(BlockPropertyList& dest) const {
   dest.emplace_back("", "", "", BlockItemType::BlankItem);
 
   dest.emplace_back("Information", "", "", BlockItemType::HeaderItem);
+  dest.emplace_back("Name", Name(),
+    "Unique name of the DG block", BlockItemType::NormalItem);
   dest.emplace_back("Record ID Size [byte]", std::to_string(rec_id_size_));
   if (md_comment_) {
     md_comment_->GetBlockProperty(dest);

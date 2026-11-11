@@ -918,10 +918,14 @@ void Cn4Block::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
 void Cn4Block::Unit(const std::string &unit) {
   if (unit.empty()) {
     unit_.reset();
-  } else {
+  } else if (unit[0] == '<') {
+    // Text starting with '<' stays in CNunit XML. As TX it would read as XML.
     CnUnit cn_unit;
     cn_unit.Comment(MdString(unit));
     unit_ = std::make_unique<Md4Block>(cn_unit.ToXml());
+  } else {
+    // A TX block as other tools write it. Some readers show MD XML as the unit.
+    unit_ = std::make_unique<Md4Block>(unit);
   }
 }
 

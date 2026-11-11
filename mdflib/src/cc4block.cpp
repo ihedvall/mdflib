@@ -75,9 +75,15 @@ void Cc4Block::Name(const std::string& name) { name_ = name; }
 std::string Cc4Block::Name() const { return name_; }
 
 void Cc4Block::Unit(const std::string& unit) {
-  CcUnit cc_unit;
-  cc_unit.Comment(MdString(unit));
-  unit_ = std::make_unique<Md4Block>(cc_unit.ToXml());
+  if (unit.empty() || unit[0] == '<') {
+    // Empty text or text starting with '<' stays in CCunit XML.
+    CcUnit cc_unit;
+    cc_unit.Comment(MdString(unit));
+    unit_ = std::make_unique<Md4Block>(cc_unit.ToXml());
+  } else {
+    // A TX block as other tools write it. Some readers show MD XML as the unit.
+    unit_ = std::make_unique<Md4Block>(unit);
+  }
 }
 
 std::string Cc4Block::Unit() const {

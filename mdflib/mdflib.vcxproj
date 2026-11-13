@@ -239,6 +239,7 @@
     <ClCompile Include="src\expatxml.cpp" />
     <ClCompile Include="src\fh4block.cpp" />
     <ClCompile Include="src\fhcomment.cpp" />
+    <ClCompile Include="src\filereadbuffer.cpp" />
     <ClCompile Include="src\flexrayconfigadapter.cpp" />
     <ClCompile Include="src\flexraymessage.cpp" />
     <ClCompile Include="src\hd3block.cpp" />
@@ -459,6 +460,7 @@
     <ClInclude Include="src\ev4block.h" />
     <ClInclude Include="src\expatxml.h" />
     <ClInclude Include="src\fh4block.h" />
+    <ClInclude Include="src\filereadbuffer.h" />
     <ClInclude Include="src\half.hpp" />
     <ClInclude Include="src\hd3block.h" />
     <ClInclude Include="src\hd4block.h" />

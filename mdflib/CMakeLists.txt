@@ -7,6 +7,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ${BUILD_SHARED_LIBS})
 
 add_library(mdf
         src/mdfblock.cpp src/mdfblock.h
+        src/filereadbuffer.cpp src/filereadbuffer.h
         src/mdffile.cpp ../include/mdf/mdffile.h
         src/idblock.cpp src/idblock.h
         src/hd3block.cpp src/hd3block.h

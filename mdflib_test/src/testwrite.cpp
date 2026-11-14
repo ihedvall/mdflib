@@ -936,6 +936,13 @@ TEST_F(TestWrite, Mdf4WriteCN_SI_CC) {
       }
     }
   }
+
+  // The units are plain TX blocks, not MD blocks with CNunit or CCunit XML.
+  std::ifstream mdf(mdf_file.string(), std::ios::binary);
+  const std::string content((std::istreambuf_iterator<char>(mdf)),
+                            std::istreambuf_iterator<char>());
+  EXPECT_EQ(content.find("<CNunit"), std::string::npos);
+  EXPECT_EQ(content.find("<CCunit"), std::string::npos);
 }
 
 TEST_F(TestWrite, Mdf4Unsigned) {

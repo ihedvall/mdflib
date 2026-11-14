@@ -919,9 +919,9 @@ void Cn4Block::Unit(const std::string &unit) {
   if (unit.empty()) {
     unit_.reset();
   } else {
-    CnUnit cn_unit;
-    cn_unit.Comment(MdString(unit));
-    unit_ = std::make_unique<Md4Block>(cn_unit.ToXml());
+    // Md4Block keeps plain text as TX, so readers show the unit itself.
+    // CNunit XML goes through SetCnUnit.
+    unit_ = std::make_unique<Md4Block>(unit);
   }
 }
 

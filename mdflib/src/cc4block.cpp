@@ -75,9 +75,13 @@ void Cc4Block::Name(const std::string& name) { name_ = name; }
 std::string Cc4Block::Name() const { return name_; }
 
 void Cc4Block::Unit(const std::string& unit) {
-  CcUnit cc_unit;
-  cc_unit.Comment(MdString(unit));
-  unit_ = std::make_unique<Md4Block>(cc_unit.ToXml());
+  if (unit.empty()) {
+    unit_.reset();
+  } else {
+    // Md4Block keeps plain text as TX, so readers show the unit itself.
+    // CCunit XML goes through SetCcUnit.
+    unit_ = std::make_unique<Md4Block>(unit);
+  }
 }
 
 std::string Cc4Block::Unit() const {

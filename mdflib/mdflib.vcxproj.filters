@@ -477,6 +477,9 @@
     <ClCompile Include="src\csvwriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\filereadbuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\at4block.h">
@@ -954,6 +957,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\mdf\csvwriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\filereadbuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

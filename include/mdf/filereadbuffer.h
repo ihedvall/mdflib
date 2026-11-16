@@ -10,15 +10,26 @@
 #include <ios>
 #include <streambuf>
 
-namespace mdf::detail {
+namespace mdf {
 
 /** \brief Read-only stream buffer that keeps the last pages of the file.
  *
  * A std::filebuf drops its buffer on every seek. Reading the block headers of
  * an MF4 file jumps back and forth between a few places, so most of these
  * seeks land in a page that was read a moment ago. This buffer keeps the last
- * pages and answers such a seek from memory. The file itself belongs to a
- * std::filebuf below, so opening and closing stay unchanged.
+ * pages and answers such a seek from memory, which makes
+ * ReadEverythingButData() faster on files with many channels. Reading channel
+ * data can be slightly slower, so MdfReader uses a std::filebuf by default.
+ *
+ * The file itself belongs to a std::filebuf below. Open it there and pass the
+ * buffer to MdfReader. MdfReader does not open or close a buffer that it gets
+ * this way.
+ * \code
+ * auto buffer = std::make_shared<mdf::FileReadBuffer>();
+ * buffer->File().open(filename, std::ios_base::in | std::ios_base::binary);
+ * mdf::MdfReader reader(buffer);
+ * \endcode
+ * Call Reset() after opening another file through File().
  */
 class FileReadBuffer : public std::streambuf {
  public:
@@ -59,4 +70,4 @@ class FileReadBuffer : public std::streambuf {
   pos_type Move(int64_t position);
 };
 
-}  // namespace mdf::detail
+}  // namespace mdf

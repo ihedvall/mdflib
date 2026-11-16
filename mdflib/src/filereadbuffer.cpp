@@ -2,12 +2,12 @@
  * Copyright 2026 Ingemar Hedvall
  * SPDX-License-Identifier: MIT
  */
-#include "filereadbuffer.h"
+#include "mdf/filereadbuffer.h"
 
 #include <algorithm>
 #include <cstring>
 
-namespace mdf::detail {
+namespace mdf {
 
 FileReadBuffer::FileReadBuffer() { Reset(); }
 
@@ -144,4 +144,4 @@ std::streambuf::pos_type FileReadBuffer::seekpos(
   return Move(static_cast<int64_t>(off_type(pos)));
 }
 
-}  // namespace mdf::detail
+}  // namespace mdf

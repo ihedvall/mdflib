@@ -13,7 +13,6 @@
 
 #include "channelobserver.h"
 #include "dg4block.h"
-#include "filereadbuffer.h"
 #include "idblock.h"
 #include "mdf/mdflogstream.h"
 #include "mdf3file.h"
@@ -35,25 +34,6 @@ namespace fs = std::filesystem;
 using namespace std::chrono_literals;
 using namespace mdf::detail;
 using namespace fs;
-
-namespace {
-
-// The read buffer wraps a file buffer, so opening and closing the file stay in
-// one place for both buffer types.
-std::streambuf& FileBuffer(std::streambuf& buffer) {
-  auto* read_buffer = dynamic_cast<mdf::detail::FileReadBuffer*>(&buffer);
-  return read_buffer != nullptr ? read_buffer->File() : buffer;
-}
-
-// The pages of the read buffer shall not survive an open or a close.
-void ResetBuffer(std::streambuf& buffer) {
-  if (auto* read_buffer = dynamic_cast<mdf::detail::FileReadBuffer*>(&buffer);
-      read_buffer != nullptr) {
-    read_buffer->Reset();
-  }
-}
-
-}  // namespace
 
 namespace mdf {
 
@@ -287,8 +267,8 @@ MdfReader::MdfReader(std::wstring filename)
     return;
   }
 
-  // Create an internal buffer that keeps its pages across seeks
-  auto file_buffer = std::make_shared<FileReadBuffer>();
+  // Create an internal std::filebuf
+  auto file_buffer = std::make_shared<std::filebuf>();
   file_ = std::move(file_buffer);
 
 
@@ -376,10 +356,8 @@ bool MdfReader::Open() {
 
   // Note that the above function will return true if it isn't a file
   // buffer.
-  const bool open = OpenMdfFile(FileBuffer(*file_), filename_,
+  return OpenMdfFile(*file_, filename_,
            std::ios_base::in | std::ios_base::binary);
-  ResetBuffer(*file_);
-  return open;
 }
 
 bool MdfReader::IsOpen() const {
@@ -389,7 +367,7 @@ bool MdfReader::IsOpen() const {
   }
 
   try {
-    auto* file_buf = dynamic_cast<std::filebuf*>(&FileBuffer(*buffer));
+    auto* file_buf = dynamic_cast<std::filebuf*>(buffer);
     return file_buf == nullptr ? true : file_buf->is_open();
   } catch (const std::exception& err) {
     MDF_ERROR() << "Dynamic cast of pointer failed. Error: " << err.what();
@@ -409,10 +387,8 @@ void MdfReader::Close() {
     return;
   }
 
-  ResetBuffer(*buffer);
-
   try {
-    auto* file_buf = dynamic_cast<std::filebuf*>(&FileBuffer(*buffer));
+    auto* file_buf = dynamic_cast<std::filebuf*>(buffer);
     if (file_buf != nullptr && file_buf->is_open()) {
       file_buf->close();
     } else {

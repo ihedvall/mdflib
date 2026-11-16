@@ -361,6 +361,7 @@
     <ClInclude Include="..\include\mdf\ethmessage.h" />
     <ClInclude Include="..\include\mdf\evcomment.h" />
     <ClInclude Include="..\include\mdf\fhcomment.h" />
+    <ClInclude Include="..\include\mdf\filereadbuffer.h" />
     <ClInclude Include="..\include\mdf\flexrayconfigadapter.h" />
     <ClInclude Include="..\include\mdf\flexraymessage.h" />
     <ClInclude Include="..\include\mdf\hdcomment.h" />
@@ -460,7 +461,6 @@
     <ClInclude Include="src\ev4block.h" />
     <ClInclude Include="src\expatxml.h" />
     <ClInclude Include="src\fh4block.h" />
-    <ClInclude Include="src\filereadbuffer.h" />
     <ClInclude Include="src\half.hpp" />
     <ClInclude Include="src\hd3block.h" />
     <ClInclude Include="src\hd4block.h" />

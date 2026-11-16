@@ -5,6 +5,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <ios>
@@ -13,9 +14,14 @@
 #include <string_view>
 #include <vector>
 
-#include "filereadbuffer.h"
+#include "mdf/filereadbuffer.h"
+#include "mdf/ichannelgroup.h"
+#include "mdf/idatagroup.h"
+#include "mdf/mdffactory.h"
+#include "mdf/mdfreader.h"
+#include "mdf/mdfwriter.h"
 
-using mdf::detail::FileReadBuffer;
+using mdf::FileReadBuffer;
 
 namespace {
 
@@ -227,6 +233,69 @@ TEST(FileReadBuffer, ResetAfterReopen) {
             Expected(static_cast<size_t>(kPage), 7));
 
   buffer.File().close();
+  std::error_code error;
+  std::filesystem::remove(filename, error);
+}
+
+TEST(FileReadBuffer, MdfReader) {
+  // An application uses the buffer through the stream buffer interface of
+  // MdfReader. It opens and closes the file itself.
+  std::filesystem::path temp = std::filesystem::temp_directory_path();
+  temp.append("test");
+  std::filesystem::create_directories(temp);
+  temp.append("filereadbuffer_reader.mf4");
+  const std::string filename = temp.string();
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(filename));
+  auto* data_group = writer->Header()->CreateDataGroup();
+  auto* channel_group = data_group->CreateChannelGroup();
+  auto* channel = channel_group->CreateChannel();
+  channel->Name("Value");
+  channel->Type(ChannelType::FixedLength);
+  channel->Sync(ChannelSyncType::None);
+  channel->DataType(ChannelDataType::FloatLe);
+  channel->DataBytes(8);
+  writer->PreTrigTime(0);
+  ASSERT_TRUE(writer->InitMeasurement());
+  uint64_t tick_time = 1'000'000'000;
+  writer->StartMeasurement(tick_time);
+  for (size_t sample = 0; sample < 100; ++sample) {
+    channel->SetChannelValue(static_cast<double>(sample));
+    writer->SaveSample(*channel_group, tick_time);
+    tick_time += 1'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  ASSERT_TRUE(writer->FinalizeMeasurement());
+
+  auto buffer = std::make_shared<FileReadBuffer>();
+  ASSERT_NE(buffer->File().open(filename, kRead), nullptr);
+  MdfReader reader(buffer);
+  ChannelObserverList observer_list;
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  for (auto* group : reader.GetFile()->Header()->DataGroups()) {
+    for (const auto* sub_group : group->ChannelGroups()) {
+      CreateChannelObserverForChannelGroup(*group, *sub_group, observer_list);
+    }
+    ASSERT_TRUE(reader.ReadData(*group));
+  }
+  reader.Close();
+  EXPECT_TRUE(buffer->File().is_open());
+  buffer->File().close();
+
+  // The writer adds a time channel
+  const auto observer =
+      std::find_if(observer_list.cbegin(), observer_list.cend(),
+                   [](const auto& item) { return item->Name() == "Value"; });
+  ASSERT_NE(observer, observer_list.cend());
+  ASSERT_EQ((*observer)->NofSamples(), 100);
+  for (size_t sample = 0; sample < 100; ++sample) {
+    double value = -1;
+    EXPECT_TRUE((*observer)->GetChannelValue(sample, value));
+    EXPECT_EQ(value, static_cast<double>(sample));
+  }
+
   std::error_code error;
   std::filesystem::remove(filename, error);
 }

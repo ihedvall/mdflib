@@ -7,7 +7,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ${BUILD_SHARED_LIBS})
 
 add_library(mdf
         src/mdfblock.cpp src/mdfblock.h
-        src/filereadbuffer.cpp src/filereadbuffer.h
+        src/filereadbuffer.cpp ../include/mdf/filereadbuffer.h
         src/mdffile.cpp ../include/mdf/mdffile.h
         src/idblock.cpp src/idblock.h
         src/hd3block.cpp src/hd3block.h
@@ -206,6 +206,7 @@ set(MDF_PUBLIC_HEADERS
     ../include/mdf/ethmessage.h
     ../include/mdf/evcomment.h
     ../include/mdf/fhcomment.h
+    ../include/mdf/filereadbuffer.h
     ../include/mdf/flexrayconfigadapter.h
     ../include/mdf/flexraymessage.h
     ../include/mdf/hdcomment.h

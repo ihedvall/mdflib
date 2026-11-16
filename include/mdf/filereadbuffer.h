@@ -18,27 +18,32 @@ namespace mdf {
  * an MF4 file jumps back and forth between a few places, so most of these
  * seeks land in a page that was read a moment ago. This buffer keeps the last
  * pages and answers such a seek from memory, which makes
- * ReadEverythingButData() faster on files with many channels. Reading channel
- * data can be slightly slower, so MdfReader uses a std::filebuf by default.
+ * ReadEverythingButData() faster on files with many channels. MdfReader uses a
+ * std::filebuf by default.
  *
  * The file itself belongs to a std::filebuf below. Open it there and pass the
- * buffer to MdfReader. MdfReader does not open or close a buffer that it gets
- * this way.
+ * buffer to MdfReader, which does not open or close it.
  * \code
  * auto buffer = std::make_shared<mdf::FileReadBuffer>();
  * buffer->File().open(filename, std::ios_base::in | std::ios_base::binary);
  * mdf::MdfReader reader(buffer);
  * \endcode
- * Call Reset() after opening another file through File().
  */
 class FileReadBuffer : public std::streambuf {
  public:
-  FileReadBuffer();
+  FileReadBuffer() = default;
+  FileReadBuffer(const FileReadBuffer&) = delete;
+  FileReadBuffer& operator=(const FileReadBuffer&) = delete;
 
-  /** \brief Returns the buffer that owns the file. Use it to open and close. */
+  /** \brief Returns the buffer that owns the file.
+   *
+   * Only open and close the file through it, in binary mode, read only while
+   * it is open, and call Reset() after opening it again. Reading starts at 0,
+   * also with ate.
+   */
   std::filebuf& File() { return file_; }
 
-  /** \brief Drops the pages. Needed when the file is opened again. */
+  /** \brief Drops the pages and goes back to the start of the file. */
   void Reset();
 
  protected:
@@ -60,14 +65,13 @@ class FileReadBuffer : public std::streambuf {
 
   std::filebuf file_;
   std::array<Page, kPages> page_;
-  size_t next_ = 0;       ///< Page that is filled next
-  int64_t page_pos_ = 0;  ///< File position of the first byte of the get area
-  int64_t file_pos_ = 0;  ///< Read position of the file buffer below
-  char empty_ = 0;        ///< Stands in for the get area while no page is used
+  size_t next_ = 0;        ///< Page that is filled next
+  int64_t page_pos_ = 0;   ///< File position of the first byte of the get area
+  int64_t file_pos_ = -1;  ///< Position of the file buffer below, -1 if unknown
 
   int64_t Position() const { return page_pos_ + (gptr() - eback()); }
-  bool Reach(int64_t position);
   pos_type Move(int64_t position);
+  bool Reach(int64_t position);
 };
 
 }  // namespace mdf

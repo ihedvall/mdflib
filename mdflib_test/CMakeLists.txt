@@ -25,6 +25,7 @@ add_executable(test_mdf
         src/testchannelarray.cpp
         src/testchannelarray.h
         src/testqueue.cpp
+        src/testfilereadbuffer.cpp
         src/testiostream.cpp
         src/testmdfblock.cpp
         src/testbuslogger.cpp

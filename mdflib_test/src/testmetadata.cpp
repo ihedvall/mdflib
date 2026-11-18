@@ -368,6 +368,38 @@ TEST_F(TestMetaData, HDcommentTxOrder) {
   }
 }
 
+TEST_F(TestMetaData, FHcommentTx) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("metadata_fh_tx.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  auto* history = writer->Header()->CreateFileHistory();
+  ASSERT_TRUE(history != nullptr);
+  history->ToolName("MdfWrite");
+  history->ToolVendor("ACME");
+  history->ToolVersion("2.1");
+
+  const auto check_first_child = [&history](const std::string& text) {
+    ASSERT_NE(history->MetaData(), nullptr);
+    auto xml = CreateXmlFile();
+    ASSERT_TRUE(xml->ParseString(history->MetaData()->XmlSnippet()));
+    auto& root_node = xml->RootName(xml->RootName());
+    IXmlNode::ChildList child_list;
+    root_node.GetChildList(child_list);
+    ASSERT_EQ(child_list.size(), 4);
+    EXPECT_EQ(child_list[0]->TagName(), "TX");
+    EXPECT_EQ(child_list[0]->Value<std::string>(), text);
+  };
+  check_first_child("");
+
+  history->Description("Created later");
+  check_first_child("Created later");
+}
+
 TEST_F(TestMetaData, CommentNg) {
   if (kSkipTest) {
     GTEST_SKIP();

@@ -364,6 +364,18 @@ class MdfWriter {
   /** \brief Returns true if the data block is compressed. */
   [[nodiscard]] bool CompressData() const { return compress_data_;}
 
+  /** \brief If set to true, compressed data blocks are also transposed.
+   *
+   * Only a data group with one channel group and no record ID is transposed.
+   * Transposing often makes raw integer records much smaller, but it can make
+   * double values with repeated 8-byte patterns larger. Set it before
+   * InitMeasurement().
+   */
+  void TransposeData(bool transpose) { transpose_data_ = transpose; }
+
+  /** \brief Returns true if compressed data blocks are transposed. */
+  [[nodiscard]] bool TransposeData() const { return transpose_data_; }
+
   void SavePeriodic(bool periodic) { periodic_save_ = periodic; }
   [[nodiscard]] bool IsSavePeriodic() const { return periodic_save_; }
 
@@ -444,6 +456,7 @@ class MdfWriter {
   uint32_t max_length_ = 8; ///< Max data byte storage
   bool mandatory_members_only_ = false;
   bool calculate_bit_and_byte_offsets_ = true;
+  bool transpose_data_ = false; ///< True if compressed data is transposed.
 
   [[nodiscard]] bool IsFirstMeasurement() const;
 

@@ -66,6 +66,7 @@ class ReadCache {
 
   size_t file_index_ = 0;
   std::vector<uint8_t> file_buffer_; // Needs a file buffer to handle the DZ block.
+  std::vector<uint8_t> record_; // Fixed length record, the observers copy what they keep.
   uint64_t data_size_ = 0;
 
   uint64_t data_count_ = 0;

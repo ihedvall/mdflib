@@ -34,6 +34,7 @@ add_executable(test_mdf
         src/testmultipledgwrite.h
         src/testtimestamp.cpp
         src/testtimestamp.h
+        src/testtimeoffset.cpp
         src/testhdcomment.cpp
         src/testcccomment.cpp
         src/testcncomment.cpp

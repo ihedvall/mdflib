@@ -5,6 +5,7 @@
 #include "mdf4timestamp.h"
 
 #include <chrono>
+#include <ctime>
 
 using namespace std::chrono;
 
@@ -47,9 +48,44 @@ uint64_t Mdf4Timestamp::Write(std::streambuf& buffer) {
 void Mdf4Timestamp::SetTime(uint64_t time) {
   time_ = time;
 
-  dst_offset_ = static_cast<int16_t>(MdfHelper::DstOffsetNs()/60'000'000'000);
-  tz_offset_ = static_cast<int16_t>(MdfHelper::TimeZoneOffset() / 60);
-  tz_offset_ -= dst_offset_;
+  // The offsets of the time itself, not of now. A summer time stamp that is
+  // written in the winter shall keep its DST offset.
+  const uint64_t time_s = time / 1'000'000'000;
+  const auto seconds = static_cast<std::time_t>(time_s);
+  std::tm local_tm{};
+  std::tm utc_tm{};
+  bool valid = static_cast<uint64_t>(seconds) == time_s;
+  if (valid) {
+    const std::tm* local = std::localtime(&seconds);
+    if (local != nullptr) {
+      local_tm = *local;
+    }
+    const std::tm* utc = std::gmtime(&seconds);
+    if (utc != nullptr) {
+      utc_tm = *utc;
+    }
+    valid = local != nullptr && utc != nullptr;
+  }
+  if (!valid) {
+    // The time does not fit into time_t or cannot be converted. Use the
+    // offsets of now as before.
+    dst_offset_ = static_cast<int16_t>(MdfHelper::DstOffsetNs()/60'000'000'000);
+    tz_offset_ = static_cast<int16_t>(MdfHelper::TimeZoneOffset() / 60);
+    tz_offset_ -= dst_offset_;
+  } else {
+    int days = local_tm.tm_yday - utc_tm.tm_yday;
+    if (days > 1) {
+      days = -1;  // Local time is still in the previous year
+    } else if (days < -1) {
+      days = 1;  // Local time is already in the next year
+    }
+    const int offset_s = days * 24 * 3600 +
+                         (local_tm.tm_hour - utc_tm.tm_hour) * 3600 +
+                         (local_tm.tm_min - utc_tm.tm_min) * 60 +
+                         (local_tm.tm_sec - utc_tm.tm_sec);
+    dst_offset_ = local_tm.tm_isdst > 0 ? 60 : 0;  // As MdfHelper::DstOffsetNs()
+    tz_offset_ = static_cast<int16_t>(offset_s / 60 - dst_offset_);
+  }
 
   flags_ = TimestampFlag::kUtcTimestamp;
   flags_ |= TimestampFlag::kTimeOffsetValid;

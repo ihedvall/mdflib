@@ -4,8 +4,11 @@
  */
 #pragma once
 #include <algorithm>
+#include <cstring>
+#include <type_traits>
 #include <vector>
 
+#include "dbchelper.h"
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
 #include "mdf/ichannelobserver.h"
@@ -21,6 +24,29 @@ class ChannelObserver : public IChannelObserver {
 
   const IChannelGroup& group_;       ///< Reference to the channel group (CG) block.
 
+  // Byte offset of a little endian value of type T, which is copied from the
+  // record, else kNoPlainValue.
+  static constexpr uint32_t kNoPlainValue = UINT32_MAX;
+  uint32_t plain_offset_ = kNoPlainValue;
+  bool has_invalid_bit_ = false;
+
+  void InitPlainValue(uint64_t array_size) {
+    if constexpr (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>) {
+      const auto type = channel_.DataType();
+      const bool same_type =
+          std::is_floating_point_v<T> ? type == ChannelDataType::FloatLe
+          : std::is_signed_v<T> ? type == ChannelDataType::SignedIntegerLe
+                                : type == ChannelDataType::UnsignedIntegerLe;
+      if (same_type && channel_.BitCount() == 8 * sizeof(T) &&
+          channel_.BitOffset() == 0 && array_size == 1 &&
+          (channel_.Type() == ChannelType::FixedLength ||
+           channel_.Type() == ChannelType::Master) &&
+          DbcHelper::IsLittleEndian()) {
+        plain_offset_ = channel_.ByteOffset();
+        has_invalid_bit_ = (channel_.Flags() & CnFlag::InvalidValid) != 0;
+      }
+    }
+  }
 
  protected:
   bool GetSampleUnsigned(uint64_t sample, uint64_t& value , uint64_t array_index) const override;
@@ -50,6 +76,7 @@ class ChannelObserver : public IChannelObserver {
     if (channel_.Type() == ChannelType::VariableLength) {
       offset_list_.resize(static_cast<size_t>(group.NofSamples() * array_size), 0);
     }
+    InitPlainValue(array_size);
   }
 
   ~ChannelObserver() override {
@@ -69,6 +96,17 @@ class ChannelObserver : public IChannelObserver {
 
   bool OnSample(uint64_t sample, uint64_t record_id,
                 const std::vector<uint8_t>& record) override {
+    if constexpr (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>) {
+      if (plain_offset_ != kNoPlainValue && record_id == record_id_ &&
+          plain_offset_ + sizeof(T) <= record.size() &&
+          sample < value_list_.size() && sample < valid_list_.size()) {
+        std::memcpy(&value_list_[static_cast<size_t>(sample)],
+                    record.data() + plain_offset_, sizeof(T));
+        valid_list_[static_cast<size_t>(sample)] =
+            !has_invalid_bit_ || channel_.GetValid(record, 0);
+        return true;
+      }
+    }
     bool parse_record = record_id == record_id_;
     if (channel_.VlsdRecordId() > 0 &&  record_id == channel_.VlsdRecordId()) {
       parse_record = true;

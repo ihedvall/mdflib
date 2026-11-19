@@ -7,6 +7,7 @@
 
 #include <string>
 #include <filesystem>
+#include <fstream>
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
@@ -247,6 +248,40 @@ TEST_F(TestTimestamp, Mdf3TimeStamp) {
                                        dst_offset_min);
   CreateMdfWithTime(tz_path.string(), MdfWriterType::Mdf3Basic, local_timestamp);
   TestMdf3Time(tz_path.string(), mdf3_time);
+}
+
+TEST_F(TestTimestamp, Mdf3TimeStampFromText) {
+  // MDF 3.00 and 3.10 have a 164 byte HD block without the time stamp field.
+  // The start time then comes from the date and time text, as it does when
+  // the field is 0. Winter and summer, because the text includes DST.
+  // 2025-01-15 and 2025-07-15 12:00 UTC
+  for (const int64_t utc_s : {int64_t{1736942400}, int64_t{1752580800}}) {
+    const int64_t utc = utc_s * 1'000'000'000;
+    const int64_t mdf3_time = utc + MdfHelper::GmtOffsetNs();
+    UtcTimestamp utc_time(utc);
+
+    path short_path(kTestDir);
+    short_path.append("mf3_without_field.mf3");
+    CreateMdfWithTime(short_path.string(), MdfWriterType::Mdf3Basic, utc_time);
+    {
+      std::fstream file(short_path, std::ios::in | std::ios::out | std::ios::binary);
+      const uint16_t block_size = 164;
+      file.seekp(64 + 2);  // HD block after the 64 byte ID block, size after "HD"
+      file.write(reinterpret_cast<const char*>(&block_size), sizeof(block_size));
+    }
+    TestMdf3Time(short_path.string(), mdf3_time);
+
+    path zero_path(kTestDir);
+    zero_path.append("mf3_zero_field.mf3");
+    CreateMdfWithTime(zero_path.string(), MdfWriterType::Mdf3Basic, utc_time);
+    {
+      std::fstream file(zero_path, std::ios::in | std::ios::out | std::ios::binary);
+      const uint64_t zero = 0;
+      file.seekp(64 + 164);  // time stamp field right after the 164 bytes
+      file.write(reinterpret_cast<const char*>(&zero), sizeof(zero));
+    }
+    TestMdf3Time(zero_path.string(), mdf3_time);
+  }
 }
 
 TEST_F(TestTimestamp, Mdf4TimeStamp) {

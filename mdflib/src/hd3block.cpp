@@ -5,6 +5,8 @@
 #include "hd3block.h"
 
 #include <algorithm>
+#include <cstdio>
+#include <ctime>
 #include <vector>
 #include <sstream>
 
@@ -103,6 +105,9 @@ void Hd3Block::GetBlockProperty(BlockPropertyList &dest) const {
 uint64_t Hd3Block::Read(std::streambuf& buffer) {
   uint64_t bytes = ReadHeader3(buffer);
   bytes += ReadLinks3(buffer, 3);
+  // MDF 3.00 and 3.10 have no time stamp field. Without it, the start time
+  // comes from the date and time text below.
+  timestamp_.local_timestamp_ = 0;
   // The for loop handles earlier versions of the MDF file
   for (int ii = 3; bytes < block_size_; ++ii) {
     switch (ii) {
@@ -143,6 +148,23 @@ uint64_t Hd3Block::Read(std::streambuf& buffer) {
         std::string temp;
         bytes += ReadStr(buffer, temp, 1);
         break;
+    }
+  }
+  std::tm local{};
+  if (timestamp_.local_timestamp_ == 0 &&
+      std::sscanf(timestamp_.date_.c_str(), "%d:%d:%d", &local.tm_mday,
+                  &local.tm_mon, &local.tm_year) == 3 &&
+      std::sscanf(timestamp_.time_.c_str(), "%d:%d:%d", &local.tm_hour,
+                  &local.tm_min, &local.tm_sec) == 3) {
+    // The text is local time. Same conversion as Mdf3Timestamp::SetTime().
+    local.tm_mon -= 1;
+    local.tm_year -= 1900;
+    local.tm_isdst = -1;
+    const std::time_t utc = std::mktime(&local);
+    const int64_t ns = static_cast<int64_t>(utc) * 1'000'000'000 +
+                       MdfHelper::GmtOffsetNs();
+    if (utc > 0 && ns > 0) {
+      timestamp_.local_timestamp_ = static_cast<uint64_t>(ns);
     }
   }
   comment_ = ReadTx3(buffer, kIndexTx);

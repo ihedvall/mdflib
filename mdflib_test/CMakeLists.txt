@@ -20,6 +20,7 @@ add_executable(test_mdf
         src/testmdffile.cpp
         src/testmetadata.cpp src/testmetadata.h
         src/testzlib.cpp src/testzlib.h
+        src/testcompresseddata.cpp
         src/testhelper.cpp
         src/testchannel.cpp
         src/testchannelarray.cpp

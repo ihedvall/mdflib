@@ -162,6 +162,21 @@ void ConverterSampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lo
 
   const auto id_size = dg4->RecordIdSize();
 
+  // A single channel group without record ID has records of fixed size, so
+  // its DZ blocks can be transposed. The HL block states the same zip type.
+  // Its type is not updated in the file, so once the HL block is written, its
+  // type decides for the later DZ blocks in that list.
+  uint32_t transpose_size = 0;
+  if (const auto& cg_list = dg4->Cg4();
+      cg_list.size() == 1 && id_size == 0 &&
+      (hl4->FilePosition() <= 0
+           ? writer_.TransposeData()
+           : hl4->Type() == Hl4ZipType::TransposeAndDeflate)) {
+    const auto record_size =
+        cg_list[0]->NofDataBytes() + cg_list[0]->NofInvalidBytes();
+    transpose_size = record_size > 1 ? record_size : 0;
+  }
+
   lock.lock();
 
   while (!IsEmpty()) {
@@ -187,7 +202,12 @@ void ConverterSampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lo
         auto dz4 = std::make_unique<Dz4Block>();
         dz4->Init(*dl4);
         dz4->OrigBlockType("DT");
-        dz4->Type(Dz4ZipType::Deflate);
+        dz4->Type(transpose_size > 0 ? Dz4ZipType::TransposeAndDeflate
+                                     : Dz4ZipType::Deflate);
+        dz4->Parameter(transpose_size);
+        if (transpose_size > 0) {
+          hl4->Type(Hl4ZipType::TransposeAndDeflate);
+        }
         dz4->Data(buffer);
         dl4->Offset(dz_count, offset_);
         ++dz_count;
@@ -250,7 +270,12 @@ void ConverterSampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lo
       auto dz4 = std::make_unique<Dz4Block>();
       dz4->Init(*dl4);
       dz4->OrigBlockType("DT");
-      dz4->Type(Dz4ZipType::Deflate);
+      dz4->Type(transpose_size > 0 ? Dz4ZipType::TransposeAndDeflate
+                                   : Dz4ZipType::Deflate);
+      dz4->Parameter(transpose_size);
+      if (transpose_size > 0) {
+        hl4->Type(Hl4ZipType::TransposeAndDeflate);
+      }
       dz4->Data(buffer);
       auto& block_list = dl4->DataBlockList();
       block_list.emplace_back(std::move(dz4));

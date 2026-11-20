@@ -71,6 +71,8 @@ class ReadCache {
 
   uint64_t data_count_ = 0;
   uint64_t max_data_count_ = 0;
+  bool no_data_ = false; ///< The current DZ block gave no data (unknown zip type)
+  bool record_without_data_ = false; ///< The record has bytes from such a block
 
   size_t block_index_ = 0;
   std::vector<DataBlock*> block_list_;

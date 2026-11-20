@@ -123,4 +123,82 @@ TEST(CompressedData, TransposedBlocks) {
   }
 }
 
+// A DZ block with a zip type that mdflib cannot inflate (2 is zstd in MDF 4.3)
+// must not be read as valid zero values.
+TEST(CompressedData, UnknownZipType) {
+  constexpr size_t nof_samples = 10;
+  const auto filename = CreateTestFile("unknown_zip_type.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(filename));
+    writer->CompressData(true);
+    auto* dg = writer->CreateDataGroup();
+    auto* cg = MdfWriter::CreateChannelGroup(dg);
+    ASSERT_TRUE(cg != nullptr);
+    auto* master = MdfWriter::CreateChannel(cg);
+    master->Name("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* counter = MdfWriter::CreateChannel(cg);
+    counter->Name("Counter");
+    counter->DataType(ChannelDataType::SignedIntegerLe);
+    counter->DataBytes(8);
+
+    writer->PreTrigTime(0.0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    uint64_t tick_time = MdfHelper::NowNs();
+    writer->StartMeasurement(tick_time);
+    for (size_t sample = 0; sample < nof_samples; ++sample) {
+      counter->SetChannelValue(static_cast<int64_t>(sample + 1));
+      writer->SaveSample(*cg, tick_time);
+      tick_time += 1'000'000;
+    }
+    writer->StopMeasurement(tick_time);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  // Set the zip type of every DZ block (byte 26 after the block start) to 2.
+  std::vector<char> bytes;
+  {
+    std::ifstream file(filename, std::ios::binary);
+    bytes.assign(std::istreambuf_iterator<char>(file),
+                 std::istreambuf_iterator<char>());
+  }
+  size_t nof_dz = 0;
+  for (size_t pos = 0; pos + 40 <= bytes.size(); pos += 8) {
+    if (std::memcmp(bytes.data() + pos, "##DZ", 4) == 0) {
+      bytes[pos + 26] = 2;
+      ++nof_dz;
+    }
+  }
+  ASSERT_GE(nof_dz, 1);
+  {
+    std::ofstream file(filename, std::ios::binary | std::ios::trunc);
+    file.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+  }
+
+  // Read all samples, then a range that starts after the first sample.
+  for (const bool partial : {false, true}) {
+    MdfReader reader(filename);
+    ASSERT_TRUE(reader.ReadEverythingButData());
+    auto* dg = reader.GetDataGroup(0);
+    ASSERT_TRUE(dg != nullptr);
+    auto* cg = dg->ChannelGroups()[0];
+    auto counter = CreateChannelObserver(*dg, *cg, *cg->GetChannel("Counter"));
+    if (partial) {
+      reader.ReadPartialData(*dg, 2, nof_samples - 1);
+    } else {
+      reader.ReadData(*dg);
+    }
+    ASSERT_EQ(counter->NofSamples(), nof_samples);
+    for (size_t sample = 0; sample < nof_samples; ++sample) {
+      int64_t counter_value = -1;
+      EXPECT_FALSE(counter->GetChannelValue(sample, counter_value))
+          << "partial " << partial << ", sample " << sample;
+    }
+  }
+}
+
 }  // namespace mdf::test

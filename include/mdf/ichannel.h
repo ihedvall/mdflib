@@ -105,6 +105,11 @@ class IDataGroup;
 class IChannelGroup;
 class IChannel;
 
+namespace detail {
+template <class T>
+class ChannelObserver;
+}  // namespace detail
+
 /** \brief Support structure that holds a DG/CG/CN relation. */
 struct ElementLink {
   const IDataGroup* data_group = nullptr; ///< Pointer to a DG block.
@@ -604,6 +609,10 @@ class IChannel : public IBlock  {
   /** \brief Support function that return true if the valid bit is set.*/
   virtual bool GetValid(const std::vector<uint8_t> &record_buffer,
                         uint64_t array_index) const;
+
+  // The channel observer reads the invalidation bit of plain values directly.
+  template <class T>
+  friend class detail::ChannelObserver;
 
   /** \brief Support function that sets unsigned little endian values */
   void SetUnsignedValueLe(uint64_t value, bool valid, uint64_t array_index);

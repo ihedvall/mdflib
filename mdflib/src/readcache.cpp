@@ -98,16 +98,12 @@ bool ReadCache::ParseRecord() {
           channel_group->IncrementSample();
         }
       } else {
-        // Without record ids the data group has one channel group and all records
-        // have the same size, so one buffer serves them all
-        std::vector<uint8_t> local;
-        auto& record = dg4_block_->RecordIdSize() == 0 ? record_ : local;
-        record.resize(record_size);  // GetArray overwrites all bytes
-        GetArray(record);
+        record_.resize(record_size);  // GetArray overwrites all bytes
+        GetArray(record_);
         const size_t sample = channel_group->Sample();
         if (sample < channel_group->NofSamples()) {
           continue_reading = dg4_block_->NotifySampleObservers(sample,
-                               channel_group->RecordId(), record);
+                               channel_group->RecordId(), record_);
           channel_group->IncrementSample();
         }
       }

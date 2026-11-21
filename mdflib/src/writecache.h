@@ -74,13 +74,18 @@ class WriteCache final {
 
   std::thread work_thread_; ///< Sample queue thread.
   std::atomic_bool stop_thread_ = false; ///< Set to true to stop the thread.
+  bool save_now_ = false; ///< Wakes the thread before 10 s (locker_).
   std::mutex locker_; ///< Mutex for thread-safe handling of the sample queue.
   std::condition_variable sample_event_; ///< Used internally.
+  std::condition_variable saved_event_; ///< The write thread saved the queues.
+  uint64_t nof_saves_ = 0; ///< Save rounds of the write thread (locker_).
 
   using SampleQueuePtr = std::unique_ptr<SampleQueue>;
   std::map<const IDataGroup*, SampleQueuePtr> cache_;
 
   void StopWorkThread(); ///< Stops the worker thread
+  void WaitForSave(std::unique_lock<std::mutex>& lock,
+                   const SampleQueue& queue);
   void WorkThread(); ///< Worker thread function
 
   [[nodiscard]] SampleQueue* GetSampleQueue(

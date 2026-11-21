@@ -2870,6 +2870,60 @@ TEST_F(TestWrite, MdfNotCompressConverter) {
   }
 }
 
+TEST_F(TestWrite, MdfConverterSavesBeforeStop) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("mdf_converter_saves_before_stop.mf4");
+  remove(mdf_file); // The converter appends to an existing file
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfConverter);
+  writer->Init(mdf_file.string());
+  writer->PreTrigTime(0.0);
+  auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup("Group");
+  auto* master = group->CreateChannel("Master");
+  master->DataType(ChannelDataType::FloatLe);
+  master->Type(ChannelType::Master);
+  master->Sync(ChannelSyncType::Time);
+  master->DataBytes(8);
+  auto* signal = group->CreateChannel("Signal");
+  signal->DataType(ChannelDataType::FloatLe);
+  signal->DataBytes(8);
+
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  // 16 MB of records in much less than the 10 s period of the write thread
+  constexpr size_t kNofSamples = 1'000'000;
+  for (size_t sample = 0; sample < kNofSamples; ++sample) {
+    signal->SetChannelValue(static_cast<double>(sample));
+    writer->SaveSample(*group, tick_time);
+    tick_time += 1'000'000;
+  }
+  // The converter waits for the write thread instead of queuing all records
+  EXPECT_GT(file_size(mdf_file), 4'000'000);
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* dg = reader.GetFile()->Header()->LastDataGroup();
+  ASSERT_TRUE(dg != nullptr);
+  ChannelObserverList observer_list;
+  CreateChannelObserverForChannelGroup(*dg, *dg->ChannelGroups()[0], observer_list);
+  reader.ReadData(*dg);
+  reader.Close();
+  for (auto& observer : observer_list) {
+    ASSERT_EQ(observer->NofSamples(), kNofSamples);
+    if (!observer->IsMaster()) {
+      double value = -1.0;
+      EXPECT_TRUE(observer->GetChannelValue(kNofSamples - 1, value));
+      EXPECT_DOUBLE_EQ(value, static_cast<double>(kNofSamples - 1));
+    }
+  }
+}
+
 
 TEST_F(TestWrite, TestStreamInterface) {
   if (kSkipTest) {

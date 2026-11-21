@@ -849,14 +849,10 @@ void MdfBlock::CreateMd4Block() {
   auto xml = CreateXmlFile();
   xml->RootName(root_name.str());
 
-  if (md_comment_) {
-    const auto *tx4 = dynamic_cast<const Tx4Block *>(md_comment_.get());
-    xml->SetProperty("TX", tx4 != nullptr ? tx4->TxComment() : std::string());
-  }
-  
-  if (this->BlockType() == "HD") {
-    xml->SetProperty("TX", std::string());
-  }
+  // The XML comment must always have a TX tag. Adding it first keeps it in
+  // front of the properties that are set later.
+  const auto *tx4 = dynamic_cast<const Tx4Block *>(md_comment_.get());
+  xml->SetProperty("TX", tx4 != nullptr ? tx4->TxComment() : std::string());
 
   md4->XmlSnippet(xml->WriteString(true));
   md_comment_ = std::move(md4);

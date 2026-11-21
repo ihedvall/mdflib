@@ -14,6 +14,7 @@
 #include "dg4block.h"
 #include "dl4block.h"
 #include "dz4block.h"
+#include "hd4block.h"
 #include "hl4block.h"
 #include "littlebuffer.h"
 #include "sd4block.h"
@@ -498,11 +499,21 @@ uint64_t Cn4Block::Read(std::streambuf& buffer) {
   }
 
   if (Link(kIndexCc) > 0) {
-    SetFilePosition(buffer, Link(kIndexCc));
-    cc_block_ = std::make_unique<Cc4Block>();
-    cc_block_->Init(*this);
-    cc_block_->ChannelDataType(data_type_);
-    cc_block_->Read(buffer);
+    // Many channels may share one CC block, for example a large value to text
+    // table. Read it once per data type.
+    const auto* header = dynamic_cast<const Hd4Block*>(HeaderBlock());
+    std::shared_ptr<Cc4Block> own;
+    auto& cc = header != nullptr ? header->SharedCc(Link(kIndexCc), data_type_)
+                                 : own;
+    if (!cc) {
+      SetFilePosition(buffer, Link(kIndexCc));
+      auto block = std::make_shared<Cc4Block>();
+      block->Init(*this);
+      block->ChannelDataType(data_type_);
+      block->Read(buffer);
+      cc = block;
+    }
+    cc_block_ = cc;
   }
 
   // Need ot check if the data block is owned by this CN block or if it is a
@@ -568,7 +579,13 @@ uint64_t Cn4Block::Write(std::streambuf& buffer) {
                  UpdateOption::DoNotUpdateWrittenBlock);
   WriteTx4(buffer, kIndexName, name_);
   WriteBlock4(buffer, si_block_, kIndexSi);
-  WriteBlock4(buffer, cc_block_, kIndexCc);
+  if (cc_block_) {
+    // A shared CC block is written once, and every channel links to it
+    if (cc_block_->FilePosition() <= 0) {
+      cc_block_->Write(buffer);
+    }
+    UpdateLink(buffer, kIndexCc, cc_block_->FilePosition());
+  }
   // The signal data shall not be stored here. Instead, the function
   // WriteSignalData() should be used. It is called by the Mdf(4)Writer class
   // when the measurement is finalized.

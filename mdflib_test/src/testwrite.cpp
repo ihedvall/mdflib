@@ -2979,6 +2979,55 @@ TEST_F(TestWrite, MdfConverterSavesBeforeStop) {
   }
 }
 
+TEST_F(TestWrite, Mdf4SharedConversion) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("shared_conversion.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group =
+        writer->Header()->CreateDataGroup()->CreateChannelGroup("Group");
+    auto* first = group->CreateChannel("First");
+    auto* second = group->CreateChannel("Second");
+    for (auto* channel : {first, second}) {
+      channel->DataType(ChannelDataType::UnsignedIntegerLe);
+      channel->DataBytes(1);
+    }
+    auto* conv = first->CreateChannelConversion();
+    conv->Type(ConversionType::ValueToText);
+    conv->Parameter(0, 1.0);
+    conv->Reference(0, "On");
+    conv->Reference(1, "Off");
+    writer->InitMeasurement();
+    writer->StartMeasurement(TimeStampToNs());
+    writer->StopMeasurement(TimeStampToNs());
+    writer->FinalizeMeasurement();
+
+    // Let the second channel use the CC block of the first one, as files
+    // with many channels on one value to text table do. The CC link is the
+    // 5th link after the 24 byte block header.
+    const int64_t cc_position = conv->Index();
+    std::fstream file(mdf_file.string(),
+                      std::ios::in | std::ios::out | std::ios::binary);
+    file.seekp(second->Index() + 24 + 4 * 8);
+    file.write(reinterpret_cast<const char*>(&cc_position), 8);
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto cn_list =
+      reader.GetFile()->Header()->LastDataGroup()->ChannelGroups()[0]->Channels();
+  ASSERT_EQ(cn_list.size(), 2);
+  // The channels share one CC block instead of reading it once per channel
+  EXPECT_EQ(cn_list[0]->ChannelConversion(), cn_list[1]->ChannelConversion());
+  std::string text;
+  EXPECT_TRUE(cn_list[1]->ChannelConversion()->Convert(1U, text));
+  EXPECT_EQ(text, "On");
+}
 
 TEST_F(TestWrite, TestStreamInterface) {
   if (kSkipTest) {

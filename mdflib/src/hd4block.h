@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <cstdio>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -125,6 +126,16 @@ class Hd4Block : public MdfBlock, public IHeader {
   bool FinalizeDtBlocks(std::streambuf& buffer) const;
   bool FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg, bool update_vlsd) const;
   bool UpdateVlsdBlocks(std::streambuf& buffer);
+
+  /** \brief Returns the slot for a conversion block that channels share.
+   *
+   * Used while reading. Channels that point to the same CC block and have the
+   * same data type get one Cc4Block instead of reading it once per channel.
+   * @param position File position of the CC block.
+   * @param data_type Channel data type.
+   * @return Empty pointer if the block isn't read yet.
+   */
+  std::shared_ptr<Cc4Block>& SharedCc(int64_t position, uint8_t data_type) const;
  private:
   Mdf4Timestamp timestamp_;
 
@@ -139,5 +150,9 @@ class Hd4Block : public MdfBlock, public IHeader {
   Ch4List ch_list_;
   At4List at_list_;
   Ev4List ev_list_;
+
+  /// Conversion blocks read so far, key is file position and data type.
+  mutable std::map<std::pair<int64_t, uint8_t>, std::shared_ptr<Cc4Block>>
+      shared_cc_list_;
 };
 }  // namespace mdf::detail

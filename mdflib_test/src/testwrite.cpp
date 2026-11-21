@@ -945,6 +945,61 @@ TEST_F(TestWrite, Mdf4WriteCN_SI_CC) {
   EXPECT_EQ(content.find("<CCunit"), std::string::npos);
 }
 
+TEST_F(TestWrite, Mdf4CopyValueToText) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path source_file(kTestDir);
+  source_file.append("copy_value_to_text_source.mf4");
+  path copy_file(kTestDir);
+  copy_file.append("copy_value_to_text_copy.mf4");
+  remove(source_file);  // The writer appends to an existing file
+  remove(copy_file);
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* channel = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group")->CreateChannel("State");
+    channel->DataType(ChannelDataType::UnsignedIntegerLe);
+    channel->DataBytes(1);
+    auto* conv = channel->CreateChannelConversion();
+    conv->Type(ConversionType::ValueToText);
+    conv->Parameter(0, 1.0);
+    conv->Reference(0, "On");
+    conv->Reference(1, "Off");
+    writer->InitMeasurement();
+    writer->StartMeasurement(TimeStampToNs());
+    writer->StopMeasurement(TimeStampToNs());
+    writer->FinalizeMeasurement();
+  }
+
+  // Copy the channel into a new file, as the sorting and cutting tasks do
+  MdfReader source(source_file.string());
+  ASSERT_TRUE(source.ReadEverythingButData());
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(copy_file.string()));
+    writer->Header()->CreateDataGroup()->CreateChannelGroup("Group")
+        ->CreateChannel("State")->CopyConfigFrom(*source.GetFile()->Header()
+            ->LastDataGroup()->ChannelGroups()[0]->Channels()[0]);
+    writer->InitMeasurement();
+    writer->StartMeasurement(TimeStampToNs());
+    writer->StopMeasurement(TimeStampToNs());
+    writer->FinalizeMeasurement();
+  }
+
+  MdfReader copy(copy_file.string());
+  ASSERT_TRUE(copy.ReadEverythingButData());
+  const auto* conv = copy.GetFile()->Header()->LastDataGroup()
+      ->ChannelGroups()[0]->Channels()[0]->ChannelConversion();
+  ASSERT_TRUE(conv != nullptr);
+  std::string text;
+  EXPECT_TRUE(conv->Convert(1U, text));
+  EXPECT_EQ(text, "On");
+  EXPECT_TRUE(conv->Convert(0U, text));
+  EXPECT_EQ(text, "Off");
+}
+
 TEST_F(TestWrite, Mdf4Unsigned) {
   if (kSkipTest) {
     GTEST_SKIP();

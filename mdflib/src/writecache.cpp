@@ -102,8 +102,10 @@ void WriteCache::StopWorkThread() {
 void WriteCache::WorkThread() {
   do {
     std::unique_lock lock(locker_);
-    sample_event_.wait_for(lock, 10s,
-                           [&]() -> bool { return stop_thread_.load(); });
+    sample_event_.wait_for(lock, 10s, [&]() -> bool {
+      return stop_thread_.load() || save_now_;
+    });
+    save_now_ = false;
     if (stop_thread_) {
       break;
     }
@@ -137,7 +139,11 @@ void WriteCache::WorkThread() {
     catch (...) {
       MDF_ERROR() << "Failed to save queue";
     }}
-
+    if (!lock.owns_lock()) {
+      lock.lock(); // A failed save may return unlocked
+    }
+    ++nof_saves_;
+    saved_event_.notify_all();
   } while (!stop_thread_);
   {
     std::unique_lock lock(locker_);
@@ -146,7 +152,27 @@ void WriteCache::WorkThread() {
         sample_queue->CleanQueue(lock);
       }
     }
+    if (!lock.owns_lock()) {
+      lock.lock();
+    }
+    ++nof_saves_;
   }
+  saved_event_.notify_all();
+}
+
+void WriteCache::WaitForSave(std::unique_lock<std::mutex>& lock,
+                             const SampleQueue& queue) {
+  // A converter has all samples at hand. Let the write thread catch up
+  // instead of keeping the whole file in the queue.
+  if (writer_.TypeOfWriter() != MdfWriterType::MdfConverter ||
+      writer_.State() != WriteState::StartMeas || !writer_.IsSavePeriodic() ||
+      queue.QueueSize() < 8'000'000) {
+    return;
+  }
+  const uint64_t saves = nof_saves_;
+  save_now_ = true;
+  sample_event_.notify_one();
+  saved_event_.wait(lock, [&]() -> bool { return nof_saves_ != saves; });
 }
 
 void WriteCache::RecalculateTimeMaster() {
@@ -163,16 +189,18 @@ void WriteCache::AddSample(const IDataGroup& data_group,
                            SampleRecord&& sample_record) {
   if (SampleQueue* queue = GetSampleQueue(channel_group);
      queue != nullptr) {
-    std::lock_guard lock(locker_);
+    std::unique_lock lock(locker_);
     queue->AddSample(channel_group, time, std::move(sample_record));
+    WaitForSave(lock, *queue);
   }
 }
 
 void WriteCache::SaveSample(const IChannelGroup& channel_group, uint64_t time) {
   if (SampleQueue* queue = GetSampleQueue(channel_group);
       queue != nullptr) {
-    std::lock_guard lock(locker_);
+    std::unique_lock lock(locker_);
     queue->SaveSample(channel_group, time);
+    WaitForSave(lock, *queue);
   }
 }
 
@@ -181,8 +209,9 @@ void WriteCache::SaveSample(const IDataGroup& data_group,
                             uint64_t time) {
   if (SampleQueue* queue = GetSampleQueue(data_group);
       queue != nullptr) {
-    std::lock_guard lock(locker_);
+    std::unique_lock lock(locker_);
     queue->SaveSample(channel_group, time);
+    WaitForSave(lock, *queue);
   }
 }
 

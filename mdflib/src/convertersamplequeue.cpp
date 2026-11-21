@@ -191,8 +191,9 @@ void ConverterSampleQueue::CleanQueueCompressed(std::unique_lock<std::mutex>& lo
       max_index += sample.vlsd_buffer.size() + 4 + id_size;
     }
 
-    // Check if this DZ block is full (4MB). If break out.
-    if (max_index >= buffer_max) {
+    // Check if this DZ block is full (4MB). If break out. A record larger
+    // than 4MB goes into an empty block, so each round saves something.
+    if (max_index >= buffer_max && !buffer.empty()) {
       // If the measurement should be finalized, we need to create a new
       // DZ block and put the remaining samples there. If not we can break
       // here and assume that the next cyclic call will handle the next DZ

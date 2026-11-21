@@ -39,6 +39,7 @@ class SampleQueue {
   virtual void CleanQueue(std::unique_lock<std::mutex>& lock);
 
   void Reset();
+  [[nodiscard]] size_t QueueSize() const;
   void RecalculateTimeMaster();
   void AddSample(const IChannelGroup& group, uint64_t time,
     SampleRecord&& sample_record);
@@ -69,7 +70,6 @@ class SampleQueue {
   void PushSample(const SampleRecord& record) ;
   [[nodiscard]] SampleRecord GetSample();
   void PopSample();
-  [[nodiscard]] size_t QueueSize() const;
   [[nodiscard]] const std::deque<SampleRecord>& Queue() const {
     return queue_;
   }

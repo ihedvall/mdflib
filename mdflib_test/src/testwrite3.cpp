@@ -71,6 +71,55 @@ void TestWrite3::TearDownTestSuite() {
   MdfLogStream::SetLogFunction1(nullptr);
 }
 
+TEST_F(TestWrite3, Mdf3OddIntegerSizes) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path test_file(kTestDir);
+  test_file.append("odd_integer_sizes.dat");
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf3Basic);
+  ASSERT_TRUE(writer->Init(test_file.string()));
+  auto* cg3 = MdfWriter::CreateChannelGroup(writer->CreateDataGroup());
+  ASSERT_TRUE(cg3 != nullptr);
+  auto* master = MdfWriter::CreateChannel(cg3);
+  master->Name("Time");
+  master->Type(ChannelType::Master);
+  master->DataType(ChannelDataType::FloatLe);
+  master->DataBytes(8);
+  auto* u24 = MdfWriter::CreateChannel(cg3);
+  u24->Name("U24");
+  u24->DataType(ChannelDataType::UnsignedIntegerLe);
+  u24->DataBytes(3);
+  auto* i48 = MdfWriter::CreateChannel(cg3);
+  i48->Name("I48");
+  i48->DataType(ChannelDataType::SignedIntegerBe);
+  i48->DataBytes(6);
+
+  ASSERT_TRUE(writer->InitMeasurement());
+  const uint64_t start = MdfHelper::NowNs();
+  writer->StartMeasurement(start);
+  u24->SetChannelValue(123456);
+  i48->SetChannelValue(-123456789);
+  writer->SaveSample(*cg3, start);
+  writer->StopMeasurement(start);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(test_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* dg = reader.GetFile()->Header()->LastDataGroup();
+  ASSERT_TRUE(dg != nullptr);
+  auto u24_observer = CreateChannelObserver(*dg, "U24");
+  auto i48_observer = CreateChannelObserver(*dg, "I48");
+  ASSERT_TRUE(u24_observer && i48_observer);
+  ASSERT_TRUE(reader.ReadData(*dg));
+  uint64_t unsigned_value = 0;
+  EXPECT_TRUE(u24_observer->GetChannelValue(0, unsigned_value));
+  EXPECT_EQ(unsigned_value, 123456);
+  int64_t signed_value = 0;
+  EXPECT_TRUE(i48_observer->GetChannelValue(0, signed_value));
+  EXPECT_EQ(signed_value, -123456789);
+}
+
 TEST_F(TestWrite3, Mdf3WriteHD) {
   if (kSkipTest) {
     GTEST_SKIP();

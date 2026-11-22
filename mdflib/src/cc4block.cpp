@@ -549,6 +549,9 @@ const std::string& Cc4Block::Formula() const {
 }
 
 void Cc4Block::CopyFrom(const IChannelConversion& source) {
+  if (&source == this) {
+    return;  // The references below are replaced
+  }
   IChannelConversion::CopyFrom(source);
   if (const auto* cc4 = dynamic_cast<const Cc4Block*>(&source);
       cc4 != nullptr) {
@@ -568,11 +571,13 @@ void Cc4Block::CopyFrom(const IChannelConversion& source) {
     cc4->GetCcUnit(unit);
     SetCcUnit(unit);
 
+    ref_list_.clear();
     for (const auto& source_ref : cc4->ref_list_) {
       if (!source_ref) {
+        ref_list_.emplace_back(); // Keeps the index of the next references
         continue;
       }
-      if (source_ref->BlockType() != "TX") {
+      if (source_ref->BlockType() == "TX") {
         const auto* source_tx4 = dynamic_cast<const Tx4Block*>(source_ref.get());
         if (auto tx4_block = std::make_unique<Tx4Block>();
             tx4_block && source_tx4 != nullptr) {

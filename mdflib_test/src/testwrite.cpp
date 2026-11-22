@@ -874,7 +874,7 @@ TEST_F(TestWrite, Mdf4WriteCN_SI_CC) {
         EXPECT_GT(cn4->Index(),0);
         EXPECT_STREQ(cn4->BlockType().c_str(), "CN");
         EXPECT_STREQ(cn4->Name().c_str(), "Ch1-Name");
-        EXPECT_STREQ(cn4->DisplayName().c_str(), "");
+        EXPECT_STREQ(cn4->DisplayName().c_str(), "Ch1-DisplayName");
         EXPECT_STREQ(cn4->Description().c_str(), "Ch1-Desc");
         EXPECT_STREQ(cn4->Unit().c_str(), "Ch1-Unit");
         EXPECT_TRUE(cn4->IsUnitValid());

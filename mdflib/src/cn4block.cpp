@@ -221,7 +221,17 @@ void Cn4Block::Name(const std::string &name) { name_ = name; }
 std::string Cn4Block::Name() const { return name_; }
 
 void Cn4Block::DisplayName(const std::string &name) {
-  // No support in MDF4
+  // MF4 stores display names in the channel comment: <names><display>
+  if (name.empty() && DisplayName().empty()) {
+    return;  // Nothing to remove, the comment stays as it is
+  }
+  CnComment comment;
+  GetCnComment(comment);
+  comment.Names().DisplayNames().clear();
+  if (!name.empty()) {
+    comment.Names().AddDisplayName(MdString(name));
+  }
+  SetCnComment(comment);
 }
 
 std::string Cn4Block::DisplayName() const {

@@ -32,7 +32,7 @@ IChannelConversion* Mdf4Writer::CreateChannelConversion(IChannel* parent) {
   auto* cn4 = dynamic_cast<Cn4Block*>(parent);
   IChannelConversion* cc = nullptr;
   if (cn4 != nullptr) {
-    auto cc4 = std::make_unique<Cc4Block>();
+    auto cc4 = std::make_shared<Cc4Block>();
     cc4->Init(*cn4);
     cn4->AddCc4(cc4);
     cc = const_cast<Cc4Block*>(cn4->Cc());

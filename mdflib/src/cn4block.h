@@ -79,7 +79,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] const Cx4List& Cx4() const { return cx_list_; }
 
   [[nodiscard]] const Si4Block* Si() const { return si_block_.get(); }
-  void AddCc4(std::unique_ptr<Cc4Block>& cc4);
+  void AddCc4(const std::shared_ptr<Cc4Block>& cc4);
   [[nodiscard]] const Cc4Block* Cc() const { return cc_block_.get(); }
 
 
@@ -184,7 +184,7 @@ class Cn4Block : public DataListBlock, public IChannel {
 
   std::string name_;
   std::unique_ptr<Si4Block> si_block_;
-  std::unique_ptr<Cc4Block> cc_block_;
+  std::shared_ptr<Cc4Block> cc_block_; ///< May be shared with other channels.
   std::unique_ptr<Md4Block> unit_;
 
   // The block_list_ points to signal data either a SD/DL/DZ block but can also

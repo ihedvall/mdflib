@@ -218,6 +218,7 @@ void Hd4Block::ReadMeasurementInfo(std::streambuf& buffer) {
 
 void Hd4Block::ReadEverythingButData(std::streambuf& buffer) {
   // We assume that ReadMeasurementInfo have been called earlier
+  shared_cc_list_.clear(); // A failed earlier call may have left blocks
   for (auto& dg4 : dg_list_) {
     if (!dg4) {
       continue;
@@ -306,6 +307,12 @@ void Hd4Block::ReadEverythingButData(std::streambuf& buffer) {
   for (auto& ev4 : ev_list_) {
     ev4->FindReferencedBlocks(*this);
   }
+  shared_cc_list_.clear();
+}
+
+std::shared_ptr<Cc4Block>& Hd4Block::SharedCc(int64_t position,
+                                              uint8_t data_type) const {
+  return shared_cc_list_[{position, data_type}];
 }
 
 int64_t Hd4Block::Index() const { return FilePosition(); }

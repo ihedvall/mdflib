@@ -347,8 +347,10 @@ void Writer4SampleQueue::UpdateSdIndex(const Cn4Block& cn4, uint64_t sd_index,
 Cg4Block* Writer4SampleQueue::FindVlsdCg4Block(const Dg4Block* dg4,
                                                const Cn4Block* cn4,
                                                const SampleRecord& sample) const {
+  // A config adapter may use VLSD although the writer is set to MLSD
+  // (FlexRay, MOST), so a known VLSD channel decides by its own record ID.
   if (dg4 == nullptr || !sample.vlsd_data ||
-      writer_.StorageType() != MdfStorageType::VlsdStorage) {
+      (cn4 == nullptr && writer_.StorageType() != MdfStorageType::VlsdStorage)) {
     return nullptr;
   }
   const uint64_t vlsd_record_id = cn4 != nullptr ? cn4->VlsdRecordId() :

@@ -417,6 +417,67 @@ TEST_F(TestFlexRayLogger, FlexRayVlsdStorage) {
 
 }
 
+TEST_F(TestFlexRayLogger, FlexRayMlsdFallback) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  const std::vector<uint8_t> sample_data({0xAA, 0xBB, 0xCC, 0xDD});
+  path mdf_file(kTestDir);
+  mdf_file.append("flx_mlsd_fallback.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+    ASSERT_TRUE(writer);
+    writer->Init(mdf_file.string());
+    auto* header = writer->Header();
+    ASSERT_TRUE(header != nullptr);
+
+    // The FlexRay adapter changes MLSD to VLSD storage.
+    writer->BusType(MdfBusType::FlexRay);
+    writer->StorageType(MdfStorageType::MlsdStorage);
+    writer->PreTrigTime(0.0);
+    writer->CompressData(false);
+
+    auto* last_dg = header->CreateDataGroup();
+    ASSERT_TRUE(last_dg != nullptr);
+    FlexRayConfigAdapter flx_config(*writer);
+    flx_config.CreateConfig(*last_dg);
+    IChannelGroup* flx_frame = last_dg->GetChannelGroup("FLX_Frame");
+    ASSERT_TRUE(flx_frame != nullptr);
+
+    writer->InitMeasurement();
+    uint64_t tick_time = TimeStampToNs();
+    writer->StartMeasurement(tick_time);
+    FlexRayFrame frame;
+    frame.PayloadLength(2);
+    frame.DataBytes(sample_data);
+    writer->SaveFlexRayMessage(*last_dg, *flx_frame, tick_time, frame);
+    tick_time += 1'000'000;
+    writer->StopMeasurement(tick_time);
+    writer->FinalizeMeasurement();
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.IsOk());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto dg_list = reader.GetFile()->Header()->DataGroups();
+  ASSERT_EQ(dg_list.size(), 1);
+  IDataGroup* data_group = dg_list[0];
+  const IChannelGroup* channel_group =
+      data_group->GetChannelGroup("FLX_Frame");
+  ASSERT_TRUE(channel_group != nullptr);
+  const IChannel* channel = channel_group->GetChannel("FLX_Frame.DataBytes");
+  ASSERT_TRUE(channel != nullptr);
+  auto observer = CreateChannelObserver(*data_group, *channel_group, *channel);
+  ASSERT_TRUE(observer);
+  reader.ReadData(*data_group);
+  reader.Close();
+
+  ASSERT_EQ(observer->NofSamples(), 1);
+  std::vector<uint8_t> value_list;
+  EXPECT_TRUE(observer->GetEngValue(0, value_list));
+  EXPECT_EQ(value_list, sample_data);
+}
+
 TEST_F(TestFlexRayLogger, FlexRayCompressStorage) {
  if (kSkipTest) {
    GTEST_SKIP();

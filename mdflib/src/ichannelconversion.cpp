@@ -183,6 +183,10 @@ bool IChannelConversion::ConvertValueToValueInterpolate(
   if (value_list_.size() < 2) {
     return false;
   }
+  if (std::isnan(channel_value)) {
+    // NaN compares false with every key and would end up as the last value
+    return false;
+  }
 
   for (uint16_t n = 0; n < nof_values_; ++n) {
     const uint32_t key_index = n * 2;

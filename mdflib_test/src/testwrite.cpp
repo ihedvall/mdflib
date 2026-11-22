@@ -5,6 +5,7 @@
 #include "testwrite.h"
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <string>
 #include <thread>
@@ -1066,6 +1067,43 @@ TEST_F(TestWrite, Mdf4CopyValueToText) {
   EXPECT_EQ(text, "On");
   EXPECT_TRUE(conv->Convert(0U, text));
   EXPECT_EQ(text, "Off");
+}
+
+TEST_F(TestWrite, Mdf4InterpolationOfNan) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("interpolation_nan.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* channel = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group")->CreateChannel("Value");
+    channel->DataType(ChannelDataType::FloatLe);
+    channel->DataBytes(8);
+    auto* conv = channel->CreateChannelConversion();
+    conv->Type(ConversionType::ValueToValueInterpolation);
+    conv->Parameter(0, 0.0);
+    conv->Parameter(1, 0.0);
+    conv->Parameter(2, 1.0);
+    conv->Parameter(3, 10.0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* conv = reader.GetFile()->Header()->LastDataGroup()
+      ->ChannelGroups()[0]->Channels()[0]->ChannelConversion();
+  ASSERT_TRUE(conv != nullptr);
+  double value = 0.0;
+  EXPECT_TRUE(conv->Convert(0.25, value));
+  EXPECT_DOUBLE_EQ(value, 2.5);
+  EXPECT_FALSE(conv->Convert(std::nan(""), value));
+  int64_t integer = 0;
+  EXPECT_FALSE(conv->Convert(std::nan(""), integer));
 }
 
 TEST_F(TestWrite, Mdf4Unsigned) {

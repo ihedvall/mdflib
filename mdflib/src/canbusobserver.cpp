@@ -37,24 +37,26 @@ CanBusObserver::CanBusObserver(const IDataGroup& data_group,
   } else {
     // Invalid CAN channel group name.
     // Try to find the message type by channel names.
+    // Compare the whole name. Bus statistic channels such as
+    // CAN_BusStatistic.STD_DataFrames also contain _DataFrame.
     for (const auto* channel : channel_group_.Channels()) {
       if (channel == nullptr) {
         continue;
       }
       const std::string channel_name = channel->Name();
-      if (channel_name.find("_DataFrame") != std::string::npos) {
+      if (channel_name == "CAN_DataFrame") {
         message_type_ = MessageType::CAN_DataFrame;
         base_name_ = "CAN_DataFrame";
         break;
-      } else if (channel_name.find("_RemoteFrame") != std::string::npos) {
+      } else if (channel_name == "CAN_RemoteFrame") {
         message_type_ = MessageType::CAN_RemoteFrame;
         base_name_ = "CAN_RemoteFrame";
         break;
-      } else if (channel_name.find("_ErrorFrame") != std::string::npos) {
+      } else if (channel_name == "CAN_ErrorFrame") {
         message_type_ = MessageType::CAN_ErrorFrame;
         base_name_ = "CAN_ErrorFrame";
         break;
-      } else if (channel_name.find("_OverloadFrame") != std::string::npos) {
+      } else if (channel_name == "CAN_OverloadFrame") {
         message_type_ = MessageType::CAN_OverloadFrame;
         base_name_ = "CAN_OverloadFrame";
         break;

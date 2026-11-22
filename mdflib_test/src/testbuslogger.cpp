@@ -1373,6 +1373,53 @@ TEST_F(TestBusLogger, Mdf4CanObserverVirtualFlags) {
   observer.DetachObserver();
 }
 
+TEST_F(TestBusLogger, Mdf4CanObserverBusStatistic) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  // A bus statistic group named after the bus, as Vector CANalyzer writes it
+  // next to the frames. It holds counters but no CAN frames.
+  path mdf_file(kTestDir);
+  mdf_file.append("can_bus_statistic.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "CAN1");
+    auto* time = group->CreateChannel("Timestamp");
+    time->Type(ChannelType::Master);
+    time->Sync(ChannelSyncType::Time);
+    time->DataType(ChannelDataType::FloatLe);
+    time->DataBytes(8);
+    auto* counter = group->CreateChannel("CAN_BusStatistic.STD_DataFrames");
+    counter->DataType(ChannelDataType::UnsignedIntegerLe);
+    counter->DataBytes(4);
+
+    writer->InitMeasurement();
+    const auto start = TimeStampToNs();
+    writer->StartMeasurement(start);
+    for (uint32_t frames = 10; frames < 12; ++frames) {
+      counter->SetChannelValue(frames);
+      writer->SaveSample(*group, start);
+    }
+    writer->StopMeasurement(start);
+    writer->FinalizeMeasurement();
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetHeader()->LastDataGroup();
+  ASSERT_TRUE(data_group != nullptr);
+  const auto* channel_group = data_group->GetChannelGroup("CAN1");
+  ASSERT_TRUE(channel_group != nullptr);
+  ASSERT_EQ(channel_group->NofSamples(), 2);
+  CanBusObserver observer(*data_group, *channel_group);
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  EXPECT_EQ(observer.NofSamples(), 0);
+  observer.DetachObserver();
+}
+
 TEST_F(TestBusLogger, ErrorDetected) {
   EXPECT_FALSE(kErrorDetected);
 }

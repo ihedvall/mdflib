@@ -9,6 +9,7 @@
  */
 #pragma once
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "mdf/ichannel.h"
@@ -360,10 +361,30 @@ bool IChannelObserver::GetEngValue(uint64_t sample, V& value, uint64_t array_ind
     case ChannelDataType::StringUTF8: {
       std::string v;
       valid = GetSampleText(sample,  v, array_index);
-      std::string temp;
-      conversion->Convert(v, temp);
-      std::istringstream temp1(temp);
-      temp1 >> value;
+      if (!valid) {
+        break;
+      }
+      if (conversion->Type() == ConversionType::TextToValue) {
+        // The conversion gives a number, also for a text output
+        double number = 0.0;
+        valid = conversion->Convert(v, number);
+        if constexpr (std::is_same_v<V, std::string>) {
+          value = MdfHelper::FormatDouble(number, conversion->IsDecimalUsed()
+                                                      ? conversion->Decimals()
+                                                      : 6);
+        } else {
+          value = static_cast<V>(number);
+        }
+        break;
+      }
+      if constexpr (std::is_same_v<V, std::string>) {
+        valid = conversion->Convert(v, value);  // The whole text
+      } else {
+        std::string temp;
+        valid = conversion->Convert(v, temp);
+        std::istringstream temp1(temp);
+        temp1 >> value;
+      }
       break;
     }
 

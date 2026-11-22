@@ -428,6 +428,7 @@ TEST(TestHdComment, Property) {
         comment1.GetProperty(std::string(kDecimalProperty));
     ASSERT_TRUE(decimal_property1 != nullptr);
     EXPECT_FLOAT_EQ(decimal_property1->Value<float>(), kDecimalValue);
+    EXPECT_EQ(decimal_property1->Value<std::string>(), "1.230000");
   }
   {
     const MdProperty* integer_property1 =

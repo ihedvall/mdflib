@@ -6,6 +6,7 @@
 #include "samplequeue.h"
 
 #include "mdf/mdflogstream.h"
+#include "mdf/imdftimestamp.h"
 #include "mdf/mostmessage.h"
 #include "mdf/flexraymessage.h"
 
@@ -14,6 +15,20 @@
 #include "dt4block.h"
 
 namespace mdf::detail {
+
+namespace {
+// The master time counts from the start time in the header. An MDF 4 header
+// stores it in UTC. Other headers keep the start of the measurement.
+int64_t TimeMasterOrigin(const MdfWriter& writer) {
+  const auto* header = writer.Header();
+  const auto* start = header != nullptr ? header->StartTimestamp() : nullptr;
+  if (start != nullptr && (start->GetTimeType() == timetype::kUtcTime ||
+                           start->GetTimeType() == timetype::kTimezoneTime)) {
+    return static_cast<int64_t>(start->GetTimeNs());
+  }
+  return static_cast<int64_t>(writer.StartTime());
+}
+}  // namespace
 
 SampleQueue::SampleQueue(MdfWriter& writer,
                          IDataGroup& data_group)
@@ -392,7 +407,7 @@ void SampleQueue::RecalculateTime(uint64_t record_id, SampleRecord& sample) {
                                                                      nullptr : itr_master->second;
   if (master != nullptr && master->CalculateMasterTime()) {
     auto rel_ns = static_cast<int64_t>(sample.timestamp);
-    rel_ns -= static_cast<int64_t>(writer_.StartTime());
+    rel_ns -= time_origin_;
     const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
     master->SetTimestamp(rel_s, sample.record_buffer);
   }
@@ -400,6 +415,7 @@ void SampleQueue::RecalculateTime(uint64_t record_id, SampleRecord& sample) {
 
 
 void SampleQueue::RecalculateTimeMaster() {
+  time_origin_ = TimeMasterOrigin(writer_);
   master_channels_.clear();
   const auto cg_list = data_group_.ChannelGroups();
   for (const auto* group : cg_list) {
@@ -439,7 +455,7 @@ void SampleQueue::RecalculateTimeMaster() {
       continue;
     }
     auto rel_ns = static_cast<int64_t>(sample.timestamp);
-    rel_ns -= static_cast<int64_t>(writer_.StartTime());
+    rel_ns -= time_origin_;
     const double rel_s = static_cast<double>(rel_ns) / 1'000'000'000.0;
 
     master->SetTimestamp(rel_s, sample.record_buffer);

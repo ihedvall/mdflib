@@ -281,12 +281,6 @@ void MdfWriter::StartMeasurement(uint64_t start_time) {
   start_time_ = start_time;
   stop_time_ = 0;  // Zero indicate not stopped
 
-  // The sample queue actual have absolute time. We have to recalculate the
-  // times to relative times by using the start_time_.
-  RecalculateTimeMaster();
-
-  NotifySample();
-
   // Set the time in the header if this is the first DG block in the file.
   // This gives a better start time than when the file was created.
   if ( auto* header = Header();
@@ -294,6 +288,7 @@ void MdfWriter::StartMeasurement(uint64_t start_time) {
     header->StartTime(start_time);
   }
 
+  RecalculateTimeMaster();
   NotifySample();
 }
 
@@ -302,12 +297,6 @@ void MdfWriter::StartMeasurement(ITimestamp &start_time) {
   start_time_ = start_time.GetUtcTimeNs();
   stop_time_ = 0;  // Zero indicate not stopped
                    
-  // The sample queue actual have absolute time. We have to recalculate the
-  // times to relative times by using the start_time_.
-  RecalculateTimeMaster();
-
-  NotifySample();
-
   // Set the time in the header if this is the first DG block in the file.
   // This gives a better start time than when the file was created.
   if ( auto* header = Header();
@@ -315,6 +304,7 @@ void MdfWriter::StartMeasurement(ITimestamp &start_time) {
     header->StartTime(start_time);
   }
 
+  RecalculateTimeMaster();
   NotifySample();
 }
 

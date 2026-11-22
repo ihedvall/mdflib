@@ -58,6 +58,7 @@ class SampleQueue {
   MdfWriter& writer_;
   IDataGroup& data_group_;
   std::map<uint64_t, const IChannel*> master_channels_; ///< List of master channels
+  int64_t time_origin_ = 0; ///< Zero of the master time in ns
 
   void Open();
   [[nodiscard]] bool IsOpen() const;

@@ -132,6 +132,48 @@ TEST_F(TestAppend, Mdf3AppendTest) {
 }
 
 
+TEST_F(TestAppend, Mdf4AppendTimeFromHeader) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("time_from_header.mf4");
+  remove(mdf_file);
+  const uint64_t first_start = MdfHelper::NowNs();
+  // The second measurement starts one minute after the first one
+  for (const uint64_t start : {first_start, first_start + 60'000'000'000}) {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    writer->PreTrigTime(0);
+    writer->InitMeasurement();
+    writer->StartMeasurement(start);
+    writer->SaveSample(*group, start);
+    writer->SaveSample(*group, start + 1'000'000'000);
+    writer->StopMeasurement(start + 1'000'000'000);
+    writer->FinalizeMeasurement();
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  EXPECT_EQ(reader.GetHeader()->StartTime(), first_start);
+  auto* last_dg = reader.GetHeader()->LastDataGroup();
+  ASSERT_TRUE(last_dg != nullptr);
+  auto time = CreateChannelObserver(*last_dg, "Time");
+  ASSERT_TRUE(time);
+  ASSERT_TRUE(reader.ReadData(*last_dg));
+  double seconds = 0.0;
+  EXPECT_TRUE(time->GetEngValue(0, seconds));
+  EXPECT_DOUBLE_EQ(seconds, 60.0);
+  EXPECT_TRUE(time->GetEngValue(1, seconds));
+  EXPECT_DOUBLE_EQ(seconds, 61.0);
+}
+
 TEST_F(TestAppend, Mdf4AppendTest) {
   if (kSkipTest) {
     GTEST_SKIP();

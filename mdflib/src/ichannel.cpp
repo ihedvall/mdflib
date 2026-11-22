@@ -1,6 +1,8 @@
 
 #include "mdf/ichannel.h"
 
+#include <cmath>
+#include <limits>
 #include <ctime>
 #include <string>
 
@@ -971,8 +973,22 @@ void IChannel::SetTimestamp(double timestamp,
   } else if (conversion != nullptr && conversion->Type() != ConversionType::NoConversion) {
     return;
   }
-
+  // The division can put a whole tick just below the integer, and the casts
+  // below truncate. Only such rounding errors snap to the whole tick.
   const size_t bytes = BitCount() / 8;
+  if (DataType() <= ChannelDataType::SignedIntegerBe && bytes > 0 && bytes <= 8) {
+    const double tick = std::round(timestamp);
+    // Far from zero the quotient itself is coarse, so the window stays small.
+    const double tolerance =
+        std::fmin(2 * std::numeric_limits<double>::epsilon() *
+                      std::fmax(1.0, std::fabs(tick)), 0.0625);
+    const bool is_signed = DataType() >= ChannelDataType::SignedIntegerLe;
+    const double limit = std::ldexp(1.0, static_cast<int>(8 * bytes) - (is_signed ? 1 : 0));
+    if (std::fabs(timestamp - tick) <= tolerance && tick < limit &&
+        tick >= (is_signed ? -limit : 0.0)) {
+      timestamp = tick;
+    }
+  }
 
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerBe:

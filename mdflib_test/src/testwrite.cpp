@@ -2738,6 +2738,52 @@ TEST_F(TestWrite, MultiCGWithoutMasterChannel) {
   }
 }
 
+TEST_F(TestWrite, Mdf4IntegerMasterTicks) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("integer_master.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  constexpr uint64_t kTicks = 64;
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::SignedIntegerLe);
+    master->DataBytes(8);
+    auto* conversion = master->CreateChannelConversion();
+    conversion->Type(ConversionType::Linear);
+    conversion->Parameter(0, 0.0);
+    conversion->Parameter(1, 1e-9);  // One tick is one nanosecond
+    ASSERT_TRUE(writer->InitMeasurement());
+    const auto start = TimeStampToNs();
+    writer->StartMeasurement(start);
+    for (uint64_t tick = 0; tick < kTicks; ++tick) {
+      writer->SaveSample(*group, start + tick);
+    }
+    writer->StopMeasurement(start + kTicks);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+  auto master = CreateChannelObserver(*data_group, "Time");
+  ASSERT_TRUE(master);
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  ASSERT_EQ(master->NofSamples(), kTicks);
+  for (uint64_t tick = 0; tick < kTicks; ++tick) {
+    int64_t value = -1;
+    master->GetChannelValue(tick, value);
+    EXPECT_EQ(value, static_cast<int64_t>(tick));
+  }
+}
+
 TEST_F(TestWrite, MdfCompressConverter) {
   if (kSkipTest) {
     GTEST_SKIP();

@@ -21,6 +21,7 @@ class ChannelObserver : public IChannelObserver {
  private:
   uint64_t record_id_ = 0;
   std::vector<T> value_list_;
+  std::vector<uint64_t> storage_index_; ///< Record order of an inverse layout array
 
   const IChannelGroup& group_;       ///< Reference to the channel group (CG) block.
 
@@ -77,6 +78,25 @@ class ChannelObserver : public IChannelObserver {
 
     if (channel_.Type() == ChannelType::VariableLength) {
       offset_list_.resize(static_cast<size_t>(group.NofSamples() * array_size), 0);
+    }
+    // An inverse layout stores the first dimension fastest (column order),
+    // while the observer keeps the elements in row order.
+    if (const auto* array = channel_.ChannelArray(0);
+        array != nullptr && (array->Flags() & CaFlag::InverseLayout) != 0 &&
+        array_size > 1 && array->NofArrayValues() == array_size) {
+      const auto& shape = array->Shape();
+      std::vector<uint64_t> stride(shape.size(), 1);
+      for (size_t dim = 1; dim < shape.size(); ++dim) {
+        stride[dim] = stride[dim - 1] * shape[dim - 1];
+      }
+      storage_index_.resize(static_cast<size_t>(array_size), 0);
+      for (uint64_t index = 0; index < array_size; ++index) {
+        uint64_t rest = index;
+        for (size_t dim = shape.size(); dim-- > 0;) {
+          storage_index_[index] += (rest % shape[dim]) * stride[dim];
+          rest /= shape[dim];
+        }
+      }
     }
     InitPlainValue(array_size);
   }
@@ -193,7 +213,8 @@ class ChannelObserver : public IChannelObserver {
         if (record_id_ == record_id) {
           for (uint64_t array_index = 0; array_index < array_size; ++array_index) {
             const auto sample_index = static_cast<size_t>((sample * array_size) + array_index);
-            valid = channel_.GetChannelValue(record, value, array_index);
+            valid = channel_.GetChannelValue(record, value,
+                storage_index_.empty() ? array_index : storage_index_[array_index]);
             if (sample_index < value_list_.size()) {
               value_list_[sample_index] = value;
             }

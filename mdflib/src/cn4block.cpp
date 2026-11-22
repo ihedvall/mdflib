@@ -994,8 +994,8 @@ void Cn4Block::Init(const MdfBlock &id_block) {
   }
 }
 
-void Cn4Block::AddCc4(std::unique_ptr<Cc4Block> &cc4) {
-  cc_block_ = std::move(cc4);
+void Cn4Block::AddCc4(const std::shared_ptr<Cc4Block> &cc4) {
+  cc_block_ = cc4;
 }
 
 void Cn4Block::Sync(ChannelSyncType type) {
@@ -1056,7 +1056,7 @@ ISourceInformation *Cn4Block::CreateSourceInformation() {
 
 IChannelConversion *Cn4Block::CreateChannelConversion() {
   if (!cc_block_) {
-    cc_block_ = std::make_unique<Cc4Block>();
+    cc_block_ = std::make_shared<Cc4Block>();
     cc_block_->Init(*this);
   }
   cc_block_->ChannelDataType(data_type_);

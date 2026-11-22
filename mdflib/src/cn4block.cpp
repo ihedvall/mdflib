@@ -895,7 +895,7 @@ void Cn4Block::SetTextValue(const std::string &value, bool valid) {
     if (bit_count_ == 0) {
       SetValid(false,0);
     } else {
-      SetUnsignedValueLe(index, true,0);
+      SetUnsignedValueLe(index, valid, 0);
     }
   } else {
     // Fixed length handle by interface class
@@ -924,7 +924,7 @@ void Cn4Block::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
     if (bit_count_ == 0) {
       SetValid(false,0);
     } else {
-      SetUnsignedValueLe(index, true,0);
+      SetUnsignedValueLe(index, valid, 0);
     }
   } else {
     // Fixed length handle by interface class

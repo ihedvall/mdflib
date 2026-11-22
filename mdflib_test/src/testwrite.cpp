@@ -2596,6 +2596,60 @@ TEST_F(TestWrite, Mdf4Mime) {
   }
 }
 
+TEST_F(TestWrite, Mdf4VlsdInvalidValue) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("vlsd_invalid.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* text = group->CreateChannel("Text");
+    text->Type(ChannelType::VariableLength);
+    text->Flags(CnFlag::InvalidValid);
+    text->DataType(ChannelDataType::StringUTF8);
+    text->DataBytes(8);
+    auto* bytes = group->CreateChannel("Bytes");
+    bytes->Type(ChannelType::VariableLength);
+    bytes->Flags(CnFlag::InvalidValid);
+    bytes->DataType(ChannelDataType::ByteArray);
+    bytes->DataBytes(8);
+    ASSERT_TRUE(writer->InitMeasurement());
+    const auto start = TimeStampToNs();
+    writer->StartMeasurement(start);
+    for (const bool valid : {true, false}) {
+      text->SetChannelValue(std::string("state"), valid);
+      bytes->SetChannelValue(std::vector<uint8_t>{1, 2}, valid);
+      writer->SaveSample(*group, start);
+    }
+    writer->StopMeasurement(start);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+  auto text = CreateChannelObserver(*data_group, "Text");
+  auto bytes = CreateChannelObserver(*data_group, "Bytes");
+  ASSERT_TRUE(text && bytes);
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  std::string value;
+  EXPECT_TRUE(text->GetChannelValue(0, value));
+  EXPECT_FALSE(text->GetChannelValue(1, value));
+  std::vector<uint8_t> array;
+  EXPECT_TRUE(bytes->GetChannelValue(0, array));
+  EXPECT_FALSE(bytes->GetChannelValue(1, array));
+}
+
 TEST_F(TestWrite, MultiCGWithoutMasterChannel) {
   if (kSkipTest) {
     GTEST_SKIP();

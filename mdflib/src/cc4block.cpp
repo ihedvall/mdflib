@@ -508,7 +508,9 @@ bool Cc4Block::ConvertTextToTranslation(const std::string& channel_value,
     }
     const auto& txt = ref_list_[value_index];
     if (!txt) {
-      return false;
+      // A NIL output or default text keeps the input text
+      eng_value = channel_value;
+      return true;
     }
     if (txt->BlockType() != "TX") {
       return false;

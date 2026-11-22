@@ -1025,6 +1025,53 @@ TEST_F(TestWrite, Mdf4TextConversionsInObserver) {
   EXPECT_EQ(text, "other");
 }
 
+TEST_F(TestWrite, Mdf4TextTranslationNil) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("text_translation_nil.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  int64_t position = 0;
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* channel = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group")->CreateChannel("Label");
+    channel->DataType(ChannelDataType::StringUTF8);
+    channel->DataBytes(8);
+    auto* conv = channel->CreateChannelConversion();
+    conv->Type(ConversionType::TextToTranslation);
+    conv->Reference(0, "warm");  // The output of "warm" stays NIL
+    conv->Reference(2, "cold");
+    conv->Reference(3, "");  // An empty text, not NIL
+    conv->Reference(4, "No translation");
+    ASSERT_TRUE(writer->InitMeasurement());
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+    position = conv->Index();
+  }
+  {
+    // The writer cannot write a NIL default, so clear the fifth reference link
+    std::fstream file(mdf_file, std::ios::in | std::ios::out | std::ios::binary);
+    file.seekp(position + 24 + (8 * 8));
+    const uint64_t nil = 0;
+    file.write(reinterpret_cast<const char*>(&nil), sizeof(nil));
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* conv = reader.GetFile()->Header()->LastDataGroup()
+      ->ChannelGroups()[0]->Channels()[0]->ChannelConversion();
+  ASSERT_TRUE(conv != nullptr);
+  std::string text;
+  EXPECT_TRUE(conv->Convert(std::string("warm"), text));
+  EXPECT_EQ(text, "warm");
+  EXPECT_TRUE(conv->Convert(std::string("cold"), text));
+  EXPECT_EQ(text, "");
+  EXPECT_TRUE(conv->Convert(std::string("other"), text));
+  EXPECT_EQ(text, "other");
+}
+
 TEST_F(TestWrite, Mdf4CopyValueToText) {
   if (kSkipTest) {
     GTEST_SKIP();

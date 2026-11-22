@@ -9,6 +9,7 @@
 #include <string_view>
 #include <map>
 #include <filesystem>
+#include <fstream>
 
 #include "mdf/mdftask.h"
 #include "mdf/mdflogstream.h"
@@ -431,5 +432,50 @@ TEST_F(TestMdfTask, TestMdfToCsvTask) {
   }
   MdfLogStream::SetLogLevel(MdfLogSeverity::kTrace);
   EXPECT_GT(nof_sorted, 0);
+}
+
+TEST_F(TestMdfTask, TestCsvQuotes) {
+  path source_file(kTestDir);
+  source_file.append("csv_quotes.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* state = group->CreateChannel("State \"A\"");
+    state->DataType(ChannelDataType::StringUTF8);
+    state->DataBytes(16);
+    state->Unit("V \"rms\"");
+    ASSERT_TRUE(writer->InitMeasurement());
+    const uint64_t start = MdfHelper::NowNs();
+    writer->StartMeasurement(start);
+    state->SetChannelValue(std::string("said \"on\""));
+    writer->SaveSample(*group, start);
+    writer->StopMeasurement(start);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  auto task = MdfFactory::CreateTask(MdfTaskType::MdfConvertToCsvTask);
+  ASSERT_TRUE(task);
+  task->SourceFile(source_file.string());
+  path dest_file(kTestDir);
+  dest_file.append("csv_quotes.csv");
+  task->DestinationFile(dest_file.string());
+  task->Run();
+  ASSERT_TRUE(task->Result());
+
+  std::ifstream csv(dest_file);
+  std::string header;
+  std::string row;
+  std::getline(csv, header);
+  std::getline(csv, row);
+  // A quote inside a quoted field is written twice
+  EXPECT_NE(header.find("\"State \"\"A\"\" [V \"\"rms\"\"]\""), std::string::npos)
+      << header;
+  EXPECT_NE(row.find("\"said \"\"on\"\"\""), std::string::npos) << row;
 }
 }  // namespace mdf::test

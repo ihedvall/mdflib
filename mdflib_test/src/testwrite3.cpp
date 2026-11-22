@@ -249,4 +249,52 @@ TEST_F(TestWrite3, TestManyChannel) {
       }
   }
 }
+
+TEST_F(TestWrite3, Mdf3LinearConversion) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path test_file(kTestDir);
+  test_file.append("linear_conversion.dat");
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf3Basic);
+  ASSERT_TRUE(writer->Init(test_file.string()));
+  auto* cg3 = MdfWriter::CreateChannelGroup(writer->CreateDataGroup());
+  ASSERT_TRUE(cg3 != nullptr);
+  auto* master = MdfWriter::CreateChannel(cg3);
+  master->Name("Time");
+  master->Type(ChannelType::Master);
+  master->DataType(ChannelDataType::FloatLe);
+  master->DataBytes(8);
+  auto* pressure = MdfWriter::CreateChannel(cg3);
+  pressure->Name("Pressure");
+  pressure->DataType(ChannelDataType::UnsignedIntegerLe);
+  pressure->DataBytes(2);
+  auto* linear = pressure->CreateChannelConversion();
+  linear->Type(ConversionType::Linear);
+  linear->Parameter(0, 10.0);  // Offset
+  linear->Parameter(1, 0.5);   // Factor
+
+  ASSERT_TRUE(writer->InitMeasurement());
+  const uint64_t start = MdfHelper::NowNs();
+  writer->StartMeasurement(start);
+  for (const uint64_t raw : {100, 150}) {
+    pressure->SetChannelValue(raw);
+    writer->SaveSample(*cg3, start);
+  }
+  writer->StopMeasurement(start);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(test_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* dg = reader.GetFile()->Header()->LastDataGroup();
+  ASSERT_TRUE(dg != nullptr);
+  auto observer = CreateChannelObserver(*dg, "Pressure");
+  ASSERT_TRUE(observer);
+  ASSERT_TRUE(reader.ReadData(*dg));
+  double value = 0.0;
+  EXPECT_TRUE(observer->GetEngValue(0, value));
+  EXPECT_DOUBLE_EQ(value, 60.0);
+  EXPECT_TRUE(observer->GetEngValue(1, value));
+  EXPECT_DOUBLE_EQ(value, 85.0);
+}
 }  // namespace mdf

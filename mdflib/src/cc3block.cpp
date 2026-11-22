@@ -314,7 +314,7 @@ uint64_t Cc3Block::Write(std::streambuf& buffer) {
       nof_values_ = static_cast<uint16_t>(value_list_.size());
       bytes += WriteNumber(buffer, nof_values_);
       for (auto par : value_list_) {
-        bytes += WriteNumber(buffer, par);
+        bytes += WriteNumber(buffer, std::get<double>(par));
       }
       break;
 
@@ -323,7 +323,7 @@ uint64_t Cc3Block::Write(std::streambuf& buffer) {
       nof_values_ = static_cast<uint16_t>(value_list_.size() / 2);
       bytes += WriteNumber(buffer, nof_values_);
       for (auto par : value_list_) {
-        bytes += WriteNumber(buffer, par);
+        bytes += WriteNumber(buffer, std::get<double>(par));
       }
       break;
 

@@ -1007,6 +1007,9 @@ void IChannel::SetTimestamp(double timestamp,
       } else if (bytes == 8) {
         const BigBuffer data(static_cast<uint64_t>(timestamp));
         memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes > 0) {  // 3, 5, 6 or 7 bytes, to the nearest tick
+        const BigBuffer data(static_cast<uint64_t>(std::round(timestamp)));
+        memcpy(record_buffer.data() + ByteOffset(), data.data() + 8 - bytes, bytes);
       }
       break;
 
@@ -1026,6 +1029,9 @@ void IChannel::SetTimestamp(double timestamp,
       } else if (bytes == 8) {
         const LittleBuffer data(static_cast<uint64_t>(timestamp));
         memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes > 0) {  // 3, 5, 6 or 7 bytes, to the nearest tick
+        const LittleBuffer data(static_cast<uint64_t>(std::round(timestamp)));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
       }
       break;
 
@@ -1042,6 +1048,9 @@ void IChannel::SetTimestamp(double timestamp,
       } else if (bytes == 8) {
         const BigBuffer data(static_cast<int64_t>(timestamp));
         memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes > 0) {  // 3, 5, 6 or 7 bytes, to the nearest tick
+        const BigBuffer data(static_cast<int64_t>(std::round(timestamp)));
+        memcpy(record_buffer.data() + ByteOffset(), data.data() + 8 - bytes, bytes);
       }
       break;
 
@@ -1057,6 +1066,9 @@ void IChannel::SetTimestamp(double timestamp,
         memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
       } else if (bytes == 8) {
         const LittleBuffer data(static_cast<int64_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes > 0) {  // 3, 5, 6 or 7 bytes, to the nearest tick
+        const LittleBuffer data(static_cast<int64_t>(std::round(timestamp)));
         memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
       }
       break;

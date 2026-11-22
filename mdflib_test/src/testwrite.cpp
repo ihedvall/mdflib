@@ -3025,6 +3025,38 @@ TEST_F(TestWrite, MdfNotCompressConverter) {
   }
 }
 
+TEST_F(TestWrite, Mdf4SetTimestampSixBytes) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("timestamp_six_bytes.mf4");
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+  // A 48-bit time stamp as CANedge loggers store it, here in 10 us ticks.
+  // The value needs more than 32 bits.
+  for (const auto type : {ChannelDataType::UnsignedIntegerLe,
+                          ChannelDataType::UnsignedIntegerBe}) {
+    auto* time = group->CreateChannel(
+        type == ChannelDataType::UnsignedIntegerLe ? "TimeLe" : "TimeBe");
+    time->Type(ChannelType::Master);
+    time->Sync(ChannelSyncType::Time);
+    time->DataType(type);
+    time->DataBytes(6);
+    auto* tick = time->CreateChannelConversion();
+    tick->Type(ConversionType::Linear);
+    tick->Parameter(0, 0.0);
+    tick->Parameter(1, 1E-5);
+    std::vector<uint8_t> record(6, 0);
+    // Just below a whole tick, as after a cut, stays on that tick
+    time->SetTimestamp(100000.0254 - 0.01E-5, record);
+    uint64_t ticks = 0;
+    EXPECT_TRUE(time->GetChannelValue(record, ticks)) << time->Name();
+    EXPECT_EQ(ticks, 10'000'002'540) << time->Name();
+  }
+}
+
 TEST_F(TestWrite, MdfConverterSavesBeforeStop) {
   if (kSkipTest) {
     GTEST_SKIP();

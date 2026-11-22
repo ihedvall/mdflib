@@ -980,12 +980,20 @@ TEST_F(TestWrite, Mdf4TextConversionsInObserver) {
     to_text->Reference(0, "warm");
     to_text->Reference(1, "Ready now");
     to_text->Reference(2, "No translation");  // Default text
+    auto* log = group->CreateChannel("Log");  // Text with a numeric conversion
+    log->DataType(ChannelDataType::StringUTF8);
+    log->DataBytes(8);
+    auto* linear = log->CreateChannelConversion();
+    linear->Type(ConversionType::Linear);
+    linear->Parameter(0, 0.0);
+    linear->Parameter(1, 1.0);
     writer->InitMeasurement();
     const auto start = TimeStampToNs();
     writer->StartMeasurement(start);
     for (const char* text : {"warm", "other"}) {
       number->SetChannelValue(std::string(text));
       label->SetChannelValue(std::string(text));
+      log->SetChannelValue(std::string(text));
       writer->SaveSample(*group, start);
     }
     writer->StopMeasurement(start);
@@ -997,7 +1005,8 @@ TEST_F(TestWrite, Mdf4TextConversionsInObserver) {
   auto* data_group = reader.GetFile()->Header()->LastDataGroup();
   auto number = CreateChannelObserver(*data_group, "Number");
   auto label = CreateChannelObserver(*data_group, "Label");
-  ASSERT_TRUE(number && label);
+  auto log = CreateChannelObserver(*data_group, "Log");
+  ASSERT_TRUE(number && label && log);
   ASSERT_TRUE(reader.ReadData(*data_group));
 
   double value = 0.0;
@@ -1012,6 +1021,8 @@ TEST_F(TestWrite, Mdf4TextConversionsInObserver) {
   EXPECT_EQ(text, "Ready now");
   EXPECT_TRUE(label->GetEngValue(1, text));
   EXPECT_EQ(text, "No translation");
+  EXPECT_TRUE(log->GetEngValue(1, text));
+  EXPECT_EQ(text, "other");
 }
 
 TEST_F(TestWrite, Mdf4CopyValueToText) {

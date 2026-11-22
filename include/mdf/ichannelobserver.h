@@ -378,10 +378,13 @@ bool IChannelObserver::GetEngValue(uint64_t sample, V& value, uint64_t array_ind
         break;
       }
       if constexpr (std::is_same_v<V, std::string>) {
-        valid = conversion->Convert(v, value);  // The whole text
+        // A numeric conversion on a text channel leaves the text as it is
+        if (!conversion->Convert(v, value)) {  // The whole text
+          value = v;
+        }
       } else {
         std::string temp;
-        valid = conversion->Convert(v, temp);
+        conversion->Convert(v, temp);
         std::istringstream temp1(temp);
         temp1 >> value;
       }

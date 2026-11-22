@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include <set>
 #include <string>
 #include <vector>
 namespace mdf {
@@ -40,6 +41,7 @@ class CreateFileList final {
   std::vector<std::string> directories_;
   std::vector<std::string> files_;
   std::string output_path_;
+  std::set<std::string> csv_names_; ///< CSV names written in this run.
 
 
 };

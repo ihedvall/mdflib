@@ -44,7 +44,7 @@ CsvWriter::~CsvWriter() {
   }
 }
 
-void CsvWriter::Convert(ChannelObserverList& observer_list) {
+bool CsvWriter::Convert(ChannelObserverList& observer_list) {
   std::vector<const IChannelObserver*> obs_list;
 
   // Add master channel(s) first in the list
@@ -73,14 +73,15 @@ void CsvWriter::Convert(ChannelObserverList& observer_list) {
   }
 
   if (obs_list.empty()) {
-    return;
+    return false;
   }
 
   size_t nof_samples = observer_list[0]->NofSamples();
   if (nof_samples == 0) {
-    return;
+    return false;
   }
 
+  bool saved = false;
   try {
     file_.open(temp_filename_, std::ios::out | std::ios::trunc);
     // HEADER LINE
@@ -118,6 +119,7 @@ void CsvWriter::Convert(ChannelObserverList& observer_list) {
     }
     file_.close();
     std::filesystem::rename(temp_filename_, dest_filename_);
+    saved = true;
   } catch (const std::exception& err) {
     MDF_ERROR() << "File save error. Error: " << err.what();
   }
@@ -129,6 +131,7 @@ void CsvWriter::Convert(ChannelObserverList& observer_list) {
   } catch (const std::exception& err) {
     MDF_ERROR() << "File close error. Error: " << err.what();
   }
+  return saved;
 }
 
 std::string CsvWriter::CsvText(std::string& csv_text) const {

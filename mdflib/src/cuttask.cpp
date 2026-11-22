@@ -151,7 +151,18 @@ void CutTask::CutFile() {
         const auto time_offset = static_cast<int64_t>(MinTime() * 1'000'000'000);
         start_time += time_offset;
       }
-      writer_->StartMeasurement(start_time);
+      // Keep the time zone of the source file. The numeric start time would
+      // get the time zone of this computer.
+      const auto* source_time = source_header->StartTimestamp();
+      if (source_time != nullptr &&
+          source_time->GetTimeType() == timetype::kTimezoneTime) {
+        TimezoneTimestamp timestamp(
+            start_time, static_cast<int16_t>(source_time->GetTzOffsetMin()),
+            static_cast<int16_t>(source_time->GetDstOffsetMin()));
+        writer_->StartMeasurement(timestamp);
+      } else {
+        writer_->StartMeasurement(start_time);
+      }
       reader_->ReadData(*source_dg);
       uint64_t stop_time = start_time;
       for (auto& sample_observer : observer_list) {

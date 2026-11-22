@@ -503,6 +503,55 @@ TEST_F(TestMdfTask, TestCutTask) {
   EXPECT_GT(nof_cut, 0);
 }
 
+TEST_F(TestMdfTask, TestTaskKeepsTimeZone) {
+  // Mdf4Timestamp::SetTime(uint64_t) only writes a DST offset of 0 or 60 minutes
+  constexpr int16_t kTimezoneMin = 345;
+  constexpr int16_t kDstMin = 30;
+  constexpr uint64_t kStartTime = 1'689'489'600'000'000'000;
+
+  path source_file(kTestDir);
+  source_file.append("time_zone.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* data_group = writer->Header()->CreateDataGroup();
+    auto* group = data_group->CreateChannelGroup();
+    auto* master = group->CreateChannel();
+    master->Name("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+
+    ASSERT_TRUE(writer->InitMeasurement());
+    TimezoneTimestamp start(kStartTime, kTimezoneMin, kDstMin);
+    writer->StartMeasurement(start);
+    writer->SaveSample(*group, kStartTime);
+    writer->StopMeasurement(kStartTime);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  for (const auto type : {MdfTaskType::MdfCuttingTask,
+                          MdfTaskType::MdfSortingTask}) {
+    auto task = MdfFactory::CreateTask(type);
+    ASSERT_TRUE(task);
+    task->SourceFile(source_file.string());
+    path dest_file(kTestDir);
+    dest_file.append(type == MdfTaskType::MdfCuttingTask ? "time_zone_cut.mf4"
+                                                         : "time_zone_sort.mf4");
+    task->DestinationFile(dest_file.string());
+    task->Run();
+    ASSERT_TRUE(task->Result());
+
+    MdfReader reader(dest_file.string());
+    ASSERT_TRUE(reader.ReadHeader());
+    const auto* timestamp = reader.GetHeader()->StartTimestamp();
+    ASSERT_TRUE(timestamp != nullptr);
+    EXPECT_EQ(timestamp->GetTzOffsetMin(), kTimezoneMin);
+    EXPECT_EQ(timestamp->GetDstOffsetMin(), kDstMin);
+  }
+}
+
 TEST_F(TestMdfTask, TestMdfToCsvTask) {
   if (kSkipTest) {
     GTEST_SKIP();

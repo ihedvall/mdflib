@@ -271,7 +271,10 @@ void Dg3Block::ParseRangeDataRecords(std::streambuf& buffer, uint64_t nof_data_b
       count += ReadNumber(buffer, record_id);
     }
     const auto *cg3 = FindCgRecordId(record_id);
-    const auto* cg_range = range.GetCgRange(record_id);
+    // The range is keyed by the group's record ID. Without record ID bytes,
+    // record_id stays 0.
+    const auto* cg_range = range.GetCgRange(
+        nof_record_id_ == 0 && cg3 != nullptr ? cg3->RecordId() : record_id);
     if (cg3 == nullptr || cg_range == nullptr) {
       break;
     }

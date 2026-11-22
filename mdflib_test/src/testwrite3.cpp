@@ -118,6 +118,49 @@ TEST_F(TestWrite3, Mdf3WriteHD) {
   writer->FinalizeMeasurement();
 }
 
+TEST_F(TestWrite3, Mdf3PartialReadRecordId) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path test_file(kTestDir);
+  test_file.append("partial_read_record_id.mdf");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf3Basic);
+    ASSERT_TRUE(writer->Init(test_file.string()));
+    auto* dg3 = writer->CreateDataGroup();
+    auto* cg3 = MdfWriter::CreateChannelGroup(dg3);
+    ASSERT_TRUE(cg3 != nullptr);
+    cg3->RecordId(1);  // A single group stores no record ID bytes
+    auto* master = MdfWriter::CreateChannel(cg3);
+    master->Name("Time");
+    master->Type(ChannelType::Master);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(4);
+
+    constexpr uint64_t start = 1'700'000'000'000'000'000;
+    ASSERT_TRUE(writer->InitMeasurement());
+    writer->StartMeasurement(start);
+    writer->SaveSample(*cg3, start + 1'000'000'000);
+    writer->SaveSample(*cg3, start + 2'000'000'000);
+    writer->StopMeasurement(start + 3'000'000'000);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(test_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* dg = reader.GetHeader()->LastDataGroup();
+  ASSERT_TRUE(dg != nullptr);
+  const auto* cg = dg->ChannelGroups().front();
+  ASSERT_EQ(cg->RecordId(), 1);
+  auto observer = CreateChannelObserver(*dg, *cg, *cg->Channels().front());
+  ASSERT_TRUE(observer);
+  ASSERT_TRUE(reader.ReadPartialData(*dg, 0, 1));
+
+  double value = 0;
+  EXPECT_TRUE(observer->GetChannelValue(0, value));
+  EXPECT_DOUBLE_EQ(value, 1.0);
+}
+
 TEST_F(TestWrite3, TestManyChannel) {
   if (kSkipTest) {
     GTEST_SKIP();

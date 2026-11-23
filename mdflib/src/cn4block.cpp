@@ -221,7 +221,17 @@ void Cn4Block::Name(const std::string &name) { name_ = name; }
 std::string Cn4Block::Name() const { return name_; }
 
 void Cn4Block::DisplayName(const std::string &name) {
-  // No support in MDF4
+  // MF4 stores display names in the channel comment: <names><display>
+  if (name.empty() && DisplayName().empty()) {
+    return;  // Nothing to remove, the comment stays as it is
+  }
+  CnComment comment;
+  GetCnComment(comment);
+  comment.Names().DisplayNames().clear();
+  if (!name.empty()) {
+    comment.Names().AddDisplayName(MdString(name));
+  }
+  SetCnComment(comment);
 }
 
 std::string Cn4Block::DisplayName() const {
@@ -895,7 +905,7 @@ void Cn4Block::SetTextValue(const std::string &value, bool valid) {
     if (bit_count_ == 0) {
       SetValid(false,0);
     } else {
-      SetUnsignedValueLe(index, true,0);
+      SetUnsignedValueLe(index, valid, 0);
     }
   } else {
     // Fixed length handle by interface class
@@ -924,7 +934,7 @@ void Cn4Block::SetByteArray(const std::vector<uint8_t> &value, bool valid) {
     if (bit_count_ == 0) {
       SetValid(false,0);
     } else {
-      SetUnsignedValueLe(index, true,0);
+      SetUnsignedValueLe(index, valid, 0);
     }
   } else {
     // Fixed length handle by interface class

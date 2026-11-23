@@ -875,7 +875,7 @@ TEST_F(TestWrite, Mdf4WriteCN_SI_CC) {
         EXPECT_GT(cn4->Index(),0);
         EXPECT_STREQ(cn4->BlockType().c_str(), "CN");
         EXPECT_STREQ(cn4->Name().c_str(), "Ch1-Name");
-        EXPECT_STREQ(cn4->DisplayName().c_str(), "");
+        EXPECT_STREQ(cn4->DisplayName().c_str(), "Ch1-DisplayName");
         EXPECT_STREQ(cn4->Description().c_str(), "Ch1-Desc");
         EXPECT_STREQ(cn4->Unit().c_str(), "Ch1-Unit");
         EXPECT_TRUE(cn4->IsUnitValid());
@@ -2760,6 +2760,60 @@ TEST_F(TestWrite, Mdf4Mime) {
   }
 }
 
+TEST_F(TestWrite, Mdf4VlsdInvalidValue) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("vlsd_invalid.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* text = group->CreateChannel("Text");
+    text->Type(ChannelType::VariableLength);
+    text->Flags(CnFlag::InvalidValid);
+    text->DataType(ChannelDataType::StringUTF8);
+    text->DataBytes(8);
+    auto* bytes = group->CreateChannel("Bytes");
+    bytes->Type(ChannelType::VariableLength);
+    bytes->Flags(CnFlag::InvalidValid);
+    bytes->DataType(ChannelDataType::ByteArray);
+    bytes->DataBytes(8);
+    ASSERT_TRUE(writer->InitMeasurement());
+    const auto start = TimeStampToNs();
+    writer->StartMeasurement(start);
+    for (const bool valid : {true, false}) {
+      text->SetChannelValue(std::string("state"), valid);
+      bytes->SetChannelValue(std::vector<uint8_t>{1, 2}, valid);
+      writer->SaveSample(*group, start);
+    }
+    writer->StopMeasurement(start);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+  auto text = CreateChannelObserver(*data_group, "Text");
+  auto bytes = CreateChannelObserver(*data_group, "Bytes");
+  ASSERT_TRUE(text && bytes);
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  std::string value;
+  EXPECT_TRUE(text->GetChannelValue(0, value));
+  EXPECT_FALSE(text->GetChannelValue(1, value));
+  std::vector<uint8_t> array;
+  EXPECT_TRUE(bytes->GetChannelValue(0, array));
+  EXPECT_FALSE(bytes->GetChannelValue(1, array));
+}
+
 TEST_F(TestWrite, MultiCGWithoutMasterChannel) {
   if (kSkipTest) {
     GTEST_SKIP();
@@ -2845,6 +2899,52 @@ TEST_F(TestWrite, MultiCGWithoutMasterChannel) {
       EXPECT_TRUE(valid);
       EXPECT_DOUBLE_EQ(value, static_cast<double>(sample));
     }
+  }
+}
+
+TEST_F(TestWrite, Mdf4IntegerMasterTicks) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("integer_master.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  constexpr uint64_t kTicks = 64;
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::SignedIntegerLe);
+    master->DataBytes(8);
+    auto* conversion = master->CreateChannelConversion();
+    conversion->Type(ConversionType::Linear);
+    conversion->Parameter(0, 0.0);
+    conversion->Parameter(1, 1e-9);  // One tick is one nanosecond
+    ASSERT_TRUE(writer->InitMeasurement());
+    const auto start = TimeStampToNs();
+    writer->StartMeasurement(start);
+    for (uint64_t tick = 0; tick < kTicks; ++tick) {
+      writer->SaveSample(*group, start + tick);
+    }
+    writer->StopMeasurement(start + kTicks);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+  auto master = CreateChannelObserver(*data_group, "Time");
+  ASSERT_TRUE(master);
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  ASSERT_EQ(master->NofSamples(), kTicks);
+  for (uint64_t tick = 0; tick < kTicks; ++tick) {
+    int64_t value = -1;
+    master->GetChannelValue(tick, value);
+    EXPECT_EQ(value, static_cast<int64_t>(tick));
   }
 }
 
@@ -3086,6 +3186,38 @@ TEST_F(TestWrite, MdfNotCompressConverter) {
         EXPECT_DOUBLE_EQ(value, static_cast<double>(sample));
       }
     }
+  }
+}
+
+TEST_F(TestWrite, Mdf4SetTimestampSixBytes) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("timestamp_six_bytes.mf4");
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+  // A 48-bit time stamp as CANedge loggers store it, here in 10 us ticks.
+  // The value needs more than 32 bits.
+  for (const auto type : {ChannelDataType::UnsignedIntegerLe,
+                          ChannelDataType::UnsignedIntegerBe}) {
+    auto* time = group->CreateChannel(
+        type == ChannelDataType::UnsignedIntegerLe ? "TimeLe" : "TimeBe");
+    time->Type(ChannelType::Master);
+    time->Sync(ChannelSyncType::Time);
+    time->DataType(type);
+    time->DataBytes(6);
+    auto* tick = time->CreateChannelConversion();
+    tick->Type(ConversionType::Linear);
+    tick->Parameter(0, 0.0);
+    tick->Parameter(1, 1E-5);
+    std::vector<uint8_t> record(6, 0);
+    // Just below a whole tick, as after a cut, stays on that tick
+    time->SetTimestamp(100000.0254 - 0.01E-5, record);
+    uint64_t ticks = 0;
+    EXPECT_TRUE(time->GetChannelValue(record, ticks)) << time->Name();
+    EXPECT_EQ(ticks, 10'000'002'540) << time->Name();
   }
 }
 

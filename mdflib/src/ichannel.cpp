@@ -1,6 +1,8 @@
 
 #include "mdf/ichannel.h"
 
+#include <cmath>
+#include <limits>
 #include <ctime>
 #include <string>
 
@@ -971,8 +973,22 @@ void IChannel::SetTimestamp(double timestamp,
   } else if (conversion != nullptr && conversion->Type() != ConversionType::NoConversion) {
     return;
   }
-
+  // The division can put a whole tick just below the integer, and the casts
+  // below truncate. Only such rounding errors snap to the whole tick.
   const size_t bytes = BitCount() / 8;
+  if (DataType() <= ChannelDataType::SignedIntegerBe && bytes > 0 && bytes <= 8) {
+    const double tick = std::round(timestamp);
+    // Far from zero the quotient itself is coarse, so the window stays small.
+    const double tolerance =
+        std::fmin(2 * std::numeric_limits<double>::epsilon() *
+                      std::fmax(1.0, std::fabs(tick)), 0.0625);
+    const bool is_signed = DataType() >= ChannelDataType::SignedIntegerLe;
+    const double limit = std::ldexp(1.0, static_cast<int>(8 * bytes) - (is_signed ? 1 : 0));
+    if (std::fabs(timestamp - tick) <= tolerance && tick < limit &&
+        tick >= (is_signed ? -limit : 0.0)) {
+      timestamp = tick;
+    }
+  }
 
   switch (DataType()) {
     case ChannelDataType::UnsignedIntegerBe:
@@ -991,6 +1007,9 @@ void IChannel::SetTimestamp(double timestamp,
       } else if (bytes == 8) {
         const BigBuffer data(static_cast<uint64_t>(timestamp));
         memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes > 0) {  // 3, 5, 6 or 7 bytes, to the nearest tick
+        const BigBuffer data(static_cast<uint64_t>(std::round(timestamp)));
+        memcpy(record_buffer.data() + ByteOffset(), data.data() + 8 - bytes, bytes);
       }
       break;
 
@@ -1010,6 +1029,9 @@ void IChannel::SetTimestamp(double timestamp,
       } else if (bytes == 8) {
         const LittleBuffer data(static_cast<uint64_t>(timestamp));
         memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes > 0) {  // 3, 5, 6 or 7 bytes, to the nearest tick
+        const LittleBuffer data(static_cast<uint64_t>(std::round(timestamp)));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
       }
       break;
 
@@ -1026,6 +1048,9 @@ void IChannel::SetTimestamp(double timestamp,
       } else if (bytes == 8) {
         const BigBuffer data(static_cast<int64_t>(timestamp));
         memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes > 0) {  // 3, 5, 6 or 7 bytes, to the nearest tick
+        const BigBuffer data(static_cast<int64_t>(std::round(timestamp)));
+        memcpy(record_buffer.data() + ByteOffset(), data.data() + 8 - bytes, bytes);
       }
       break;
 
@@ -1041,6 +1066,9 @@ void IChannel::SetTimestamp(double timestamp,
         memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
       } else if (bytes == 8) {
         const LittleBuffer data(static_cast<int64_t>(timestamp));
+        memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
+      } else if (bytes > 0) {  // 3, 5, 6 or 7 bytes, to the nearest tick
+        const LittleBuffer data(static_cast<int64_t>(std::round(timestamp)));
         memcpy(record_buffer.data() + ByteOffset(), data.data(), bytes);
       }
       break;

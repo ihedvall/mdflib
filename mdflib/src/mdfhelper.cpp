@@ -94,15 +94,11 @@ std::vector<uint8_t> MdfHelper::NsToCanOpenTimeArray(uint64_t ns_since_1970) {
   // uint16_t days since 1984-01-01
   std::vector<uint8_t> time_array(6, 0);
 
-  // Calculate second to 1984-01-01
-  struct tm bt{};
-  bt.tm_year = 84;
-  bt.tm_mon = 0;
-  bt.tm_mday = 1;
-  const auto sec_1984 = mktime(&bt);
+  // ns since 1970 are UTC in mdflib, so day 0 starts 1984-01-01 00:00 UTC.
+  constexpr uint64_t sec_1984 = 441'763'200;
 
   uint64_t ms_since_1984 = ns_since_1970 / 1'000'000;
-  ms_since_1984 -= static_cast<uint64_t>(sec_1984) * 1'000;
+  ms_since_1984 -= sec_1984 * 1'000;
 
   const auto days_since_1984 =
       static_cast<uint16_t>(ms_since_1984 / (24 * 3'600'000));
@@ -121,13 +117,9 @@ uint64_t MdfHelper::CanOpenTimeArrayToNs(const std::vector<uint8_t> &buffer) {
   const LittleBuffer<uint32_t> ms(buffer, 0);    // Milliseconds since midnight
   const LittleBuffer<uint16_t> days(buffer, 4);  // Days since 1984-01-01
 
-  struct tm time{};
-  time.tm_mday = 1;   // 1..31
-  time.tm_mon = 0;    // Note 0..11
-  time.tm_year = 84;  // Years since 1900
-
-  const auto sec_1984 = std::mktime(&time);  // Hope that epoch is 1970
-  uint64_t dest = static_cast<uint64_t>(sec_1984) * 1'000'000'000;
+  // ns since 1970 are UTC in mdflib, so day 0 starts 1984-01-01 00:00 UTC.
+  constexpr uint64_t sec_1984 = 441'763'200;
+  uint64_t dest = sec_1984 * 1'000'000'000;
   dest += static_cast<uint64_t>(days.value()) * 24 * 3'600'000'000'000;
   dest += static_cast<uint64_t>(ms.value()) * 1'000'000;
   return dest;

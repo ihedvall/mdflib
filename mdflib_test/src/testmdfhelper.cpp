@@ -83,6 +83,14 @@ TEST(MdfHelperTest, CanOpenTimeArrayToNs) {
   EXPECT_EQ(ref_ns, now);
 }
 
+TEST(MdfHelperTest, CanOpenTimeIsUtc) {
+  // 2025-11-16 12:34:56.789 UTC is day 15295 since 1984, 45296789 ms.
+  constexpr uint64_t ns = 1'763'296'496'789'000'000;
+  const std::vector<uint8_t> bytes = {0x95, 0x2C, 0xB3, 0x02, 0xBF, 0x3B};
+  EXPECT_EQ(MdfHelper::NsToCanOpenTimeArray(ns), bytes);
+  EXPECT_EQ(MdfHelper::CanOpenTimeArrayToNs(bytes), ns);
+}
+
 TEST(MdfHelperTest, NanoSeToDDMMYYYY) {
   uint64_t now = MdfHelper::NowNs();
   const std::string date = MdfHelper::NanoSecToDDMMYYYY(now);

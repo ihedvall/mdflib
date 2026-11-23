@@ -251,4 +251,42 @@ TEST_F(TestAppend, Mdf4AppendTest) {
   reader.Close();
 }
 
+TEST_F(TestAppend, Mdf4AppendStartTimeZero) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("start_zero.mf4");
+
+  // Files with header time 0 keep relative sample times from 0.
+  for (size_t measurement = 0; measurement < 2; ++measurement) {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel();
+    master->Name("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+
+    writer->PreTrigTime(0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    writer->StartMeasurement(0);
+    for (uint64_t sample = 0; sample < 5; ++sample) {
+      writer->SaveSample(*group, sample * 1'000'000'000);
+    }
+    writer->StopMeasurement(5'000'000'000);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto dg_list = reader.GetFile()->Header()->DataGroups();
+  ASSERT_EQ(dg_list.size(), 2);
+  for (auto* dg4 : dg_list) {
+    EXPECT_EQ(dg4->ChannelGroups().front()->NofSamples(), 5);
+  }
+}
+
 }  // namespace test

@@ -5,6 +5,8 @@
 
 #include "samplequeue.h"
 
+#include <algorithm>
+
 #include "mdf/mdflogstream.h"
 #include "mdf/mostmessage.h"
 #include "mdf/flexraymessage.h"
@@ -62,6 +64,8 @@ size_t SampleQueue::QueueSize() const {
 void SampleQueue::TrimQueue() {
   // Last Time - First Time <= Pre-trig time. Note that we must include start
   // sample, so ignore the last sample
+  // The writer sets the start time before the state, so read the state first.
+  const bool started = writer_.State() != WriteState::Init;
   const auto start_time = writer_.StartTime();
   const auto pre_trig_time = writer_.PreTrigTimeNs();
 
@@ -69,9 +73,9 @@ void SampleQueue::TrimQueue() {
 
     const auto next_time = queue_[1].timestamp;
     const auto last_time = queue_.back().timestamp;
-    if (start_time > 0) {
-      // Measurement started
-      if (next_time >= start_time - pre_trig_time) {
+    if (started) {
+      // Measurement started, also at start time 0
+      if (next_time >= start_time - std::min(start_time, pre_trig_time)) {
         break;
       }
     } else {

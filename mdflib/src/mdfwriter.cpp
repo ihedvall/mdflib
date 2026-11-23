@@ -277,8 +277,8 @@ bool MdfWriter::InitMeasurement() {
 }
 
 void MdfWriter::StartMeasurement(uint64_t start_time) {
+  start_time_ = start_time;  // Before the state, the queue reads both
   write_state_ = WriteState::StartMeas;
-  start_time_ = start_time;
   stop_time_ = 0;  // Zero indicate not stopped
 
   // The sample queue actual have absolute time. We have to recalculate the
@@ -298,8 +298,8 @@ void MdfWriter::StartMeasurement(uint64_t start_time) {
 }
 
 void MdfWriter::StartMeasurement(ITimestamp &start_time) {
-  write_state_ = WriteState::StartMeas;
   start_time_ = start_time.GetUtcTimeNs();
+  write_state_ = WriteState::StartMeas;
   stop_time_ = 0;  // Zero indicate not stopped
                    
   // The sample queue actual have absolute time. We have to recalculate the

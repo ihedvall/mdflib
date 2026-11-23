@@ -739,32 +739,17 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     }
 
     case ChannelDataType::CanOpenDate: {
-      uint64_t ms_since_1970 = 0;
-      valid = GetCanOpenDate(record_buffer, ms_since_1970);
-
-      const auto ms = ms_since_1970 % 1000;
-      const auto time = static_cast<time_t>(ms_since_1970 / 1000);
-      const struct tm *bt = std::localtime(&time);
-
-      std::ostringstream text;
-      text << std::put_time(bt, "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0')
-           << std::setw(3) << ms;
-      dest = text.str();
+      // The value is ns since 1970, shown as local time like a channel observer.
+      uint64_t ns_since_1970 = 0;
+      valid = GetCanOpenDate(record_buffer, ns_since_1970);
+      dest = MdfHelper::NsToLocalIsoTime(ns_since_1970);
       break;
     }
 
     case ChannelDataType::CanOpenTime: {
-      uint64_t ms_since_1970 = 0;
-      valid = GetCanOpenTime(record_buffer, ms_since_1970);
-
-      const auto ms = ms_since_1970 % 1000;
-      const auto time = static_cast<time_t>(ms_since_1970 / 1000);
-      const struct tm *bt = std::localtime(&time);
-
-      std::ostringstream text;
-      text << std::put_time(bt, "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0')
-           << std::setw(3) << ms;
-      dest = text.str();
+      uint64_t ns_since_1970 = 0;
+      valid = GetCanOpenTime(record_buffer, ns_since_1970);
+      dest = MdfHelper::NsToLocalIsoTime(ns_since_1970);
       break;
     }
 

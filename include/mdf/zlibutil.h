@@ -29,9 +29,7 @@ bool Deflate(std::streambuf& in, std::streambuf& out);  ///< Compress file to fi
  * Compress a byte array directly to another array.
  *
  * The input buffer data is compressed and sent to the output array.
- * The output array needs be sized to a size so the compressed data fits.
- * Normally it should be preset to the same size as the input.
- * The output array is resized to the new compressed size.
+ * The output array is grown if needed and then resized to the compressed size.
  *
  * The compress method is deflate according to ZLIB.
  * @param buf_in Input byte array with data.
@@ -44,9 +42,9 @@ bool Deflate(const ByteArray& buf_in,
 /**
  * Compress a file directly to an array.
  *
- * The file data is compressed and sent to an output array. Unlike the other
- * Deflate() functions, the output buffer doesn't need to be sized before
- * calling this function. The compress method is deflate according to ZLIB.
+ * The file data is compressed and sent to an output array. The output buffer
+ * doesn't need to be sized before calling this function. The compress method
+ * is deflate according to ZLIB.
  *
  * @param filename Full name of the file to compress.
  * @param buf_out Output byte array. The function resize the buffer

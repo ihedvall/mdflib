@@ -162,6 +162,12 @@ TEST(MdfHelperTest, FormatDouble) {
   const std::string fixed_text = MdfHelper::FormatDouble(ref_value2,
     2, true, "s");
   EXPECT_EQ(fixed_text, "1.30 s");
+
+  // Large values keep their digits, for example a time stamp in seconds
+  EXPECT_EQ(MdfHelper::FormatDouble(2398634.8948, 6), "2398634.8948");
+  EXPECT_EQ(MdfHelper::FormatDouble(123456.5, 3), "123456.5");
+  EXPECT_EQ(MdfHelper::FormatDouble(2398634.4, 0), "2398634");
+  EXPECT_EQ(MdfHelper::FormatDouble(1.5E20, 6), "1.5E+20");
 }
 
 TEST(MdfHelperTest, Latin1ToUtf8) {

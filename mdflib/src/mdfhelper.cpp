@@ -258,8 +258,11 @@ std::string MdfHelper::FormatDouble(double value, uint8_t decimals, bool fixed,
   // exponent
   const auto size = text.size();
   if (size > static_cast<size_t>(6 + decimals)) {
+    // Keep the integer digits and the decimals, a double holds 15 digits
+    const int digits = std::isfinite(value)
+        ? static_cast<int>(std::log10(std::fabs(value))) + 1 + decimals : 6;
     char temp[200]{};
-    snprintf(temp, sizeof(temp), "%G", value);
+    snprintf(temp, sizeof(temp), "%.*G", std::clamp(digits, 6, 15), value);
     text = temp;
   }
 

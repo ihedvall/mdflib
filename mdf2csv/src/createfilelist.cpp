@@ -23,6 +23,14 @@ void CreateFileList::MakeFileList(const std::vector<std::string>& input_files) {
   // Parse out the directories first
   try {
     files_ok_ = true;
+    // Overlapping inputs can list the same file twice. Convert it once.
+    // An alias with another file name gets its own CSV name and is kept.
+    std::set<std::pair<path, path>> unique_files;
+    const auto is_new = [&unique_files](const path& file) {
+      std::error_code err;
+      const path canonical = weakly_canonical(file, err);
+      return unique_files.emplace(err ? file : canonical, file.stem()).second;
+    };
     for (const auto& input : input_files) {
       path input_path(input);
       if (!exists(input_path)) {
@@ -39,7 +47,9 @@ void CreateFileList::MakeFileList(const std::vector<std::string>& input_files) {
           continue;
         }
 
-        files_.emplace_back(file);
+        if (is_new(input_path)) {
+          files_.emplace_back(file);
+        }
       }
     }
 
@@ -57,7 +67,9 @@ void CreateFileList::MakeFileList(const std::vector<std::string>& input_files) {
           continue;
         }
 
-        files_.emplace_back(file);
+        if (is_new(dir_entry.path())) {
+          files_.emplace_back(file);
+        }
       }
     }
   } catch (const std::exception& err) {
@@ -144,6 +156,13 @@ void CreateFileList::ConvertMdfFile(const std::string& file) {
       } else if (cg_list.size() > 1) {
         csv_name << "_" << cg_name;
       }
+      // Inputs or groups with the same name get a counter, so a CSV file
+      // written earlier in this run isn't skipped or overwritten.
+      const std::string base_name = csv_name.str();
+      for (size_t suffix = 2; csv_names_.count(StripName(csv_name.str())) > 0;
+           ++suffix) {
+        csv_name.str(base_name + "_" + std::to_string(suffix));
+      }
 
       bool existing; // Check if CSV already exist
       std::string csv_file;
@@ -211,7 +230,9 @@ void CreateFileList::ConvertMdfFile(const std::string& file) {
       if (!writer.IsOk()) {
         continue;
       }
-      writer.Convert(observer_list);
+      if (writer.Convert(observer_list)) {
+        csv_names_.insert(StripName(csv_name.str()));
+      }
     }
   }
 

@@ -19,7 +19,8 @@ class CsvWriter final {
   ~CsvWriter();
   [[nodiscard]] bool IsOk() const { return is_ok_; }
 
-  void Convert( mdf::ChannelObserverList& observer_list );
+  /** \brief Writes the CSV file. Returns true if the file was saved. */
+  bool Convert( mdf::ChannelObserverList& observer_list );
 
  protected:
   std::string dest_filename_;

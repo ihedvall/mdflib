@@ -513,6 +513,56 @@ TEST_F(TestChannelArray, TestArrayInsertAndRead) {
   }
 }
 
+TEST_F(TestChannelArray, InverseLayout) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("inverse_layout.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* matrix = group->CreateChannel("Matrix");
+    matrix->Type(ChannelType::FixedLength);
+    matrix->DataType(ChannelDataType::FloatLe);
+    matrix->DataBytes(8);
+    auto* array = matrix->CreateChannelArray();
+    array->Type(ArrayType::Array);
+    array->Shape({2, 3});
+    array->Flags(CaFlag::InverseLayout);  // Column order in the record
+    writer->InitMeasurement();
+    const auto start = TimeStampToNs();
+    writer->StartMeasurement(start);
+    matrix->SetChannelValues(std::vector<double>{0, 1, 2, 3, 4, 5});
+    writer->SaveSample(*group, start);
+    writer->StopMeasurement(start);
+    writer->FinalizeMeasurement();
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+  ASSERT_TRUE(data_group != nullptr);
+  auto observer = CreateChannelObserver(*data_group, "Matrix");
+  ASSERT_TRUE(observer);
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  // Element [i, j] is at record position i + 2 * j
+  for (uint64_t i = 0; i < 2; ++i) {
+    for (uint64_t j = 0; j < 3; ++j) {
+      double value = -1.0;
+      EXPECT_TRUE(observer->GetEngValue(0, value, i * 3 + j));
+      EXPECT_DOUBLE_EQ(value, static_cast<double>(i + 2 * j)) << i << "," << j;
+    }
+  }
+}
+
 TEST_F(TestChannelArray, TestArrayInArray) {
   try {
     path filename(kArrayInArrayFile);

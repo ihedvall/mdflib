@@ -611,4 +611,43 @@ TEST_F(TestChannelArray, TestArrayInArray) {
 
 }
 
+TEST_F(TestChannelArray, TestShapeOfArrayInArray) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("array_in_array.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* data_group = writer->Header()->CreateDataGroup();
+  auto* channel_group = data_group->CreateChannelGroup();
+  auto* master = channel_group->CreateChannel();
+  master->Name("Time");
+  master->Type(ChannelType::Master);
+  master->Sync(ChannelSyncType::Time);
+  master->DataType(ChannelDataType::FloatLe);
+  master->DataBytes(8);
+  auto* channel = channel_group->CreateChannel();
+  channel->Name("Map");
+  channel->DataType(ChannelDataType::FloatLe);
+  channel->DataBytes(8);
+  channel->CreateChannelArray()->Shape({2});  // Outer array
+  channel->CreateChannelArray()->Shape({3});  // Inner array
+  ASSERT_TRUE(writer->InitMeasurement());
+  writer->StartMeasurement(TimeStampToNs());
+  writer->StopMeasurement(TimeStampToNs());
+  ASSERT_TRUE(writer->FinalizeMeasurement());
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* dg = reader.GetHeader()->DataGroups()[0];
+  auto* cg = dg->ChannelGroups()[0];
+  const auto* cn = cg->GetChannel("Map");
+  ASSERT_TRUE(cn != nullptr);
+  ASSERT_EQ(cn->ChannelArrays().size(), 2);
+  const auto observer = CreateChannelObserver(*dg, *cg, *cn);
+  EXPECT_EQ(observer->Shape(), (std::vector<uint64_t>{2, 3}));
+}
+
 }

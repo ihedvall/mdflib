@@ -104,11 +104,17 @@ void IChannelObserver::ReadVlsdData(bool read_vlsd_data) {
 }
 
 std::vector<uint64_t> IChannelObserver::Shape() const {
-  const IChannelArray* array = Channel().ChannelArray(0);
-  if (array != nullptr) {
-    return array->Shape();
+  const auto array_list = Channel().ChannelArrays();
+  if (array_list.empty()) {
+    return {1};
   }
-  return {1};
+  // An array of arrays has one CA block per level, outer level first
+  std::vector<uint64_t> shape;
+  for (const IChannelArray* array : array_list) {
+    const auto& dimensions = array->Shape();
+    shape.insert(shape.end(), dimensions.begin(), dimensions.end());
+  }
+  return shape;
 }
 
 template <>

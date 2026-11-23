@@ -5,6 +5,7 @@
 
 #include "mdf/mdfwriter.h"
 
+#include <mdf/filereadbuffer.h>
 #include <mdf/idatagroup.h>
 #include <mdf/mdflogstream.h>
 
@@ -182,14 +183,18 @@ bool MdfWriter::Init(const std::wstring& filename) {
     MDF_ERROR() << "Failed to create a file buffer. Internal error.";
     return false;
   }
+  // A std::filebuf drops its buffer on every seek. FileReadBuffer keeps the
+  // last pages, so most seeks between the blocks are served from memory.
+  FileReadBuffer input;
   try {
     if (exists(filename_)) {
       // Read in existing file so we can append to it
 
-      Open(std::ios_base::in | std::ios_base::binary);
-      if (IsOpen()) {
-        mdf_file_->ReadEverythingButData(*file_);
-        Close();
+      detail::OpenMdfFile(input.File(), filename_,
+                          std::ios_base::in | std::ios_base::binary);
+      if (input.File().is_open()) {
+        mdf_file_->ReadEverythingButData(input);
+        input.File().close();
         write_state_ = WriteState::Finalize;  // Append to the file
         MDF_DEBUG() << "Reading existing file. File: "
           << Filename();
@@ -206,8 +211,8 @@ bool MdfWriter::Init(const std::wstring& filename) {
       init = true;
     }
   } catch (const std::exception& err) {
-    if (IsOpen()) {
-      Close();
+    if (input.File().is_open()) {
+      input.File().close();
       write_state_ = WriteState::Finalize;
       MDF_ERROR() << "Failed to read the existing MDF file. Error: "
                   << err.what() << ", File: " << Filename();

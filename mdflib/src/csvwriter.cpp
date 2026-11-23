@@ -10,6 +10,22 @@
 
 using namespace std::filesystem;
 
+namespace {
+// A quote inside a quoted CSV field is written as two quotes
+std::string QuotedField(const std::string& text) {
+  std::string output(1, '\"');
+  output.reserve(text.size() + 2);
+  for (char input : text) {
+    if (input == '\"') {
+      output += '\"';
+    }
+    output += input;
+  }
+  output += '\"';
+  return output;
+}
+}  // namespace
+
 namespace mdf {
 
 CsvWriter::CsvWriter(const std::string& filename)
@@ -91,11 +107,11 @@ void CsvWriter::Convert(ChannelObserverList& observer_list) {
       if (count > 0) {
         file_ << delimiter_;
       }
-      file_ << "\"" << channel.Name();
+      std::string label = channel.Name();
       if (!unit.empty()) {
-        file_ << " [" << unit << "]";
+        label += " [" + unit + "]";
       }
-      file_ << "\"";
+      file_ << QuotedField(label);
       ++count;
     }
     file_ << std::endl;
@@ -134,9 +150,7 @@ void CsvWriter::Convert(ChannelObserverList& observer_list) {
 std::string CsvWriter::CsvText(std::string& csv_text) const {
   for (char input : csv_text) {
     if (input == '\"' || input == delimiter_ || isspace(input)) {
-      std::ostringstream temp;
-      temp << "\"" << csv_text << "\"";
-      return temp.str();
+      return QuotedField(csv_text);
     }
   }
 

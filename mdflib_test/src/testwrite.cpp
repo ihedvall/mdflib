@@ -5,6 +5,7 @@
 #include "testwrite.h"
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <string>
 #include <thread>
@@ -945,6 +946,132 @@ TEST_F(TestWrite, Mdf4WriteCN_SI_CC) {
   EXPECT_EQ(content.find("<CCunit"), std::string::npos);
 }
 
+TEST_F(TestWrite, Mdf4TextConversionsInObserver) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("text_conversions.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* time = group->CreateChannel("Time");
+    time->Type(ChannelType::Master);
+    time->Sync(ChannelSyncType::Time);
+    time->DataType(ChannelDataType::FloatLe);
+    time->DataBytes(8);
+    auto* number = group->CreateChannel("Number");
+    number->DataType(ChannelDataType::StringUTF8);
+    number->DataBytes(8);
+    auto* to_value = number->CreateChannelConversion();
+    to_value->Type(ConversionType::TextToValue);
+    to_value->Reference(0, "warm");
+    to_value->Parameter(0, 12.12345678);
+    to_value->Decimals(8);
+    to_value->Parameter(1, -1.0);  // Default value
+    auto* label = group->CreateChannel("Label");
+    label->DataType(ChannelDataType::StringUTF8);
+    label->DataBytes(8);
+    auto* to_text = label->CreateChannelConversion();
+    to_text->Type(ConversionType::TextToTranslation);
+    to_text->Reference(0, "warm");
+    to_text->Reference(1, "Ready now");
+    to_text->Reference(2, "No translation");  // Default text
+    auto* log = group->CreateChannel("Log");  // Text with a numeric conversion
+    log->DataType(ChannelDataType::StringUTF8);
+    log->DataBytes(8);
+    auto* linear = log->CreateChannelConversion();
+    linear->Type(ConversionType::Linear);
+    linear->Parameter(0, 0.0);
+    linear->Parameter(1, 1.0);
+    writer->InitMeasurement();
+    const auto start = TimeStampToNs();
+    writer->StartMeasurement(start);
+    for (const char* text : {"warm", "other"}) {
+      number->SetChannelValue(std::string(text));
+      label->SetChannelValue(std::string(text));
+      log->SetChannelValue(std::string(text));
+      writer->SaveSample(*group, start);
+    }
+    writer->StopMeasurement(start);
+    writer->FinalizeMeasurement();
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+  auto number = CreateChannelObserver(*data_group, "Number");
+  auto label = CreateChannelObserver(*data_group, "Label");
+  auto log = CreateChannelObserver(*data_group, "Log");
+  ASSERT_TRUE(number && label && log);
+  ASSERT_TRUE(reader.ReadData(*data_group));
+
+  double value = 0.0;
+  EXPECT_TRUE(number->GetEngValue(0, value));
+  EXPECT_DOUBLE_EQ(value, 12.12345678);
+  EXPECT_TRUE(number->GetEngValue(1, value));
+  EXPECT_DOUBLE_EQ(value, -1.0);
+  std::string text;
+  EXPECT_TRUE(number->GetEngValue(0, text));
+  EXPECT_EQ(text, "12.12345678");
+  EXPECT_TRUE(label->GetEngValue(0, text));
+  EXPECT_EQ(text, "Ready now");
+  EXPECT_TRUE(label->GetEngValue(1, text));
+  EXPECT_EQ(text, "No translation");
+  EXPECT_TRUE(log->GetEngValue(1, text));
+  EXPECT_EQ(text, "other");
+}
+
+TEST_F(TestWrite, Mdf4TextTranslationNil) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("text_translation_nil.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  int64_t position = 0;
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* channel = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group")->CreateChannel("Label");
+    channel->DataType(ChannelDataType::StringUTF8);
+    channel->DataBytes(8);
+    auto* conv = channel->CreateChannelConversion();
+    conv->Type(ConversionType::TextToTranslation);
+    conv->Reference(0, "warm");  // The output of "warm" stays NIL
+    conv->Reference(2, "cold");
+    conv->Reference(3, "");  // An empty text, not NIL
+    conv->Reference(4, "No translation");
+    ASSERT_TRUE(writer->InitMeasurement());
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+    position = conv->Index();
+  }
+  {
+    // The writer cannot write a NIL default, so clear the fifth reference link
+    std::fstream file(mdf_file, std::ios::in | std::ios::out | std::ios::binary);
+    file.seekp(position + 24 + (8 * 8));
+    const uint64_t nil = 0;
+    file.write(reinterpret_cast<const char*>(&nil), sizeof(nil));
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* conv = reader.GetFile()->Header()->LastDataGroup()
+      ->ChannelGroups()[0]->Channels()[0]->ChannelConversion();
+  ASSERT_TRUE(conv != nullptr);
+  std::string text;
+  EXPECT_TRUE(conv->Convert(std::string("warm"), text));
+  EXPECT_EQ(text, "warm");
+  EXPECT_TRUE(conv->Convert(std::string("cold"), text));
+  EXPECT_EQ(text, "");
+  EXPECT_TRUE(conv->Convert(std::string("other"), text));
+  EXPECT_EQ(text, "other");
+}
+
 TEST_F(TestWrite, Mdf4CopyValueToText) {
   if (kSkipTest) {
     GTEST_SKIP();
@@ -998,6 +1125,43 @@ TEST_F(TestWrite, Mdf4CopyValueToText) {
   EXPECT_EQ(text, "On");
   EXPECT_TRUE(conv->Convert(0U, text));
   EXPECT_EQ(text, "Off");
+}
+
+TEST_F(TestWrite, Mdf4InterpolationOfNan) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("interpolation_nan.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* channel = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group")->CreateChannel("Value");
+    channel->DataType(ChannelDataType::FloatLe);
+    channel->DataBytes(8);
+    auto* conv = channel->CreateChannelConversion();
+    conv->Type(ConversionType::ValueToValueInterpolation);
+    conv->Parameter(0, 0.0);
+    conv->Parameter(1, 0.0);
+    conv->Parameter(2, 1.0);
+    conv->Parameter(3, 10.0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* conv = reader.GetFile()->Header()->LastDataGroup()
+      ->ChannelGroups()[0]->Channels()[0]->ChannelConversion();
+  ASSERT_TRUE(conv != nullptr);
+  double value = 0.0;
+  EXPECT_TRUE(conv->Convert(0.25, value));
+  EXPECT_DOUBLE_EQ(value, 2.5);
+  EXPECT_FALSE(conv->Convert(std::nan(""), value));
+  int64_t integer = 0;
+  EXPECT_FALSE(conv->Convert(std::nan(""), integer));
 }
 
 TEST_F(TestWrite, Mdf4Unsigned) {

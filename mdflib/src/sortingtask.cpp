@@ -65,6 +65,10 @@ void SortingTask::SortFile() {
     if (!reader_ || !writer_) {
       throw std::runtime_error("Reader or writer is not initialized.");
     }
+    // The configuration copy only handles MDF 4 blocks
+    if (!reader_->GetFile()->IsMdf4()) {
+      throw std::runtime_error("MDF 3 source files are not supported.");
+    }
     writer_->CalculateBitAndByteOffsets(false);
     CopyMainConfig();
 

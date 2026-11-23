@@ -242,6 +242,50 @@ TEST_F(TestMdfTask, TestSampleRecordObserver) {
   MdfLogStream::SetLogLevel(MdfLogSeverity::kTrace);
 }
 
+TEST_F(TestMdfTask, TestMdf3Source) {
+  path source_file(kTestDir);
+  source_file.append("task_source.mdf");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf3Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* speed = group->CreateChannel("Speed");
+    speed->DataType(ChannelDataType::FloatLe);
+    speed->DataBytes(8);
+    ASSERT_TRUE(writer->InitMeasurement());
+    const uint64_t start = MdfHelper::NowNs();
+    writer->StartMeasurement(start);
+    for (uint64_t sample = 0; sample < 10; ++sample) {
+      speed->SetChannelValue(static_cast<double>(sample));
+      writer->SaveSample(*group, start + sample * 1'000'000);
+    }
+    writer->StopMeasurement(start + 10'000'000);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  // The tasks write MF4 and cannot copy an MDF 3 configuration
+  for (const auto type : {MdfTaskType::MdfSortingTask,
+                          MdfTaskType::MdfCuttingTask}) {
+    auto task = MdfFactory::CreateTask(type);
+    ASSERT_TRUE(task);
+    task->SourceFile(source_file.string());
+    path dest_file(kTestDir);
+    dest_file.append("task_source_" + std::to_string(static_cast<int>(type))
+                     + ".mf4");
+    task->DestinationFile(dest_file.string());
+    task->Run();
+    EXPECT_FALSE(task->Result());
+    const auto& messages = task->MessageList();
+    EXPECT_TRUE(!messages.empty() && messages.front().find(
+        "MDF 3 source files are not supported.") != std::string::npos);
+    EXPECT_FALSE(exists(dest_file));
+  }
+}
+
 TEST_F(TestMdfTask, TestSortingTask) {
   if (kSkipTest) {
     GTEST_SKIP();

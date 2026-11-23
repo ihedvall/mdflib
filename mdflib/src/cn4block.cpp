@@ -1262,6 +1262,11 @@ void Cn4Block::SetValid(bool valid, uint64_t array_index) {
 
 bool Cn4Block::GetValid(const std::vector<uint8_t> &record_buffer,
                         uint64_t array_index) const {
+  // The all values invalid flag marks every sample invalid, with or without
+  // an invalidation bit.
+  if ((Flags() & CnFlag::AllValuesInvalid) != 0) {
+    return false;
+  }
   bool valid = true;
   if (Flags() & CnFlag::InvalidValid && cg_block_ != nullptr) {
     const auto invalid_pos = invalid_bit_pos_ + array_index * invalid_bit_base_;

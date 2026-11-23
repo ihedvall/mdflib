@@ -46,7 +46,9 @@ class ChannelObserver : public IChannelObserver {
           channel_.BitOffset() == 0 && array_size == 1 &&
           DbcHelper::IsLittleEndian()) {
         plain_value_ = true;
-        has_invalid_bit_ = (channel_.Flags() & CnFlag::InvalidValid) != 0;
+        // GetValid() also handles the all values invalid flag.
+        has_invalid_bit_ = (channel_.Flags() & (CnFlag::InvalidValid |
+                                                CnFlag::AllValuesInvalid)) != 0;
       }
     }
   }

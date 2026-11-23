@@ -4,8 +4,13 @@
  */
 
 #include "mdf/csvwriter.h"
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <limits>
+#include <type_traits>
 #include <mdf/mdflogstream.h>
 
 using namespace std::filesystem;
@@ -23,6 +28,65 @@ std::string QuotedField(const std::string& text) {
   }
   output += '\"';
   return output;
+}
+
+// A float gets the shortest text that reads back as the same float. A double
+// gets the 15 digits it holds, so computed values like 3 * 0.1 stay 0.3.
+template <typename T>
+std::string NumberText(T value) {
+  // Whole numbers stay without exponent and decimals
+  if (std::fabs(value) < 1e15 && value == std::trunc(value)) {
+    return std::to_string(static_cast<int64_t>(value));
+  }
+  constexpr int max_digits = std::is_same_v<T, float>
+                                 ? std::numeric_limits<float>::max_digits10
+                                 : std::numeric_limits<double>::digits10;
+  char text[40]{};
+  for (int digits = std::numeric_limits<T>::digits10;; ++digits) {
+    snprintf(text, sizeof(text), "%.*g", digits, static_cast<double>(value));
+    if (digits >= max_digits ||
+        static_cast<T>(std::strtod(text, nullptr)) == value) {
+      break;
+    }
+  }
+  return text;
+}
+
+// The text value is rounded to the display precision, so numbers are read as
+// double. Integers without conversion and text conversions stay as text.
+bool EngText(const mdf::IChannelObserver& obs, uint64_t sample,
+             std::string& text) {
+  using namespace mdf;
+  const auto& channel = obs.Channel();
+  const auto* conversion = channel.ChannelConversion();
+  const auto type = channel.DataType();
+  const bool is_float =
+      type == ChannelDataType::FloatLe || type == ChannelDataType::FloatBe;
+  bool number = is_float || (type <= ChannelDataType::SignedIntegerBe &&
+                             conversion != nullptr);
+  if (conversion != nullptr) {
+    switch (conversion->Type()) {
+      case ConversionType::ValueToText:
+      case ConversionType::ValueRangeToText:
+      case ConversionType::TextToTranslation:
+      case ConversionType::BitfieldToText:
+        number = false;
+        break;
+      default:
+        break;
+    }
+  }
+  if (!number) {
+    return obs.GetEngValue(sample, text);
+  }
+  double value = 0.0;
+  const bool valid = obs.GetEngValue(sample, value);
+  // A 4-byte float value, also after a 1:1 conversion, gets float digits
+  const auto single = static_cast<float>(value);
+  text = is_float && channel.DataBytes() == 4 && single == value
+             ? NumberText(single)
+             : NumberText(value);
+  return valid;
 }
 }  // namespace
 
@@ -122,7 +186,7 @@ bool CsvWriter::Convert(ChannelObserverList& observer_list) {
       count = 0;
       for (const IChannelObserver* obs : obs_list) {
         std::string value;
-        bool valid = obs->GetEngValue(sample, value);
+        bool valid = EngText(*obs, sample, value);
         if (count > 0) {
           file_ << delimiter_;
         }

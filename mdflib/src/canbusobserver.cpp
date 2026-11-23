@@ -37,24 +37,26 @@ CanBusObserver::CanBusObserver(const IDataGroup& data_group,
   } else {
     // Invalid CAN channel group name.
     // Try to find the message type by channel names.
+    // Compare the whole name. Bus statistic channels such as
+    // CAN_BusStatistic.STD_DataFrames also contain _DataFrame.
     for (const auto* channel : channel_group_.Channels()) {
       if (channel == nullptr) {
         continue;
       }
       const std::string channel_name = channel->Name();
-      if (channel_name.find("_DataFrame") != std::string::npos) {
+      if (channel_name == "CAN_DataFrame") {
         message_type_ = MessageType::CAN_DataFrame;
         base_name_ = "CAN_DataFrame";
         break;
-      } else if (channel_name.find("_RemoteFrame") != std::string::npos) {
+      } else if (channel_name == "CAN_RemoteFrame") {
         message_type_ = MessageType::CAN_RemoteFrame;
         base_name_ = "CAN_RemoteFrame";
         break;
-      } else if (channel_name.find("_ErrorFrame") != std::string::npos) {
+      } else if (channel_name == "CAN_ErrorFrame") {
         message_type_ = MessageType::CAN_ErrorFrame;
         base_name_ = "CAN_ErrorFrame";
         break;
-      } else if (channel_name.find("_OverloadFrame") != std::string::npos) {
+      } else if (channel_name == "CAN_OverloadFrame") {
         message_type_ = MessageType::CAN_OverloadFrame;
         base_name_ = "CAN_OverloadFrame";
         break;
@@ -261,6 +263,12 @@ const IChannel* CanBusObserver::GetChannel(
   }
   std::ostringstream name;
   name << base_name_ << "." << sub_name;
+  // GetChannel() also matches a part of a name, so ID could find IDE
+  for (const auto* channel : channel_group_.Channels()) {
+    if (channel != nullptr && channel->Name() == name.str()) {
+      return channel;
+    }
+  }
   return channel_group_.GetChannel(name.str());
 }
 
@@ -271,6 +279,19 @@ const IChannel* CanBusObserver::GetChannel(
  */
 void CanBusObserver::ParseCanMessage(CanMessage& msg) const {
   const auto& record = last_sample_.record;
+  // A virtual flag (one CG per bus and direction) has no bits in the record,
+  // its value is the conversion of the sample index.
+  const auto get_flag = [&](const IChannel& channel) {
+    if (channel.Type() == ChannelType::VirtualData) {
+      double flag = 0.0;
+      GetEngValue(channel, current_sample_index_, record, flag);
+      return flag != 0.0;
+    }
+    bool flag = false;
+    GetChannelValue(channel, current_sample_index_, record, flag);
+    return flag;
+  };
+
   if (time_channel_ != nullptr) {
     double timestamp = 0.0;
     GetEngValue(*time_channel_, current_sample_index_, record, timestamp);
@@ -288,18 +309,23 @@ void CanBusObserver::ParseCanMessage(CanMessage& msg) const {
     // This is either CAN ID + IDE flag or the CAN ID.
     // Therefore add the IDE flag after the CAN ID.
     uint32_t msg_id = 0;
-    GetChannelValue(*id_channel_, current_sample_index_, record, msg_id);
+    if (id_channel_->Type() == ChannelType::VirtualData) {
+      // One CG per message ID, like a virtual flag
+      double id = 0.0;
+      GetEngValue(*id_channel_, current_sample_index_, record, id);
+      msg_id = static_cast<uint32_t>(id);
+    } else {
+      GetChannelValue(*id_channel_, current_sample_index_, record, msg_id);
+    }
     msg.MessageId(msg_id);
   }
 
   if (ide_channel_ != nullptr) {
-    bool extended = false;
-    GetChannelValue(*ide_channel_, current_sample_index_, record, extended);
-    msg.ExtendedId(extended);
+    msg.ExtendedId(get_flag(*ide_channel_));
   }
 
+  uint8_t dlc = 0;
   if (dlc_channel_ != nullptr) {
-    uint8_t dlc = 0;
     GetChannelValue(*dlc_channel_, current_sample_index_, record, dlc);
     msg.Dlc(dlc);
   }
@@ -331,6 +357,11 @@ void CanBusObserver::ParseCanMessage(CanMessage& msg) const {
       case MdfStorageType::FixedLengthStorage: {
         std::vector<uint8_t> data_bytes;
         data_channel_->GetChannelValue(record, data_bytes);
+        // A fixed size field also holds shorter frames
+        if (length_channel_ != nullptr &&
+            msg.DataLength() < data_bytes.size()) {
+          data_bytes.resize(msg.DataLength());
+        }
         msg.DataBytes(std::move(data_bytes));
         break;
       }
@@ -340,11 +371,16 @@ void CanBusObserver::ParseCanMessage(CanMessage& msg) const {
     }
   }
 
+  if (dlc_channel_ != nullptr &&
+      message_type_ == MessageType::CAN_RemoteFrame) {
+    // A remote frame has a DLC but no payload, and the empty payload
+    // above set the DLC to 0.
+    msg.Dlc(dlc);
+  }
+
   if (dir_channel_ != nullptr) {
     // Note that eng value is a enumerate string
-    bool direction = false;
-    GetChannelValue(*dir_channel_, current_sample_index_, record, direction);
-    msg.Dir(direction);
+    msg.Dir(get_flag(*dir_channel_));
   }
 
   if (crc_channel_ != nullptr) {
@@ -354,52 +390,35 @@ void CanBusObserver::ParseCanMessage(CanMessage& msg) const {
   }
 
   if (srr_channel_ != nullptr) {
-    bool srr = false;
-    GetChannelValue(*srr_channel_, current_sample_index_, record, srr);
-    msg.Srr(srr);
+    msg.Srr(get_flag(*srr_channel_));
   }
 
   if (edl_channel_ != nullptr) {
-    bool edl = false;
-    GetChannelValue(*edl_channel_, current_sample_index_, record, edl);
-    msg.Edl(edl);
+    msg.Edl(get_flag(*edl_channel_));
   }
 
   if (brs_channel_ != nullptr) {
-    bool brs = false;
-    GetChannelValue(*brs_channel_, current_sample_index_, record, brs);
-    msg.Brs(brs);
+    msg.Brs(get_flag(*brs_channel_));
   }
 
   if (esi_channel_ != nullptr) {
-    bool esi = false;
-    GetChannelValue(*esi_channel_, current_sample_index_, record, esi);
-    msg.Esi(esi);
+    msg.Esi(get_flag(*esi_channel_));
   }
 
   if (r0_channel_ != nullptr) {
-    bool r0 = false;
-    GetChannelValue(*r0_channel_, current_sample_index_, record, r0);
-    msg.R0(r0);
+    msg.R0(get_flag(*r0_channel_));
   }
 
   if (r1_channel_ != nullptr) {
-    bool r1 = false;
-    GetChannelValue(*r1_channel_, current_sample_index_, record, r1);
-    msg.R1(r1);
+    msg.R1(get_flag(*r1_channel_));
   }
 
   if (wake_up_channel_ != nullptr) {
-    bool wake_up = false;
-    GetChannelValue(*wake_up_channel_, current_sample_index_, record, wake_up);
-    msg.WakeUp(wake_up);
+    msg.WakeUp(get_flag(*wake_up_channel_));
   }
 
   if (single_wire_channel_ != nullptr) {
-    bool single_wire = false;
-    GetChannelValue(*single_wire_channel_, current_sample_index_, record,
-                    single_wire);
-    msg.SingleWire(single_wire);
+    msg.SingleWire(get_flag(*single_wire_channel_));
   }
 
   if (frame_duration_channel_ != nullptr) {

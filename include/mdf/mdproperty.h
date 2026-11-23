@@ -9,6 +9,10 @@
 #include <string>
 #include <map>
 #include <sstream>
+#include <iomanip>
+#include <limits>
+#include <locale>
+#include <type_traits>
 
 #include "mdf/mdstandardattribute.h"
 
@@ -80,6 +84,26 @@ class MdProperty : public MdStandardAttribute {
 
 template <typename T>
 void MdProperty::Value(T value) {
+  if constexpr (std::is_floating_point_v<T>) {
+    if (data_type_ == MdDataType::MdFloat) {
+      // More digits until the text reads back the same value.
+      // Needs DataType() first.
+      for (int digits = std::numeric_limits<T>::digits10;
+           digits <= std::numeric_limits<T>::max_digits10; ++digits) {
+        std::ostringstream temp;
+        temp.imbue(std::locale::classic());
+        temp << std::setprecision(digits) << value;
+        value_ = temp.str();
+        std::istringstream check(value_);
+        check.imbue(std::locale::classic());
+        T read_back = {};
+        if (check >> read_back && read_back == value) {
+          break;
+        }
+      }
+      return;
+    }
+  }
   value_ = std::to_string(value);
 }
 
@@ -100,7 +124,14 @@ T MdProperty::Value() const {
   }
 
   std::istringstream temp(value_);
+  if (data_type_ == MdDataType::MdFloat) {
+    temp.imbue(std::locale::classic());
+  }
   temp >> output;
+  if (data_type_ == MdDataType::MdFloat && temp.peek() == ',') {
+    std::istringstream legacy(value_);  // Comma from the global locale
+    legacy >> output;
+  }
   return output;
 }
 

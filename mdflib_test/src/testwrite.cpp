@@ -539,6 +539,47 @@ TEST_F(TestWrite, Mdf4WriteFH) {  // NOLINT
   }
 }
 
+TEST_F(TestWrite, Mdf4FhFloatProperty) {  // NOLINT
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("fh_float.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* header = writer->Header();
+  ASSERT_TRUE(header != nullptr);
+
+  auto* history = header->CreateFileHistory();
+  ASSERT_TRUE(history != nullptr);
+  history->Time(TimeStampToNs());
+  FhComment comment("Calibration");
+  MdProperty scale;
+  scale.Name("Scale");
+  scale.DataType(MdDataType::MdFloat);
+  scale.Unit("V/count");
+  scale.Value(0.000000125);
+  comment.AddProperty(scale);
+  history->SetFhComment(comment);
+
+  writer->InitMeasurement();
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadHeader());
+  const auto fh_list = reader.GetFile()->Header()->FileHistories();
+  ASSERT_EQ(fh_list.size(), 1);
+  FhComment comment1;
+  fh_list[0]->GetFhComment(comment1);
+  const MdProperty* scale1 = comment1.GetProperty("Scale");
+  ASSERT_TRUE(scale1 != nullptr);
+  EXPECT_DOUBLE_EQ(scale1->Value<double>(), 0.000000125);
+  EXPECT_EQ(scale1->Value<std::string>(), "1.25e-07");
+  scale.Value(std::numeric_limits<double>::max());
+  EXPECT_EQ(scale.Value<std::string>(), "1.7976931348623157e+308");
+}
+
 TEST_F(TestWrite, Mdf4WriteAT) {  // NOLINT
   if (kSkipTest) {
     GTEST_SKIP();

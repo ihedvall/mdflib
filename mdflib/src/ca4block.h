@@ -64,6 +64,10 @@ class Ca4Block : public MdfBlock, public IChannelArray {
 
   uint64_t Write(std::streambuf& buffer) override;
 
+  [[nodiscard]] uint32_t InvalidBitPosBase() const {
+    return invalid_bit_pos_base_;
+  }
+
   void SetParentChannel(const Cn4Block* parent);
   void PrepareForWriting();
   void CopyFrom(const IChannelArray& source) override;

@@ -706,8 +706,8 @@ void Ca4Block::PrepareForWriting() {
       ++size_of_value;
     }
     byte_offset_base_ = static_cast<int32_t>(size_of_value);
-
-    invalid_bit_pos_base_ = 0;
+    // The channel group reserves one invalid bit for each array element.
+    invalid_bit_pos_base_ = 1;
   }
 }
 

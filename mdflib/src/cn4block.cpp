@@ -499,6 +499,12 @@ uint64_t Cn4Block::Read(std::streambuf& buffer) {
         }
       }
     }
+    // Element i of a single array has the invalid bit i * ca_inval_bit_pos_base.
+    const auto* ca4 = cx_list_.size() == 1 ?
+        dynamic_cast<const Ca4Block*>(cx_list_.front().get()) : nullptr;
+    if (ca4 != nullptr && ca4->Storage() == ArrayStorage::CnTemplate) {
+      invalid_bit_base_ = ca4->InvalidBitPosBase();
+    }
   }
 
   if (Link(kIndexSi) > 0) {
@@ -1258,7 +1264,7 @@ bool Cn4Block::GetValid(const std::vector<uint8_t> &record_buffer,
                         uint64_t array_index) const {
   bool valid = true;
   if (Flags() & CnFlag::InvalidValid && cg_block_ != nullptr) {
-    const auto invalid_pos = invalid_bit_pos_ + array_index;
+    const auto invalid_pos = invalid_bit_pos_ + array_index * invalid_bit_base_;
     const auto byte_offset = static_cast<size_t>( cg_block_->NofDataBytes() + (invalid_pos / 8) );
     const auto bit_offset = invalid_pos % 8;
     const uint8_t mask = 0x01 << bit_offset;

@@ -7,7 +7,9 @@
 #include "testchannelarray.h"
 #include "ca4block.h"
 
+#include <cstring>
 #include <filesystem>
+#include <fstream>
 
 #include "util/logconfig.h"
 #include "util/logstream.h"
@@ -561,6 +563,80 @@ TEST_F(TestChannelArray, InverseLayout) {
       EXPECT_DOUBLE_EQ(value, static_cast<double>(i + 2 * j)) << i << "," << j;
     }
   }
+}
+
+TEST_F(TestChannelArray, ArrayInvalidBitBase) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("array_invalid_bit_base.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  const std::vector<std::vector<bool>> valid = {{true, false, true},
+                                                {false, true, true}};
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* vector = group->CreateChannel("Vector");
+    vector->Type(ChannelType::FixedLength);
+    vector->DataType(ChannelDataType::UnsignedIntegerLe);
+    vector->DataBytes(1);
+    vector->Flags(CnFlag::InvalidValid);
+    vector->CreateChannelArray()->Shape({3});
+    writer->InitMeasurement();
+    const auto start = TimeStampToNs();
+    writer->StartMeasurement(start);
+    for (size_t sample = 0; sample < valid.size(); ++sample) {
+      for (size_t index = 0; index < 3; ++index) {
+        vector->SetChannelValue(index, valid[sample][index], index);
+      }
+      writer->SaveSample(*group, start + sample);
+    }
+    writer->StopMeasurement(start + valid.size());
+    writer->FinalizeMeasurement();
+  }
+
+  const auto read_valid = [&mdf_file] {
+    MdfReader reader(mdf_file.string());
+    EXPECT_TRUE(reader.ReadEverythingButData());
+    auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+    auto observer = CreateChannelObserver(*data_group, "Vector");
+    EXPECT_TRUE(reader.ReadData(*data_group));
+    std::vector<std::vector<bool>> list;
+    std::vector<uint64_t> values;
+    for (uint64_t sample = 0; sample < observer->NofSamples(); ++sample) {
+      list.push_back(observer->GetEngValues(sample, values));
+    }
+    return list;
+  };
+  EXPECT_EQ(read_valid(), valid);
+
+  // ca_inval_bit_pos_base follows the links and 12 bytes of the CA block
+  std::fstream file(mdf_file, std::ios::in | std::ios::out | std::ios::binary);
+  const std::string data((std::istreambuf_iterator<char>(file)), {});
+  const auto ca = data.find("##CA");
+  ASSERT_NE(ca, std::string::npos);
+  uint64_t nof_links = 0;
+  std::memcpy(&nof_links, data.data() + ca + 16, sizeof(nof_links));
+  const auto base_pos = ca + 24 + (nof_links * 8) + 12;
+  uint32_t base = 0;
+  std::memcpy(&base, data.data() + base_pos, sizeof(base));
+  EXPECT_EQ(base, 1);  // One bit for each element
+
+  // Other writers set the base to 0, then all elements share the first bit
+  base = 0;
+  file.seekp(static_cast<std::streamoff>(base_pos));
+  file.write(reinterpret_cast<const char*>(&base), sizeof(base));
+  file.close();
+  const std::vector<std::vector<bool>> shared = {{true, true, true},
+                                                 {false, false, false}};
+  EXPECT_EQ(read_valid(), shared);
 }
 
 TEST_F(TestChannelArray, TestArrayInArray) {

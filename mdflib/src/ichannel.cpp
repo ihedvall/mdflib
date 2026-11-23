@@ -328,6 +328,10 @@ void IChannel::SetUnsignedValueLe(uint64_t value, bool valid,
       break;
     }
 
+    case 3:  // The low bytes of the 64-bit value
+    case 5:
+    case 6:
+    case 7:
     case 8: {
       const LittleBuffer data(value);
       memcpy(buffer.data() + byte_offset, data.data(), bytes);
@@ -374,9 +378,13 @@ void IChannel::SetUnsignedValueBe(uint64_t value, bool valid, uint64_t array_ind
       break;
     }
 
+    case 3:  // The low bytes of the 64-bit value
+    case 5:
+    case 6:
+    case 7:
     case 8: {
       const BigBuffer data(value);
-      memcpy(buffer.data() + byte_offset, data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data() + 8 - bytes, bytes);
       break;
     }
 
@@ -422,6 +430,10 @@ void IChannel::SetSignedValueLe(int64_t value, bool valid,
       break;
     }
 
+    case 3:  // The low bytes of the 64-bit value
+    case 5:
+    case 6:
+    case 7:
     case 8: {
       const LittleBuffer data(value);
       memcpy(buffer.data() + byte_offset, data.data(), bytes);
@@ -469,9 +481,13 @@ void IChannel::SetSignedValueBe(int64_t value, bool valid,
       break;
     }
 
+    case 3:  // The low bytes of the 64-bit value
+    case 5:
+    case 6:
+    case 7:
     case 8: {
       const BigBuffer data(value);
-      memcpy(buffer.data() + byte_offset, data.data(), bytes);
+      memcpy(buffer.data() + byte_offset, data.data() + 8 - bytes, bytes);
       break;
     }
 

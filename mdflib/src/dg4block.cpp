@@ -6,6 +6,8 @@
 
 #include <stdexcept>
 #include <algorithm>
+#include <array>
+#include <fstream>
 #include <map>
 
 #include "dl4block.h"
@@ -751,6 +753,24 @@ bool Dg4Block::FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg,
 
 
   SetFilePosition(buffer, dt_block->DataPosition());
+  // Read past the records of a std::filebuf instead of seeking. A seek drops
+  // its read buffer, so every record would cost a new read from the file.
+  const bool read_past = dynamic_cast<std::filebuf*>(&buffer) != nullptr;
+  std::array<char, 4096> skip{};
+  const auto step = [&buffer, &skip, read_past](uint64_t steps) {
+    if (!read_past) {
+      return StepFilePosition(buffer, steps);
+    }
+    for (uint64_t left = steps; left > 0;) {
+      const auto part = std::min<uint64_t>(left, skip.size());
+      const auto size = static_cast<std::streamsize>(part);
+      if (buffer.sgetn(skip.data(), size) < size) {
+        break;  // The file ends inside this record. It still counts in full.
+      }
+      left -= part;
+    }
+    return steps;
+  };
   uint64_t count = 0;
   while (count < dt_block->DataSize()) {
     uint64_t record_id = 0;
@@ -775,12 +795,12 @@ bool Dg4Block::FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg,
       count_bytes += ReadNumber(buffer, length);
       //std::vector<uint8_t> record(length, 0);
       if (length > 0) {
-        count_bytes += StepFilePosition(buffer, length);
+        count_bytes += step(length);
       }
     } else {
       // Normal fixed length records
       const size_t record_size = cg_block->NofDataBytes() + cg_block->NofInvalidBytes();
-      count_bytes += StepFilePosition(buffer, record_size);
+      count_bytes += step(record_size);
     }
     ++counter.NofSamples;
     counter.NofBytes += count_bytes;

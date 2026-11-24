@@ -10,6 +10,8 @@
 #include <map>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
+#include <vector>
 
 #include "mdf/mdftask.h"
 #include "mdf/mdflogstream.h"
@@ -432,6 +434,65 @@ TEST_F(TestMdfTask, TestMdfToCsvTask) {
   }
   MdfLogStream::SetLogLevel(MdfLogSeverity::kTrace);
   EXPECT_GT(nof_sorted, 0);
+}
+
+TEST_F(TestMdfTask, TestCsvPrecision) {
+  path source_file(kTestDir);
+  source_file.append("csv_precision.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* current = group->CreateChannel("Current");
+    current->DataType(ChannelDataType::FloatLe);
+    current->DataBytes(8);
+    auto* voltage = group->CreateChannel("Voltage");
+    voltage->DataType(ChannelDataType::FloatLe);
+    voltage->DataBytes(8);
+    voltage->Decimals(3);
+    auto* speed = group->CreateChannel("Speed");
+    speed->DataType(ChannelDataType::FloatLe);
+    speed->DataBytes(4);
+    ASSERT_TRUE(writer->InitMeasurement());
+    const uint64_t start = MdfHelper::NowNs();
+    writer->StartMeasurement(start);
+    current->SetChannelValue(1.25e-7);
+    voltage->SetChannelValue(12.3456789);
+    speed->SetChannelValue(1.8137907F);
+    writer->SaveSample(*group, start + 183'096);
+    writer->StopMeasurement(start + 183'096);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  auto task = MdfFactory::CreateTask(MdfTaskType::MdfConvertToCsvTask);
+  ASSERT_TRUE(task);
+  task->SourceFile(source_file.string());
+  path dest_file(kTestDir);
+  dest_file.append("csv_precision.csv");
+  task->DestinationFile(dest_file.string());
+  task->Run();
+  ASSERT_TRUE(task->Result());
+
+  std::ifstream csv(dest_file);
+  std::string row;
+  std::getline(csv, row);  // Header
+  std::getline(csv, row);
+  std::vector<std::string> fields;
+  std::istringstream line(row);
+  for (std::string field; std::getline(line, field, ';');) {
+    fields.emplace_back(field);
+  }
+  ASSERT_EQ(fields.size(), 4) << row;
+  // The CSV keeps all digits, also when the channel has a display precision
+  EXPECT_EQ(std::stod(fields[0]), 183'096 / 1e9) << row;
+  EXPECT_EQ(std::stod(fields[1]), 1.25e-7) << row;
+  EXPECT_EQ(std::stod(fields[2]), 12.3456789) << row;
+  EXPECT_EQ(fields[3], "1.8137907") << row;
 }
 
 TEST_F(TestMdfTask, TestCsvQuotes) {

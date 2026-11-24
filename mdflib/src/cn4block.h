@@ -130,6 +130,9 @@ class Cn4Block : public DataListBlock, public IChannel {
   [[nodiscard]] uint16_t BitOffset() const override;
   void ByteOffset(uint32_t bytes) override;
   [[nodiscard]] uint32_t ByteOffset() const override;
+  /** \brief Bit count and bit offset of an array element in the record. */
+  void NumericBitLayout(uint64_t array_index, uint32_t& bit_count,
+                        size_t& bit_offset) const;
   IChannel* CreateChannelComposition() override;
   std::vector<IChannel*> ChannelCompositions() const override;
 

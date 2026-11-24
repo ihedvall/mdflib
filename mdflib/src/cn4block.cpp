@@ -7,6 +7,7 @@
 
 #include <ctime>
 #include <string>
+#include <typeinfo>
 
 #include "bigbuffer.h"
 #include "ca4block.h"
@@ -716,6 +717,26 @@ void Cn4Block::ByteOffset(uint32_t bytes) {
 }
 
 uint32_t Cn4Block::ByteOffset() const { return byte_offset_; }
+
+void Cn4Block::NumericBitLayout(uint64_t array_index, uint32_t& bit_count,
+                                size_t& bit_offset) const {
+  bit_count = bit_count_;
+  bit_offset = byte_offset_ * 8 + bit_offset_;
+  if (array_index == 0) {
+    return;
+  }
+  // Element i of a single CN template array starts i * ca_byte_offset_base
+  // bytes after the first element.
+  uint64_t step = bit_count;
+  if (cx_list_.size() == 1 && cx_list_.front() &&
+      typeid(*cx_list_.front()) == typeid(Ca4Block)) {
+    const auto& ca4 = static_cast<const Ca4Block&>(*cx_list_.front());
+    if (ca4.ByteOffsetBase() > 0 && ca4.Storage() == ArrayStorage::CnTemplate) {
+      step = static_cast<uint64_t>(ca4.ByteOffsetBase()) * 8;
+    }
+  }
+  bit_offset += static_cast<size_t>(array_index * step);
+}
 
 bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
                             std::string &dest) const {

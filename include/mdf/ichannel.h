@@ -613,6 +613,8 @@ class IChannel : public IBlock  {
   // The channel observer reads the invalidation bit of plain values directly.
   template <class T>
   friend class detail::ChannelObserver;
+  // The sample record observer copies the raw VLSD bytes of text channels.
+  friend class SampleRecordObserver;
 
   /** \brief Support function that sets unsigned little endian values */
   void SetUnsignedValueLe(uint64_t value, bool valid, uint64_t array_index);

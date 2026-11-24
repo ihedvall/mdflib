@@ -288,6 +288,73 @@ TEST_F(TestMdfTask, TestMdf3Source) {
   }
 }
 
+TEST_F(TestMdfTask, TestSdText) {
+  path source_file(kTestDir);
+  source_file.append("sd_text.mf4");
+  const std::vector<std::string> text_list = {"ready", "run", "pause",
+                                              "bereit", "end"};
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* state = group->CreateChannel("State");
+    state->Type(ChannelType::VariableLength);  // Text in an SD block
+    state->DataType(ChannelDataType::StringUTF8);
+    state->DataBytes(8);
+    ASSERT_TRUE(writer->InitMeasurement());
+    const uint64_t start = MdfHelper::NowNs();
+    writer->StartMeasurement(start);
+    for (size_t sample = 0; sample < text_list.size(); ++sample) {
+      state->SetChannelValue(text_list[sample]);
+      writer->SaveSample(*group, start + sample * 1'000'000'000);
+    }
+    writer->StopMeasurement(start + 5'000'000'000);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  for (const auto type : {MdfTaskType::MdfSortingTask,
+                          MdfTaskType::MdfCuttingTask}) {
+    const bool cut = type == MdfTaskType::MdfCuttingTask;
+    auto task = MdfFactory::CreateTask(type);
+    ASSERT_TRUE(task);
+    task->SourceFile(source_file.string());
+    path dest_file(kTestDir);
+    dest_file.append(cut ? "sd_text_cut.mf4" : "sd_text_sort.mf4");
+    task->DestinationFile(dest_file.string());
+    if (cut) {
+      task->MinTime(1.0);
+      task->MaxTime(3.0);
+    }
+    task->Run();
+    ASSERT_TRUE(task->Result());
+
+    MdfReader reader(dest_file.string());
+    ASSERT_TRUE(reader.ReadEverythingButData());
+    auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+    ASSERT_TRUE(data_group != nullptr);
+    const auto* group = data_group->GetChannelGroup("Group");
+    ASSERT_TRUE(group != nullptr);
+    const auto* state = group->GetChannel("State");
+    ASSERT_TRUE(state != nullptr);
+    auto observer = CreateChannelObserver(*data_group, *group, *state);
+    ASSERT_TRUE(reader.ReadData(*data_group));
+    const size_t first = cut ? 1 : 0;
+    const size_t nof_samples = cut ? 3 : text_list.size();
+    ASSERT_EQ(observer->NofSamples(), nof_samples);
+    for (size_t sample = 0; sample < nof_samples; ++sample) {
+      std::string value;
+      EXPECT_TRUE(observer->GetEngValue(sample, value));
+      EXPECT_EQ(value, text_list[first + sample]);
+    }
+  }
+}
+
 TEST_F(TestMdfTask, TestSortingTask) {
   if (kSkipTest) {
     GTEST_SKIP();

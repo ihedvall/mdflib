@@ -51,10 +51,19 @@ bool ISampleObserver::OnSample(uint64_t sample, uint64_t record_id,
 
 void ISampleObserver::FindVlsdRecord(const IChannelGroup& channel_group) {
   const auto channel_list = channel_group.Channels();
+  const IChannel* first_vlsd = nullptr;
   for (const auto* channel : channel_list) {
     if (channel == nullptr ||
-         channel->Type() != ChannelType::VariableLength ||
-         channel->DataType() != ChannelDataType::ByteArray)  {
+         channel->Type() != ChannelType::VariableLength)  {
+      continue;
+    }
+    if (first_vlsd == nullptr) {
+      first_vlsd = channel;
+    }
+    // Text and other VLSD types are passed on as raw bytes, but only for the
+    // first VLSD channel, the one that Cg4Block::FindSdChannel() writes.
+    if (channel->DataType() != ChannelDataType::ByteArray &&
+        channel != first_vlsd) {
       continue;
     }
     // The signal data index point to either a CG VLSD record or a SD(HL/DL/DZ) block

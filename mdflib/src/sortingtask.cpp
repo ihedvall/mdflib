@@ -104,6 +104,11 @@ void SortingTask::SortFile() {
         if (SkipIfNoSamples() && source_cg->NofSamples() == 0) {
           continue;
         }
+        // Cg4Block::Write() does not write the remote master link yet
+        if ((source_cg->Flags() & CgFlag::RemoteMaster) != 0) {
+          throw std::runtime_error(
+            "Remote master channel groups are not supported.");
+        }
 
         IDataGroup* dest_dg = dest_header->CreateDataGroup();
         if (dest_dg == nullptr) {

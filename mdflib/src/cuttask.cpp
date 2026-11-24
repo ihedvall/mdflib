@@ -122,6 +122,11 @@ void CutTask::CutFile() {
         if (SkipIfNoSamples() && source_cg->NofSamples() == 0) {
           continue;
         }
+        // Cg4Block::Write() does not write the remote master link yet
+        if ((source_cg->Flags() & CgFlag::RemoteMaster) != 0) {
+          throw std::runtime_error(
+            "Remote master channel groups are not supported.");
+        }
         IChannelGroup* dest_cg = CopyChannelConfig(*source_cg, *dest_dg);
         if (dest_cg == nullptr) {
           throw std::logic_error(

@@ -355,6 +355,46 @@ TEST_F(TestMdfTask, TestSdText) {
   }
 }
 
+TEST_F(TestMdfTask, TestRemoteMaster) {
+  path source_file(kTestDir);
+  source_file.append("remote_master.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    group->Flags(CgFlag::RemoteMaster);  // Master in another channel group
+    auto* value = group->CreateChannel("Value");
+    value->DataType(ChannelDataType::FloatLe);
+    value->DataBytes(8);
+    ASSERT_TRUE(writer->InitMeasurement());
+    const uint64_t start = MdfHelper::NowNs();
+    writer->StartMeasurement(start);
+    value->SetChannelValue(1.0);
+    writer->SaveSample(*group, start);
+    writer->StopMeasurement(start);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  for (const auto type : {MdfTaskType::MdfSortingTask,
+                          MdfTaskType::MdfCuttingTask}) {
+    auto task = MdfFactory::CreateTask(type);
+    ASSERT_TRUE(task);
+    task->SourceFile(source_file.string());
+    path dest_file(kTestDir);
+    dest_file.append(type == MdfTaskType::MdfCuttingTask
+                         ? "remote_master_cut.mf4" : "remote_master_sort.mf4");
+    task->DestinationFile(dest_file.string());
+    task->Run();
+    EXPECT_FALSE(task->Result());
+    const auto& messages = task->MessageList();
+    EXPECT_TRUE(!messages.empty() && messages.front().find(
+        "Remote master channel groups are not supported.") !=
+        std::string::npos);
+    EXPECT_FALSE(exists(dest_file));
+  }
+}
+
 TEST_F(TestMdfTask, TestSortingTask) {
   if (kSkipTest) {
     GTEST_SKIP();

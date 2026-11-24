@@ -163,7 +163,7 @@ void CsvWriter::AddRow() {
         }
       }
     }
-    *output_ << std::endl;
+    *output_ << '\n';
   }
   ++row_count_;
   column_count_ = 0;

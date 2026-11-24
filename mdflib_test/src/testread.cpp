@@ -5,16 +5,21 @@
 #include "testread.h"
 
 #include <chrono>
+#include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <map>
 #include <string>
 #include <iostream>
+#include <iterator>
 
 #include <boost/iostreams/device/file.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 
+#include "mdf/mdffactory.h"
 #include "mdf/mdfreader.h"
+#include "mdf/mdfwriter.h"
 #include "mdf/mdflogstream.h"
 
 #include "mdf3file.h"
@@ -578,6 +583,64 @@ TEST_F(TestRead, TestNotFinalized) {
 
   }
 
+}
+
+TEST_F(TestRead, TruncatedNotFinalized) {
+  const path mdf_file = temp_directory_path() / "truncated_not_finalized.mf4";
+  std::error_code err;
+  std::filesystem::remove(mdf_file, err);
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer && writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel();
+    master->Name("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* channel = group->CreateChannel();
+    channel->Name("Value");
+    channel->DataType(ChannelDataType::FloatLe);
+    channel->DataBytes(8);
+    writer->CompressData(false);
+    writer->PreTrigTime(0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    uint64_t time = MdfHelper::NowNs();
+    writer->StartMeasurement(time);
+    for (size_t sample = 0; sample < 100; ++sample) {
+      channel->SetChannelValue(static_cast<double>(sample));
+      writer->SaveSample(*group, time);
+      time += 1'000'000;
+    }
+    writer->StopMeasurement(time);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+  {
+    // Make it look like a logger file that was not finalized. The CG block has
+    // no cycle count, and the CG and DT block are flagged for an update.
+    std::fstream file(mdf_file, std::ios::in | std::ios::out | std::ios::binary);
+    const std::string bytes((std::istreambuf_iterator<char>(file)), {});
+    const auto cg = bytes.find("##CG");
+    ASSERT_NE(cg, std::string::npos);
+    uint64_t links = 0;
+    std::memcpy(&links, bytes.data() + cg + 16, sizeof(links));
+    const uint64_t no_samples = 0;
+    file.seekp(static_cast<std::streamoff>(cg + 24 + 8 * links + 8));
+    file.write(reinterpret_cast<const char*>(&no_samples), sizeof(no_samples));
+    file.seekp(0);
+    file.write("UnFinMF ", 8);
+    file.seekp(60);
+    file.write("\x05\x00", 2);
+  }
+  // Cut the last 16 byte record in half.
+  resize_file(mdf_file, file_size(mdf_file) - 8);
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  EXPECT_TRUE(reader.IsFinalized());
+  const auto* group = reader.GetDataGroup(0)->ChannelGroups()[0];
+  EXPECT_EQ(group->NofSamples(), 100);  // The cut record counts in full.
 }
 
 TEST_F(TestRead, TestCssChannelObservers) {

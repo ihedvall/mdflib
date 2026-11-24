@@ -5,6 +5,7 @@
 
 #include "cuttask.h"
 
+#include <cmath>
 #include <exception>
 #include <filesystem>
 #include <iostream>
@@ -153,7 +154,7 @@ void CutTask::CutFile() {
       }
       uint64_t start_time = start_time_;
       if (RecalculateTime()) {
-        const auto time_offset = static_cast<int64_t>(MinTime() * 1'000'000'000);
+        const auto time_offset = std::llround(MinTime() * 1'000'000'000);
         start_time += time_offset;
       }
       // Keep the time zone of the source file. The numeric start time would

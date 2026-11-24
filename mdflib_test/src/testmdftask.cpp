@@ -395,6 +395,68 @@ TEST_F(TestMdfTask, TestRemoteMaster) {
   }
 }
 
+TEST_F(TestMdfTask, TestIntegerMasterTicks) {
+  constexpr uint64_t kNofSamples = 1'000;
+  path source_file(kTestDir);
+  source_file.append("integer_master.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::UnsignedIntegerLe);
+    master->DataBytes(8);
+    auto* tick = master->CreateChannelConversion();  // 3.1 ms ticks
+    tick->Type(ConversionType::Linear);
+    tick->Parameter(0, 0.0);
+    tick->Parameter(1, 0.0031);
+    ASSERT_TRUE(writer->InitMeasurement());
+    const uint64_t start = MdfHelper::NowNs();
+    writer->StartMeasurement(start);
+    for (uint64_t sample = 0; sample < kNofSamples; ++sample) {
+      writer->SaveSample(*group, start + sample * 3'100'000);
+    }
+    writer->StopMeasurement(start + kNofSamples * 3'100'000);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  for (const auto type : {MdfTaskType::MdfSortingTask,
+                          MdfTaskType::MdfCuttingTask}) {
+    auto task = MdfFactory::CreateTask(type);
+    ASSERT_TRUE(task);
+    task->SourceFile(source_file.string());
+    path dest_file(kTestDir);
+    dest_file.append(type == MdfTaskType::MdfCuttingTask
+                         ? "integer_master_cut.mf4" : "integer_master_sort.mf4");
+    task->DestinationFile(dest_file.string());
+    task->Run();
+    ASSERT_TRUE(task->Result());
+
+    MdfReader reader(dest_file.string());
+    ASSERT_TRUE(reader.ReadEverythingButData());
+    auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+    ASSERT_TRUE(data_group != nullptr);
+    const auto* group = data_group->GetChannelGroup("Group");
+    ASSERT_TRUE(group != nullptr);
+    auto observer = CreateChannelObserver(*data_group, *group,
+                                          *group->GetChannel("Time"));
+    ASSERT_TRUE(reader.ReadData(*data_group));
+    ASSERT_EQ(observer->NofSamples(), kNofSamples);
+    size_t nof_moved = 0;
+    for (uint64_t sample = 0; sample < kNofSamples; ++sample) {
+      uint64_t ticks = 0;
+      observer->GetChannelValue(sample, ticks);
+      if (ticks != sample) {
+        ++nof_moved;
+      }
+    }
+    EXPECT_EQ(nof_moved, 0);
+  }
+}
+
 TEST_F(TestMdfTask, TestSortingTask) {
   if (kSkipTest) {
     GTEST_SKIP();

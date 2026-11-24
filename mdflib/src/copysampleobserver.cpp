@@ -5,6 +5,8 @@
 
 #include "copysampleobserver.h"
 
+#include <cmath>
+
 namespace mdf {
 CopySampleObserver::CopySampleObserver(const IDataGroup& data_group,
                                        const IChannelGroup& channel_group,
@@ -33,9 +35,9 @@ void CopySampleObserver::OnSampleRecord() {
 }
 void CopySampleObserver::SetTimeRange(double min_time, double max_time) {
   min_time_ = static_cast<uint64_t>(
-      GetBaseTime() + static_cast<int64_t>(min_time * 1'000'000'000.0));
+      GetBaseTime() + std::llround(min_time * 1'000'000'000.0));
   max_time_ = static_cast<uint64_t>(
-      GetBaseTime() + static_cast<int64_t>(max_time * 1'000'000'000.0));
+      GetBaseTime() + std::llround(max_time * 1'000'000'000.0));
 
 }
 

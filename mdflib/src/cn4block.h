@@ -172,6 +172,7 @@ class Cn4Block : public DataListBlock, public IChannel {
   uint32_t bit_count_ = 0;
   uint32_t flags_ = 0;
   uint32_t invalid_bit_pos_ = 0;
+  uint32_t invalid_bit_base_ = 1; ///< Invalid bit step between array elements
   uint8_t precision_ = 0;
   /* 1 byte reserved */
   uint16_t nof_attachments_ = 0;

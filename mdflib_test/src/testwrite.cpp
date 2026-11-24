@@ -2165,6 +2165,71 @@ TEST_F(TestWrite, Mdf4Invalid) {
   }
 }
 
+TEST_F(TestWrite, Mdf4AllValuesInvalid) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("all_values_invalid.mf4");
+
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  writer->Init(mdf_file.string());
+  auto* header = writer->Header();
+  auto* data_group = header->CreateDataGroup();
+  auto* group1 = data_group->CreateChannelGroup();
+
+  // The first channel is copied directly by the observer, the second is not.
+  auto* ch1 = group1->CreateChannel();
+  ch1->Name("Intel64");
+  ch1->Type(ChannelType::FixedLength);
+  ch1->DataType(ChannelDataType::FloatLe);
+  ch1->Flags(CnFlag::AllValuesInvalid);
+  ch1->DataBytes(8);
+
+  auto* ch2 = group1->CreateChannel();
+  ch2->Name("Motorola32");
+  ch2->Type(ChannelType::FixedLength);
+  ch2->DataType(ChannelDataType::FloatBe);
+  ch2->Flags(CnFlag::AllValuesInvalid);
+  ch2->DataBytes(4);
+
+  writer->PreTrigTime(0);
+  writer->InitMeasurement();
+  auto tick_time = TimeStampToNs();
+  writer->StartMeasurement(tick_time);
+  for (size_t sample = 0; sample < 5; ++sample) {
+    const double value = static_cast<double>(sample) + 1.0;
+    ch1->SetChannelValue(value);
+    ch2->SetChannelValue(value);
+    writer->SaveSample(*group1, tick_time);
+    tick_time += 1'000'000'000;
+  }
+  writer->StopMeasurement(tick_time);
+  writer->FinalizeMeasurement();
+
+  MdfReader reader(mdf_file.string());
+  ChannelObserverList observer_list;
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* dg4 = reader.GetFile()->Header()->LastDataGroup();
+  ASSERT_TRUE(dg4 != nullptr);
+  CreateChannelObserverForDataGroup(*dg4, observer_list);
+  ASSERT_TRUE(reader.ReadData(*dg4));
+  reader.Close();
+
+  ASSERT_EQ(observer_list.size(), 2);
+  for (auto& observer : observer_list) {
+    ASSERT_EQ(observer->NofSamples(), 5);
+    for (size_t sample = 0; sample < 5; ++sample) {
+      double channel_value = 0;
+      EXPECT_FALSE(observer->GetChannelValue(sample, channel_value))
+          << observer->Name();
+      // The stored values are still returned.
+      EXPECT_DOUBLE_EQ(channel_value, static_cast<double>(sample) + 1.0)
+          << observer->Name();
+    }
+  }
+}
+
 TEST_F(TestWrite, Mdf4Multi) {
   if (kSkipTest) {
     GTEST_SKIP();

@@ -486,6 +486,9 @@ void  Dg4Block::ReadVlsdData(std::streambuf& buffer,Cn4Block& channel,
         read_signal_data = true;
       } else if (block->BlockType() == "DL") {
         read_signal_data = true;
+      } else if (block->BlockType() == "HL") {
+        // Compressed SD data in a HL -> DL -> DZ list, read like a DL.
+        read_signal_data = true;
       }
       break;
 

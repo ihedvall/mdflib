@@ -9,9 +9,11 @@
 
 #include "mdf/ichannelgroup.h"
 #include "mdf/idatagroup.h"
+#include "mdf/mdffactory.h"
 #include "mdf/mdfhelper.h"
 #include "mdf/mdflogstream.h"
 #include "mdf/mdfreader.h"
+#include "mdf/mdfwriter.h"
 
 using namespace std::filesystem;
 
@@ -144,6 +146,68 @@ TEST_F(TestReadVlsd, TestVeryLargeFile) {
   counter_observer.reset();
   frame_observer.reset();
   std::cout << std::endl;
+}
+
+TEST_F(TestReadVlsd, TestCompressedSdList) {
+  // With compression, more than 4 MB of signal data is stored as HL -> DL -> DZ.
+  path mdf_file(temp_directory_path());
+  mdf_file.append("vlsd_hl_list.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  constexpr size_t kSamples = 4'000;
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    writer->CompressData(true);
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* frame = group->CreateChannel("Frame");
+    frame->Type(ChannelType::VariableLength);
+    frame->DataType(ChannelDataType::ByteArray);
+    frame->DataBytes(8);
+    ASSERT_TRUE(writer->InitMeasurement());
+    auto tick_time = MdfHelper::NowNs();
+    writer->StartMeasurement(tick_time);
+    for (size_t sample = 0; sample < kSamples; ++sample) {
+      frame->SetChannelValue(
+          std::vector<uint8_t>(1'024, static_cast<uint8_t>(sample)));
+      writer->SaveSample(*group, tick_time);
+      tick_time += 1'000'000;
+    }
+    writer->StopMeasurement(tick_time);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+  ASSERT_TRUE(data_group != nullptr);
+  auto* channel_group = data_group->GetChannelGroup("Group");
+  ASSERT_TRUE(channel_group != nullptr);
+  auto* frame = channel_group->GetChannel("Frame");
+  ASSERT_TRUE(frame != nullptr);
+  auto observer = CreateChannelObserver(*data_group, *channel_group, *frame);
+  observer->ReadVlsdData(false);
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  const auto offset_list = observer->GetOffsetList();
+  ASSERT_EQ(offset_list.size(), kSamples);
+
+  size_t sample_count = 0;
+  size_t equal_count = 0;
+  std::function callback = [&](uint64_t, const std::vector<uint8_t>& buffer) {
+    if (buffer == std::vector<uint8_t>(1'024,
+                                       static_cast<uint8_t>(sample_count))) {
+      ++equal_count;
+    }
+    ++sample_count;
+  };
+  EXPECT_TRUE(reader.ReadVlsdData(*data_group, *frame, offset_list, callback));
+  EXPECT_EQ(sample_count, kSamples);
+  EXPECT_EQ(equal_count, kSamples);
 }
 
 TEST_F(TestReadVlsd, TestSdList) {

@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <string>
 #include <fstream>
 
@@ -128,10 +129,28 @@ bool Deflate(const ByteArray& buf_in, ByteArray& buf_out) {
   s.avail_out = static_cast<uInt>(buf_out.size());
   s.next_out = const_cast<Bytef*>(buf_out.data());
   ret = deflate(&s, Z_FINISH); /* no bad return value */
+  if (ret == Z_OK) {
+    // Data that doesn't shrink needs more room than the input. A buffer of
+    // compressBound() size is always enough to finish the stream.
+    const size_t used = static_cast<size_t>(s.next_out - buf_out.data());
+    const size_t bound = compressBound(static_cast<uLong>(buf_in.size()));
+    // Lengths are 32 bit here, so inputs from about 4 GiB can't be finished.
+    constexpr size_t kMaxLength = std::numeric_limits<uInt>::max();
+    if (buf_in.size() <= kMaxLength && bound > used &&
+        bound - used <= kMaxLength) {
+      try {
+        buf_out.resize(bound, 0);
+        s.avail_out = static_cast<uInt>(bound - used);
+        s.next_out = buf_out.data() + used;
+        ret = deflate(&s, Z_FINISH);
+      } catch (const std::exception&) {
+      }
+    }
+  }
   if (ret == Z_STREAM_ERROR) { /* state not clobbered */
     return false;
   }
-  const auto compress = static_cast<uInt>(buf_out.size()) - s.avail_out;
+  const size_t compress = static_cast<size_t>(s.next_out - buf_out.data());
   /* clean up and return */
   deflateEnd(&s);
   buf_out.resize(compress);

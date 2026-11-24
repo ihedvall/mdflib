@@ -6,6 +6,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <random>
 
 #include "mdf/zlibutil.h"
 #include "platform.h"
@@ -154,6 +155,22 @@ TEST_F(TestZlib, ArrayCompressSmall) {
     }
   }
   EXPECT_TRUE(match);
+}
+
+TEST_F(TestZlib, ArrayCompressRandom) {
+  // Random bytes don't shrink, so the compressed block is larger than the input.
+  std::mt19937 gen(42);
+  ByteArray buf_in(400'000, 0);
+  for (auto& byte : buf_in) {
+    byte = static_cast<uint8_t>(gen());
+  }
+
+  ByteArray buf_out;
+  EXPECT_TRUE(Deflate(buf_in, buf_out));
+
+  ByteArray buf_dest(buf_in.size(), 0);
+  EXPECT_TRUE(Inflate(buf_out, buf_dest));
+  EXPECT_TRUE(buf_dest == buf_in);
 }
 
 TEST_F(TestZlib, Transpose) {

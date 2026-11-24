@@ -65,6 +65,10 @@ void CutTask::CutFile() {
     if (!reader_ || !writer_) {
       throw std::runtime_error("Reader or writer is not initialized.");
     }
+    // The configuration copy only handles MDF 4 blocks
+    if (!reader_->GetFile()->IsMdf4()) {
+      throw std::runtime_error("MDF 3 source files are not supported.");
+    }
     // The writer normally calculate bit and byte offsets for each channel.
     // As we are using the sample observer, the bit and byte offsets have to be
     // the same as in the source file.

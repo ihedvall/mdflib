@@ -1690,6 +1690,55 @@ TEST_F(TestWrite, Mdf4TimeAndDate) {
   }
 }
 
+TEST_F(TestWrite, Mdf4CanOpenText) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("canopen_text.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  const uint64_t ns = 1'763'296'496'789'000'000;  // 2025-11-16 12:34:56.789 UTC
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* date = group->CreateChannel("Date");
+    date->DataType(ChannelDataType::CanOpenDate);
+    date->DataBytes(7);
+    auto* time = group->CreateChannel("Time");
+    time->DataType(ChannelDataType::CanOpenTime);
+    time->DataBytes(6);
+    writer->InitMeasurement();
+    writer->StartMeasurement(ns);
+    date->SetChannelValue(ns);
+    time->SetChannelValue(ns);
+    writer->SaveSample(*group, ns);
+    writer->StopMeasurement(ns);
+    writer->FinalizeMeasurement();
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+  ISampleObserver observer(*data_group);
+  std::vector<std::string> texts;
+  observer.DoOnSample = [&](uint64_t sample, uint64_t,
+                            const std::vector<uint8_t>& record) {
+    for (const auto* channel : data_group->ChannelGroups()[0]->Channels()) {
+      std::string text;
+      EXPECT_TRUE(observer.GetEngValue(*channel, sample, record, text));
+      texts.push_back(text);
+    }
+    return true;
+  };
+  ASSERT_TRUE(reader.ReadData(*data_group));
+
+  // The same local time text as from a channel observer
+  const auto expected = MdfHelper::NsToLocalIsoTime(ns);
+  EXPECT_EQ(texts, std::vector<std::string>({expected, expected}));
+}
+
 TEST_F(TestWrite, CompressData) {
   if (kSkipTest) {
     GTEST_SKIP();

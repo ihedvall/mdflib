@@ -3480,6 +3480,75 @@ TEST_F(TestWrite, Mdf4SharedConversion) {
   EXPECT_EQ(text, "On");
 }
 
+TEST_F(TestWrite, Mdf4ValueToTextAsNumber) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("value_to_text_number.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group =
+        writer->Header()->CreateDataGroup()->CreateChannelGroup("Group");
+    auto* value_text = group->CreateChannel("ValueText");
+    auto* range_text = group->CreateChannel("RangeText");
+    for (auto* channel : {value_text, range_text}) {
+      channel->DataType(ChannelDataType::UnsignedIntegerLe);
+      channel->DataBytes(1);
+    }
+    auto* conv = value_text->CreateChannelConversion();
+    conv->Type(ConversionType::ValueToText);
+    conv->Parameter(0, 1.0);
+    conv->Parameter(1, 2.0);
+    conv->Reference(0, "On");
+    conv->Reference(1, "42");
+    conv->Reference(2, "Off");  // Default
+    auto* range = range_text->CreateChannelConversion();
+    range->Type(ConversionType::ValueRangeToText);
+    range->Parameter(0, 0.0);
+    range->Parameter(1, 9.0);
+    range->Parameter(2, 10.0);
+    range->Parameter(3, 19.0);
+    range->Reference(0, "Low");
+    range->Reference(1, "15");
+    range->Reference(2, "SNA");  // Default
+    writer->InitMeasurement();
+    writer->StartMeasurement(TimeStampToNs());
+    writer->StopMeasurement(TimeStampToNs());
+    writer->FinalizeMeasurement();
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto cn_list =
+      reader.GetFile()->Header()->LastDataGroup()->ChannelGroups()[0]->Channels();
+  ASSERT_EQ(cn_list.size(), 2);
+  const auto* conv = cn_list[0]->ChannelConversion();
+  const auto* range = cn_list[1]->ChannelConversion();
+  ASSERT_TRUE(conv != nullptr);
+  ASSERT_TRUE(range != nullptr);
+
+  // A numeric value is only valid if reading the text as a number works
+  double value = -1.0;
+  EXPECT_TRUE(conv->Convert(2U, value));  // "42"
+  EXPECT_DOUBLE_EQ(value, 42.0);
+  EXPECT_FALSE(conv->Convert(1U, value));  // "On"
+  EXPECT_FALSE(conv->Convert(7U, value));  // Default "Off"
+
+  value = -1.0;
+  EXPECT_TRUE(range->Convert(12U, value));  // "15"
+  EXPECT_DOUBLE_EQ(value, 15.0);
+  EXPECT_FALSE(range->Convert(5U, value));   // "Low"
+  EXPECT_FALSE(range->Convert(30U, value));  // Default "SNA"
+
+  // The text interface is unchanged
+  std::string text;
+  EXPECT_TRUE(conv->Convert(1U, text));
+  EXPECT_EQ(text, "On");
+}
+
 TEST_F(TestWrite, TestStreamInterface) {
   if (kSkipTest) {
     GTEST_SKIP();

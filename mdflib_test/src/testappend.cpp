@@ -6,8 +6,11 @@
 #include "testappend.h"
 
 #include <filesystem>
+#include <fstream>
 #include <sstream>
+#include <vector>
 
+#include "dg4block.h"
 #include "mdf/mdfwriter.h"
 #include "mdf/mdfreader.h"
 #include "mdf/mdffactory.h"
@@ -286,6 +289,88 @@ TEST_F(TestAppend, Mdf4AppendStartTimeZero) {
   ASSERT_EQ(dg_list.size(), 2);
   for (auto* dg4 : dg_list) {
     EXPECT_EQ(dg4->ChannelGroups().front()->NofSamples(), 5);
+  }
+}
+
+TEST_F(TestAppend, Mdf4AppendKeepsEmptyGroups) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("empty_groups.mf4");
+
+  // The first measurement leaves DG 0 and DG 2 without samples. DG 0 then
+  // gets an empty DT block, like files from older versions have. The append
+  // shall keep this DT block and leave DG 2 without a data block.
+  int64_t dt_position = 0;
+  for (size_t measurement = 0; measurement < 2; ++measurement) {
+    if (measurement == 1) {
+      MdfReader reader(mdf_file.string());
+      ASSERT_TRUE(reader.ReadEverythingButData());
+      auto* dg4 = dynamic_cast<detail::Dg4Block*>(
+          reader.GetFile()->Header()->DataGroups().front());
+      ASSERT_TRUE(dg4 != nullptr);
+      std::filebuf file;
+      ASSERT_TRUE(file.open(mdf_file.string(), std::ios_base::in |
+                            std::ios_base::out | std::ios_base::binary) !=
+                  nullptr);
+      const auto* dt4 = dg4->CreateOrGetDt4(file);
+      file.close();
+      ASSERT_TRUE(dt4 != nullptr);
+      ASSERT_EQ(dt4->BlockLength(), 24);
+      dt_position = dt4->FilePosition();
+      ASSERT_GT(dt_position, 0);
+    }
+
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    const size_t nof_groups = measurement == 0 ? 4 : 1;
+    std::vector<IChannelGroup*> group_list;
+    for (size_t group = 0; group < nof_groups; ++group) {
+      auto* channel_group =
+          writer->Header()->CreateDataGroup()->CreateChannelGroup();
+      auto* master = channel_group->CreateChannel();
+      master->Name("Time");
+      master->Type(ChannelType::Master);
+      master->Sync(ChannelSyncType::Time);
+      master->DataType(ChannelDataType::FloatLe);
+      master->DataBytes(8);
+      group_list.push_back(channel_group);
+    }
+
+    writer->PreTrigTime(0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    writer->StartMeasurement(0);
+    for (size_t group = 0; group < nof_groups; ++group) {
+      if (measurement == 0 && group % 2 == 0) {
+        continue;
+      }
+      for (uint64_t sample = 0; sample < 5; ++sample) {
+        writer->SaveSample(*group_list[group], sample * 1'000'000'000);
+      }
+    }
+    writer->StopMeasurement(5'000'000'000);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto dg_list = reader.GetFile()->Header()->DataGroups();
+  ASSERT_EQ(dg_list.size(), 5);
+  for (size_t index = 0; index < dg_list.size(); ++index) {
+    const auto* dg4 = dynamic_cast<const detail::Dg4Block*>(dg_list[index]);
+    ASSERT_TRUE(dg4 != nullptr);
+    const bool empty = index == 0 || index == 2;
+    const auto& block_list = dg4->DataBlockList();
+    EXPECT_EQ(dg4->ChannelGroups().front()->NofSamples(), empty ? 0 : 5);
+    EXPECT_EQ(dg4->DataSize(), empty ? 0 : 5 * 8) << "DG " << index;
+    if (index == 0) {
+      ASSERT_EQ(block_list.size(), 1);
+      EXPECT_EQ(block_list.front()->FilePosition(), dt_position);
+      EXPECT_EQ(block_list.front()->BlockLength(), 24);
+    } else {
+      EXPECT_EQ(block_list.empty(), empty) << "DG " << index;
+    }
   }
 }
 

@@ -38,6 +38,10 @@ void Writer4SampleQueue::SaveQueue(std::unique_lock<std::mutex>& lock) {
     SaveQueueCompressed(lock);
     return;
   }
+  if (IsEmpty()) {
+    // No new samples. Keep the file closed and the data link unchanged.
+    return;
+  }
 
   // Save uncompressed data in last DG/DT block
   auto* dg4 = dynamic_cast<Dg4Block*>(&data_group_);

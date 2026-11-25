@@ -82,12 +82,13 @@ CanBusObserver::CanBusObserver(const IDataGroup& data_group,
   edl_channel_ = GetChannel("EDL");
   brs_channel_ = GetChannel("BRS");
   esi_channel_ = GetChannel("ESI");
-  r0_channel_ = GetChannel("RO");
+  r0_channel_ = GetChannel("R0");
   r1_channel_ = GetChannel("R1");
   wake_up_channel_ = GetChannel("WakeUp");
   single_wire_channel_ = GetChannel("SingleWire");
   frame_duration_channel_ = GetChannel("FrameDuration");
   bit_position_channel_ = GetChannel("BitPosition");
+  error_type_channel_ = GetChannel("ErrorType");
 }
 
 std::string CanBusObserver::Name() const {
@@ -250,7 +251,7 @@ bool CanBusObserver::FireCallback() {
     return false;
   }
   const uint64_t sample = last_sample_.sample;
-  CanMessage msg;
+  CanMessage msg(message_type_);
   ParseCanMessage(msg);
 
   return OnCanMessage(sample, msg);
@@ -430,7 +431,7 @@ void CanBusObserver::ParseCanMessage(CanMessage& msg) const {
   if (bit_position_channel_ != nullptr) {
     double position = 0.0;
     GetEngValue(*bit_position_channel_, current_sample_index_, record, position);
-    msg.FrameDuration(static_cast<uint16_t>(position));
+    msg.BitPosition(static_cast<uint16_t>(position));
    }
 
    if (error_type_channel_ != nullptr) {

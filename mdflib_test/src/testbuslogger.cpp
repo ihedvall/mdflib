@@ -1299,6 +1299,82 @@ TEST_F(TestBusLogger, Mdf4CanObserverRemoteFrame) {
   observer.DetachObserver();
 }
 
+TEST_F(TestBusLogger, Mdf4CanObserverErrorFrame) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  // A remote frame and an error frame read through the callback.
+  path mdf_file(kTestDir);
+  mdf_file.append("can_error_frame.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    writer->BusType(MdfBusType::CAN);
+    writer->StorageType(MdfStorageType::MlsdStorage);
+    writer->MaxLength(8);
+    auto* data_group = writer->Header()->CreateDataGroup();
+    CanConfigAdapter config(*writer);
+    config.CreateConfig(*data_group);
+    auto* remote_group = data_group->GetChannelGroup("CAN_RemoteFrame");
+    auto* error_group = data_group->GetChannelGroup("CAN_ErrorFrame");
+    ASSERT_TRUE(remote_group != nullptr);
+    ASSERT_TRUE(error_group != nullptr);
+
+    writer->InitMeasurement();
+    const auto start = TimeStampToNs();
+    writer->StartMeasurement(start);
+    CanMessage remote;
+    remote.MessageId(0x200);
+    writer->SaveCanMessage(*remote_group, start, remote);
+    CanMessage error;
+    error.MessageId(0x100);
+    error.R0(true);
+    error.ErrorType(CanErrorType::CRC_ERROR);
+    error.BitPosition(27);
+    error.FrameDuration(120'000);
+    writer->SaveCanMessage(*error_group, start, error);
+    writer->StopMeasurement(start);
+    writer->FinalizeMeasurement();
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetHeader()->LastDataGroup();
+  ASSERT_TRUE(data_group != nullptr);
+  const auto* remote_group = data_group->GetChannelGroup("CAN_RemoteFrame");
+  const auto* error_group = data_group->GetChannelGroup("CAN_ErrorFrame");
+  ASSERT_TRUE(remote_group != nullptr);
+  ASSERT_TRUE(error_group != nullptr);
+  std::vector<CanMessage> remote_list;
+  std::vector<CanMessage> error_list;
+  CanBusObserver remote_observer(*data_group, *remote_group);
+  remote_observer.OnCanMessage = [&](uint64_t, const CanMessage& msg) {
+    remote_list.push_back(msg);
+    return true;
+  };
+  CanBusObserver error_observer(*data_group, *error_group);
+  error_observer.OnCanMessage = [&](uint64_t, const CanMessage& msg) {
+    error_list.push_back(msg);
+    return true;
+  };
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  remote_observer.DetachObserver();
+  error_observer.DetachObserver();
+
+  ASSERT_EQ(remote_list.size(), 1);
+  EXPECT_EQ(remote_list[0].TypeOfMessage(), MessageType::CAN_RemoteFrame);
+  EXPECT_EQ(remote_list[0].CanId(), 0x200);
+  ASSERT_EQ(error_list.size(), 1);
+  const auto& msg = error_list[0];
+  EXPECT_EQ(msg.TypeOfMessage(), MessageType::CAN_ErrorFrame);
+  EXPECT_EQ(msg.CanId(), 0x100);
+  EXPECT_TRUE(msg.R0());
+  EXPECT_EQ(msg.ErrorType(), CanErrorType::CRC_ERROR);
+  EXPECT_EQ(msg.BitPosition(), 27);
+  EXPECT_EQ(msg.FrameDuration(), 120'000);
+}
+
 TEST_F(TestBusLogger, Mdf4CanObserverVirtualFlags) {
   if (kSkipTest) {
     GTEST_SKIP();

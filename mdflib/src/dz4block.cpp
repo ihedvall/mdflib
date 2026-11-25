@@ -10,6 +10,7 @@
 #include "dz4block.h"
 
 #include <mdf/zlibutil.h>
+#include "mdf/mdflogstream.h"
 
 
 
@@ -153,6 +154,8 @@ uint64_t Dz4Block::CopyDataToBuffer(std::streambuf& from_file,
     }
 
     default:
+      MDF_ERROR() << "Unsupported zip type in DZ block. Zip type: "
+                  << static_cast<int>(type_);
       break;
   }
   return count;

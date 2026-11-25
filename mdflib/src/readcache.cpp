@@ -53,6 +53,8 @@ bool ReadCache::ParseRecord() {
     return false;
   }
   bool continue_reading = true;
+  // A record with bytes from a DZ block without data notifies no sample.
+  record_without_data_ = false;
   try {
     const auto record_id = ParseRecordId();
     const auto itr_group = available_cg_list_.size() == 1 ?
@@ -81,7 +83,8 @@ bool ReadCache::ParseRecord() {
         GetArray(record);
         const size_t sample = channel_group->Sample();
         if (sample < channel_group->NofSamples()) {
-          continue_reading = dg4_block_->NotifySampleObservers(sample,
+          continue_reading = record_without_data_ ||
+              dg4_block_->NotifySampleObservers(sample,
                                   channel_group->RecordId(), record);
           channel_group->IncrementSample();
        }
@@ -102,7 +105,8 @@ bool ReadCache::ParseRecord() {
         GetArray(record_);
         const size_t sample = channel_group->Sample();
         if (sample < channel_group->NofSamples()) {
-          continue_reading = dg4_block_->NotifySampleObservers(sample,
+          continue_reading = record_without_data_ ||
+              dg4_block_->NotifySampleObservers(sample,
                                channel_group->RecordId(), record_);
           channel_group->IncrementSample();
         }
@@ -128,6 +132,7 @@ bool ReadCache::ParseRangeRecord(DgRange& range) {
     return false;
   }
   bool continue_reading = true;
+  record_without_data_ = false;
   try {
     const auto record_id = ParseRecordId();
     auto *cg_range = range.GetCgRange(record_id);
@@ -167,7 +172,8 @@ bool ReadCache::ParseRangeRecord(DgRange& range) {
         std::vector<uint8_t> record(length.value(), 0);
         GetArray(record);
         if (sample < channel_group->NofSamples()) {
-          continue_reading = dg4_block_->NotifySampleObservers(sample,
+          continue_reading = record_without_data_ ||
+              dg4_block_->NotifySampleObservers(sample,
                             record_id, record);
           channel_group->IncrementSample();
         }
@@ -198,7 +204,8 @@ bool ReadCache::ParseRangeRecord(DgRange& range) {
         std::vector<uint8_t> record(record_size, 0);
         GetArray(record);
         if (sample < channel_group->NofSamples()) {
-          continue_reading = dg4_block_->NotifySampleObservers(sample,
+          continue_reading = record_without_data_ ||
+              dg4_block_->NotifySampleObservers(sample,
                                             channel_group->RecordId(), record);
           channel_group->IncrementSample();
         }
@@ -386,10 +393,12 @@ bool ReadCache::GetNextByte(uint8_t &input) {
 
     uint64_t temp_index = 0;
     current_block->CopyDataToBuffer(buffer_,file_buffer_, temp_index);
+    no_data_ = temp_index != data_size_;
   } else {
     // Read from the file directly
     SetFilePosition(buffer_, current_block->DataPosition());
     file_buffer_.clear(); // Indicate that we read from the file directly
+    no_data_ = false;
   }
     // Read in the data form file to
   if (file_index_ >= data_size_) {
@@ -466,6 +475,7 @@ void ReadCache::GetArray(std::vector<uint8_t> &buffer) {
       std::copy_n(file_buffer_.cbegin() + static_cast<int>(file_index_),
                   nof_bytes,buffer.begin());
     }
+    record_without_data_ = record_without_data_ || no_data_;
     file_index_ += nof_bytes;
     data_count_ += nof_bytes;
     return;
@@ -474,6 +484,7 @@ void ReadCache::GetArray(std::vector<uint8_t> &buffer) {
     if (!GetNextByte(input)){
       throw std::runtime_error("End of file detected.");
     }
+    record_without_data_ = record_without_data_ || no_data_;
   }
 }
 
@@ -513,12 +524,14 @@ void ReadCache::SkipBytes(size_t nof_skip) {
         file_buffer_.resize(static_cast<size_t>(data_size_) );
         uint64_t temp_index = 0;
         current_block->CopyDataToBuffer(buffer_,file_buffer_, temp_index);
+        no_data_ = temp_index != data_size_;
       } catch (const std::exception&) {
         break;;
       }
     } else {
       file_buffer_.clear();
       SetFilePosition(buffer_, current_block->DataPosition());
+      no_data_ = false;
     }
     break;
   }

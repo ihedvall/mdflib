@@ -643,6 +643,125 @@ TEST_F(TestRead, TruncatedNotFinalized) {
   EXPECT_EQ(group->NofSamples(), 100);  // The cut record counts in full.
 }
 
+TEST_F(TestRead, TruncatedVlsdLength) {
+  const path mdf_file = temp_directory_path() / "truncated_vlsd_length.mf4";
+  std::error_code err;
+  std::filesystem::remove(mdf_file, err);
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+    ASSERT_TRUE(writer && writer->Init(mdf_file.string()));
+    writer->BusType(MdfBusType::CAN);
+    writer->StorageType(MdfStorageType::VlsdStorage);
+    writer->MaxLength(8);
+    writer->MandatoryMembersOnly(true);
+    ASSERT_TRUE(writer->CreateBusLogConfiguration());
+    writer->PreTrigTime(0);
+    writer->CompressData(false);
+    auto* frames = writer->Header()->LastDataGroup()->GetChannelGroup("CAN_DataFrame");
+    ASSERT_TRUE(frames != nullptr);
+    ASSERT_TRUE(writer->InitMeasurement());
+    uint64_t time = MdfHelper::NowNs();
+    writer->StartMeasurement(time);
+    for (size_t sample = 0; sample < 10; ++sample) {
+      CanMessage msg;
+      msg.MessageId(123);
+      msg.DataBytes(std::vector<uint8_t>(8, static_cast<uint8_t>(0xA0 + sample)));
+      writer->SaveCanMessage(*frames, time, msg);
+      time += 1'000'000;
+    }
+    writer->StopMeasurement(time);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+  std::string bytes;
+  {
+    // Make it look like a logger file that was not finalized. The CG blocks
+    // have no cycle count and no VLSD size, and they are flagged for an update.
+    std::fstream file(mdf_file, std::ios::in | std::ios::out | std::ios::binary);
+    bytes.assign(std::istreambuf_iterator<char>(file), {});
+    for (auto cg = bytes.find("##CG"); cg != std::string::npos;
+         cg = bytes.find("##CG", cg + 4)) {
+      uint64_t links = 0;
+      std::memcpy(&links, bytes.data() + cg + 16, sizeof(links));
+      const auto data = static_cast<std::streamoff>(cg + 24 + 8 * links);
+      const uint64_t zero = 0;
+      file.seekp(data + 8);
+      file.write(reinterpret_cast<const char*>(&zero), sizeof(zero));
+      if ((bytes[data + 16] & CgFlag::VlsdChannel) != 0) {
+        file.seekp(data + 24);
+        file.write(reinterpret_cast<const char*>(&zero), sizeof(zero));
+      }
+    }
+    file.seekp(0);
+    file.write("UnFinMF ", 8);
+    file.seekp(60);
+    file.write("\x25\x00", 2);
+  }
+  // The file ends 2 bytes into the length of the VLSD record of the last frame.
+  const auto last = bytes.rfind(std::string("\x08\x00\x00\x00", 4) + std::string(8, '\xA9'));
+  ASSERT_NE(last, std::string::npos);
+  resize_file(mdf_file, last + 2);
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  const auto* frames = reader.GetDataGroup(0)->GetChannelGroup("CAN_DataFrame");
+  ASSERT_TRUE(frames != nullptr);
+  EXPECT_EQ(frames->NofSamples(), 9);
+}
+
+TEST_F(TestRead, TruncatedMdf3) {
+  const path mdf_file = temp_directory_path() / "truncated_mdf3.mdf";
+  std::error_code err;
+  std::filesystem::remove(mdf_file, err);
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf3Basic);
+    ASSERT_TRUE(writer && writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel();
+    master->Name("Time");
+    master->Type(ChannelType::Master);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* channel = group->CreateChannel();
+    channel->Name("Value");
+    channel->DataType(ChannelDataType::FloatLe);
+    channel->DataBytes(8);
+    writer->PreTrigTime(0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    uint64_t time = MdfHelper::NowNs();
+    writer->StartMeasurement(time);
+    for (size_t sample = 0; sample < 10; ++sample) {
+      channel->SetChannelValue(static_cast<double>(sample + 1));
+      writer->SaveSample(*group, time);
+      time += 1'000'000;
+    }
+    writer->StopMeasurement(time);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+  {
+    // The data block ends the file.
+    std::ifstream file(mdf_file, std::ios::binary);
+    file.seekg(-8, std::ios::end);
+    double last = 0;
+    file.read(reinterpret_cast<char*>(&last), sizeof(last));
+    ASSERT_EQ(last, 10.0);
+  }
+  // The file ends in the middle of the second last 16 byte record.
+  resize_file(mdf_file, file_size(mdf_file) - 24);
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetDataGroup(0);
+  auto* group = data_group->ChannelGroups()[0];
+  auto observer = CreateChannelObserver(*data_group, *group,
+                                        *group->GetChannel("Value"));
+  reader.ReadData(*data_group);
+  double value = 0;
+  EXPECT_TRUE(observer->GetEngValue(7, value));
+  EXPECT_EQ(value, 8.0);
+  EXPECT_FALSE(observer->GetEngValue(8, value));
+  EXPECT_FALSE(observer->GetEngValue(9, value));
+}
+
 TEST_F(TestRead, TestCssChannelObservers) {
   const std::string& test_file = GetMdfFile(kCssTestFile.data());
   const auto find_test_file = kMdfList.find(kCssTestFile.data());

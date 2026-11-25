@@ -774,7 +774,11 @@ bool Dg4Block::FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg,
   uint64_t count = 0;
   while (count < dt_block->DataSize()) {
     uint64_t record_id = 0;
-    count += ReadRecordId(buffer,record_id);
+    try {
+      count += ReadRecordId(buffer,record_id);
+    } catch (const std::ios_base::failure&) {
+      break;  // The file ends inside the record ID. The record is not counted.
+    }
     auto cg_find = counter_list.size() == 1 ?
            counter_list.begin() : counter_list.find(record_id);
     if (cg_find == counter_list.end()) {
@@ -792,7 +796,11 @@ bool Dg4Block::FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg,
       // This is normally used for string,
       // and the CG block only includes one signal
       uint32_t length = 0;
-      count_bytes += ReadNumber(buffer, length);
+      try {
+        count_bytes += ReadNumber(buffer, length);
+      } catch (const std::ios_base::failure&) {
+        break;  // The file ends inside the length. The record is not counted.
+      }
       //std::vector<uint8_t> record(length, 0);
       if (length > 0) {
         count_bytes += step(length);

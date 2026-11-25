@@ -207,6 +207,18 @@ void Dg4Block::ReadCgList(std::streambuf& buffer) {
 }
 
 void Dg4Block::ReadData(std::streambuf& buffer) {
+  // A single group with only virtual channels has empty records. The data
+  // block is empty or missing, so each cycle is an empty record.
+  if (cg_list_.size() == 1 && cg_list_[0] && RecordIdSize() == 0 &&
+      cg_list_[0]->NofDataBytes() + cg_list_[0]->NofInvalidBytes() == 0) {
+    InitFastObserverList();
+    const std::vector<uint8_t> record;
+    for (uint64_t sample = 0; sample < cg_list_[0]->NofSamples() &&
+         NotifySampleObservers(sample, cg_list_[0]->RecordId(), record);
+         ++sample) {
+    }
+    return;
+  }
 
   const auto& block_list = DataBlockList();
   if (block_list.empty()) {

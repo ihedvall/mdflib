@@ -261,6 +261,9 @@ uint64_t Cg3Block::ReadDataRecord(std::streambuf& buffer,
   std::vector<uint8_t> record(record_size, 0);
   uint64_t count =
       buffer.sgetn(reinterpret_cast<char *>(record.data()), record.size());
+  if (count < record_size) {
+    return 0;  // The file ends inside this record. It is not a sample.
+  }
   uint64_t sample = Sample();
   if (sample < NofSamples()) {
     const bool continue_reading = notifier.NotifySampleObservers(sample, RecordId(), record);
@@ -303,6 +306,9 @@ uint64_t Cg3Block::ReadRangeDataRecord(std::streambuf& buffer,
 
     count = buffer.sgetn(
         reinterpret_cast<char*>(record.data()), record.size());
+    if (count < record_size) {
+      return 0;  // The file ends inside this record. It is not a sample.
+    }
 
     if (sample < NofSamples()) {
       const bool continue_reading =

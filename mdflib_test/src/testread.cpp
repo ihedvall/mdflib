@@ -708,6 +708,60 @@ TEST_F(TestRead, TruncatedVlsdLength) {
   EXPECT_EQ(frames->NofSamples(), 9);
 }
 
+TEST_F(TestRead, TruncatedMdf3) {
+  const path mdf_file = temp_directory_path() / "truncated_mdf3.mdf";
+  std::error_code err;
+  std::filesystem::remove(mdf_file, err);
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf3Basic);
+    ASSERT_TRUE(writer && writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel();
+    master->Name("Time");
+    master->Type(ChannelType::Master);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* channel = group->CreateChannel();
+    channel->Name("Value");
+    channel->DataType(ChannelDataType::FloatLe);
+    channel->DataBytes(8);
+    writer->PreTrigTime(0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    uint64_t time = MdfHelper::NowNs();
+    writer->StartMeasurement(time);
+    for (size_t sample = 0; sample < 10; ++sample) {
+      channel->SetChannelValue(static_cast<double>(sample + 1));
+      writer->SaveSample(*group, time);
+      time += 1'000'000;
+    }
+    writer->StopMeasurement(time);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+  {
+    // The data block ends the file.
+    std::ifstream file(mdf_file, std::ios::binary);
+    file.seekg(-8, std::ios::end);
+    double last = 0;
+    file.read(reinterpret_cast<char*>(&last), sizeof(last));
+    ASSERT_EQ(last, 10.0);
+  }
+  // The file ends in the middle of the second last 16 byte record.
+  resize_file(mdf_file, file_size(mdf_file) - 24);
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetDataGroup(0);
+  auto* group = data_group->ChannelGroups()[0];
+  auto observer = CreateChannelObserver(*data_group, *group,
+                                        *group->GetChannel("Value"));
+  reader.ReadData(*data_group);
+  double value = 0;
+  EXPECT_TRUE(observer->GetEngValue(7, value));
+  EXPECT_EQ(value, 8.0);
+  EXPECT_FALSE(observer->GetEngValue(8, value));
+  EXPECT_FALSE(observer->GetEngValue(9, value));
+}
+
 TEST_F(TestRead, TestCssChannelObservers) {
   const std::string& test_file = GetMdfFile(kCssTestFile.data());
   const auto find_test_file = kMdfList.find(kCssTestFile.data());

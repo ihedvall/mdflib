@@ -105,7 +105,7 @@ class IDataWriter {
   }
 
 private:
-  [[nodiscard]] static constexpr bool IsLittleEndian() {
+  [[nodiscard]] static bool IsLittleEndian() {
     constexpr int num = 1;
     return *(char*) &num == 1;
   }

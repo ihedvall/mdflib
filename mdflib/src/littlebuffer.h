@@ -35,7 +35,7 @@ class LittleBuffer {
  private:
   std::array<uint8_t, sizeof(T)> buffer_ = {};
 
-  [[nodiscard]] static constexpr bool IsBigEndian() {
+  [[nodiscard]] static bool IsBigEndian() {
     constexpr int num = 1;
     return *reinterpret_cast<const char*>(&num) == 0;
   }

@@ -4,20 +4,22 @@
  */
 #pragma once
 
-#include <array>
 #include <cstdint>
 #include <fstream>
 #include <ios>
+#include <memory>
 #include <streambuf>
+#include <vector>
 
 namespace mdf {
 
-/** \brief Read-only stream buffer that keeps the last pages of the file.
+/** \brief Read-only stream buffer that keeps recently read pages of the file.
  *
  * A std::filebuf drops its buffer on every seek. Reading the block headers of
  * an MF4 file jumps back and forth between a few places, so most of these
- * seeks land in a page that was read a moment ago. This buffer keeps the last
- * pages and answers such a seek from memory, which makes
+ * seeks land in a page that was read a moment ago. This buffer keeps up to
+ * 1024 recently read 4 kB pages (4 MiB per buffer, allocated on the first
+ * buffered read) and answers such a seek from memory, which makes
  * ReadEverythingButData() faster on files with many channels. MdfReader uses a
  * std::filebuf by default.
  *
@@ -55,23 +57,27 @@ class FileReadBuffer : public std::streambuf {
 
  private:
   static constexpr std::streamsize kPageSize = 4096;
-  static constexpr size_t kPages = 8;
+  static constexpr size_t kPages = 1024;
 
   struct Page {
-    std::array<char, static_cast<size_t>(kPageSize)> data;
     int64_t pos = -1;            ///< Position in the file, -1 while unused
     std::streamsize filled = 0;  ///< Number of valid bytes in the page
   };
 
   std::filebuf file_;
-  std::array<Page, kPages> page_;
-  size_t next_ = 0;        ///< Page that is filled next
+  /// A file page n is kept in page_[n % kPages], so finding it needs no search.
+  /// Both are allocated on the first buffered read, empty until then.
+  std::vector<Page> page_;
+  std::unique_ptr<char[]> data_;  ///< Page bytes
   int64_t page_pos_ = 0;   ///< File position of the first byte of the get area
   int64_t file_pos_ = -1;  ///< Position of the file buffer below, -1 if unknown
 
   int64_t Position() const { return page_pos_ + (gptr() - eback()); }
   pos_type Move(int64_t position);
   bool Reach(int64_t position);
+  char* Data(const Page& page) {
+    return data_.get() + (&page - page_.data()) * kPageSize;
+  }
 };
 
 }  // namespace mdf

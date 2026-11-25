@@ -39,13 +39,16 @@ std::streambuf::int_type FileReadBuffer::underflow() {
   // A page starts at a multiple of its size. Pages therefore never overlap,
   // and a place that is read again is covered by the same page.
   const int64_t start = wanted - wanted % kPageSize;
-  Page& page = page_[next_];
-  next_ = (next_ + 1) % kPages;
+  if (page_.empty()) {
+    data_.reset(new char[kPages * kPageSize]);
+    page_.resize(kPages);
+  }
+  Page& page = page_[static_cast<size_t>(start / kPageSize) % kPages];
   page.pos = -1;
   if (!Reach(start)) {
     return traits_type::eof();
   }
-  page.filled = file_.sgetn(page.data.data(), kPageSize);
+  page.filled = file_.sgetn(Data(page), kPageSize);
   file_pos_ += page.filled;
   if (page.filled <= wanted - start) {
     return traits_type::eof();
@@ -76,14 +79,15 @@ std::streambuf::pos_type FileReadBuffer::Move(int64_t position) {
   }
   page_pos_ = position;
   setg(nullptr, nullptr, nullptr);
-  for (Page& page : page_) {
-    if (page.pos >= 0 && position >= page.pos &&
-        position < page.pos + page.filled) {
-      page_pos_ = page.pos;
-      setg(page.data.data(), page.data.data() + (position - page.pos),
-           page.data.data() + page.filled);
-      break;
-    }
+  if (page_.empty()) {
+    return pos_type(position);  // No page read yet
+  }
+  Page& page = page_[static_cast<size_t>(position / kPageSize) % kPages];
+  if (page.pos >= 0 && position >= page.pos &&
+      position < page.pos + page.filled) {
+    page_pos_ = page.pos;
+    setg(Data(page), Data(page) + (position - page.pos),
+         Data(page) + page.filled);
   }
   return pos_type(position);
 }

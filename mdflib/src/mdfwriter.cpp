@@ -183,8 +183,9 @@ bool MdfWriter::Init(const std::wstring& filename) {
     MDF_ERROR() << "Failed to create a file buffer. Internal error.";
     return false;
   }
-  // A std::filebuf drops its buffer on every seek. FileReadBuffer keeps the
-  // last pages, so most seeks between the blocks are served from memory.
+  // A std::filebuf drops its buffer on every seek. FileReadBuffer keeps
+  // recently read pages, so most seeks between the blocks are served from
+  // memory.
   FileReadBuffer input;
   try {
     if (exists(filename_)) {

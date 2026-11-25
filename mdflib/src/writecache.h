@@ -7,6 +7,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <thread>
 #include <atomic>
 #include <condition_variable>
@@ -79,6 +80,9 @@ class WriteCache final {
   std::condition_variable sample_event_; ///< Used internally.
   std::condition_variable saved_event_; ///< The write thread saved the queues.
   uint64_t nof_saves_ = 0; ///< Save rounds of the write thread (locker_).
+  const SampleQueue* last_queue_ = nullptr; ///< Queue of the last sample (locker_).
+  std::set<const SampleQueue*> left_queues_; ///< Converter groups left (locker_).
+  bool one_by_one_ = true; ///< Converter adds one group after the other (locker_).
 
   using SampleQueuePtr = std::unique_ptr<SampleQueue>;
   std::map<const IDataGroup*, SampleQueuePtr> cache_;

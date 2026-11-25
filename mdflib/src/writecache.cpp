@@ -30,6 +30,9 @@ WriteCache::~WriteCache() {
 void WriteCache::Init() {
   StopWorkThread();
   cache_.clear();
+  last_queue_ = nullptr;
+  left_queues_.clear();
+  one_by_one_ = true;
   writer_.State( WriteState::Init);
 
   const auto* header = writer_.Header();
@@ -88,6 +91,8 @@ void WriteCache::Init() {
 void WriteCache::Exit() {
   StopWorkThread();
   cache_.clear();
+  last_queue_ = nullptr;
+  left_queues_.clear();
 }
 
 void WriteCache::StopWorkThread() {
@@ -120,7 +125,12 @@ void WriteCache::WorkThread() {
           break;
         }
         case WriteState::StartMeas: {
-          if (writer_.IsSavePeriodic()) {
+          if (writer_.IsSavePeriodic() && one_by_one_ &&
+              left_queues_.count(sample_queue.get()) > 0) {
+            // The converter has left this group, so it is complete. Save it
+            // while the next group is added.
+            sample_queue->CleanQueue(lock);
+          } else if (writer_.IsSavePeriodic()) {
             sample_queue->SaveQueue(lock);  // Save the contents of the queue to file
           }
           break;
@@ -165,8 +175,24 @@ void WriteCache::WaitForSave(std::unique_lock<std::mutex>& lock,
   // A converter has all samples at hand. Let the write thread catch up
   // instead of keeping the whole file in the queue.
   if (writer_.TypeOfWriter() != MdfWriterType::MdfConverter ||
-      writer_.State() != WriteState::StartMeas || !writer_.IsSavePeriodic() ||
-      queue.QueueSize() < 8'000'000) {
+      writer_.State() != WriteState::StartMeas || !writer_.IsSavePeriodic()) {
+    return;
+  }
+  if (writer_.CompressData() && &queue != last_queue_) {
+    // A converter that comes back to a group it has left adds the groups
+    // interleaved. Then all groups are saved at stop as before.
+    one_by_one_ = one_by_one_ && left_queues_.count(&queue) == 0;
+    // A first block of up to 100 bytes is saved as DT and would turn off
+    // transposing for the later DZ blocks of the group.
+    if (last_queue_ != nullptr && one_by_one_ &&
+        last_queue_->QueueSize() > 100) {
+      left_queues_.insert(last_queue_);
+      save_now_ = true;
+      sample_event_.notify_one();
+    }
+    last_queue_ = &queue;
+  }
+  if (queue.QueueSize() < 8'000'000) {
     return;
   }
   const uint64_t saves = nof_saves_;

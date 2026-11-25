@@ -690,6 +690,108 @@ TEST_F(TestMultipleDgWrite, Mdf4ConverterMultiDgCompress) {
 
 }
 
+TEST_F(TestMultipleDgWrite, Mdf4ConverterDgAfterDgCompress) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  // Each group is below the queue limit and is saved when the next one starts.
+  constexpr size_t max_sample = 100'000;
+  path mdf_file(kTestDir);
+  mdf_file.append("converter_dg_after_dg_compress.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfConverter);
+    ASSERT_TRUE(writer != nullptr);
+
+    writer->PreTrigTime(0.0);
+    writer->CompressData(true);
+    writer->SavePeriodic(true);
+    writer->Init(mdf_file.string());
+
+    std::vector<IChannelGroup*> group_list;
+    for (size_t dg_index = 0; dg_index < 3; ++dg_index) {
+      auto* data_group = writer->CreateDataGroup();
+      ASSERT_TRUE(data_group != nullptr);
+      auto* channel_group = data_group->CreateChannelGroup();
+      ASSERT_TRUE(channel_group != nullptr);
+
+      auto* master = channel_group->CreateChannel();
+      master->Name("Time");
+      master->Type(ChannelType::Master);
+      master->Sync(ChannelSyncType::Time);
+      master->DataType(ChannelDataType::FloatLe);
+      master->DataBytes(8);
+      master->Unit("s");
+
+      auto* channel = channel_group->CreateChannel();
+      channel->Name("Value");
+      channel->Type(ChannelType::FixedLength);
+      channel->DataType(ChannelDataType::FloatLe);
+      channel->DataBytes(8);
+      group_list.push_back(channel_group);
+    }
+
+    writer->InitMeasurement();
+    writer->StartMeasurement(MdfHelper::NowNs());
+    const auto start_size = file_size(mdf_file);
+    uint32_t dg_count = 0;
+    for (auto* channel_group : group_list) {
+      for (size_t sample = 0; sample < max_sample; ++sample) {
+        const auto value = (10.0 * dg_count) + static_cast<double>(sample);
+        for (auto* channel : channel_group->Channels()) {
+          channel->SetChannelValue(value);
+        }
+        writer->SaveSample(*channel_group, MdfHelper::NowNs());
+      }
+      ++dg_count;
+    }
+    // The groups that are left are saved before the stop.
+    for (size_t wait = 0; wait < 100 && file_size(mdf_file) <= start_size;
+         ++wait) {
+      sleep_for(50ms);
+    }
+    EXPECT_GT(file_size(mdf_file), start_size);
+    writer->StopMeasurement(MdfHelper::NowNs());
+    writer->FinalizeMeasurement();
+  }
+  {
+    MdfReader reader(mdf_file.string());
+    EXPECT_TRUE(reader.IsOk());
+    EXPECT_TRUE(reader.IsFinalized());
+    EXPECT_TRUE(reader.ReadEverythingButData());
+    const auto* header = reader.GetHeader();
+    ASSERT_TRUE(header != nullptr);
+
+    const auto dg_list = header->DataGroups();
+    EXPECT_EQ(dg_list.size(), 3);
+    uint32_t dg_count = 0;
+    for (auto* data_group : dg_list) {
+      ASSERT_TRUE(data_group != nullptr);
+
+      ChannelObserverList observer_list;
+      CreateChannelObserverForDataGroup(*data_group, observer_list);
+      EXPECT_EQ(observer_list.size(), 2);
+      EXPECT_TRUE(reader.ReadData(*data_group));
+
+      for (const auto& observer : observer_list) {
+        ASSERT_TRUE(observer);
+        EXPECT_EQ(observer->NofSamples(), max_sample);
+        if (observer->IsMaster()) {
+          continue;
+        }
+        for (size_t sample = 0; sample < observer->NofSamples(); ++sample) {
+          const double expected_value =
+              (10.0 * dg_count) + static_cast<double>(sample);
+          double value = 0.0;
+          const bool valid = observer->GetEngValue(sample, value);
+          EXPECT_TRUE(valid) << "Sample: " << sample;
+          EXPECT_DOUBLE_EQ(expected_value, value) << "Sample: " << sample;
+        }
+      }
+      ++dg_count;
+    }
+  }
+}
+
 TEST_F(TestMultipleDgWrite, Mdf4ConverterMultiNoCompressDg) {
   if (kSkipTest) {
     GTEST_SKIP();

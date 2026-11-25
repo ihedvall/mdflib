@@ -195,7 +195,7 @@ bool CsvWriter::Convert(ChannelObserverList& observer_list) {
         }
         ++count;
       }
-      file_ << std::endl;
+      file_ << '\n';
     }
     file_.close();
     std::filesystem::rename(temp_filename_, dest_filename_);

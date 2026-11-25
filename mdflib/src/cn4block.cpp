@@ -477,11 +477,11 @@ uint64_t Cn4Block::Read(std::streambuf& buffer) {
   name_ = ReadTx4(buffer, kIndexName);
 
   if (Link(kIndexCx) > 0) {
-    SetFilePosition(buffer, Link(kIndexCx));
-    auto block_type = ReadBlockType(buffer);
-
     if (cx_list_.empty() && (Link(kIndexCx) > 0)) {
       for (auto link = Link(kIndexCx); link > 0; /* No ++ here*/) {
+        // A CA block may be followed by a CN block, for an array of structures
+        SetFilePosition(buffer, link);
+        const auto block_type = ReadBlockType(buffer);
         if (block_type == "CA") {
           auto ca_block = std::make_unique<Ca4Block>();
           ca_block->Init(*this);
@@ -497,6 +497,8 @@ uint64_t Cn4Block::Read(std::streambuf& buffer) {
           cn_block->Read(buffer);
           link = cn_block->Link(0);
           cx_list_.emplace_back(std::move(cn_block));
+        } else {
+          break;  // Any other block type ends the chain
         }
       }
     }

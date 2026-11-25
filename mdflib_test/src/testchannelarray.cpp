@@ -786,6 +786,47 @@ TEST_F(TestChannelArray, TestArrayInArray) {
 
 }
 
+TEST_F(TestChannelArray, ArrayOfStructures) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("array_of_structures.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* points = group->CreateChannel("Points");
+    points->DataType(ChannelDataType::ByteArray);
+    points->DataBytes(4);
+    // The CN block links to a CA block, which links to the structure member
+    points->CreateChannelArray()->Shape({2});
+    auto* member = points->CreateChannelComposition("Points.X");
+    member->DataType(ChannelDataType::UnsignedIntegerLe);
+    member->DataBytes(2);
+    ASSERT_TRUE(writer->InitMeasurement());
+    writer->StartMeasurement(TimeStampToNs());
+    writer->StopMeasurement(TimeStampToNs());
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetHeader()->DataGroups()[0];
+  const auto* channel = data_group->ChannelGroups()[0]->GetChannel("Points");
+  ASSERT_TRUE(channel != nullptr);
+  EXPECT_EQ(channel->ChannelArrays().size(), 1);
+  const auto members = channel->ChannelCompositions();
+  ASSERT_EQ(members.size(), 1);
+  EXPECT_EQ(members[0]->Name(), "Points.X");
+}
+
 TEST_F(TestChannelArray, TestShapeOfArrayInArray) {
   if (kSkipTest) {
     GTEST_SKIP();

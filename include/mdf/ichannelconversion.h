@@ -386,7 +386,7 @@ inline bool IChannelConversion::Convert(const T& channel_value,
       std::string text;
       valid = ConvertValueToText(static_cast<double>(channel_value), text);
       std::istringstream s(text);
-      s >> eng_value;
+      valid = valid && static_cast<bool>(s >> eng_value);
       break;
     }
 
@@ -395,7 +395,7 @@ inline bool IChannelConversion::Convert(const T& channel_value,
       valid =
           ConvertValueRangeToText(static_cast<double>(channel_value), text);
       std::istringstream s(text);
-      s >> eng_value;
+      valid = valid && static_cast<bool>(s >> eng_value);
       break;
     }
 

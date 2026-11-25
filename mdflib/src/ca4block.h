@@ -67,6 +67,7 @@ class Ca4Block : public MdfBlock, public IChannelArray {
   [[nodiscard]] uint32_t InvalidBitPosBase() const {
     return invalid_bit_pos_base_;
   }
+  [[nodiscard]] int32_t ByteOffsetBase() const { return byte_offset_base_; }
 
   void SetParentChannel(const Cn4Block* parent);
   void PrepareForWriting();

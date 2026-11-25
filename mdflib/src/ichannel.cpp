@@ -5,8 +5,10 @@
 #include <limits>
 #include <ctime>
 #include <string>
+#include <typeinfo>
 
 #include "bigbuffer.h"
+#include "cn4block.h"
 // #include "half.hpp"
 #include "dbchelper.h"
 #include "littlebuffer.h"
@@ -15,16 +17,40 @@
 #include "mdf/ievent.h"
 #include "mdf/mdflogstream.h"
 
+namespace {
+
+struct NumericLayout {
+  uint32_t bit_count;
+  size_t bit_offset;
+};
+
+// An MDF 4 channel gives bit count and offset in one call, which also takes
+// the byte offset base of a channel array into account.
+NumericLayout GetNumericLayout(const mdf::IChannel& channel,
+                               uint64_t array_index) {
+  NumericLayout layout{};
+  if (typeid(channel) == typeid(mdf::detail::Cn4Block)) {
+    static_cast<const mdf::detail::Cn4Block&>(channel).NumericBitLayout(
+        array_index, layout.bit_count, layout.bit_offset);
+    return layout;
+  }
+  layout.bit_count = channel.BitCount();
+  layout.bit_offset = (channel.ByteOffset() * 8 + channel.BitOffset())
+      + static_cast<size_t>(array_index * layout.bit_count);
+  return layout;
+}
+
+}  // namespace
+
 namespace mdf {
 
 bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
                                 uint64_t &dest,
                                 uint64_t array_index) const {
 
-  const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
-    + static_cast<size_t>( (array_index * BitCount()) );
-  size_t range_check = (bit_offset + BitCount()) / 8;
-  if ((bit_offset + BitCount()) % 8 != 0) {
+  const auto [bit_count, bit_offset] = GetNumericLayout(*this, array_index);
+  size_t range_check = (bit_offset + bit_count) / 8;
+  if ((bit_offset + bit_count) % 8 != 0) {
     ++range_check;
   }
   if (range_check > record_buffer.size()) {
@@ -37,7 +63,7 @@ bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
   if (Type() == ChannelType::VariableLength) {
      dest = detail::DbcHelper::RawToUnsigned(true,
                                             bit_offset,
-                                            BitCount(),
+                                            bit_count,
                                             record_buffer.data());
     return true;
   }
@@ -52,14 +78,14 @@ bool IChannel::GetUnsignedValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::UnsignedIntegerLe:
       dest = detail::DbcHelper::RawToUnsigned(true,
                                               bit_offset,
-                                              BitCount(),
+                                              bit_count,
                                               record_buffer.data());
       break;
 
     case ChannelDataType::UnsignedIntegerBe:
       dest = detail::DbcHelper::RawToUnsigned(false,
                                               bit_offset,
-                                              BitCount(),
+                                              bit_count,
                                               record_buffer.data());
       break;
 
@@ -77,11 +103,10 @@ bool IChannel::GetSignedValue(const std::vector<uint8_t> &record_buffer,
   // Copy to a temp data buffer, so we can get rid of the bit offset nonsense
   // std::vector<uint8_t> data_buffer;
   // CopyToDataBuffer(record_buffer, data_buffer, array_index);
-  const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
-      + static_cast<size_t>( (array_index * BitCount()) );
+  const auto [bit_count, bit_offset] = GetNumericLayout(*this, array_index);
 
-  size_t range_check = (bit_offset + BitCount()) / 8;
-  if ((bit_offset + BitCount()) % 8 != 0) {
+  size_t range_check = (bit_offset + bit_count) / 8;
+  if ((bit_offset + bit_count) % 8 != 0) {
     ++range_check;
   }
   if (range_check > record_buffer.size()) {
@@ -94,7 +119,7 @@ bool IChannel::GetSignedValue(const std::vector<uint8_t> &record_buffer,
   const bool little_endian = DataType() == ChannelDataType::SignedIntegerLe;
   dest = detail::DbcHelper::RawToSigned(little_endian,
                                                    bit_offset,
-                                                  BitCount(),
+                                                  bit_count,
                                                     record_buffer.data());
   return true;
 }
@@ -102,11 +127,10 @@ bool IChannel::GetSignedValue(const std::vector<uint8_t> &record_buffer,
 bool IChannel::GetFloatValue(const std::vector<uint8_t> &record_buffer,
                              double &dest,
                              uint64_t array_index ) const {
-  const size_t bit_offset = (ByteOffset() * 8 + BitOffset())
-        + static_cast<size_t>( (array_index * BitCount()) );
+  const auto [bit_count, bit_offset] = GetNumericLayout(*this, array_index);
 
-  size_t range_check = (bit_offset + BitCount()) / 8;
-  if ((bit_offset + BitCount()) % 8 != 0) {
+  size_t range_check = (bit_offset + bit_count) / 8;
+  if ((bit_offset + bit_count) % 8 != 0) {
     ++range_check;
   }
   if (range_check > record_buffer.size()) {
@@ -118,25 +142,25 @@ bool IChannel::GetFloatValue(const std::vector<uint8_t> &record_buffer,
 
   const bool little_endian = DataType() == ChannelDataType::FloatLe;
   bool valid = true;
-  switch (BitCount()) {
+  switch (bit_count) {
     case 16:
       dest = detail::DbcHelper::RawToHalf(little_endian,
                                           bit_offset,
-                                         BitCount(),
+                                         bit_count,
                                            record_buffer.data());
       break;
 
     case 32:
       dest = detail::DbcHelper::RawToFloat(little_endian,
                                           bit_offset,
-                                          BitCount(),
+                                          bit_count,
                                           record_buffer.data());
       break;
 
     case 64:
       dest = detail::DbcHelper::RawToDouble(little_endian,
                                           bit_offset,
-                                          BitCount(),
+                                          bit_count,
                                           record_buffer.data());
       break;
 

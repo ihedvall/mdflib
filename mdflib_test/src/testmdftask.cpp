@@ -288,6 +288,175 @@ TEST_F(TestMdfTask, TestMdf3Source) {
   }
 }
 
+TEST_F(TestMdfTask, TestSdText) {
+  path source_file(kTestDir);
+  source_file.append("sd_text.mf4");
+  const std::vector<std::string> text_list = {"ready", "run", "pause",
+                                              "bereit", "end"};
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    auto* state = group->CreateChannel("State");
+    state->Type(ChannelType::VariableLength);  // Text in an SD block
+    state->DataType(ChannelDataType::StringUTF8);
+    state->DataBytes(8);
+    ASSERT_TRUE(writer->InitMeasurement());
+    const uint64_t start = MdfHelper::NowNs();
+    writer->StartMeasurement(start);
+    for (size_t sample = 0; sample < text_list.size(); ++sample) {
+      state->SetChannelValue(text_list[sample]);
+      writer->SaveSample(*group, start + sample * 1'000'000'000);
+    }
+    writer->StopMeasurement(start + 5'000'000'000);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  for (const auto type : {MdfTaskType::MdfSortingTask,
+                          MdfTaskType::MdfCuttingTask}) {
+    const bool cut = type == MdfTaskType::MdfCuttingTask;
+    auto task = MdfFactory::CreateTask(type);
+    ASSERT_TRUE(task);
+    task->SourceFile(source_file.string());
+    path dest_file(kTestDir);
+    dest_file.append(cut ? "sd_text_cut.mf4" : "sd_text_sort.mf4");
+    task->DestinationFile(dest_file.string());
+    if (cut) {
+      task->MinTime(1.0);
+      task->MaxTime(3.0);
+    }
+    task->Run();
+    ASSERT_TRUE(task->Result());
+
+    MdfReader reader(dest_file.string());
+    ASSERT_TRUE(reader.ReadEverythingButData());
+    auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+    ASSERT_TRUE(data_group != nullptr);
+    const auto* group = data_group->GetChannelGroup("Group");
+    ASSERT_TRUE(group != nullptr);
+    const auto* state = group->GetChannel("State");
+    ASSERT_TRUE(state != nullptr);
+    auto observer = CreateChannelObserver(*data_group, *group, *state);
+    ASSERT_TRUE(reader.ReadData(*data_group));
+    const size_t first = cut ? 1 : 0;
+    const size_t nof_samples = cut ? 3 : text_list.size();
+    ASSERT_EQ(observer->NofSamples(), nof_samples);
+    for (size_t sample = 0; sample < nof_samples; ++sample) {
+      std::string value;
+      EXPECT_TRUE(observer->GetEngValue(sample, value));
+      EXPECT_EQ(value, text_list[first + sample]);
+    }
+  }
+}
+
+TEST_F(TestMdfTask, TestRemoteMaster) {
+  path source_file(kTestDir);
+  source_file.append("remote_master.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    group->Flags(CgFlag::RemoteMaster);  // Master in another channel group
+    auto* value = group->CreateChannel("Value");
+    value->DataType(ChannelDataType::FloatLe);
+    value->DataBytes(8);
+    ASSERT_TRUE(writer->InitMeasurement());
+    const uint64_t start = MdfHelper::NowNs();
+    writer->StartMeasurement(start);
+    value->SetChannelValue(1.0);
+    writer->SaveSample(*group, start);
+    writer->StopMeasurement(start);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  for (const auto type : {MdfTaskType::MdfSortingTask,
+                          MdfTaskType::MdfCuttingTask}) {
+    auto task = MdfFactory::CreateTask(type);
+    ASSERT_TRUE(task);
+    task->SourceFile(source_file.string());
+    path dest_file(kTestDir);
+    dest_file.append(type == MdfTaskType::MdfCuttingTask
+                         ? "remote_master_cut.mf4" : "remote_master_sort.mf4");
+    task->DestinationFile(dest_file.string());
+    task->Run();
+    EXPECT_FALSE(task->Result());
+    const auto& messages = task->MessageList();
+    EXPECT_TRUE(!messages.empty() && messages.front().find(
+        "Remote master channel groups are not supported.") !=
+        std::string::npos);
+    EXPECT_FALSE(exists(dest_file));
+  }
+}
+
+TEST_F(TestMdfTask, TestIntegerMasterTicks) {
+  constexpr uint64_t kNofSamples = 1'000;
+  path source_file(kTestDir);
+  source_file.append("integer_master.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup(
+        "Group");
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::UnsignedIntegerLe);
+    master->DataBytes(8);
+    auto* tick = master->CreateChannelConversion();  // 3.1 ms ticks
+    tick->Type(ConversionType::Linear);
+    tick->Parameter(0, 0.0);
+    tick->Parameter(1, 0.0031);
+    ASSERT_TRUE(writer->InitMeasurement());
+    const uint64_t start = MdfHelper::NowNs();
+    writer->StartMeasurement(start);
+    for (uint64_t sample = 0; sample < kNofSamples; ++sample) {
+      writer->SaveSample(*group, start + sample * 3'100'000);
+    }
+    writer->StopMeasurement(start + kNofSamples * 3'100'000);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  for (const auto type : {MdfTaskType::MdfSortingTask,
+                          MdfTaskType::MdfCuttingTask}) {
+    auto task = MdfFactory::CreateTask(type);
+    ASSERT_TRUE(task);
+    task->SourceFile(source_file.string());
+    path dest_file(kTestDir);
+    dest_file.append(type == MdfTaskType::MdfCuttingTask
+                         ? "integer_master_cut.mf4" : "integer_master_sort.mf4");
+    task->DestinationFile(dest_file.string());
+    task->Run();
+    ASSERT_TRUE(task->Result());
+
+    MdfReader reader(dest_file.string());
+    ASSERT_TRUE(reader.ReadEverythingButData());
+    auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+    ASSERT_TRUE(data_group != nullptr);
+    const auto* group = data_group->GetChannelGroup("Group");
+    ASSERT_TRUE(group != nullptr);
+    auto observer = CreateChannelObserver(*data_group, *group,
+                                          *group->GetChannel("Time"));
+    ASSERT_TRUE(reader.ReadData(*data_group));
+    ASSERT_EQ(observer->NofSamples(), kNofSamples);
+    size_t nof_moved = 0;
+    for (uint64_t sample = 0; sample < kNofSamples; ++sample) {
+      uint64_t ticks = 0;
+      observer->GetChannelValue(sample, ticks);
+      if (ticks != sample) {
+        ++nof_moved;
+      }
+    }
+    EXPECT_EQ(nof_moved, 0);
+  }
+}
+
 TEST_F(TestMdfTask, TestSortingTask) {
   if (kSkipTest) {
     GTEST_SKIP();
@@ -434,6 +603,55 @@ TEST_F(TestMdfTask, TestCutTask) {
   }
   MdfLogStream::SetLogLevel(MdfLogSeverity::kTrace);
   EXPECT_GT(nof_cut, 0);
+}
+
+TEST_F(TestMdfTask, TestTaskKeepsTimeZone) {
+  // Mdf4Timestamp::SetTime(uint64_t) only writes a DST offset of 0 or 60 minutes
+  constexpr int16_t kTimezoneMin = 345;
+  constexpr int16_t kDstMin = 30;
+  constexpr uint64_t kStartTime = 1'689'489'600'000'000'000;
+
+  path source_file(kTestDir);
+  source_file.append("time_zone.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(source_file.string()));
+    auto* data_group = writer->Header()->CreateDataGroup();
+    auto* group = data_group->CreateChannelGroup();
+    auto* master = group->CreateChannel();
+    master->Name("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+
+    ASSERT_TRUE(writer->InitMeasurement());
+    TimezoneTimestamp start(kStartTime, kTimezoneMin, kDstMin);
+    writer->StartMeasurement(start);
+    writer->SaveSample(*group, kStartTime);
+    writer->StopMeasurement(kStartTime);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  for (const auto type : {MdfTaskType::MdfCuttingTask,
+                          MdfTaskType::MdfSortingTask}) {
+    auto task = MdfFactory::CreateTask(type);
+    ASSERT_TRUE(task);
+    task->SourceFile(source_file.string());
+    path dest_file(kTestDir);
+    dest_file.append(type == MdfTaskType::MdfCuttingTask ? "time_zone_cut.mf4"
+                                                         : "time_zone_sort.mf4");
+    task->DestinationFile(dest_file.string());
+    task->Run();
+    ASSERT_TRUE(task->Result());
+
+    MdfReader reader(dest_file.string());
+    ASSERT_TRUE(reader.ReadHeader());
+    const auto* timestamp = reader.GetHeader()->StartTimestamp();
+    ASSERT_TRUE(timestamp != nullptr);
+    EXPECT_EQ(timestamp->GetTzOffsetMin(), kTimezoneMin);
+    EXPECT_EQ(timestamp->GetDstOffsetMin(), kDstMin);
+  }
 }
 
 TEST_F(TestMdfTask, TestMdfToCsvTask) {

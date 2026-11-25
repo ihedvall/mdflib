@@ -104,6 +104,11 @@ void SortingTask::SortFile() {
         if (SkipIfNoSamples() && source_cg->NofSamples() == 0) {
           continue;
         }
+        // Cg4Block::Write() does not write the remote master link yet
+        if ((source_cg->Flags() & CgFlag::RemoteMaster) != 0) {
+          throw std::runtime_error(
+            "Remote master channel groups are not supported.");
+        }
 
         IDataGroup* dest_dg = dest_header->CreateDataGroup();
         if (dest_dg == nullptr) {
@@ -140,7 +145,18 @@ void SortingTask::SortFile() {
         throw std::runtime_error(
           "Failed to initialize the measurement. File: " + TempFile());
       }
-      writer_->StartMeasurement(start_time_);
+      // Keep the time zone of the source file. The numeric start time would
+      // get the time zone of this computer.
+      const auto* source_time = source_header->StartTimestamp();
+      if (source_time != nullptr &&
+          source_time->GetTimeType() == timetype::kTimezoneTime) {
+        TimezoneTimestamp timestamp(
+            start_time_, static_cast<int16_t>(source_time->GetTzOffsetMin()),
+            static_cast<int16_t>(source_time->GetDstOffsetMin()));
+        writer_->StartMeasurement(timestamp);
+      } else {
+        writer_->StartMeasurement(start_time_);
+      }
       reader_->ReadData(*source_dg);
       uint64_t stop_time = start_time_;
       for (auto& sample_observer : observer_list) {

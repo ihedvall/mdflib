@@ -5,6 +5,8 @@
 
 #include "mdf/samplerecordobserver.h"
 
+#include <cmath>
+
 namespace mdf {
 
 SampleRecordObserver::SampleRecordObserver(const IDataGroup& data_group,
@@ -40,7 +42,8 @@ bool SampleRecordObserver::OnSample(uint64_t sample, uint64_t record_id,
     last_sample_.timestamp = base_time_;
     if (time_channel_ != nullptr) {
       double rel_time = time_channel_->GetTimestamp(GetSampleIndex(), record);
-      last_sample_.timestamp += static_cast<int64_t>(rel_time * 1'000'000'000);
+      // Round, a truncated time can move an integer master one tick back
+      last_sample_.timestamp += std::llround(rel_time * 1'000'000'000);
     }
     sample_time_ = last_sample_.timestamp;
     if (!sd_vlsd_list_.empty()) {
@@ -49,7 +52,8 @@ bool SampleRecordObserver::OnSample(uint64_t sample, uint64_t record_id,
       if (const IChannel* vlsd_channel = sd_vlsd_list_.front();
           vlsd_channel != nullptr) {
         last_sample_.vlsd_data = true;
-        vlsd_channel->GetChannelValue(record,last_sample_.vlsd_buffer);
+        // Raw bytes, GetChannelValue() would convert text to UTF-8
+        vlsd_channel->GetByteArrayValue(record, last_sample_.vlsd_buffer);
       }
     }
   } else {

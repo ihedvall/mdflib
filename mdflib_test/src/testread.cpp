@@ -866,6 +866,61 @@ TEST_F(TestRead, TestCanFd) {
   }
 }
 
+TEST_F(TestRead, SignedVirtualMaster) {
+  // imc FAMOS writes the virtual master as a signed integer with 0 bits.
+  const path mdf_file = temp_directory_path() / "signed_virtual_master.mf4";
+  std::error_code err;
+  std::filesystem::remove(mdf_file, err);
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer && writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel();
+    master->Name("Time");
+    master->Type(ChannelType::VirtualMaster);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::SignedIntegerLe);
+    auto* conversion = master->CreateChannelConversion();
+    conversion->Type(ConversionType::Linear);
+    conversion->Parameter(0, 0.0);
+    conversion->Parameter(1, 0.001);
+    auto* channel = group->CreateChannel();
+    channel->Name("Value");
+    channel->DataType(ChannelDataType::UnsignedIntegerLe);
+    channel->DataBytes(4);
+    writer->CompressData(false);
+    writer->PreTrigTime(0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    uint64_t time = MdfHelper::NowNs();
+    writer->StartMeasurement(time);
+    for (size_t sample = 0; sample < 300; ++sample) {
+      channel->SetChannelValue(sample);
+      writer->SaveSample(*group, time);
+      time += 1'000'000;
+    }
+    writer->StopMeasurement(time);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetDataGroup(0);
+  const auto* group = data_group->ChannelGroups()[0];
+  const auto* master = group->GetChannel("Time");
+  ASSERT_TRUE(master != nullptr);
+  EXPECT_EQ(master->DataType(), ChannelDataType::SignedIntegerLe);
+  EXPECT_EQ(master->BitCount(), 0U);
+  auto observer = CreateChannelObserver(*data_group, *group, *master);
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  ASSERT_EQ(observer->NofSamples(), 300);
+  int64_t value = 0;
+  EXPECT_TRUE(observer->GetChannelValue(299, value));
+  EXPECT_EQ(value, 299);
+  double time = 0.0;
+  EXPECT_TRUE(observer->GetEngValue(299, time));
+  EXPECT_DOUBLE_EQ(time, 0.299);
+}
+
 TEST_F(TestRead, TestReadData) {
   if (kMdfList.empty()) {
     GTEST_SKIP_("No MDF files.");

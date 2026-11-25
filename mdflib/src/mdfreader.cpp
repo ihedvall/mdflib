@@ -94,7 +94,9 @@ ChannelObserverPtr CreateChannelObserver(const IDataGroup &data_group,
   // Note, that num,ber of bytes returns number of bytes for
   // all value in the array
   const auto array_size = channel.ArraySize();
-  const auto value_size = channel.DataBytes();
+  // Virtual channels have no bytes in the record. Their value is the sample
+  // index, so they need the widest type.
+  const auto value_size = channel.DataBytes() > 0 ? channel.DataBytes() : 8;
 
   switch (channel.DataType()) {
     case ChannelDataType::UnsignedIntegerLe:

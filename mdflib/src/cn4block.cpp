@@ -723,7 +723,8 @@ uint32_t Cn4Block::ByteOffset() const { return byte_offset_; }
 void Cn4Block::NumericBitLayout(uint64_t array_index, uint32_t& bit_count,
                                 size_t& bit_offset) const {
   bit_count = bit_count_;
-  bit_offset = byte_offset_ * 8 + bit_offset_;
+  bit_offset = static_cast<size_t>(static_cast<uint64_t>(byte_offset_) * 8 +
+                                   bit_offset_);
   if (array_index == 0) {
     return;
   }
@@ -742,7 +743,16 @@ void Cn4Block::NumericBitLayout(uint64_t array_index, uint32_t& bit_count,
 
 bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
                             std::string &dest) const {
-  auto offset = ByteOffset();
+  return GetTextValue(record_buffer, dest, 0);
+}
+
+bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
+                            std::string &dest, uint64_t array_index) const {
+  uint32_t bit_count = 0;
+  size_t offset = 0;
+  // An array element starts where a numeric element of the same size would.
+  NumericBitLayout(array_index, bit_count, offset);
+  offset /= 8;
   size_t nof_bytes = BitCount() / 8;
 
   if (Type() == ChannelType::VariableLength && VlsdRecordId() > 0) {
@@ -861,7 +871,16 @@ bool Cn4Block::GetTextValue(const std::vector<uint8_t> &record_buffer,
 
 bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
                             std::vector<uint8_t> &dest) const {
-  auto offset = ByteOffset();
+  return GetByteArrayValue(record_buffer, dest, 0);
+}
+
+bool Cn4Block::GetByteArrayValue(const std::vector<uint8_t> &record_buffer,
+                                 std::vector<uint8_t> &dest,
+                                 uint64_t array_index) const {
+  uint32_t bit_count = 0;
+  size_t offset = 0;
+  NumericBitLayout(array_index, bit_count, offset);
+  offset /= 8;
   uint64_t nof_bytes = BitCount() / 8;
   bool valid = true;
 

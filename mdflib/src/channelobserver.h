@@ -68,6 +68,12 @@ class ChannelObserver : public IChannelObserver {
                           std::vector<uint8_t>& value) const override;
 
  public:
+  // The value list holds the array elements of each sample after each other.
+  bool GetSampleByteArray(uint64_t sample, std::vector<uint8_t>& value,
+                          uint64_t array_index) const {
+    return GetSampleByteArray((sample * array_size_) + array_index, value);
+  }
+
   ChannelObserver(const IDataGroup& data_group, const IChannelGroup& group,
                   const IChannel& channel)
       : IChannelObserver(data_group,channel),

@@ -3,6 +3,10 @@
  * SPDX-License-Identifier: MIT
  */
 #include "mdf/ichannelobserver.h"
+
+#include <typeinfo>
+
+#include "channelobserver.h"
 #include "mdf/idatagroup.h"
 #include "mdf/ichannelgroup.h"
 
@@ -173,14 +177,20 @@ bool IChannelObserver::GetChannelValue(uint64_t sample, std::string& value, uint
 
 template <>
 bool IChannelObserver::GetChannelValue(uint64_t sample,
-                                       std::vector<uint8_t>& value, uint64_t) const {
+                                       std::vector<uint8_t>& value,
+                                       uint64_t array_index) const {
   bool valid = false;
   value.clear();
   switch (channel_.DataType()) {
     case ChannelDataType::MimeStream:
     case ChannelDataType::MimeSample:
     case ChannelDataType::ByteArray: {
-      valid = GetSampleByteArray(sample, value);
+      // The built-in observer knows where the array elements are stored.
+      using ByteObserver = detail::ChannelObserver<std::vector<uint8_t>>;
+      valid = typeid(*this) == typeid(ByteObserver)
+          ? static_cast<const ByteObserver&>(*this).GetSampleByteArray(
+                sample, value, array_index)
+          : GetSampleByteArray(sample, value);
       break;
     }
 

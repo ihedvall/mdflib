@@ -141,6 +141,12 @@ class Cn4Block : public DataListBlock, public IChannel {
   }
 
   uint64_t WriteSdSample(const std::vector<uint8_t>& buffer) const;
+  /** \brief Text and byte array values of an array element in the record. */
+  bool GetTextValue(const std::vector<uint8_t>& record_buffer,
+                    std::string& dest, uint64_t array_index) const;
+  bool GetByteArrayValue(const std::vector<uint8_t>& record_buffer,
+                         std::vector<uint8_t>& dest,
+                         uint64_t array_index) const;
   [[nodiscard]] IChannelArray *ChannelArray(size_t index) const override;
   [[nodiscard]] std::vector<IChannelArray*> ChannelArrays() const override;
   [[nodiscard]] IChannelArray *CreateChannelArray() override;

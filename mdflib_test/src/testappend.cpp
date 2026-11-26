@@ -254,6 +254,64 @@ TEST_F(TestAppend, Mdf4AppendTest) {
   reader.Close();
 }
 
+TEST_F(TestAppend, Mdf4AppendUnfinalized) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("unfinalized.mf4");
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel();
+    master->Name("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    writer->PreTrigTime(0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    writer->StartMeasurement(0);
+    for (uint64_t sample = 0; sample < 5; ++sample) {
+      writer->SaveSample(*group, sample * 1'000'000'000);
+    }
+    writer->StopMeasurement(5'000'000'000);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+  {
+    // Mark the file as not finalized, like a logger file with the CG and DT
+    // block flagged for an update.
+    std::fstream file(mdf_file, std::ios::in | std::ios::out | std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+    file.write("UnFinMF ", 8);
+    file.seekp(60);
+    file.write("\x05\x00", 2);
+  }
+  const auto read_bytes = [&mdf_file] {
+    std::ifstream file(mdf_file, std::ios::binary);
+    return std::string(std::istreambuf_iterator<char>(file), {});
+  };
+  const std::string before = read_bytes();
+  auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+  ASSERT_TRUE(writer->Init(mdf_file.string()));
+  auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+  auto* master = group->CreateChannel();
+  master->Name("Time");
+  master->Type(ChannelType::Master);
+  master->Sync(ChannelSyncType::Time);
+  master->DataType(ChannelDataType::FloatLe);
+  master->DataBytes(8);
+  EXPECT_FALSE(writer->InitMeasurement());
+  // A caller that goes on anyway shall not change the file.
+  writer->StartMeasurement(0);
+  writer->SaveSample(*group, 0);
+  writer->StopMeasurement(1);
+  EXPECT_FALSE(writer->FinalizeMeasurement());
+  writer.reset();
+  EXPECT_EQ(read_bytes(), before);
+}
+
 TEST_F(TestAppend, Mdf4AppendStartTimeZero) {
   if (kSkipTest) {
     GTEST_SKIP();

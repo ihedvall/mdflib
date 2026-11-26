@@ -250,6 +250,13 @@ bool MdfWriter::InitMeasurement() {
     MDF_ERROR() << "The MDF file is not created. Invalid use of the function.";
     return false;
   }
+  // Init() finalizes an unfinalized file only in memory, and the next read
+  // only finalizes the last DG, so a new DG would hide the old samples.
+  if (mdf_file_->IsFinalizedDone()) {
+    MDF_ERROR() << "The file is not finalized. Finalize the file before "
+                   "appending to it. File: " << Filename();
+    return false;
+  }
 
   // Set up internal sample buffers so the last channel values can be stored
   const bool prep = PrepareForWriting();
@@ -340,6 +347,13 @@ bool MdfWriter::FinalizeMeasurement() {
   // sample counters which changes during DG/DT updates
   if (!mdf_file_) {
     MDF_ERROR() << "The MDF file is not created. Invalid use of the function.";
+    return false;
+  }
+  // Same as in InitMeasurement() for a new DG, a file history alone is fine.
+  if (mdf_file_->IsFinalizedDone() && Header()->LastDataGroup() != nullptr &&
+      Header()->LastDataGroup()->Index() <= 0) {
+    MDF_ERROR() << "The file is not finalized. Finalize the file before "
+                   "appending to it. File: " << Filename();
     return false;
   }
 

@@ -708,6 +708,81 @@ TEST_F(TestRead, TruncatedVlsdLength) {
   EXPECT_EQ(frames->NofSamples(), 9);
 }
 
+TEST_F(TestRead, MissingVlsdRecord) {
+  const path mdf_file = temp_directory_path() / "missing_vlsd_record.mf4";
+  std::error_code err;
+  std::filesystem::remove(mdf_file, err);
+  size_t id_size = 0;
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::MdfBusLogger);
+    ASSERT_TRUE(writer && writer->Init(mdf_file.string()));
+    writer->BusType(MdfBusType::CAN);
+    writer->StorageType(MdfStorageType::VlsdStorage);
+    writer->MaxLength(8);
+    writer->MandatoryMembersOnly(true);
+    ASSERT_TRUE(writer->CreateBusLogConfiguration());
+    writer->PreTrigTime(0);
+    writer->CompressData(false);
+    id_size = writer->Header()->LastDataGroup()->RecordIdSize();
+    auto* frames = writer->Header()->LastDataGroup()->GetChannelGroup("CAN_DataFrame");
+    ASSERT_TRUE(frames != nullptr);
+    ASSERT_TRUE(writer->InitMeasurement());
+    uint64_t time = MdfHelper::NowNs();
+    writer->StartMeasurement(time);
+    for (size_t sample = 0; sample < 10; ++sample) {
+      CanMessage msg;
+      msg.MessageId(123);
+      msg.DataBytes(std::vector<uint8_t>(8, static_cast<uint8_t>(0xA0 + sample)));
+      writer->SaveCanMessage(*frames, time, msg);
+      time += 1'000'000;
+    }
+    writer->StopMeasurement(time);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+  std::string bytes;
+  {
+    std::ifstream file(mdf_file, std::ios::binary);
+    bytes.assign(std::istreambuf_iterator<char>(file), {});
+  }
+  // Make it look like an unfinalized logger file that ends with the frame
+  // record of the last frame but without its VLSD record, as CANedge files
+  // may end. Then update the CG counters, the VLSD sizes and the DT length.
+  for (auto cg = bytes.find("##CG"); cg != std::string::npos;
+       cg = bytes.find("##CG", cg + 4)) {
+    uint64_t links = 0;
+    std::memcpy(&links, bytes.data() + cg + 16, sizeof(links));
+    const auto data = cg + 24 + 8 * links;
+    std::memset(bytes.data() + data + 8, 0, 8);
+    if ((bytes[data + 16] & CgFlag::VlsdChannel) != 0) {
+      std::memset(bytes.data() + data + 24, 0, 8);
+    }
+  }
+  bytes.replace(0, 8, "UnFinMF ");
+  bytes.replace(60, 2, std::string("\x25\x00", 2));
+  const auto last = bytes.rfind(std::string("\x08\x00\x00\x00", 4) + std::string(8, '\xA9'));
+  ASSERT_NE(last, std::string::npos);
+  bytes.erase(last - id_size, id_size + 12);
+  {
+    std::ofstream file(mdf_file, std::ios::binary | std::ios::trunc);
+    file.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetDataGroup(0);
+  const auto* frames = data_group->GetChannelGroup("CAN_DataFrame");
+  ASSERT_TRUE(frames != nullptr);
+  ASSERT_EQ(frames->NofSamples(), 10);
+  auto observer = CreateChannelObserver(*data_group, *frames,
+      *frames->GetChannel("CAN_DataFrame.DataBytes"));
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  std::vector<uint8_t> data_bytes;
+  EXPECT_TRUE(observer->GetEngValue(8, data_bytes));
+  EXPECT_EQ(data_bytes, std::vector<uint8_t>(8, 0xA8));
+  EXPECT_FALSE(observer->GetEngValue(9, data_bytes));
+  EXPECT_TRUE(data_bytes.empty());
+}
+
 TEST_F(TestRead, TruncatedMdf3) {
   const path mdf_file = temp_directory_path() / "truncated_mdf3.mdf";
   std::error_code err;

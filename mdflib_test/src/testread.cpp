@@ -643,6 +643,57 @@ TEST_F(TestRead, TruncatedNotFinalized) {
   EXPECT_EQ(group->NofSamples(), 100);  // The cut record counts in full.
 }
 
+TEST_F(TestRead, MdfIdentifierWithUnfinalizedFlags) {
+  const path mdf_file = temp_directory_path() / "mdf_unfinalized_flags.mf4";
+  std::error_code err;
+  std::filesystem::remove(mdf_file, err);
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer && writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel();
+    master->Name("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    writer->CompressData(false);
+    ASSERT_TRUE(writer->InitMeasurement());
+    uint64_t time = MdfHelper::NowNs();
+    writer->StartMeasurement(time);
+    for (size_t sample = 0; sample < 10; ++sample) {
+      writer->SaveSample(*group, time);
+      time += 1'000'000;
+    }
+    writer->StopMeasurement(time);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+  const auto nof_samples = [&mdf_file] {
+    MdfReader reader(mdf_file.string());
+    EXPECT_TRUE(reader.ReadEverythingButData());
+    return reader.GetDataGroup(0)->ChannelGroups()[0]->NofSamples();
+  };
+  std::fstream file(mdf_file, std::ios::in | std::ios::out | std::ios::binary);
+  const std::string bytes((std::istreambuf_iterator<char>(file)), {});
+  // The identifier stays "MDF", but the CG and DT block are flagged for an
+  // update. Finalizing keeps the right cycle count.
+  file.seekp(60);
+  file.write("\x05\x00", 2);
+  file.flush();
+  EXPECT_EQ(nof_samples(), 10);
+
+  // Finalizing restores a missing cycle count.
+  const auto cg = bytes.find("##CG");
+  ASSERT_NE(cg, std::string::npos);
+  uint64_t links = 0;
+  std::memcpy(&links, bytes.data() + cg + 16, sizeof(links));
+  const uint64_t no_samples = 0;
+  file.seekp(static_cast<std::streamoff>(cg + 24 + 8 * links + 8));
+  file.write(reinterpret_cast<const char*>(&no_samples), sizeof(no_samples));
+  file.flush();
+  EXPECT_EQ(nof_samples(), 10);
+}
+
 TEST_F(TestRead, TruncatedVlsdLength) {
   const path mdf_file = temp_directory_path() / "truncated_vlsd_length.mf4";
   std::error_code err;

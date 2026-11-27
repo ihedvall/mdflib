@@ -1040,6 +1040,59 @@ TEST_F(TestRead, SignedVirtualMaster) {
   EXPECT_DOUBLE_EQ(time, 0.299);
 }
 
+TEST_F(TestRead, OnlyVirtualChannels) {
+  // A group with only virtual channels has records without bytes.
+  const path mdf_file = temp_directory_path() / "only_virtual_channels.mf4";
+  std::error_code err;
+  std::filesystem::remove(mdf_file, err);
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer && writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel();
+    master->Name("Time");
+    master->Type(ChannelType::VirtualMaster);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::UnsignedIntegerLe);
+    auto* conversion = master->CreateChannelConversion();
+    conversion->Type(ConversionType::Linear);
+    conversion->Parameter(0, 0.0);
+    conversion->Parameter(1, 0.5);
+    auto* index = group->CreateChannel();
+    index->Name("Index");
+    index->Type(ChannelType::VirtualData);
+    index->DataType(ChannelDataType::UnsignedIntegerLe);
+    writer->CompressData(false);
+    writer->PreTrigTime(0);
+    ASSERT_TRUE(writer->InitMeasurement());
+    uint64_t time = MdfHelper::NowNs();
+    writer->StartMeasurement(time);
+    for (size_t sample = 0; sample < 4; ++sample) {
+      writer->SaveSample(*group, time);
+      time += 500'000'000;
+    }
+    writer->StopMeasurement(time);
+    ASSERT_TRUE(writer->FinalizeMeasurement());
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetDataGroup(0);
+  const auto* group = data_group->ChannelGroups()[0];
+  ASSERT_EQ(group->NofSamples(), 4);
+  auto time = CreateChannelObserver(*data_group, *group,
+                                    *group->GetChannel("Time"));
+  auto index = CreateChannelObserver(*data_group, *group,
+                                     *group->GetChannel("Index"));
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  double value = 0.0;
+  EXPECT_TRUE(time->GetEngValue(3, value));
+  EXPECT_DOUBLE_EQ(value, 1.5);
+  uint64_t sample = 0;
+  EXPECT_TRUE(index->GetChannelValue(3, sample));
+  EXPECT_EQ(sample, 3);
+}
+
 TEST_F(TestRead, TestReadData) {
   if (kMdfList.empty()) {
     GTEST_SKIP_("No MDF files.");

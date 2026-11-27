@@ -57,7 +57,7 @@ TEST(FileReadBuffer, SameAsFileBuffer) {
   // The same random steps on a std::filebuf and on the buffer. Most steps stay
   // near the last position, so the kept pages answer, are dropped and are read
   // again. Small reads go through the pages, large ones past them.
-  for (const int64_t size : {0, 1, 4095, 4096, 4097, 100'000}) {
+  for (const int64_t size : {0, 1, 4095, 4096, 4097, 100'000, 5'000'000}) {
     const std::string filename = MakeTestFile("filereadbuffer_same.bin", size);
     std::filebuf plain;
     FileReadBuffer buffer;

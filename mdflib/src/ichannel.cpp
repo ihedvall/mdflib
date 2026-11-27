@@ -662,7 +662,11 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::StringUTF8:
     case ChannelDataType::StringAscii: {
       std::string text;
-      valid = GetTextValue(record_buffer, text);
+      // Only MDF 4 channels have channel arrays.
+      valid = typeid(*this) == typeid(detail::Cn4Block)
+          ? static_cast<const detail::Cn4Block&>(*this).GetTextValue(
+                record_buffer, text, array_index)
+          : GetTextValue(record_buffer, text);
       dest.resize(text.size());
       memcpy(dest.data(), text.data(), text.size());
       break;
@@ -671,7 +675,10 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::MimeStream:
     case ChannelDataType::MimeSample:
     case ChannelDataType::ByteArray: {
-      valid = GetByteArrayValue(record_buffer, dest);
+      valid = typeid(*this) == typeid(detail::Cn4Block)
+          ? static_cast<const detail::Cn4Block&>(*this).GetByteArrayValue(
+                record_buffer, dest, array_index)
+          : GetByteArrayValue(record_buffer, dest);
       break;
     }
 
@@ -736,7 +743,11 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
     case ChannelDataType::StringUTF16Be:
     case ChannelDataType::StringUTF8:
     case ChannelDataType::StringAscii: {
-      valid = GetTextValue(record_buffer, dest);
+      // Only MDF 4 channels have channel arrays.
+      valid = typeid(*this) == typeid(detail::Cn4Block)
+          ? static_cast<const detail::Cn4Block&>(*this).GetTextValue(
+                record_buffer, dest, array_index)
+          : GetTextValue(record_buffer, dest);
       break;
     }
 
@@ -750,7 +761,10 @@ bool IChannel::GetChannelValue(const std::vector<uint8_t> &record_buffer,
         dest = std::to_string(offset);
       } else {
         std::vector<uint8_t> list;
-        valid = GetByteArrayValue(record_buffer, list);
+        valid = typeid(*this) == typeid(detail::Cn4Block)
+            ? static_cast<const detail::Cn4Block&>(*this).GetByteArrayValue(
+                  record_buffer, list, array_index)
+            : GetByteArrayValue(record_buffer, list);
         std::ostringstream s;
         for (const auto byte : list) {
           s << std::setfill('0') << std::setw(2) << std::hex << std::uppercase

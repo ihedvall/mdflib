@@ -515,6 +515,73 @@ TEST_F(TestChannelArray, TestArrayInsertAndRead) {
   }
 }
 
+TEST_F(TestChannelArray, TextAndByteArrays) {
+  if (kSkipTest) {
+    GTEST_SKIP();
+  }
+  path mdf_file(kTestDir);
+  mdf_file.append("text_and_byte_arrays.mf4");
+  remove(mdf_file);  // The writer appends to an existing file
+  {
+    auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
+    ASSERT_TRUE(writer->Init(mdf_file.string()));
+    auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
+    auto* master = group->CreateChannel("Time");
+    master->Type(ChannelType::Master);
+    master->Sync(ChannelSyncType::Time);
+    master->DataType(ChannelDataType::FloatLe);
+    master->DataBytes(8);
+    // The element bytes are written as little endian numbers and read back
+    // as text and byte arrays.
+    auto* labels = group->CreateChannel("Labels");
+    labels->Type(ChannelType::FixedLength);
+    labels->DataType(ChannelDataType::UnsignedIntegerLe);
+    labels->DataBytes(4);
+    labels->CreateChannelArray()->Shape({2});
+    auto* blobs = group->CreateChannel("Blobs");
+    blobs->Type(ChannelType::FixedLength);
+    blobs->DataType(ChannelDataType::UnsignedIntegerLe);
+    blobs->DataBytes(2);
+    blobs->CreateChannelArray()->Shape({2});
+    writer->InitMeasurement();
+    const auto start = TimeStampToNs();
+    writer->StartMeasurement(start);
+    labels->SetChannelValues(std::vector<uint64_t>{0x636261, 0x666564});
+    blobs->SetChannelValues(std::vector<uint64_t>{0x0201, 0x0403});
+    writer->SaveSample(*group, start);
+    labels->SetChannelValues(std::vector<uint64_t>{0x696867, 0x6C6B6A});
+    blobs->SetChannelValues(std::vector<uint64_t>{0x0605, 0x0807});
+    writer->SaveSample(*group, start + 1);
+    writer->StopMeasurement(start + 1);
+    writer->FinalizeMeasurement();
+  }
+
+  MdfReader reader(mdf_file.string());
+  ASSERT_TRUE(reader.ReadEverythingButData());
+  auto* data_group = reader.GetFile()->Header()->LastDataGroup();
+  ASSERT_TRUE(data_group != nullptr);
+  auto* channel_group = data_group->ChannelGroups()[0];
+  channel_group->GetChannel("Labels")->DataType(ChannelDataType::StringAscii);
+  channel_group->GetChannel("Blobs")->DataType(ChannelDataType::ByteArray);
+  auto labels = CreateChannelObserver(*data_group, "Labels");
+  auto blobs = CreateChannelObserver(*data_group, "Blobs");
+  ASSERT_TRUE(labels && blobs);
+  ASSERT_TRUE(reader.ReadData(*data_group));
+  const std::vector<std::string> texts = {"abc", "def", "ghi", "jkl"};
+  const std::vector<std::vector<uint8_t>> arrays = {{1, 2}, {3, 4},
+                                                    {5, 6}, {7, 8}};
+  for (uint64_t sample = 0; sample < 2; ++sample) {
+    for (uint64_t index = 0; index < 2; ++index) {
+      std::string text;
+      EXPECT_TRUE(labels->GetChannelValue(sample, text, index));
+      EXPECT_EQ(text, texts[sample * 2 + index]);
+      std::vector<uint8_t> bytes;
+      EXPECT_TRUE(blobs->GetChannelValue(sample, bytes, index));
+      EXPECT_EQ(bytes, arrays[sample * 2 + index]);
+    }
+  }
+}
+
 TEST_F(TestChannelArray, InverseLayout) {
   if (kSkipTest) {
     GTEST_SKIP();

@@ -650,6 +650,7 @@ TEST_F(TestRead, MdfIdentifierWithUnfinalizedFlags) {
   {
     auto writer = MdfFactory::CreateMdfWriter(MdfWriterType::Mdf4Basic);
     ASSERT_TRUE(writer && writer->Init(mdf_file.string()));
+    writer->GetFile()->MinorVersion(10);  // The flags count in any version.
     auto* group = writer->Header()->CreateDataGroup()->CreateChannelGroup();
     auto* master = group->CreateChannel();
     master->Name("Time");

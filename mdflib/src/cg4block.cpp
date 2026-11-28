@@ -401,18 +401,13 @@ ISourceInformation *Cg4Block::SourceInformation() const {
 }
 
 void Cg4Block::UpdateCycleCounter(uint64_t nof_samples) {
-  nof_samples_ += nof_samples;
+  nof_samples_ = nof_samples;
 }
 
 void Cg4Block::UpdateVlsdSize(uint64_t nof_data_bytes) {
   if (Flags() & CgFlag::VlsdChannel) {
-    uint64_t vlsd_size = nof_invalid_bytes_;
-    vlsd_size <<= 32;
-    vlsd_size += nof_data_bytes_;
-
-    vlsd_size += nof_data_bytes;
-    nof_data_bytes_ = static_cast<uint32_t>(vlsd_size & 0xFFFFFFFF);
-    nof_invalid_bytes_ = static_cast<uint32_t>(vlsd_size >> 32);
+    nof_data_bytes_ = static_cast<uint32_t>(nof_data_bytes & 0xFFFFFFFF);
+    nof_invalid_bytes_ = static_cast<uint32_t>(nof_data_bytes >> 32);
   }
 }
 

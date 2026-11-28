@@ -198,6 +198,11 @@ bool IdBlock::IsFinalized(uint16_t &standard_flags,
                           uint16_t &custom_flags) const {
   standard_flags = standard_flags_;
   custom_flags = custom_flags_;
+  // The flags that FinalizeFile() handles (CG, DT and VLSD bytes) also mark
+  // a file with the identifier "MDF" as unfinalized.
+  if ((standard_flags_ & 0x25) != 0) {
+    return false;
+  }
   return !(!file_identifier_.empty() && file_identifier_[0] == 'U');
 }
 

@@ -809,7 +809,7 @@ bool Dg4Block::FinalizeCgAndVlsdBlocks(std::streambuf& buffer, bool update_cg,
       // and the CG block only includes one signal
       uint32_t length = 0;
       try {
-        count_bytes += ReadNumber(buffer, length);
+        count += ReadNumber(buffer, length);  // The VLSD size excludes the length.
       } catch (const std::ios_base::failure&) {
         break;  // The file ends inside the length. The record is not counted.
       }

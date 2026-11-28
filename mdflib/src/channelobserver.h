@@ -186,7 +186,11 @@ class ChannelObserver : public IChannelObserver {
               offset_list_[sample_index] = offset;
             }
             if (sample_index < valid_list_.size()) {
-              valid_list_[sample_index] = valid;
+              // The VLSD CG record of this sample may come before or after
+              // this record. Without it, the value stays invalid.
+              valid_list_[sample_index] = valid &&
+                  (!ReadVlsdData() || channel_.VlsdRecordId() == 0 ||
+                   valid_list_[sample_index]);
             }
             if (ReadVlsdData() && channel_.VlsdRecordId() == 0) {
               // Value should be in the channels data list (SD). The channels
